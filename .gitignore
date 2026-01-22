@@ -14,6 +14,8 @@ frontend/dist/
 .env.*.local
 frontend/.env
 frontend/.env.local
+backend/.env
+backend/.env.*
 
 # 操作系统文件
 .DS_Store
