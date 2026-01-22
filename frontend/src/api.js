@@ -1,15 +1,17 @@
 // ✅ client/src/api.js
 import axios from "axios";
+import { import.meta.env } from "vite";
 
 /* =========================================================
-   🌍 固定同源 API 前缀
+   🌍 API 前缀（支持环境变量）
    ========================================================= */
-const API_URL = "/api";
+const API_URL = import.meta.env.VITE_API_BASE || "/api";
 
 // 添加网络连接检测函数
 export const checkConnection = async () => {
   try {
-    const response = await fetch(`/api/health`);
+    const baseUrl = import.meta.env.VITE_API_BASE || "";
+    const response = await fetch(`${baseUrl}/api/health`);
     return response.ok;
   } catch (error) {
     console.error('Network connectivity check failed:', error);
