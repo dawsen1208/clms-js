@@ -1,0 +1,18 @@
+ .home-page .ant-card-head {
+  border-bottom: none;
+}
+
+.welcome-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  background: #fff;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.overview-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  background: #fafafa;
+  padding: 1.5rem 2rem;
+}

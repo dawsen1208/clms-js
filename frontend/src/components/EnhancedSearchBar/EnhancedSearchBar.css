@@ -1,0 +1,170 @@
+/* Enhanced search bar styles */
+.enhanced-search-bar {
+  margin-bottom: 24px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-controls {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.search-autocomplete {
+  flex: 1;
+  min-width: 300px;
+}
+
+/* Fix input field styling to prevent text/icon overlap */
+.search-autocomplete .ant-input-affix-wrapper {
+  padding-left: 40px;
+  padding-right: 12px;
+  position: relative;
+}
+
+.search-autocomplete .ant-input-prefix {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 0;
+  color: #8c8c8c;
+  z-index: 1;
+}
+
+.search-autocomplete .ant-input {
+  padding-left: 0; /* Remove default padding since parent handles it */
+  background: transparent;
+}
+
+.search-type-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.type-button {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 60px;
+}
+
+.type-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.type-button.active {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.search-stats {
+  text-align: center;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+/* 搜索建议项样式 */
+.search-suggestion-item {
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.search-suggestion-item:hover {
+  background-color: #f5f7fa;
+}
+
+.suggestion-title {
+  font-weight: 600;
+  color: #262626;
+  margin-bottom: 4px;
+}
+
+.suggestion-meta {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.suggestion-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* 高亮匹配文本 */
+.highlight {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* 错误状态 */
+.error-state {
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.error-message {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.quick-category-tags {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick-cat-tag {
+  cursor: pointer;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .search-controls {
+    flex-direction: column;
+  }
+  
+  .search-autocomplete {
+    min-width: auto;
+  }
+  
+  .search-type-selector {
+    justify-content: center;
+  }
+}
+
+/* 暗色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .enhanced-search-bar {
+    background: #1f1f1f;
+    border: 1px solid #303030;
+  }
+  
+  .search-stats {
+    background: #141414;
+  }
+  
+  .search-suggestion-item:hover {
+    background-color: #141414;
+  }
+  
+  .suggestion-title {
+    color: #ffffff;
+  }
+}

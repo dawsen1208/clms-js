@@ -1,0 +1,48 @@
+.register-admin-page {
+  display: flex;
+  flex-wrap: wrap;
+  height: 100vh;
+  background: linear-gradient(135deg, #0F60D8, #3B82F6);
+  align-items: center;
+  justify-content: center;
+  font-family: 'Segoe UI', 'Inter', sans-serif;
+}
+
+.register-card {
+  width: 420px;
+  max-width: 90vw;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  background-color: #fff;
+  text-align: center;
+  margin: 1rem;
+  min-height: 560px;
+  display: flex;
+  flex-direction: column;
+}
+
+.register-card .ant-card-head {
+  min-height: 64px;
+  padding: 0 24px;
+}
+
+.register-card .ant-card-body {
+  flex: 1;
+  padding: 24px;
+}
+
+.register-illustration.admin {
+  width: 40%;
+  min-width: 320px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(30,58,138,0.2), rgba(59,130,246,0.2));
+}
+
+.register-logo {
+  width: 40%;
+  max-width: 280px;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));
+}

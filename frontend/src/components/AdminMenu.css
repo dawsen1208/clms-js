@@ -1,0 +1,197 @@
+/* Netflix-style App-like Sidebar */
+.app-sidebar {
+  background: #001528 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px) !important;
+}
+
+.app-like-menu {
+  padding: 8px 0 !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+.app-like-menu .ant-menu-item {
+  height: 48px !important;
+  line-height: 48px !important;
+  margin: 4px 12px !important;
+  padding: 0 16px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.app-like-menu .ant-menu-item::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 3px !important;
+  height: 0 !important;
+  background: #1677FF !important;
+  border-radius: 0 2px 2px 0 !important;
+  transition: height 0.3s ease !important;
+}
+
+.app-like-menu .ant-menu-item:hover {
+  background: rgba(91, 142, 243, 0.12) !important;
+  color: #1677FF !important;
+  transform: translateX(4px) !important;
+}
+
+.app-like-menu .ant-menu-item:hover::before {
+  height: 60% !important;
+}
+
+.app-like-menu .ant-menu-item-selected {
+  background: rgba(91, 142, 243, 0.18) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  transform: translateX(4px) !important;
+}
+
+.app-like-menu .ant-menu-item-selected::before {
+  height: 80% !important;
+}
+
+.app-like-menu .ant-menu-item-selected .ant-menu-item-icon {
+  color: #1677FF !important;
+  filter: drop-shadow(0 0 4px rgba(22, 119, 255, 0.5)) !important;
+}
+
+.app-like-menu .ant-menu-item-icon {
+  font-size: 18px !important;
+  min-width: 18px !important;
+  transition: all 0.3s ease !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.app-like-menu .ant-menu-item:hover .ant-menu-item-icon {
+  color: #3B82F6 !important;
+  transform: scale(1.1) !important;
+}
+
+.app-like-menu .ant-menu-title-content {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.app-like-menu .ant-menu-item:hover .ant-menu-title-content {
+  color: #3B82F6 !important;
+}
+
+.app-like-menu .ant-menu-item-selected .ant-menu-title-content {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* Logo/Header section */
+.sidebar-header {
+  padding: 16px 20px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: linear-gradient(135deg, #1E3A8A, #3B82F6) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.sidebar-logo {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  color: white !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  transition: all 0.3s ease !important;
+}
+
+.sidebar-logo:hover {
+  transform: scale(1.02) !important;
+}
+
+.sidebar-logo-icon {
+  font-size: 24px !important;
+  background: linear-gradient(135deg, #1E3A8A, #3B82F6) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  filter: drop-shadow(0 0 4px rgba(30, 58, 138, 0.5)) !important;
+}
+
+/* Collapse button enhancement */
+.sidebar-collapse-btn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.sidebar-collapse-btn:hover {
+  background: rgba(30, 58, 138, 0.2) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  color: #3B82F6 !important;
+  transform: scale(1.05) !important;
+}
+
+/* Logout section */
+.logout-menu {
+  background: transparent !important;
+  border: none !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  padding-top: 8px !important;
+}
+
+.logout-menu .ant-menu-item {
+  margin: 4px 12px !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+.logout-menu .ant-menu-item:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #ef4444 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-sidebar {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5) !important;
+  }
+  
+  .app-like-menu .ant-menu-item {
+    margin: 2px 8px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+  }
+}
+
+/* Animation for menu items */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.app-like-menu .ant-menu-item {
+  animation: slideIn 0.3s ease forwards;
+}
+
+.app-like-menu .ant-menu-item:nth-child(1) { animation-delay: 0.1s; }
+.app-like-menu .ant-menu-item:nth-child(2) { animation-delay: 0.15s; }
+.app-like-menu .ant-menu-item:nth-child(3) { animation-delay: 0.2s; }
+.app-like-menu .ant-menu-item:nth-child(4) { animation-delay: 0.25s; }
+.app-like-menu .ant-menu-item:nth-child(5) { animation-delay: 0.3s; }
+.app-like-menu .ant-menu-item:nth-child(6) { animation-delay: 0.35s; }

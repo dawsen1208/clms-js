@@ -1,0 +1,17 @@
+ .notif-list {
+  padding-right: 4px;
+}
+
+.notif-item {
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.notif-item:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.notif-item.pending {
+  border: 1px solid rgba(250,173,20,0.2);
+}

@@ -1,0 +1,106 @@
+/* Global responsive adjustments */
+html, body {
+  width: 100%;
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  font-family: 'Segoe UI', 'Inter', sans-serif;
+}
+
+img, svg, video {
+  max-width: 100%;
+  height: auto;
+}
+
+p, li, .ant-typography, .ant-card-head-title {
+  overflow-wrap: anywhere;
+}
+
+/* Ensure Card headers can wrap to multiple lines without clipping */
+.ant-card-head-title {
+  white-space: normal !important;
+  word-break: break-word;
+  line-height: 1.5;
+}
+.ant-card-head {
+  align-items: flex-start;
+}
+
+/* Improve List item readability */
+.ant-list-item-meta-title,
+.ant-list-item-meta-description {
+  white-space: normal;
+  line-height: 1.6;
+}
+.ant-list-item {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* Mobile specific tweaks */
+@media (max-width: 768px) {
+  .ant-layout-content {
+    padding: 1rem !important;
+  }
+
+  .ant-card-body {
+    padding: 14px !important;
+  }
+
+  .ant-list-item {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ant-typography, p, li {
+    line-height: 1.6 !important;
+    font-size: 15px;
+  }
+
+  /* Make tables scroll horizontally on narrow screens */
+  .ant-table-container {
+    overflow-x: auto;
+  }
+}
+/* Design system typography */
+h1, .ds-title-1 { font-size: 28px; font-weight: 700; }
+h2, .ds-title-2 { font-size: 22px; font-weight: 600; }
+h3, .ds-title-3 { font-size: 18px; font-weight: 600; }
+body, p, .ds-body { font-size: 14px; }
+
+/* Global buttons */
+.ant-btn-primary {
+  background: #1677FF !important;
+  border-color: #1677FF !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+.ant-btn-primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
+
+.ant-btn-default {
+  background: #FFFFFF !important;
+  border-color: #1677FF !important;
+  color: #1677FF !important;
+  border-radius: 8px !important;
+}
+.ant-btn-default:hover { background: #F5F7FA !important; }
+
+.ant-btn-dangerous { background: #FF4D4F !important; border-color: #FF4D4F !important; }
+
+/* Cards */
+.ant-card { border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; }
+.ant-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.12) !important; }
+
+/* Page container */
+.page-container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+.page-section { margin-bottom: 32px; }
+
+/* Status badges */
+.ant-badge-status-success { background-color: #52C41A !important; }
+.ant-badge-status-warning { background-color: #FAAD14 !important; }
+.ant-badge-status-error { background-color: #FF4D4F !important; }
+ 

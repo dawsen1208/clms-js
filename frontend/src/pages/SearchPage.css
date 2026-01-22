@@ -1,0 +1,88 @@
+/* 搜索页面样式优化 */
+.search-page .ant-card-head {
+  border-bottom: none;
+}
+
+.page-header {
+  display: grid;
+  gap: 6px;
+}
+
+.stats-grid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+/* 网格视图样式 */
+.books-grid-view {
+  padding: 24px 0;
+}
+
+.category-section {
+  margin-bottom: 48px;
+}
+
+.category-header {
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.category-header h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1890ff !important;
+  font-weight: 600 !important;
+}
+
+/* 列表视图样式 */
+.books-list-view {
+  background: transparent;
+  border: none;
+}
+
+.books-list-view .ant-collapse-header {
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.books-list-view .ant-collapse-content {
+  background: transparent;
+  border: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .books-grid-view {
+    padding: 16px 0;
+  }
+  
+  .category-section {
+    margin-bottom: 32px;
+  }
+  
+  .category-header {
+    margin-bottom: 16px;
+  }
+}
+
+/* 暗色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .category-header {
+    border-bottom-color: #303030;
+  }
+  
+  .books-list-view .ant-collapse-header {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+}

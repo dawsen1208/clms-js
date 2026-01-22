@@ -1,0 +1,23 @@
+ .dash-card .ant-card-head {
+  border-bottom: none;
+}
+
+.dash-header {
+  display: grid;
+  gap: 6px;
+}
+
+.metric-card .ant-statistic-title {
+  color: #666;
+}
+
+.section-card .announcement-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.quick-links button {
+  border-radius: 8px;
+}

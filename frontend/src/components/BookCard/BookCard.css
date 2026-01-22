@@ -1,0 +1,168 @@
+/* 现代化的书籍卡片样式 - 无图片版本 */
+.book-card-container {
+  height: 100%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.book-card {
+  height: 100%;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #f0f0f0;
+  background: white;
+}
+
+.book-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border-color: #e6f7ff;
+}
+
+.book-info {
+  padding: 20px;
+  background: white;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-card .ant-card-body {
+  flex: 1;
+}
+
+.book-title {
+  margin-bottom: 16px !important;
+  color: #262626;
+  font-weight: 600;
+  line-height: 1.4;
+  font-size: 16px;
+}
+
+.book-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.book-category {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.book-year {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.book-copies {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.book-description {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+  flex-grow: 1;
+}
+
+.book-borrow-info {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #F5F7FA;
+  border-radius: 8px;
+}
+
+/* 操作按钮区域 */
+.ant-card-actions {
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+  border-radius: 0 0 12px 12px;
+}
+
+.ant-card-actions li {
+  margin: 0 !important;
+  padding: 8px 0 !important;
+}
+
+/* Borrow button specific styling */
+.borrow-button-container {
+  position: relative;
+  z-index: 10;
+}
+
+.borrow-button-container button {
+  position: relative;
+  z-index: 11;
+}
+
+/* Borrowed state: white button with blue border/text, keep visible even when disabled */
+.borrow-btn.borrowed {
+  background: #ffffff !important;
+  color: #1677FF !important;
+  border: 1px solid #1677FF !important;
+}
+.borrow-btn.borrowed[disabled] {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Prevent card click when clicking buttons */
+.book-card .ant-card-actions {
+  position: relative;
+  z-index: 5;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .book-info {
+    padding: 16px;
+  }
+  
+  .book-title {
+    font-size: 14px;
+    margin-bottom: 12px !important;
+  }
+  
+  .book-card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* 暗色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .book-card {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  
+  .book-info {
+    background: #1f1f1f;
+  }
+  
+  .book-title {
+    color: #ffffff;
+  }
+}
+
+/* 加载动画 */
+.book-card-container.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.book-card-container.loading .book-card {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}

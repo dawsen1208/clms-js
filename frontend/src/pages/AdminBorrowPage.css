@@ -1,0 +1,111 @@
+ .page-header {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.stats-grid {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+}
+
+.row-pending td {
+  background: #fffbe6 !important;
+}
+
+.admin-borrow-page .ant-card-head {
+  border-bottom: none;
+}
+
+/* Modern button styling for action buttons */
+.admin-borrow-page .ant-btn-primary[type="button"] {
+  border-radius: 12px !important;
+  background: linear-gradient(90deg, #10b981, #059669) !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+  transition: all 0.3s ease !important;
+  color: white !important;
+}
+
+.admin-borrow-page .ant-btn-primary[type="button"]:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4) !important;
+}
+
+.admin-borrow-page .ant-btn-primary[type="button"]:disabled {
+  background: #d1d5db !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.admin-borrow-page .ant-btn-dangerous {
+  border-radius: 12px !important;
+  background: linear-gradient(90deg, #ef4444, #dc2626) !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3) !important;
+  transition: all 0.3s ease !important;
+  color: white !important;
+}
+
+.admin-borrow-page .ant-btn-dangerous:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+}
+
+.admin-borrow-page .ant-btn-dangerous:disabled {
+  background: #d1d5db !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Modern table styling */
+.admin-borrow-page .ant-table {
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.admin-borrow-page .ant-table-thead > tr > th {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+}
+
+.admin-borrow-page .ant-table-tbody > tr:hover > td {
+  background: #f8fafc !important;
+}
+
+/* Enhanced segmented control */
+.admin-borrow-page .ant-segmented {
+  border-radius: 12px !important;
+  background: #f1f5f9 !important;
+}
+
+.admin-borrow-page .ant-segmented-item {
+  border-radius: 8px !important;
+}
+
+/* Enhanced select dropdown */
+.admin-borrow-page .ant-select-selector {
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+}
+
+.admin-borrow-page .ant-select-selector:hover {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2) !important;
+}
