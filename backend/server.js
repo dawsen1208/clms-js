@@ -150,6 +150,12 @@ app.use(
    🚏 路由注册（只保留 /api/library，彻底统一）
    ========================================================= */
 console.log("🧭 正在注册路由...");
+
+// ✅ 健康检查端点（必须在其他 /api 路由之前）
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 app.use("/api/users", userRoutes);     // 👤 用户路由
 app.use("/api/library", bookRoutes);   // 📚 图书 + 借阅相关
 // 🚫 Deprecated: remove legacy /api/books mount
@@ -162,12 +168,7 @@ app.use("/api/library/requests", borrowRequestRoutes);
 // 兼容旧前端使用的 /api/borrow-requests 前缀
 app.use("/api/borrow-requests", borrowRequestRoutes);
 
-// 添加健康检查端点，用于检测网络连接
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
-});
-
-console.log("✅ 已注册路由前缀: /api/users, /api/library");
+console.log("✅ 已注册路由前缀: /api/users, /api/library, /api/health");
 
 /* =========================================================
    🖼️ 前端静态资源与 SPA 回退（非 /api 请求）

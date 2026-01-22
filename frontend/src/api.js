@@ -1,6 +1,5 @@
 // ✅ client/src/api.js
 import axios from "axios";
-import { import.meta.env } from "vite";
 
 /* =========================================================
    🌍 API 前缀（支持环境变量）
