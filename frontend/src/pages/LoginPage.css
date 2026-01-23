@@ -1,12 +1,30 @@
 .login-page {
   display: flex;
   flex-wrap: wrap;
-  height: 100vh;
+  min-height: 100vh;
+  padding: 2rem;
   background: linear-gradient(135deg, #3B82F6, #7C3AED);
   align-items: center;
   justify-content: center;
   font-family: 'Segoe UI', 'Inter', sans-serif;
-  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    padding: 1rem;
+    flex-direction: column;
+  }
+  
+  .login-illustration {
+    display: none !important;
+  }
+  
+  .login-card {
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: auto;
+  }
 }
 
 .login-card {

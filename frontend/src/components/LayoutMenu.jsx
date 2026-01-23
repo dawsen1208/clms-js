@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import GlobalNotifier from "./GlobalNotifier"; // ✅ 全局用户通知系统
 import "./LayoutMenu.css"; // ✅ New CSS file for consistent styling
 
-const { Sider, Content } = Layout;
+const { Sider, Content, Header } = Layout;
 const { useBreakpoint } = Grid;
 
 /**
@@ -202,42 +202,62 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
         style={{
           marginLeft: isMobile ? 0 : (collapsed ? 80 : 200),
           transition: "margin-left 0.3s ease",
+          minHeight: "100vh",
         }}
       >
-        {/* 🔔 Global user notification system (top-right bell) */}
-        <GlobalNotifier />
-
-        {/* 🔄 Global refresh button (manual refresh for all pages) */}
-        {/* Mobile menu toggle */}
-        {isMobile && (
-          <div style={{ position: "fixed", top: 18, left: 18, zIndex: 2000 }}>
-            <Tooltip title={collapsed ? "打开菜单" : "收起菜单"}>
-              <Button
-                shape="circle"
-                icon={<MenuOutlined style={{ fontSize: 18 }} />}
-                onClick={() => setCollapsed(!collapsed)}
-              />
-            </Tooltip>
-          </div>
-        )}
-
-        <div style={{ position: "fixed", top: 18, right: 80, zIndex: 2000 }}>
-          <Tooltip title="刷新页面">
+        {/* ✅ Top Navigation Bar (Mobile & Desktop) */}
+        <Header
+          style={{
+            padding: "0 16px",
+            background: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            height: 64,
+            position: "sticky",
+            top: 0,
+            zIndex: 100,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {/* Mobile Menu Toggle */}
             <Button
-              shape="circle"
-              icon={<ReloadOutlined style={{ fontSize: 18 }} />}
-              onClick={() => window.location.reload()}
+              type="text"
+              icon={collapsed ? <MenuOutlined /> : <MenuOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{ 
+                fontSize: "18px", 
+                width: 46, 
+                height: 46,
+                display: isMobile ? "flex" : "none", // Only show on mobile here as desktop has sidebar
+                alignItems: "center",
+                justifyContent: "center"
+              }}
             />
-          </Tooltip>
-        </div>
+            
+            {/* Title */}
+            <div style={{ fontSize: "18px", fontWeight: 600, color: "#1e293b", whiteSpace: "nowrap" }}>
+              CLMS Library
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {/* Global Notifier (Bell) */}
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <GlobalNotifier />
+            </div>
+          </div>
+        </Header>
 
         {/* Main content area */}
         <Content
           style={{
-            padding: isMobile ? "1rem" : "2rem",
-            background: "#fff",
-            minHeight: "100vh",
+            padding: isMobile ? "0" : "24px", // Remove padding on mobile to allow full width
+            background: "#f0f2f5",
+            minHeight: "calc(100vh - 64px)",
             transition: "all 0.3s ease",
+            overflowX: "hidden"
           }}
         >
           <div className="page-container">

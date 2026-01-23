@@ -120,6 +120,7 @@ function GlobalNotifier() {
                   ? "rgba(82,196,26,0.1)"
                   : "rgba(255,77,79,0.1)",
             },
+            onClose: () => notification.destroy(),
           })
         );
 
@@ -169,6 +170,7 @@ function GlobalNotifier() {
                 borderRadius: "10px",
                 background: "rgba(24,144,255,0.1)",
               },
+              onClose: () => notification.destroy(),
             })
           );
 
@@ -435,8 +437,8 @@ function GlobalNotifier() {
 
   return (
     <>
-      {/* 🔔 Bell icon (fixed top-right) */}
-      <div style={{ position: "fixed", top: 18, right: 24, zIndex: 2000 }}>
+      {/* 🔔 Bell icon */}
+      <div className="global-notifier-bell" style={{ zIndex: 2000 }}>
         <Tooltip title="System Notifications">
           <Badge count={unreadCount} overflowCount={9}>
             <Button

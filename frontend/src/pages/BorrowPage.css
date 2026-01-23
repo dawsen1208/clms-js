@@ -18,4 +18,39 @@
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  /* 📱 Stack List Items vertically on mobile */
+  .ant-list-item {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 16px;
+  }
+
+  .ant-list-item-meta {
+    width: 100%;
+  }
+
+  .ant-list-item-action {
+    margin-left: 0 !important;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+  
+  .ant-list-item-action > li {
+    padding: 0;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .ant-list-item-action button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,11 +1,30 @@
 .register-reader-page {
   display: flex;
   flex-wrap: wrap;
-  height: 100vh;
+  min-height: 100vh;
+  padding: 2rem;
   background: linear-gradient(135deg, #1E3A8A, #5B8EF3);
   align-items: center;
   justify-content: center;
   font-family: 'Segoe UI', 'Inter', sans-serif;
+}
+
+@media (max-width: 768px) {
+  .register-reader-page {
+    padding: 1rem;
+    flex-direction: column;
+  }
+  
+  .register-illustration {
+    display: none !important;
+  }
+  
+  .register-card {
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    min-height: auto;
+  }
 }
 
 .register-card {

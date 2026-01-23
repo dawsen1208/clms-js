@@ -91,7 +91,7 @@ function RegisterReader() {
   };
 
   return (
-    <div className="register-reader-page" style={{ padding: "2rem", minHeight: "calc(100vh - 64px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div className="register-reader-page">
       {/* ✅ Left: registration form */}
       <Card className="register-card" title="Reader Registration" style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", background: "#fff" }}>
         <p style={{ marginBottom: 20, color: "#555" }}>

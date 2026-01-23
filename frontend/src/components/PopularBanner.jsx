@@ -1,6 +1,6 @@
 // ✅ client/src/components/PopularBanner.jsx
 import { useState, useEffect } from "react";
-import { Card, Button, Modal, message, Spin } from "antd";
+import { Card, Button, Modal, message, Spin, Grid, Tag } from "antd";
 import {
   PlayCircleOutlined,
   PauseCircleOutlined,
@@ -11,6 +11,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getRecommendations, borrowBook, getBookDetail } from "../api"; // ✅ 统一 API 调用
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage, showBorrowSuccessModal } from "../utils/borrowUI";
+
+const { useBreakpoint } = Grid;
 
 function PopularBanner() {
   const [books, setBooks] = useState([]); // ✅ 动态热门书籍数据
@@ -25,6 +27,8 @@ function PopularBanner() {
 
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
   const navigate = useNavigate();
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
 
   /* =========================================================
      📚 获取热门推荐数据（来自后端）
@@ -140,19 +144,8 @@ function PopularBanner() {
   /* =========================================================
      🧱 渲染组件
      ========================================================= */
-  return (
-    <div
-      style={{
-        position: "relative",
-        overflow: "hidden",
-        background: "linear-gradient(90deg, #001529, #00416A)",
-        color: "white",
-        padding: "1.2rem 2rem",
-        borderRadius: "12px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
-        minHeight: "130px",
-      }}
-    >
+  const renderModals = () => (
+    <>
       {/* Controlled Success Modal to guarantee visibility */}
       <Modal
         open={!!successTitle}
@@ -181,6 +174,154 @@ function PopularBanner() {
           You have reached the maximum number of borrowed books for the current period. Please return some books before borrowing new ones.
         </div>
       </Modal>
+
+      {/* ✅ Book detail modal */}
+      <Modal
+        open={visible}
+        title={selectedBook?.title}
+        footer={[
+          <Button key="close" onClick={() => setVisible(false)}>
+            Close
+          </Button>,
+          <Button
+            key="detail"
+            onClick={() => {
+              if (selectedBook) navigate(`/book/${selectedBook._id}`);
+            }}
+          >
+            View Details
+          </Button>,
+          <Button
+            key="borrow"
+            type="primary"
+            icon={<BookOutlined />}
+            onClick={handleBorrow}
+          >
+            Borrow Now
+          </Button>,
+        ]}
+        onCancel={() => setVisible(false)}
+        centered
+      >
+        {selectedBook && (
+          <Card
+            cover={
+              <img
+                src={selectedBook.cover || "https://via.placeholder.com/400x250"}
+                alt={selectedBook.title}
+                style={{ borderRadius: "8px" }}
+              />
+            }
+          >
+            <p>
+              <b>Author:</b> {selectedBook.author || "Unknown Author"}
+            </p>
+            <p>{selectedBook.description || "No description"}</p>
+          </Card>
+        )}
+      </Modal>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <div style={{ marginBottom: "1.5rem" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "8px", color: "#1e293b" }}>
+          <FireOutlined style={{ color: "#ff4d4f" }} /> Popular Today
+        </h2>
+        {/* Horizontal Scroll Container */}
+        <div
+          style={{
+            display: "flex",
+            overflowX: "auto",
+            gap: "12px",
+            paddingBottom: "10px",
+            scrollbarWidth: "none", // Hide scrollbar for cleaner look
+            msOverflowStyle: "none",
+          }}
+          className="mobile-scroll-container"
+        >
+          {loading ? (
+             <div style={{ width: "100%", display: "flex", justifyContent: "center", padding: "20px" }}><Spin /></div>
+          ) : books.length > 0 ? (
+            books.map((book, i) => (
+              <div
+                key={book._id}
+                onClick={() => handleBookClick(book)}
+                style={{
+                  minWidth: "130px",
+                  width: "130px",
+                  background: "#fff",
+                  borderRadius: "12px",
+                  padding: "8px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                  position: "relative",
+                  flexShrink: 0,
+                  cursor: "pointer"
+                }}
+              >
+                {/* Ranking Badge */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "0",
+                    left: "0",
+                    background: i < 3 ? "#ff4d4f" : "#8c8c8c",
+                    color: "#fff",
+                    padding: "2px 8px",
+                    borderRadius: "12px 0 8px 0",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    zIndex: 1,
+                  }}
+                >
+                  #{i + 1}
+                </div>
+                {/* Cover Image */}
+                <div style={{ width: "100%", aspectRatio: "2/3", borderRadius: "8px", overflow: "hidden", marginBottom: "8px", background: "#f0f0f0" }}>
+                   <img 
+                      src={book.cover} 
+                      alt={book.title} 
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src="https://via.placeholder.com/130x190?text=No+Cover";
+                      }} 
+                   />
+                </div>
+                {/* Title */}
+                <div style={{ fontSize: "14px", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#1e293b" }}>
+                  {book.title}
+                </div>
+                <div style={{ fontSize: "12px", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                   {book.author || "Unknown"}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ padding: "1rem", color: "#888" }}>No popular books available</div>
+          )}
+        </div>
+        {renderModals()}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        background: "linear-gradient(90deg, #001529, #00416A)",
+        color: "white",
+        padding: "1.2rem 2rem",
+        borderRadius: "12px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
+        minHeight: "130px",
+      }}
+    >
+      {renderModals()}
+
       {/* ✅ 标题 */}
       <h2
         style={{
@@ -240,52 +381,6 @@ function PopularBanner() {
           onClick={() => setPlaying(!playing)}
         />
       </div>
-
-      {/* ✅ Book detail modal */}
-      <Modal
-        open={visible}
-        title={selectedBook?.title}
-        footer={[
-          <Button key="close" onClick={() => setVisible(false)}>
-            Close
-          </Button>,
-          <Button
-            key="detail"
-            onClick={() => {
-              if (selectedBook) navigate(`/book/${selectedBook._id}`);
-            }}
-          >
-            View Details
-          </Button>,
-          <Button
-            key="borrow"
-            type="primary"
-            icon={<BookOutlined />}
-            onClick={handleBorrow}
-          >
-            Borrow Now
-          </Button>,
-        ]}
-        onCancel={() => setVisible(false)}
-        centered
-      >
-        {selectedBook && (
-          <Card
-            cover={
-              <img
-                src={selectedBook.cover || "https://via.placeholder.com/400x250"}
-                alt={selectedBook.title}
-                style={{ borderRadius: "8px" }}
-              />
-            }
-          >
-            <p>
-              <b>Author:</b> {selectedBook.author || "Unknown Author"}
-            </p>
-            <p>{selectedBook.description || "No description"}</p>
-          </Card>
-        )}
-      </Modal>
     </div>
   );
 }

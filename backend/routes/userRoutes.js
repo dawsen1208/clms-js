@@ -184,7 +184,7 @@ router.put("/profile", authMiddleware, async (req, res) => {
    ========================================================= */
 const isAzure = !!process.env.WEBSITE_SITE_NAME;
 const uploadDir = isAzure 
-  ? path.join(process.env.HOME, "site/uploads") 
+  ? "/home/site/uploads" 
   : path.join(__dirname, "../uploads");
 
 console.log(`📂 UserRoutes uploadDir: ${uploadDir}`);
@@ -197,6 +197,8 @@ try {
   }
 } catch (err) {
   console.error("❌ 无法创建上传目录:", err);
+  // 在 Azure 上如果无法创建，可能是权限问题，或者父目录不存在
+  // 但 /home/site/uploads 应该是可写的
 }
 
 const storage = multer.diskStorage({
@@ -208,6 +210,7 @@ const storage = multer.diskStorage({
         fs.mkdirSync(uploadDir, { recursive: true });
       } catch (e) {
         console.error(`❌ Multer mkdir failed: ${e.message}`);
+        // 如果是 Azure，可能因为父目录不存在，尝试逐级创建或忽略（如果已挂载）
         return cb(new Error("无法创建上传目录: " + e.message));
       }
     }

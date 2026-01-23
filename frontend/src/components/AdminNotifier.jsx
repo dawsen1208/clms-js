@@ -71,6 +71,7 @@ function AdminNotifier() {
           placement: "bottomRight",
           duration: 5,
           icon: <ExclamationCircleTwoTone twoToneColor="#faad14" />,
+          onClose: () => notification.destroy(),
         });
       }
 

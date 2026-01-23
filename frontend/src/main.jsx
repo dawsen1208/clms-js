@@ -182,7 +182,7 @@ function App() {
   const renderReaderPage = () => {
     switch (currentPage) {
       case "home":
-        return <HomePage />;
+        return <HomePage setCurrentPage={setCurrentPage} />;
       case "search":
         return <SearchPage />;
       case "borrow":
@@ -196,7 +196,7 @@ function App() {
       case "settings":
         return <SettingsPage appearance={appearance} onChange={setAppearance} user={user} />;
       default:
-        return <HomePage />;
+        return <HomePage setCurrentPage={setCurrentPage} />;
     }
   };
 

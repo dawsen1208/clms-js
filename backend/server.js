@@ -125,7 +125,7 @@ app.use(
 
 const isAzure = !!process.env.WEBSITE_SITE_NAME;
 const uploadPath = isAzure 
-  ? path.join(process.env.HOME, "site/uploads") 
+  ? "/home/site/uploads" 
   : path.join(__dirname, "uploads");
 
 app.use(
@@ -149,6 +149,8 @@ if (!fs.existsSync(uploadPath)) {
     console.log(`✅ Created upload path: ${uploadPath}`);
   } catch (err) {
     console.error(`❌ Failed to create upload path: ${err.message}`);
+    // 在 Azure 上，如果这里失败，可能是因为 /home/site 尚未挂载或不可写
+    // 但通常 /home/site/uploads 是持久化存储的位置
   }
 }
 

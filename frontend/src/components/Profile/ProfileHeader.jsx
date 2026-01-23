@@ -11,18 +11,7 @@ function ProfileHeader({ userLS, avatarUrl, name, onAvatarUpload, avatarUploadin
   // We trust avatarUrl is already processed by parent.
   
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        marginBottom: "2rem",
-        padding: "2rem",
-        background: "linear-gradient(135deg, #f1f5f9, #e2e8f0)",
-        borderRadius: 20,
-        border: "1px solid rgba(255, 255, 255, 0.3)"
-      }}
-    >
+    <div className="profile-header-card">
       <Avatar
         size={120}
         icon={<UserOutlined />}

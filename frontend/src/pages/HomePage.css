@@ -1,4 +1,13 @@
- .home-page .ant-card-head {
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: calc(100vh - 64px);
+}
+
+.home-page .ant-card-head {
   border-bottom: none;
 }
 
@@ -15,4 +24,71 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   background: #fafafa;
   padding: 1.5rem 2rem;
+}
+
+.home-title {
+  color: #3b82f6 !important;
+  margin-bottom: 1rem !important;
+  font-weight: 700 !important;
+  text-align: center;
+}
+
+.home-paragraph {
+  font-size: 1.1rem;
+  text-align: center;
+  line-height: 1.7;
+  color: #475569;
+  max-width: 600px;
+  margin: 0 auto !important;
+}
+
+.system-overview-title {
+  color: #1e293b !important;
+  text-align: center;
+  margin-bottom: 1.5rem !important;
+}
+
+.system-overview-list {
+  list-style-type: none;
+  padding-left: 1rem;
+  color: #475569;
+  text-align: center;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* 📱 Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .home-page {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .welcome-card, .overview-card {
+    padding: 1rem !important;
+  }
+
+  .home-title {
+    font-size: 1.25rem !important; /* Smaller title on mobile */
+  }
+
+  .home-paragraph {
+    font-size: 0.95rem; /* Smaller text on mobile */
+    line-height: 1.5;
+  }
+
+  .system-overview-list {
+    font-size: 0.9rem;
+    padding-left: 0;
+  }
+
+  .ant-statistic-title {
+    font-size: 12px;
+  }
+
+  .ant-statistic-content-value {
+    font-size: 18px !important;
+  }
 }

@@ -86,13 +86,7 @@ function BookDetail() {
   if (!book) return <Empty description="Book not found" />;
 
   return (
-    <div className="book-detail-page" style={{ 
-      maxWidth: 900, 
-      margin: "24px auto", 
-      padding: "2rem",
-      background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-      minHeight: "calc(100vh - 64px)"
-    }}>
+    <div className="book-detail-page">
       <Card className="book-card" style={{
         borderRadius: 20,
         boxShadow: "0 15px 35px rgba(0, 0, 0, 0.1)",

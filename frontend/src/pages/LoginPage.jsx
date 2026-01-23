@@ -85,7 +85,7 @@ function LoginPage() {
   }, []);
 
   return (
-    <div className="login-page" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+    <div className="login-page">
       {/* ✅ 左侧登录卡片 */}
       <Card className="login-card" title={
         <div style={{ textAlign: "center" }}>
