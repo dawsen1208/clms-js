@@ -12,9 +12,11 @@ import {
   Input,
   message,
   Table,
+  Upload,
+  Spin,
 } from "antd";
-import { UserOutlined, MailOutlined, EditOutlined, SaveOutlined, CloseOutlined } from "@ant-design/icons";
- import { getProfile, updateProfile, getPendingRequestsLibrary } from "../api";
+import { UserOutlined, MailOutlined, EditOutlined, SaveOutlined, CloseOutlined, UploadOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import { getProfile, updateProfile, getPendingRequestsLibrary, uploadAvatar } from "../api";
  
  const { Title } = Typography;
 
@@ -31,14 +33,15 @@ const AdminProfilePage = () => {
     import.meta.env.VITE_API_BASE?.trim() || window.location.origin
   ).replace(/\/$/, "");
 
+  // 计算后端根域名（去除 /api 后缀）
+  const API_ROOT = API_BASE.replace(/\/api\/?$/, "");
+
   /* =========================================================
      🧩 Fetch admin profile
      ========================================================= */
   const fetchProfile = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/users/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await getProfile(token);
       setProfile(res.data);
       setEmail(res.data.email || "");
     } catch (err) {
@@ -52,9 +55,7 @@ const AdminProfilePage = () => {
      ========================================================= */
   const fetchRequests = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/library/requests/admin`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await getPendingRequestsLibrary(token);
 
       // ✅ Backend returns BorrowRecord; normalize to BorrowRequest-like structure
       const pending = (res.data || [])
@@ -89,11 +90,7 @@ const AdminProfilePage = () => {
      ========================================================= */
   const handleUpdateEmail = async () => {
     try {
-      await axios.put(
-        `${API_BASE}/api/users/profile`,
-        { email },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await updateProfile(token, { email });
       message.success("Email updated");
       setEditing(false);
       fetchProfile();
@@ -110,12 +107,7 @@ const AdminProfilePage = () => {
     const formData = new FormData();
     formData.append("avatar", file);
     try {
-      await axios.post(`${API_BASE}/api/users/avatar`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await uploadAvatar(token, formData);
       message.success("Avatar updated 🎉");
       fetchProfile();
     } catch (err) {
@@ -223,8 +215,11 @@ const AdminProfilePage = () => {
         <Avatar
           size={120}
           src={
-            profile.avatar ||
-            "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+            profile.avatar
+              ? (profile.avatar.startsWith("http")
+                  ? profile.avatar
+                  : `${API_ROOT}${profile.avatar}`)
+              : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
           }
           style={{ marginBottom: 20 }}
         />

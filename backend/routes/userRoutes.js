@@ -183,30 +183,34 @@ router.put("/profile", authMiddleware, async (req, res) => {
    📸 上传头像
    ========================================================= */
 const uploadDir = path.join(__dirname, "../uploads");
+
+// 确保上传目录存在
 try {
   if (!fs.existsSync(uploadDir)) {
+    console.log(`📁 创建上传目录: ${uploadDir}`);
     fs.mkdirSync(uploadDir, { recursive: true });
   }
-} catch (error) {
-  console.warn("⚠️ 无法创建上传目录 (可能是只读文件系统，跳过创建):", error.message);
+} catch (err) {
+  console.error("❌ 无法创建上传目录:", err);
 }
 
 const storage = multer.diskStorage({
   destination: (_, __, cb) => {
-    // 再次检查目录是否存在，如果不存在尝试使用临时目录或报错
+    // 再次检查确保目录存在
     if (!fs.existsSync(uploadDir)) {
-      console.warn("⚠️ 上传目录不存在，尝试使用临时目录");
-      const tmpDir = path.join(require('os').tmpdir(), 'uploads');
       try {
-        if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
-        return cb(null, tmpDir);
+        fs.mkdirSync(uploadDir, { recursive: true });
       } catch (e) {
-        return cb(new Error("无法写入上传文件: " + e.message));
+        return cb(new Error("无法创建上传目录: " + e.message));
       }
     }
     cb(null, uploadDir);
   },
-  filename: (_, file, cb) => cb(null, `${Date.now()}${path.extname(file.originalname)}`),
+  filename: (_, file, cb) => {
+    // 使用时间戳+随机数防止文件名冲突
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
 });
 const upload = multer({ storage });
 

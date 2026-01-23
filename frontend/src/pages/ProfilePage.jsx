@@ -38,6 +38,11 @@ function ProfilePage() {
     sessionStorage.getItem("user") || localStorage.getItem("user") || "{}"
   );
 
+  const API_BASE = (
+    import.meta.env.VITE_API_BASE?.trim() || window.location.origin
+  ).replace(/\/+$/, "");
+  const API_ROOT = API_BASE.replace(/\/api\/?$/, "");
+
   const stats = useMemo(() => {
     const totalHistory = history.length;
     const returned = history.filter((h) => h.returned.includes("Yes")).length;
@@ -57,7 +62,11 @@ function ProfilePage() {
 
       setEmail(u.email || "");
       setName(u.name || "Unnamed user");
-      setAvatarUrl(u.avatar ? `${u.avatar}?t=${Date.now()}` : null);
+
+      const fullAvatar = u.avatar
+        ? (u.avatar.startsWith("http") ? u.avatar : API_ROOT + u.avatar)
+        : null;
+      setAvatarUrl(fullAvatar ? `${fullAvatar}?t=${Date.now()}` : null);
 
       const updatedUser = {
         ...userLS,
@@ -186,7 +195,8 @@ function ProfilePage() {
       
       const rawUrl = res.data?.avatarUrl;
       if (rawUrl) {
-        const newUrl = `${rawUrl}?t=${Date.now()}`;
+        const fullRawUrl = rawUrl.startsWith("http") ? rawUrl : API_ROOT + rawUrl;
+        const newUrl = `${fullRawUrl}?t=${Date.now()}`;
         setAvatarUrl(newUrl);
         const updatedUser = { ...userLS, avatar: rawUrl };
         sessionStorage.setItem("user", JSON.stringify(updatedUser));

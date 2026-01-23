@@ -58,12 +58,7 @@ const AdminUserManagePage = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-const API_BASE = (
-  import.meta.env.VITE_API_BASE?.trim() || window.location.origin
-).replace(/\/$/, "");
-      const res = await axios.get(`${API_BASE}/api/users/manage`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await getUserAnalytics(token);
       const list = res.data || [];
       setUsers(list);
       setTableData(list);
