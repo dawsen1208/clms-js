@@ -15,6 +15,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'apple-icon-180.png'],
       manifest: {
         name: 'CLMS-JS 图书馆管理系统',
         short_name: 'CLMS-JS',
@@ -24,9 +25,9 @@ export default defineConfig({
         theme_color: '#1677ff',
         icons: [
           // Use your custom icons placed under /public/icons
-          { src: '/icons/app-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-          { src: '/icons/app-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icons/app-icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+          { src: '/icons/apple-icon-180.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
+          { src: '/icons/manifest-icon-192.maskable.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: '/icons/manifest-icon-512.maskable.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
         ]
       },
       workbox: {
