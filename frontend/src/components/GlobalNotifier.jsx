@@ -19,8 +19,7 @@ import {
   CloseCircleTwoTone,
   ClockCircleTwoTone,
 } from "@ant-design/icons";
-import { getBorrowHistory, getReviewReminders } from "../api";
-import axios from "axios";
+import { getBorrowHistory, getReviewReminders, getUserRequestsLibrary } from "../api";
 import "./GlobalNotifier.css";
 
 const { Text } = Typography;
@@ -62,22 +61,13 @@ function GlobalNotifier() {
   const drawerWidth = screens.lg ? 400 : "90%";
 
   /* =========================================================
-     🌍 Auto-detect backend base URL
-     ========================================================= */
-  const API_BASE = (
-    import.meta.env.VITE_API_BASE?.trim() || window.location.origin
-  ).replace(/\/$/, "");
-
-  /* =========================================================
      📬 Fetch user request status changes
      ========================================================= */
   const fetchNotifications = async () => {
     if (!token) return;
 
     try {
-      const res = await axios.get(`${API_BASE}/api/library/request/user`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await getUserRequestsLibrary(token);
 
       const newReqs = res.data || [];
 

@@ -3,23 +3,20 @@ import React, { useEffect, useState } from "react";
 import {
   Card,
   Avatar,
+  Typography,
+  Descriptions,
   Button,
-  Upload,
+  Tag,
+  List,
+  Space,
   Input,
   message,
-  Typography,
-  Space,
   Table,
-  Tag,
-  Spin,
 } from "antd";
-import {
-  UploadOutlined,
-  ClockCircleOutlined,
-} from "@ant-design/icons";
-import axios from "axios";
-
-const { Title } = Typography;
+import { UserOutlined, MailOutlined, EditOutlined, SaveOutlined, CloseOutlined } from "@ant-design/icons";
+ import { getProfile, updateProfile, getPendingRequestsLibrary } from "../api";
+ 
+ const { Title } = Typography;
 
 const AdminProfilePage = () => {
   const [profile, setProfile] = useState(null);

@@ -3,12 +3,16 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import multer from "multer";
+import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs";
 import User from "../models/User.js";
 import BorrowRecord from "../models/BorrowRecord.js"; // ✅ 新增
 import Book from "../models/Book.js"; // ✅ 新增
 import { authMiddleware, requireAdmin } from "../middleware/authUnified.js"; // ✅ 使用统一认证中间件
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
@@ -178,7 +182,7 @@ router.put("/profile", authMiddleware, async (req, res) => {
 /* =========================================================
    📸 上传头像
    ========================================================= */
-const uploadDir = path.join(process.cwd(), "uploads");
+const uploadDir = path.join(__dirname, "../uploads");
 try {
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });

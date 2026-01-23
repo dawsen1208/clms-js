@@ -16,7 +16,7 @@ import {
   Segmented,
 } from "antd";
 import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
-import axios from "axios";
+import { getBorrowHistoryAllLibrary } from "../api";
 import dayjs from "dayjs";
 import "./AdminBorrowHistory.css";
 
@@ -48,12 +48,7 @@ function AdminBorrowHistory() {
     if (!token) return message.warning("Please log in first!");
     try {
       setLoading(true);
-const API_BASE = (
-  import.meta.env.VITE_API_BASE?.trim() || window.location.origin
-).replace(/\/$/, "");
-      const res = await axios.get(`${API_BASE}/api/library/history/all`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await getBorrowHistoryAllLibrary(token);
       const list = res.data || [];
       setRecords(list);
       setFiltered(list);

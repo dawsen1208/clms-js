@@ -15,8 +15,15 @@ import {
   Input,
   Statistic,
   Divider,
+  Space,
 } from "antd";
-import axios from "axios";
+import {
+  ReloadOutlined,
+  SearchOutlined,
+  UserOutlined,
+  BookOutlined,
+} from "@ant-design/icons";
+import { getUserAnalytics } from "../api";
 import {
   PieChart,
   Pie,

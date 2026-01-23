@@ -493,14 +493,6 @@ function AdminBorrowPage() {
             🔄 Refresh
           </Button>
         }
-        style={{
-          borderRadius: theme.borderRadius.xxl,
-          boxShadow: theme.shadows.xl,
-          background: theme.colors.background.glass,
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255, 255, 255, 0.2)"
-
-        }}
       >
         <Space className="filters" style={{ marginBottom: "1rem" }} wrap>
           <Input
