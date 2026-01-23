@@ -29,6 +29,8 @@ import {
 } from "../api.js"; // ✅ 统一使用 /library 路由
 
 function BorrowPage() {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [borrowed, setBorrowed] = useState([]);
   const [loading, setLoading] = useState(false);
   const [renewModal, setRenewModal] = useState({ open: false, record: null });
@@ -182,6 +184,118 @@ function BorrowPage() {
   /* =========================================================
      🧱 页面渲染
      ========================================================= */
+  if (isMobile) {
+    return (
+      <div className="borrow-page-mobile" style={{ padding: "16px", background: "#f8fafc", minHeight: "100vh" }}>
+        <Title level={4} style={{ marginBottom: "16px" }}>My Borrowings</Title>
+        
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
+             <Card size="small" bodyStyle={{ padding: "12px" }}>
+                 <Statistic title="Total Borrowed" value={stats.total} valueStyle={{ fontSize: "20px" }} />
+             </Card>
+             <Card size="small" bodyStyle={{ padding: "12px" }}>
+                  <Statistic title="Pending" value={stats.pending} prefix={<ClockCircleOutlined />} valueStyle={{ fontSize: "20px", color: "#faad14" }} />
+             </Card>
+        </div>
+
+        {loading ? (
+           <Spin size="large" style={{ display: "block", margin: "2rem auto" }} />
+        ) : borrowed.length > 0 ? (
+           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+             {borrowed.map((record) => {
+               const bookIdNormalized =
+                 typeof record.bookId === "object"
+                   ? record.bookId?._id
+                   : record.bookId;
+               const pending = isPendingRenewUI(bookIdNormalized);
+               const bookIdForLink = bookIdNormalized || null;
+
+               return (
+                 <div key={record._id} style={{ 
+                    background: "#fff", 
+                    padding: "16px", 
+                    borderRadius: "12px", 
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+                 }}>
+                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+                      <div style={{ flex: 1, marginRight: "12px" }}>
+                        <div style={{ fontSize: "16px", fontWeight: "600", color: "#1e293b", marginBottom: "4px", lineHeight: "1.4" }}>
+                           {bookIdForLink ? (
+                              <Link to={`/book/${bookIdForLink}`} style={{ color: "inherit", textDecoration: "none" }}>
+                                {record.title || "Unknown Book"}
+                              </Link>
+                           ) : (
+                              record.title || "Unknown Book"
+                           )}
+                        </div>
+                        <div style={{ fontSize: "13px", color: "#64748b" }}>
+                          Due: {record.dueDate ? dayjs(record.dueDate).format("YYYY-MM-DD") : "N/A"}
+                        </div>
+                      </div>
+                      {renderStatusTag(bookIdNormalized)}
+                   </div>
+                   
+                   <div style={{ display: "flex", gap: "12px" }}>
+                      {pending ? (
+                        <Button 
+                          block 
+                          disabled 
+                          icon={<ClockCircleOutlined />} 
+                          style={{ borderRadius: "8px", background: "#f1f5f9", border: "none", color: "#94a3b8" }}
+                        >
+                          Request Pending
+                        </Button>
+                      ) : (
+                        <Button 
+                          block 
+                          type="primary" 
+                          icon={<SyncOutlined />} 
+                          onClick={() => openRenewModal(record)}
+                          style={{ borderRadius: "8px" }}
+                        >
+                          Renew Loan
+                        </Button>
+                      )}
+                   </div>
+                 </div>
+               );
+             })}
+           </div>
+        ) : (
+           <Empty description="No borrow records" />
+        )}
+
+        <Modal
+          title={`Apply for Renewal: ${renewModal.record?.title || ""}`}
+          open={renewModal.open}
+          onCancel={() => setRenewModal({ open: false, record: null })}
+          onOk={handleConfirmRenew}
+          okText="Submit Request"
+          cancelText="Cancel"
+          centered
+          destroyOnClose
+          width="90%"
+        >
+          <p style={{ marginBottom: 10 }}>
+            Please select a new due date:
+          </p>
+          <DatePicker
+            style={{ width: "100%" }}
+            format="YYYY-MM-DD"
+            value={newDate}
+            onChange={(date) => setNewDate(date)}
+            disabledDate={(date) => {
+              if (!renewModal.record?.dueDate) return false;
+              const min = dayjs(renewModal.record.dueDate);
+              const max = dayjs(renewModal.record.dueDate).add(30, "day");
+              return date.isBefore(min) || date.isAfter(max);
+            }}
+          />
+        </Modal>
+      </div>
+    );
+  }
+
   return (
     <div className="borrow-page" style={{ padding: "1.5rem" }}>
       <Card

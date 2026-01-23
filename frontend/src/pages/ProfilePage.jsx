@@ -19,6 +19,8 @@ import ProfileInfo from "../components/Profile/ProfileInfo";
 import ProfileTabs from "../components/Profile/ProfileTabs";
 
 function ProfilePage() {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -602,13 +604,29 @@ function ProfilePage() {
                 border: "1px solid rgba(255, 255, 255, 0.2)"
               }}
             >
-              <Table
-                dataSource={paginatedData}
-                columns={historyColumns}
-                pagination={false}
-                locale={{ emptyText: "No borrow records" }}
-                style={{ borderRadius: 8, overflow: "hidden" }}
-              />
+              {isMobile ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {paginatedData.length > 0 ? paginatedData.map((item) => (
+                    <Card key={item.key} size="small" style={{ background: "#fff", borderRadius: "8px", border: "1px solid #f0f0f0" }}>
+                      <div style={{ fontWeight: "bold", marginBottom: "8px", fontSize: "15px", color: "#333" }}>{item.title}</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px", color: "#666" }}>
+                        <div><span style={{ color: "#999" }}>Borrow:</span> <br/>{item.borrowDate}</div>
+                        <div><span style={{ color: "#999" }}>Due:</span> <br/>{item.dueDate}</div>
+                        <div><span style={{ color: "#999" }}>Return:</span> <br/>{item.returnDate}</div>
+                        <div><span style={{ color: "#999" }}>Status:</span> <br/>{item.returned === "✅ Yes" ? <Tag color="green">Returned</Tag> : <Tag color="orange">Borrowed</Tag>}</div>
+                      </div>
+                    </Card>
+                  )) : <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>No borrow records</div>}
+                </div>
+              ) : (
+                <Table
+                  dataSource={paginatedData}
+                  columns={historyColumns}
+                  pagination={false}
+                  locale={{ emptyText: "No borrow records" }}
+                  style={{ borderRadius: 8, overflow: "hidden" }}
+                />
+              )}
               {history.length > pageSize && (
                 <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
                   <Pagination
@@ -654,14 +672,33 @@ function ProfilePage() {
                 border: "1px solid rgba(255, 255, 255, 0.2)"
               }}
             >
-              <Table
-                dataSource={requests}
-                columns={requestColumns}
-                rowKey="_id"
-                pagination={{ pageSize: 5 }}
-                locale={{ emptyText: "No request records" }}
-                style={{ borderRadius: 8, overflow: "hidden" }}
-              />
+              {isMobile ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {requests.length > 0 ? requests.map((req) => (
+                    <Card key={req._id} size="small" style={{ background: "#fff", borderRadius: "8px", border: "1px solid #f0f0f0" }}>
+                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", alignItems: "flex-start" }}>
+                          <div style={{ fontWeight: "bold", fontSize: "15px", color: "#333", flex: 1, marginRight: "8px" }}>{req.bookTitle || "Unknown Book"}</div>
+                          {renderStatusTag(req.status)}
+                       </div>
+                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", color: "#666" }}>
+                          <div>
+                            {req.type === "renew" ? <Tag color="blue">Renew</Tag> : <Tag color="purple">Return</Tag>}
+                          </div>
+                          <div>{req.createdAt ? dayjs(req.createdAt).format("YYYY-MM-DD") : "-"}</div>
+                       </div>
+                    </Card>
+                  )) : <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>No request records</div>}
+                </div>
+              ) : (
+                <Table
+                  dataSource={requests}
+                  columns={requestColumns}
+                  rowKey="_id"
+                  pagination={{ pageSize: 5 }}
+                  locale={{ emptyText: "No request records" }}
+                  style={{ borderRadius: 8, overflow: "hidden" }}
+                />
+              )}
             </Card>
           )}
         </Modal>
