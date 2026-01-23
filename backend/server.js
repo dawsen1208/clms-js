@@ -123,9 +123,14 @@ app.use(
    📁 静态资源目录（头像上传）
    ========================================================= */
 
+const isAzure = !!process.env.WEBSITE_SITE_NAME;
+const uploadPath = isAzure 
+  ? path.join(process.env.HOME, "site/uploads") 
+  : path.join(__dirname, "uploads");
+
 app.use(
   "/uploads",
-  express.static(path.join(__dirname, "uploads"), {
+  express.static(uploadPath, {
     setHeaders: (res) => {
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");

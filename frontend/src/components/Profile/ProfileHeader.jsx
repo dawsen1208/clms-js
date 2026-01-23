@@ -6,6 +6,10 @@ import { useState } from "react";
 const { Title, Text } = Typography;
 
 function ProfileHeader({ userLS, avatarUrl, name, onAvatarUpload, avatarUploading }) {
+  // Ensure we don't display mixed content if passed down prop is still raw
+  // But usually parent component passes processed URL.
+  // We trust avatarUrl is already processed by parent.
+  
   return (
     <div
       style={{

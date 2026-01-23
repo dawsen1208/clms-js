@@ -36,6 +36,16 @@ const AdminProfilePage = () => {
   // 计算后端根域名（去除 /api 后缀）
   const API_ROOT = API_BASE.replace(/\/api\/?$/, "");
 
+  // 🧹 清理头像 URL (处理旧数据中的 localhost)
+  const getCleanAvatarUrl = (url) => {
+    if (!url) return "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+    if (url.includes("localhost:5000")) {
+      return url.replace(/http(s)?:\/\/localhost:5000/, API_ROOT);
+    }
+    if (url.startsWith("http")) return url;
+    return `${API_ROOT}${url}`;
+  };
+
   /* =========================================================
      🧩 Fetch admin profile
      ========================================================= */
@@ -214,13 +224,7 @@ const AdminProfilePage = () => {
       >
         <Avatar
           size={120}
-          src={
-            profile.avatar
-              ? (profile.avatar.startsWith("http")
-                  ? profile.avatar
-                  : `${API_ROOT}${profile.avatar}`)
-              : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-          }
+          src={getCleanAvatarUrl(profile.avatar)}
           style={{ marginBottom: 20 }}
         />
         <Title level={3} style={{ marginBottom: 4 }}>

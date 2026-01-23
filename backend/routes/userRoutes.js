@@ -182,7 +182,10 @@ router.put("/profile", authMiddleware, async (req, res) => {
 /* =========================================================
    📸 上传头像
    ========================================================= */
-const uploadDir = path.join(__dirname, "../uploads");
+const isAzure = !!process.env.WEBSITE_SITE_NAME;
+const uploadDir = isAzure 
+  ? path.join(process.env.HOME, "site/uploads") 
+  : path.join(__dirname, "../uploads");
 
 // 确保上传目录存在
 try {

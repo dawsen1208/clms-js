@@ -43,6 +43,16 @@ function ProfilePage() {
   ).replace(/\/+$/, "");
   const API_ROOT = API_BASE.replace(/\/api\/?$/, "");
 
+  // 🧹 清理头像 URL (处理旧数据中的 localhost)
+  const getCleanAvatarUrl = (url) => {
+    if (!url) return null;
+    if (url.includes("localhost:5000")) {
+      return url.replace(/http(s)?:\/\/localhost:5000/, API_ROOT);
+    }
+    if (url.startsWith("http")) return url;
+    return `${API_ROOT}${url}`;
+  };
+
   const stats = useMemo(() => {
     const totalHistory = history.length;
     const returned = history.filter((h) => h.returned.includes("Yes")).length;
@@ -63,9 +73,7 @@ function ProfilePage() {
       setEmail(u.email || "");
       setName(u.name || "Unnamed user");
 
-      const fullAvatar = u.avatar
-        ? (u.avatar.startsWith("http") ? u.avatar : API_ROOT + u.avatar)
-        : null;
+      const fullAvatar = getCleanAvatarUrl(u.avatar);
       setAvatarUrl(fullAvatar ? `${fullAvatar}?t=${Date.now()}` : null);
 
       const updatedUser = {
@@ -195,7 +203,7 @@ function ProfilePage() {
       
       const rawUrl = res.data?.avatarUrl;
       if (rawUrl) {
-        const fullRawUrl = rawUrl.startsWith("http") ? rawUrl : API_ROOT + rawUrl;
+        const fullRawUrl = getCleanAvatarUrl(rawUrl);
         const newUrl = `${fullRawUrl}?t=${Date.now()}`;
         setAvatarUrl(newUrl);
         const updatedUser = { ...userLS, avatar: rawUrl };
