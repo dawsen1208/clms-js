@@ -74,35 +74,23 @@ app.get(/^\/app(?!\/api).*/, (req, res) => {
 });
 
 /* =========================================================
-   🌐 CORS 设置（仅允许本地访问）
+   🌐 CORS 设置（允许所有来源用于开发）
    ========================================================= */
-const localIP = "127.0.0.1"; // 强制使用本地地址
+const localIP = "127.0.0.1";
 const allowedOrigins = (process.env.CLIENT_ORIGIN || "")
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
 
-// 如果没有配置CLIENT_ORIGIN，则仅添加本地地址（覆盖常见Vite端口：5173/5174/5178/5180）
+// 如果没有配置CLIENT_ORIGIN，则允许所有来源（开发模式）
 if (allowedOrigins.length === 0) {
-  allowedOrigins.push(
-    // 本机常用端口
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
-    // 额外允许正在使用的端口
-    "http://localhost:5178",
-    "http://127.0.0.1:5178",
-    "http://localhost:5180",
-    "http://127.0.0.1:5180",
-    // 局域网地址（可根据需要扩展）
-    "http://172.16.14.175:5174",
-    "http://172.16.14.175:5178",
-    "http://172.16.14.175:5180"
-  );
+  console.log("⚠️ 未配置 CLIENT_ORIGIN，允许所有来源");
+} else {
+  console.log("✅ 已配置允许的来源:", allowedOrigins);
 }
 
-const uniqueOrigins = [...new Set(allowedOrigins)];
+// 临时：允许所有来源用于测试
+const uniqueOrigins = [...new Set(allowedOrigins), "https://clmsf5164136.z1.web.core.windows.net"];
 
 app.use(
   cors({
@@ -113,11 +101,11 @@ app.use(
       // 显式允许配置的来源
       if (uniqueOrigins.includes(origin)) return callback(null, true);
 
-      // 允许 Cloudflare 与 LocalTunnel 动态子域
+      // 允许所有 Blob 域名（Azure 静态网站）
       try {
         const url = new URL(origin);
         const host = url.hostname || "";
-        if (host.endsWith("trycloudflare.com") || host.endsWith("loca.lt")) {
+        if (host.endsWith(".blob.core.windows.net") || host.endsWith(".web.core.windows.net")) {
           return callback(null, true);
         }
       } catch (_) {}
