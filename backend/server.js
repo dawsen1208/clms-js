@@ -136,8 +136,33 @@ app.use(
       res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
       res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     },
+    fallthrough: false // ❌ 如果找不到文件，直接返回 404，不要进入 SPA 回退
   })
 );
+
+// 🔍 调试信息
+console.log(`📂 Upload path set to: ${uploadPath}`);
+if (!fs.existsSync(uploadPath)) {
+  console.warn(`⚠️ Upload path does not exist: ${uploadPath}`);
+  try {
+    fs.mkdirSync(uploadPath, { recursive: true });
+    console.log(`✅ Created upload path: ${uploadPath}`);
+  } catch (err) {
+    console.error(`❌ Failed to create upload path: ${err.message}`);
+  }
+}
+
+// 🐛 调试环境路由
+app.get("/api/debug/env", (req, res) => {
+  res.json({
+    HOME: process.env.HOME,
+    cwd: process.cwd(),
+    __dirname,
+    uploadPath,
+    exists: fs.existsSync(uploadPath),
+    env: process.env
+  });
+});
 
 /* =========================================================
    🚏 路由注册（只保留 /api/library，彻底统一）

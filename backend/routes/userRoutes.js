@@ -187,6 +187,8 @@ const uploadDir = isAzure
   ? path.join(process.env.HOME, "site/uploads") 
   : path.join(__dirname, "../uploads");
 
+console.log(`📂 UserRoutes uploadDir: ${uploadDir}`);
+
 // 确保上传目录存在
 try {
   if (!fs.existsSync(uploadDir)) {
@@ -202,8 +204,10 @@ const storage = multer.diskStorage({
     // 再次检查确保目录存在
     if (!fs.existsSync(uploadDir)) {
       try {
+        console.log(`⚠️ Re-creating upload dir inside multer: ${uploadDir}`);
         fs.mkdirSync(uploadDir, { recursive: true });
       } catch (e) {
+        console.error(`❌ Multer mkdir failed: ${e.message}`);
         return cb(new Error("无法创建上传目录: " + e.message));
       }
     }
