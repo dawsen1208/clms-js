@@ -1,26 +1,60 @@
-/* 📱 Global Mobile Styles */
+/* 📱 Global Mobile Styles - Low Density Mode */
 @media (max-width: 768px) {
-  /* Unified Mobile Padding */
-  .page-container {
-    padding: 16px !important;
+  /* 1. 强制全宽与重置容器 */
+  html, body, #root {
+    overflow-x: hidden;
+    width: 100%;
   }
 
-  /* Card Styles */
-  .ant-card {
-    border-radius: 12px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  .ant-layout, .ant-layout-content, .site-layout, .page-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important; /* 让内部元素决定 padding */
+  }
+
+  /* 消除侧边栏影响 */
+  .ant-layout-sider {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    flex: 0 0 0 !important;
+  }
+
+  /* 2. 卡片样式重置 - 低密度模式 */
+  .ant-card, .mobile-card {
+    width: 100% !important;
+    margin-bottom: 16px !important;
+    border-radius: 16px !important; /* 圆角 14-18px */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
+    border: none !important;
   }
   
   .ant-card-body {
-    padding: 12px !important;
+    padding: 20px !important; /* 内边距 16-20px */
   }
 
-  /* Text Clamp Utility */
+  /* 3. 字体与行高 - 消除密集感 */
+  body, .ant-typography, div, span, p {
+    line-height: 1.6 !important;
+  }
+
+  h1, h2, h3, h4, h5, .ant-typography-h1, .ant-typography-h2, .ant-typography-h3, .ant-typography-h4, .ant-typography-h5 {
+    line-height: 1.4 !important;
+    margin-bottom: 0.5em !important;
+  }
+
+  /* 4. 文本截断与防重叠 */
   .text-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    min-width: 0; /* 关键：防止 flex 子项溢出 */
   }
 
   .text-clamp-1 {
@@ -28,47 +62,82 @@
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    min-width: 0;
   }
 
-  /* Horizontal Scroll Container */
-  .h-scroll-container {
-    display: flex;
-    overflow-x: auto;
-    gap: 12px;
-    padding-bottom: 8px; /* For scrollbar space */
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
-  }
-  
-  .h-scroll-container::-webkit-scrollbar {
-    display: none; /* Chrome/Safari */
-  }
-
-  /* Mobile Button Touch Targets */
+  /* 5. 交互区域优化 */
   .ant-btn-lg {
     height: 48px !important;
     font-size: 16px !important;
-  }
-  
-  /* Full Width Content on Mobile */
-  .ant-layout-content {
-    width: 100% !important;
-    padding: 0 !important;
+    border-radius: 12px !important;
   }
 
-  /* Hide Desktop Elements */
+  .icon-btn-wrapper {
+    padding: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 6. 列表布局修正 */
+  .ant-row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .ant-col {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important; /* 强制 Col 占满一行 */
+    width: 100% !important;
+  }
+
+  /* 特殊组件覆盖 */
+  .ant-drawer-content-wrapper {
+    max-width: 85% !important; /* 抽屉宽度 */
+  }
+  
+  /* Horizontal Scroll Container (保持原样但增加间距) */
+  .h-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    padding: 4px 16px 16px 16px; /* 增加 padding */
+    margin: 0 -16px; /* 抵消父级 padding 实现全屏滑动 */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  
+  .h-scroll-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 隐藏桌面端元素 */
   .desktop-only {
     display: none !important;
   }
 }
 
-/* Mobile Only Utility */
-.mobile-only {
-  display: none;
+/* Helper classes */
+.mobile-card-container {
+  padding: 16px;
+  background: #f8fafc;
+  min-height: 100vh;
 }
 
-@media (max-width: 768px) {
-  .mobile-only {
-    display: block;
-  }
+.mobile-action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0,0,0,0.05);
+  z-index: 100;
+  display: flex;
+  gap: 12px;
 }
