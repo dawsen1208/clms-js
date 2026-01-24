@@ -6,7 +6,7 @@ import "./RegisterAdmin.css";
 import { CopyOutlined } from "@ant-design/icons";
 import { register } from "../api"; // ✅ 统一使用 API 封装
 import axios from "axios"; // 保留 axios 用于认证码扩展（可选）
-import { useLanguage } from "../context/LanguageContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 function RegisterAdmin() {
   const navigate = useNavigate();

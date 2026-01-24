@@ -324,7 +324,7 @@ const AdminProfilePage = () => {
           />
         )}
       </Card>
-    </div>
+    </Card>
   );
 };
 

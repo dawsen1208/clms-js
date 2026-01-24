@@ -258,6 +258,10 @@ function HomePage({ setCurrentPage }) {
         </ul>
         </div>
       </Card>
+
+      <div style={{ textAlign: "center", marginTop: "40px", color: "#94a3b8", paddingBottom: "20px" }}>
+        © 2024 CLMS Library System | v1.2.0 (Mobile Optimized)
+      </div>
     </div>
   );
 }

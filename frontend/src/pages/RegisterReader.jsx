@@ -5,7 +5,7 @@ import { Form, Input, Button, message, Card, Modal } from "antd";
 import "./RegisterReader.css";
 import { CopyOutlined } from "@ant-design/icons";
 import { register } from "../api"; // ✅ Use unified register API
-import { useLanguage } from "../context/LanguageContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 function RegisterReader() {
   const navigate = useNavigate();

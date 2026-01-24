@@ -32,7 +32,7 @@ import {
   getAllRequestsLibrary as getAllRequests,
   approveRequestLibrary as approveRequest,
 } from "../api.js";
-import { useLanguage } from "../context/LanguageContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const { Option } = Select;
 const { Title, Text } = Typography;

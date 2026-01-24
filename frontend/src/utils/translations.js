@@ -553,8 +553,7 @@ export const translations = {
       tag_feature: "Feature",
       tag_maintenance: "Maintenance",
       tag_notice: "Notice",
-      category_unknown: "Unknown"
-    },
+      category_unknown: "Unknown",
       startDate: "Start date",
       endDate: "End date",
       renewedAll: "Renewed: All",
@@ -637,6 +636,7 @@ export const translations = {
       noPermission: "You do not have permission to access this module"
     }
   },
+  // Chinese Translations
   zh: {
     common: {
       home: "首页",
@@ -1262,8 +1262,7 @@ export const translations = {
       tag_feature: "功能",
       tag_maintenance: "维护",
       tag_notice: "通知",
-      category_unknown: "未知"
-    },
+      category_unknown: "未知",
       startDate: "开始日期",
       endDate: "结束日期",
       renewedAll: "续借：全部",
