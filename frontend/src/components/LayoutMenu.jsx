@@ -1,5 +1,5 @@
 // ✅ client/src/components/LayoutMenu.jsx
-import { Layout, Menu, Button, Tooltip, Grid, Drawer } from "antd";
+import { Layout, Menu, Button, Tooltip, Grid, Drawer, QRCode, Modal } from "antd";
 import {
   MenuOutlined,
   HomeOutlined,
@@ -10,6 +10,7 @@ import {
   LogoutOutlined,
   RobotOutlined,
   ReloadOutlined,
+  QrcodeOutlined,
 } from "@ant-design/icons";
 import { SettingOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
@@ -30,6 +31,7 @@ const { useBreakpoint } = Grid;
 function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false); // 📱 QR Code Modal state
   const [userName, setUserName] = useState("");
   const navigate = useNavigate();
   const screens = useBreakpoint();
@@ -255,11 +257,46 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {/* 📱 Mobile Access QR Code (Desktop Only) */}
+            {!isMobile && (
+              <Tooltip title="Scan to open on mobile">
+                <Button 
+                  icon={<QrcodeOutlined />} 
+                  shape="circle" 
+                  onClick={() => setQrModalOpen(true)}
+                  style={{ border: "none", boxShadow: "none" }}
+                />
+              </Tooltip>
+            )}
+
             {/* Global Notifier (Bell) */}
             <div style={{ display: "flex", alignItems: "center" }}>
               <GlobalNotifier />
             </div>
           </div>
+
+          {/* 📱 QR Code Modal */}
+          <Modal
+            open={qrModalOpen}
+            footer={null}
+            onCancel={() => setQrModalOpen(false)}
+            centered
+            width={360}
+            title={<div style={{ textAlign: "center" }}>📱 Mobile Experience</div>}
+          >
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 0" }}>
+              <QRCode 
+                value="https://clmsf5164136.z1.web.core.windows.net/" 
+                size={250} 
+                icon="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg" // Optional: Ant Design Logo or App Logo
+                errorLevel="H"
+              />
+              <div style={{ marginTop: "24px", textAlign: "center", color: "#64748b" }}>
+                <p style={{ margin: 0, fontWeight: 500 }}>Scan with your phone camera</p>
+                <p style={{ margin: "4px 0 0", fontSize: "13px" }}>to access the low-density mobile view</p>
+              </div>
+            </div>
+          </Modal>
         </Header>
 
         {/* Main content area */}
