@@ -61,7 +61,75 @@
 }
 
 .login-logo {
-  width: 40%;
+  width: 80%; /* Adjusted for container */
   max-width: 280px;
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));
+  pointer-events: none; /* Let container handle click */
 }
+
+/* 🔄 Flip Card Animation Styles */
+.flip-container {
+  width: 320px;
+  height: 400px; /* Taller to accommodate hint text */
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.flip-container:hover .login-logo {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
+.flipper {
+  transition: 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
+  transform-style: preserve-3d;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.flip-container.flipped .flipper {
+  transform: rotateY(180deg);
+}
+
+.front, .back {
+  backface-visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.front {
+  z-index: 2;
+  transform: rotateY(0deg);
+}
+
+.back {
+  transform: rotateY(180deg);
+}
+
+.flip-hint-text {
+  margin-top: 24px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 15px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.flip-container:hover .flip-hint-text {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+

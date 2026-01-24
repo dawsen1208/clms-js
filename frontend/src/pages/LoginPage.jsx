@@ -1,7 +1,7 @@
 // ✅ client/src/pages/LoginPage.jsx
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Card, Checkbox, message, Typography, FloatButton, Modal, QRCode, Tooltip } from "antd";
-import { QrcodeOutlined } from "@ant-design/icons";
+import { Form, Input, Button, Card, Checkbox, message, Typography, QRCode } from "antd";
+import { QrcodeOutlined, ScanOutlined } from "@ant-design/icons";
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -16,7 +16,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [remember, setRemember] = useState(false); // ✅ “记住我”开关
-  const [qrModalOpen, setQrModalOpen] = useState(false); // 📱 QR Code Modal state
+  const [isFlipped, setIsFlipped] = useState(false); // 🔄 Card flip state
   const navigate = useNavigate();
 
   // API 基础地址由全局 api.js 管理，避免 https 页面访问 http 导致的 CSP/Mixed-Content
@@ -233,51 +233,46 @@ function LoginPage() {
         </Form>
       </Card>
 
-      {/* ✅ 右侧插图 */}
+      {/* ✅ 右侧插图区 (带翻转动画) */}
       <div className="login-illustration">
-        <img
-          src="/icons/app-icon-512.png"
-          alt="app logo"
-          onError={(e) => {
-            e.currentTarget.src = "/icons/manifest-icon-512.maskable.png";
-            e.currentTarget.onerror = null;
-          }}
-          className="login-logo"
-        />
-      </div>
-
-      {/* 📱 Mobile Access QR Code Float Button */}
-      <Tooltip title="Scan to open on mobile" placement="left">
-        <FloatButton 
-          icon={<QrcodeOutlined />} 
-          type="primary" 
-          style={{ right: 24, bottom: 24, width: 56, height: 56 }}
-          onClick={() => setQrModalOpen(true)}
-        />
-      </Tooltip>
-
-      {/* 📱 QR Code Modal */}
-      <Modal
-        open={qrModalOpen}
-        footer={null}
-        onCancel={() => setQrModalOpen(false)}
-        centered
-        width={360}
-        title={<div style={{ textAlign: "center" }}>📱 Mobile Experience</div>}
-      >
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 0" }}>
-          <QRCode 
-            value="https://clmsf5164136.z1.web.core.windows.net/" 
-            size={250} 
-            icon="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg"
-            errorLevel="H"
-          />
-          <div style={{ marginTop: "24px", textAlign: "center", color: "#64748b" }}>
-            <p style={{ margin: 0, fontWeight: 500 }}>Scan with your phone camera</p>
-            <p style={{ margin: "4px 0 0", fontSize: "13px" }}>to access the low-density mobile view</p>
+        <div className={`flip-container ${isFlipped ? "flipped" : ""}`} onClick={() => setIsFlipped(!isFlipped)}>
+          <div className="flipper">
+            {/* 正面：插画 */}
+            <div className="front">
+              <img
+                src="/icons/app-icon-512.png"
+                alt="app logo"
+                onError={(e) => {
+                  e.currentTarget.src = "/icons/manifest-icon-512.maskable.png";
+                  e.currentTarget.onerror = null;
+                }}
+                className="login-logo"
+              />
+              <div className="flip-hint-text">
+                <ScanOutlined style={{ marginRight: 6 }} />
+                Click to scan Mobile Code
+              </div>
+            </div>
+            
+            {/* 背面：二维码 */}
+            <div className="back">
+              <div style={{ background: "white", padding: "20px", borderRadius: "20px", boxShadow: "0 8px 30px rgba(0,0,0,0.15)" }}>
+                <QRCode 
+                  value="https://clmsf5164136.z1.web.core.windows.net/" 
+                  size={220} 
+                  icon="/icons/app-icon-192.png"
+                  errorLevel="H"
+                  bordered={false}
+                />
+              </div>
+              <div className="flip-hint-text" style={{ color: "#475569", marginTop: "20px" }}>
+                <QrcodeOutlined style={{ marginRight: 6 }} />
+                Scan to open on mobile
+              </div>
+            </div>
           </div>
         </div>
-      </Modal>
+      </div>
     </div>
   );
 }
