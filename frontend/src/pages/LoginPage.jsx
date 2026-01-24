@@ -17,6 +17,7 @@ function LoginPage() {
   const [loginError, setLoginError] = useState("");
   const [remember, setRemember] = useState(false); // ✅ “记住我”开关
   const [isFlipped, setIsFlipped] = useState(false); // 🔄 Card flip state
+  const [qrModalOpen, setQrModalOpen] = useState(false); // 📱 QR Modal state
   const navigate = useNavigate();
 
   // API 基础地址由全局 api.js 管理，避免 https 页面访问 http 导致的 CSP/Mixed-Content
@@ -273,29 +274,6 @@ function LoginPage() {
           </div>
         </div>
       </div>
-
-      {/* 📱 QR Code Modal (For explicit button click) */}
-      <Modal
-        open={qrModalOpen}
-        footer={null}
-        onCancel={() => setQrModalOpen(false)}
-        centered
-        width={360}
-        title={<div style={{ textAlign: "center" }}>📱 Mobile Experience</div>}
-      >
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 0" }}>
-          <QRCode 
-            value="https://clmsf5164136.z1.web.core.windows.net/" 
-            size={250} 
-            icon="/icons/app-icon-192.png"
-            errorLevel="H"
-          />
-          <div style={{ marginTop: "24px", textAlign: "center", color: "#64748b" }}>
-            <p style={{ margin: 0, fontWeight: 500 }}>Scan with your phone camera</p>
-            <p style={{ margin: "4px 0 0", fontSize: "13px" }}>to access the low-density mobile view</p>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 }
