@@ -102,28 +102,28 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
       </div>
       <div 
         className={`mobile-nav-item ${currentPage === 'search' ? 'active' : ''}`}
-        onClick={() => { setCurrentPage('search'); navigate('/search'); }}
+        onClick={() => { setCurrentPage('search'); navigate('/home'); }}
       >
         <SearchOutlined className="nav-icon" />
         <span className="nav-label">{t("common.search")}</span>
       </div>
       <div 
         className={`mobile-nav-item ${currentPage === 'borrow' ? 'active' : ''}`}
-        onClick={() => { setCurrentPage('borrow'); navigate('/borrow'); }}
+        onClick={() => { setCurrentPage('borrow'); navigate('/home'); }}
       >
         <BookOutlined className="nav-icon" />
         <span className="nav-label">{t("common.myBooks")}</span>
       </div>
       <div 
         className={`mobile-nav-item ${currentPage === 'profile' ? 'active' : ''}`}
-        onClick={() => { setCurrentPage('profile'); navigate('/profile'); }}
+        onClick={() => { setCurrentPage('profile'); navigate('/home'); }}
       >
         <UserOutlined className="nav-icon" />
         <span className="nav-label">{t("common.profile")}</span>
       </div>
       <div 
         className={`mobile-nav-item ${currentPage === 'settings' ? 'active' : ''}`}
-        onClick={() => { setCurrentPage('settings'); navigate('/settings'); }}
+        onClick={() => { setCurrentPage('settings'); navigate('/home'); }}
       >
         <SettingOutlined className="nav-icon" />
         <span className="nav-label">{t("common.settings")}</span>
