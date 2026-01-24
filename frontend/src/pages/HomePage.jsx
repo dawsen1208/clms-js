@@ -43,109 +43,111 @@ function HomePage({ setCurrentPage }) {
      ========================================================= */
   if (isMobile) {
     return (
-      <div className="home-page-mobile" style={{ padding: '0 20px 40px 20px', maxWidth: '100vw', overflowX: 'hidden' }}>
+      <div className="home-page-mobile" style={{ padding: '16px', maxWidth: '100vw', overflowX: 'hidden' }}>
         {/* ✅ 1. Compact Welcome Banner */}
-        <div style={{ 
-          height: '64px', 
-          display: 'flex', 
-          alignItems: 'center', 
-          marginBottom: '10px' 
-        }}>
-          <Typography.Text style={{ fontSize: '22px', fontWeight: '700', color: '#1e293b' }}>
-            👋 Welcome back
-          </Typography.Text>
+        <div style={{ marginBottom: '24px' }}>
+          <Title level={4} style={{ margin: 0, color: '#1e293b' }}>
+            👋 Welcome to CLMS
+          </Title>
         </div>
 
-        {/* ✅ 2. Popular Borrowing List (Horizontal) */}
-        {/* PopularBanner handles mobile layout internally */}
-        <div style={{ marginBottom: '30px' }}>
-          {loading ? (
-             <div style={{ display: "flex", justifyContent: "center", padding: "20px" }}><Spin /></div>
-          ) : (
-             <PopularBanner books={recommended} />
-          )}
-        </div>
-
-        {/* ✅ 3. Quick Actions */}
+        {/* ✅ 2. Quick Actions */}
         <div style={{ marginBottom: '32px' }}>
-          <Typography.Text strong style={{ fontSize: '20px', color: '#1e293b', display: 'block', marginBottom: '16px' }}>
-            Quick Actions
-          </Typography.Text>
-          <Row gutter={[16, 16]}>
-            <Col span={8}>
-              <div 
+          <Row gutter={16}>
+            <Col span={12}>
+              <Button 
+                type="primary" 
+                size="large" 
+                block 
+                icon={<SearchOutlined />}
                 onClick={() => setCurrentPage('search')}
-                style={{ 
-                  background: '#F8FAFC', 
-                  borderRadius: '16px', 
-                  padding: '16px 8px', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  height: '100px',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
-                }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <SearchOutlined style={{ fontSize: '20px', color: '#3b82f6' }} />
-                </div>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#475569' }}>Search</span>
-              </div>
+                style={{ height: '48px', borderRadius: '12px', background: '#3b82f6', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}
+              >
+                Search Books
+              </Button>
             </Col>
-            <Col span={8}>
-              <div 
+            <Col span={12}>
+              <Button 
+                type="default" 
+                size="large" 
+                block 
+                icon={<BookOutlined />}
                 onClick={() => setCurrentPage('profile')}
-                style={{ 
-                  background: '#F8FAFC', 
-                  borderRadius: '16px', 
-                  padding: '16px 8px', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  height: '100px',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
-                }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <BookOutlined style={{ fontSize: '20px', color: '#10b981' }} />
-                </div>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#475569' }}>My Books</span>
-              </div>
-            </Col>
-            <Col span={8}>
-              <div 
-                onClick={() => setCurrentPage('profile')}
-                style={{ 
-                  background: '#F8FAFC', 
-                  borderRadius: '16px', 
-                  padding: '16px 8px', 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  gap: '10px',
-                  cursor: 'pointer',
-                  height: '100px',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
-                }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#FFF7ED', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <HistoryOutlined style={{ fontSize: '20px', color: '#f59e0b' }} />
-                </div>
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#475569' }}>History</span>
-              </div>
+                style={{ height: '48px', borderRadius: '12px', borderColor: '#cbd5e1', color: '#475569' }}
+              >
+                My Borrowings
+              </Button>
             </Col>
           </Row>
         </div>
 
-        {/* ✅ 4. Recommended (Vertical List) */}
-        <div>
+        {/* ✅ 3. Popular Borrowing List (Horizontal Scroll) */}
+        <div style={{ marginBottom: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <Title level={5} style={{ margin: 0, fontSize: '18px' }}>Popular Books</Title>
+            <Button type="link" size="small" onClick={() => setCurrentPage('search')} style={{ color: '#3b82f6' }}>View All</Button>
+          </div>
+          
+          {loading ? (
+             <div style={{ display: "flex", justifyContent: "center", padding: "20px" }}><Spin /></div>
+          ) : (
+             <div className="h-scroll-container">
+               {recommended.map((book, index) => (
+                 <Card
+                   key={book._id}
+                   bordered={false}
+                   hoverable
+                   onClick={() => message.info(`Opening ${book.title}...`)}
+                   style={{ 
+                     minWidth: '140px', 
+                     maxWidth: '140px', 
+                     flexShrink: 0,
+                     borderRadius: '12px',
+                     overflow: 'hidden',
+                     boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                   }}
+                   bodyStyle={{ padding: '10px' }}
+                 >
+                   <div style={{ position: 'relative', marginBottom: '8px' }}>
+                      <div style={{ 
+                        position: 'absolute', 
+                        top: 0, left: 0, 
+                        background: index < 3 ? '#ef4444' : '#94a3b8', 
+                        color: '#fff', 
+                        width: '24px', height: '24px', 
+                        borderRadius: '0 0 8px 0', 
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '12px', fontWeight: 'bold',
+                        zIndex: 1
+                      }}>
+                        {index + 1}
+                      </div>
+                      <img 
+                        src={book.cover} 
+                        alt={book.title} 
+                        style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '8px' }} 
+                        onError={(e) => {e.target.onerror=null; e.target.src="https://via.placeholder.com/140x180?text=No+Cover"}}
+                      />
+                   </div>
+                   
+                   <div className="text-clamp-2" style={{ height: '36px', fontSize: '13px', fontWeight: '600', marginBottom: '4px', lineHeight: '1.3', color: '#1e293b' }}>
+                     {book.title}
+                   </div>
+                   
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '12px' }}>
+                      <FireOutlined style={{ color: '#f59e0b' }} />
+                      <span>{book.borrowCount || Math.floor(Math.random() * 50) + 10} borrows</span>
+                   </div>
+                 </Card>
+               ))}
+             </div>
+          )}
+        </div>
+
+        {/* ✅ 4. Recommended (Vertical List) - Keeping existing logic but simplified */}
+        <div style={{ marginBottom: '20px' }}>
            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <Typography.Text strong style={{ fontSize: '20px', color: '#1e293b' }}>Recommended</Typography.Text>
-              <Button type="link" size="small" onClick={() => setCurrentPage('search')} style={{ color: '#3b82f6', fontWeight: '600' }}>See All</Button>
+              <Title level={5} style={{ margin: 0, fontSize: '18px' }}>For You</Title>
            </div>
            
            {loading ? <Spin /> : (

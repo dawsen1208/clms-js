@@ -1,0 +1,74 @@
+/* 📱 Global Mobile Styles */
+@media (max-width: 768px) {
+  /* Unified Mobile Padding */
+  .page-container {
+    padding: 16px !important;
+  }
+
+  /* Card Styles */
+  .ant-card {
+    border-radius: 12px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+  }
+  
+  .ant-card-body {
+    padding: 12px !important;
+  }
+
+  /* Text Clamp Utility */
+  .text-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .text-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Horizontal Scroll Container */
+  .h-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 8px; /* For scrollbar space */
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  .h-scroll-container::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+
+  /* Mobile Button Touch Targets */
+  .ant-btn-lg {
+    height: 48px !important;
+    font-size: 16px !important;
+  }
+  
+  /* Full Width Content on Mobile */
+  .ant-layout-content {
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  /* Hide Desktop Elements */
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* Mobile Only Utility */
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block;
+  }
+}

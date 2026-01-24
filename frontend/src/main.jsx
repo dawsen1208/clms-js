@@ -15,6 +15,7 @@ unstableSetRender((node, container) => {
 import ReactDOM from "react-dom/client";
 import "antd/dist/reset.css";
 import "./assets/responsive.css";
+import "./styles/mobile.css"; // ✅ Mobile-first styles
 import { ConfigProvider, message, Grid, theme as antdTheme } from "antd";
 import enUS from "antd/locale/en_US";
 import { registerSW } from 'virtual:pwa-register';

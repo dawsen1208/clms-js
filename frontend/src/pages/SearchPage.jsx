@@ -19,6 +19,8 @@ import {
   Col,
   Tabs,
   Tag,
+  Drawer,
+  Checkbox,
 } from "antd";
 import {
   SearchOutlined,
@@ -30,6 +32,9 @@ import {
   UserOutlined,
   CalendarOutlined,
   TagOutlined,
+  FilterOutlined,
+  MenuOutlined,
+  SortAscendingOutlined,
 } from "@ant-design/icons";
 import { getBooks, borrowBook, getBorrowedBooks } from "../api"; // ✅ use unified API
 import { requestRenewLibrary, requestReturnLibrary, getUserRequestsLibrary } from "../api.js";
@@ -356,6 +361,11 @@ function SearchPage() {
     // Flatten books for mobile list if not using categories
     const allBooks = categories.reduce((acc, cat) => [...acc, ...cat.books], []);
     
+    // Filter by selected category for mobile view if set
+    const mobileDisplayBooks = selectedCategory 
+      ? (categories.find(c => c.name === selectedCategory)?.books || [])
+      : allBooks;
+
     return (
       <div className="search-page-mobile" style={{ padding: "16px", background: "#f8fafc", minHeight: "100vh" }}>
         {/* Controlled Modals */}
@@ -373,47 +383,98 @@ function SearchPage() {
            </div>
         </Modal>
 
-        {/* 🔍 Search Header */}
-        <div style={{ marginBottom: "16px", position: "sticky", top: "0", zIndex: 10, background: "#f8fafc", paddingBottom: "10px" }}>
-          <Title level={4} style={{ marginBottom: "12px", fontSize: "22px" }}>Search Books</Title>
-          <EnhancedSearchBar
-            onSearch={handleSearch}
-            searchType={searchType}
-            onSearchTypeChange={setSearchType}
-            onBorrow={handleBorrow}
-            categoriesList={categories.map(c => c.name)}
-            books={books}
-            loading={loading}
-            isMobile={true} // Pass mobile flag to component
+        {/* 📱 Mobile Drawers */}
+        <Drawer
+          title="Categories"
+          placement="left"
+          onClose={() => setCateDrawerOpen(false)}
+          open={cateDrawerOpen}
+          width="75%"
+        >
+          <List
+            dataSource={[{ name: "All Books" }, ...categories]}
+            renderItem={item => (
+              <List.Item 
+                onClick={() => {
+                  setSelectedCategory(item.name === "All Books" ? "" : item.name);
+                  setCateDrawerOpen(false);
+                }}
+                style={{ 
+                  cursor: "pointer", 
+                  background: selectedCategory === item.name || (item.name === "All Books" && !selectedCategory) ? "#eff6ff" : "transparent",
+                  color: selectedCategory === item.name || (item.name === "All Books" && !selectedCategory) ? "#3b82f6" : "inherit"
+                }}
+              >
+                <span style={{ fontWeight: selectedCategory === item.name ? "bold" : "normal" }}>
+                  {item.name}
+                </span>
+                {item.name !== "All Books" && <Tag>{item.books?.length || 0}</Tag>}
+              </List.Item>
+            )}
           />
-          {/* Filters Toggle */}
-          <div style={{ marginTop: "12px", display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "4px" }}>
-            <Button 
-              size="small" 
-              icon={<AppstoreOutlined />} 
-              type={viewMode === 'grid' ? 'primary' : 'default'} 
-              onClick={() => setViewMode('grid')}
-            >
-              Grid
-            </Button>
-            <Button 
-              size="small" 
-              icon={<UnorderedListOutlined />} 
-              type={viewMode === 'list' ? 'primary' : 'default'} 
-              onClick={() => setViewMode('list')}
-            >
-              List
-            </Button>
-             <Select
-                size="small"
-                defaultValue="latest"
-                style={{ width: 120 }}
-                onChange={setSortBy}
-                options={[
-                  { label: "Latest", value: "latest" },
-                  { label: "Popular", value: "most_borrowed" },
-                ]}
-              />
+        </Drawer>
+
+        <Drawer
+          title="Filter & Sort"
+          placement="right"
+          onClose={() => setFilterDrawerOpen(false)}
+          open={filterDrawerOpen}
+        >
+          <div style={{ marginBottom: "24px" }}>
+            <Title level={5}>Sort By</Title>
+            <Select
+              defaultValue="latest"
+              style={{ width: "100%" }}
+              onChange={(val) => { setSortBy(val); }}
+              value={sortBy}
+              options={[
+                { label: "Latest Arrivals", value: "latest" },
+                { label: "Most Popular", value: "most_borrowed" },
+                { label: "High Stock", value: "stock_high" },
+              ]}
+            />
+          </div>
+          <div style={{ marginBottom: "24px" }}>
+             <Title level={5}>View Mode</Title>
+             <Segmented 
+               options={[
+                 { label: 'List', value: 'list', icon: <UnorderedListOutlined /> },
+                 { label: 'Grid', value: 'grid', icon: <AppstoreOutlined /> }
+               ]}
+               value={viewMode}
+               onChange={setViewMode}
+               block
+             />
+          </div>
+          <Button type="primary" block onClick={() => setFilterDrawerOpen(false)}>Done</Button>
+        </Drawer>
+
+        {/* 🔍 Search Header with Drawer Toggles */}
+        <div style={{ marginBottom: "16px", position: "sticky", top: "0", zIndex: 10, background: "#f8fafc", paddingBottom: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+             <Title level={4} style={{ margin: 0, fontSize: "22px" }}>Search</Title>
+             {selectedCategory && (
+               <Tag closable onClose={() => setSelectedCategory("")} color="blue">
+                 {selectedCategory}
+               </Tag>
+             )}
+          </div>
+          
+          <div style={{ display: "flex", gap: "10px" }}>
+             <Button icon={<MenuOutlined />} onClick={() => setCateDrawerOpen(true)} />
+             <div style={{ flex: 1 }}>
+               <EnhancedSearchBar
+                 onSearch={handleSearch}
+                 searchType={searchType}
+                 onSearchTypeChange={setSearchType}
+                 onBorrow={handleBorrow}
+                 categoriesList={categories.map(c => c.name)}
+                 books={books}
+                 loading={loading}
+                 isMobile={true} 
+               />
+             </div>
+             <Button icon={<FilterOutlined />} onClick={() => setFilterDrawerOpen(true)} />
           </div>
         </div>
 
@@ -424,10 +485,10 @@ function SearchPage() {
           <div style={{ paddingBottom: "80px" }}>
             {viewMode === 'grid' ? (
               <Row gutter={[12, 12]}>
-                {allBooks.map(book => (
+                {mobileDisplayBooks.map(book => (
                   <Col span={12} key={book._id}>
                     <div 
-                      onClick={() => { /* Navigate to detail? */ }}
+                      onClick={() => { message.info(book.title) }}
                       style={{ 
                         background: "#fff", 
                         borderRadius: "12px", 
@@ -447,7 +508,7 @@ function SearchPage() {
                          )}
                       </div>
                       <div style={{ padding: "10px", flex: 1, display: "flex", flexDirection: "column" }}>
-                        <div style={{ fontSize: "14px", fontWeight: "600", marginBottom: "4px", lineHeight: "1.3", height: "36px", overflow: "hidden" }}>{book.title}</div>
+                        <div className="text-clamp-2" style={{ fontSize: "14px", fontWeight: "600", marginBottom: "4px", lineHeight: "1.3", height: "36px" }}>{book.title}</div>
                         <div style={{ fontSize: "12px", color: "#64748b", marginBottom: "8px" }}>{book.author}</div>
                         <div style={{ marginTop: "auto" }}>
                            {userBorrowedBooks.has(book._id) ? (
@@ -458,7 +519,7 @@ function SearchPage() {
                                 size="small" 
                                 block 
                                 disabled={book.copies <= 0}
-                                onClick={() => handleBorrow(book._id, book.title, book.copies)}
+                                onClick={(e) => { e.stopPropagation(); handleBorrow(book._id, book.title, book.copies); }}
                                 style={{ borderRadius: "8px", fontSize: "12px" }}
                               >
                                 Borrow
@@ -472,52 +533,49 @@ function SearchPage() {
               </Row>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {categories.map(cat => (
-                  <div key={cat.name}>
-                    {cat.books.length > 0 && <div style={{ fontSize: "16px", fontWeight: "bold", margin: "16px 0 8px 0", color: "#334155" }}>{cat.name}</div>}
-                    {cat.books.map(book => (
-                       <div key={book._id} style={{ 
-                          background: "#fff", 
-                          padding: "12px", 
-                          borderRadius: "12px", 
-                          display: "flex", 
-                          gap: "12px",
-                          boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
-                       }}>
-                         <div style={{ width: "70px", height: "100px", borderRadius: "8px", background: "#f1f5f9", flexShrink: 0, overflow: "hidden" }}>
-                            <img src={book.cover} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                               onError={(e) => {e.target.onerror=null; e.target.src="https://via.placeholder.com/70x100?text=No+Cover"}}
-                            />
-                         </div>
-                         <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                           <div style={{ fontSize: "15px", fontWeight: "600", color: "#1e293b", marginBottom: "4px", lineHeight: "1.3" }}>{book.title}</div>
-                           <div style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>{book.author}</div>
-                           <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
-                              <Tag style={{ margin: 0, fontSize: "10px" }}>{book.publishedYear}</Tag>
-                              <Tag color={book.copies > 0 ? "success" : "error"} style={{ margin: 0, fontSize: "10px" }}>
-                                 {book.copies > 0 ? `${book.copies} left` : "Out of Stock"}
-                              </Tag>
-                           </div>
-                           <div style={{ marginTop: "auto", alignSelf: "flex-end" }}>
-                              {userBorrowedBooks.has(book._id) ? (
-                                <Button size="small" disabled>Borrowed</Button>
-                              ) : (
-                                <Button 
-                                  type="primary" 
-                                  size="small" 
-                                  disabled={book.copies <= 0}
-                                  onClick={() => handleBorrow(book._id, book.title, book.copies)}
-                                  style={{ borderRadius: "16px", padding: "0 16px" }}
-                                >
-                                  Borrow
-                                </Button>
-                              )}
-                           </div>
-                         </div>
+                 {mobileDisplayBooks.map(book => (
+                   <div key={book._id} style={{ 
+                      background: "#fff", 
+                      padding: "12px", 
+                      borderRadius: "12px", 
+                      display: "flex", 
+                      gap: "12px",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                      position: "relative"
+                   }}>
+                     <div style={{ width: "80px", height: "110px", borderRadius: "8px", background: "#f1f5f9", flexShrink: 0, overflow: "hidden" }}>
+                        <img src={book.cover} alt={book.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                           onError={(e) => {e.target.onerror=null; e.target.src="https://via.placeholder.com/80x110?text=No+Cover"}}
+                        />
+                     </div>
+                     <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+                       <div className="text-clamp-2" style={{ fontSize: "16px", fontWeight: "600", color: "#1e293b", marginBottom: "4px", lineHeight: "1.3" }}>{book.title}</div>
+                       <div style={{ fontSize: "14px", color: "#64748b", marginBottom: "6px" }}>{book.author}</div>
+                       <div style={{ display: "flex", gap: "6px", marginBottom: "auto" }}>
+                          <Tag style={{ margin: 0, fontSize: "10px" }}>{book.publishedYear}</Tag>
+                          <Tag color={book.copies > 0 ? "success" : "error"} style={{ margin: 0, fontSize: "10px" }}>
+                             {book.copies > 0 ? `${book.copies} left` : "Out of Stock"}
+                          </Tag>
                        </div>
-                    ))}
-                  </div>
-                ))}
+                       
+                       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                         {userBorrowedBooks.has(book._id) ? (
+                            <Button size="middle" disabled style={{ background: "#e2e8f0", color: "#64748b", border: "none", borderRadius: "20px", padding: "0 16px" }}>Borrowed</Button>
+                         ) : (
+                            <Button 
+                              type="primary" 
+                              size="middle" 
+                              disabled={book.copies <= 0}
+                              onClick={(e) => { e.stopPropagation(); handleBorrow(book._id, book.title, book.copies); }}
+                              style={{ borderRadius: "20px", padding: "0 20px", boxShadow: "0 2px 8px rgba(59, 130, 246, 0.4)" }}
+                            >
+                              Borrow
+                            </Button>
+                         )}
+                       </div>
+                     </div>
+                   </div>
+                 ))}
               </div>
             )}
           </div>

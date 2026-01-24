@@ -347,6 +347,143 @@ function ProfilePage() {
   /* =========================================================
      🧱 渲染
      ========================================================= */
+  if (isMobile) {
+    return (
+      <div className="profile-page-mobile page-container" style={{ minHeight: "100vh", background: "#f8fafc" }}>
+        <Title level={4} style={{ marginBottom: "16px" }}>My Profile</Title>
+        
+        {/* Avatar Section */}
+        <div style={{ background: "#fff", borderRadius: "12px", padding: "24px", textAlign: "center", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <Avatar 
+            size={100} 
+            src={avatarUrl} 
+            icon={<UserOutlined />} 
+            style={{ marginBottom: "12px", border: "2px solid #fff", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }} 
+          />
+          <div style={{ fontSize: "20px", fontWeight: "bold", color: "#1e293b" }}>{name || "Unnamed user"}</div>
+          <Tag color="blue" style={{ marginTop: "8px" }}>{userLS.role || "Reader"}</Tag>
+          
+          <div style={{ marginTop: "20px" }}>
+             <Upload showUploadList={false} customRequest={handleUpload} accept="image/*">
+               <Button icon={<UploadOutlined />} style={{ borderRadius: "20px", height: "40px", padding: "0 24px" }}>Change Avatar</Button>
+             </Upload>
+          </div>
+        </div>
+
+        {/* Email Section */}
+        <div style={{ background: "#fff", borderRadius: "12px", padding: "16px", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+          <div style={{ fontSize: "14px", color: "#64748b", marginBottom: "8px" }}>Email Address</div>
+          {emailEditing ? (
+              <div style={{ display: "flex", gap: "8px" }}>
+                  <Input value={email} onChange={e => setEmail(e.target.value)} style={{ height: "40px", flex: 1 }} />
+                  <Button type="primary" onClick={handleSaveEmail} style={{ height: "40px" }}>Save</Button>
+              </div>
+          ) : (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "16px", color: "#333" }}>{email || "Not set"}</span>
+                  <Button type="text" onClick={() => setEmailEditing(true)} style={{ color: "#3b82f6" }}>Edit</Button>
+              </div>
+          )}
+        </div>
+
+        {/* Stats Grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
+          <div style={{ background: "#3b82f6", borderRadius: "12px", padding: "16px", color: "#fff", boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)" }}>
+             <div style={{ fontSize: "12px", opacity: 0.9 }}>Borrowed</div>
+             <div style={{ fontSize: "24px", fontWeight: "bold" }}>{stats.totalHistory}</div>
+          </div>
+          <div style={{ background: "#8b5cf6", borderRadius: "12px", padding: "16px", color: "#fff", boxShadow: "0 2px 8px rgba(139, 92, 246, 0.3)" }}>
+             <div style={{ fontSize: "12px", opacity: 0.9 }}>Active Requests</div>
+             <div style={{ fontSize: "24px", fontWeight: "bold" }}>{stats.pending}</div>
+          </div>
+        </div>
+
+        {/* Action List */}
+        <div style={{ background: "#fff", borderRadius: "12px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+           <div onClick={() => setHistoryModalVisible(true)} style={{ padding: "16px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                 <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#3b82f6" }}>📚</div>
+                 <span style={{ fontSize: "16px", fontWeight: "500", color: "#333" }}>Borrow History</span>
+              </div>
+              <span style={{ color: "#cbd5e1" }}>&gt;</span>
+           </div>
+           <div onClick={() => setRequestsModalVisible(true)} style={{ padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                 <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#f5f3ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#8b5cf6" }}>📨</div>
+                 <span style={{ fontSize: "16px", fontWeight: "500", color: "#333" }}>My Requests</span>
+              </div>
+              <span style={{ color: "#cbd5e1" }}>&gt;</span>
+           </div>
+        </div>
+
+        {/* Modals (Mobile Optimized) */}
+        <Modal
+          title="Borrow History"
+          open={historyModalVisible}
+          onCancel={() => setHistoryModalVisible(false)}
+          footer={null}
+          width="100%"
+          style={{ top: 0, margin: 0, padding: 0 }}
+          styles={{ body: { padding: "16px", height: "calc(100vh - 55px)", overflowY: "auto" } }}
+          wrapClassName="full-screen-modal"
+        >
+             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {paginatedData.length > 0 ? paginatedData.map((item) => (
+                    <Card key={item.key} size="small" style={{ background: "#fff", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+                      <div style={{ fontWeight: "bold", marginBottom: "8px", fontSize: "16px", color: "#333" }}>{item.title}</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px", color: "#666" }}>
+                        <div><span style={{ color: "#94a3b8" }}>Borrow:</span> <br/>{item.borrowDate}</div>
+                        <div><span style={{ color: "#94a3b8" }}>Due:</span> <br/>{item.dueDate}</div>
+                        <div><span style={{ color: "#94a3b8" }}>Return:</span> <br/>{item.returnDate}</div>
+                        <div><span style={{ color: "#94a3b8" }}>Status:</span> <br/>{item.returned === "✅ Yes" ? <Tag color="green">Returned</Tag> : <Tag color="orange">Borrowed</Tag>}</div>
+                      </div>
+                    </Card>
+                  )) : <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>No borrow records</div>}
+             </div>
+             {history.length > pageSize && (
+                <div style={{ textAlign: "center", marginTop: "20px", paddingBottom: "20px" }}>
+                  <Pagination
+                    simple
+                    current={currentPage}
+                    pageSize={pageSize}
+                    total={history.length}
+                    onChange={(page) => setCurrentPage(page)}
+                  />
+                </div>
+              )}
+        </Modal>
+
+        <Modal
+          title="My Requests"
+          open={requestsModalVisible}
+          onCancel={() => setRequestsModalVisible(false)}
+          footer={null}
+          width="100%"
+          style={{ top: 0, margin: 0, padding: 0 }}
+          styles={{ body: { padding: "16px", height: "calc(100vh - 55px)", overflowY: "auto" } }}
+          wrapClassName="full-screen-modal"
+        >
+             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {requests.length > 0 ? requests.map((req) => (
+                    <Card key={req._id} size="small" style={{ background: "#fff", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", alignItems: "flex-start" }}>
+                          <div style={{ fontWeight: "bold", fontSize: "16px", color: "#333", flex: 1, marginRight: "8px" }} className="text-clamp-2">{req.bookTitle || "Unknown Book"}</div>
+                          {renderStatusTag(req.status)}
+                       </div>
+                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", color: "#666" }}>
+                          <div>
+                            {req.type === "renew" ? <Tag color="blue">Renew</Tag> : <Tag color="purple">Return</Tag>}
+                          </div>
+                          <div>{req.createdAt ? dayjs(req.createdAt).format("YYYY-MM-DD") : "-"}</div>
+                       </div>
+                    </Card>
+                  )) : <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>No request records</div>}
+             </div>
+        </Modal>
+      </div>
+    );
+  }
+
   return (
     <div className="profile-page" style={themeUtils.getPageContainerStyle()}>
       <Card

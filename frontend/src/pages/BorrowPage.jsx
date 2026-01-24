@@ -186,15 +186,15 @@ function BorrowPage() {
      ========================================================= */
   if (isMobile) {
     return (
-      <div className="borrow-page-mobile" style={{ padding: "16px", background: "#f8fafc", minHeight: "100vh" }}>
+      <div className="borrow-page-mobile page-container" style={{ minHeight: "100vh", background: "#f8fafc" }}>
         <Title level={4} style={{ marginBottom: "16px" }}>My Borrowings</Title>
         
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
-             <Card size="small" bodyStyle={{ padding: "12px" }}>
-                 <Statistic title="Total Borrowed" value={stats.total} valueStyle={{ fontSize: "20px" }} />
+             <Card size="small" bodyStyle={{ padding: "12px", textAlign: "center" }} style={{ borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                 <Statistic title="Total Borrowed" value={stats.total} valueStyle={{ fontSize: "24px", fontWeight: "bold" }} />
              </Card>
-             <Card size="small" bodyStyle={{ padding: "12px" }}>
-                  <Statistic title="Pending" value={stats.pending} prefix={<ClockCircleOutlined />} valueStyle={{ fontSize: "20px", color: "#faad14" }} />
+             <Card size="small" bodyStyle={{ padding: "12px", textAlign: "center" }} style={{ borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                  <Statistic title="Pending" value={stats.pending} prefix={<ClockCircleOutlined />} valueStyle={{ fontSize: "24px", fontWeight: "bold", color: "#faad14" }} />
              </Card>
         </div>
 
@@ -219,7 +219,7 @@ function BorrowPage() {
                  }}>
                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
                       <div style={{ flex: 1, marginRight: "12px" }}>
-                        <div style={{ fontSize: "16px", fontWeight: "600", color: "#1e293b", marginBottom: "4px", lineHeight: "1.4" }}>
+                        <div className="text-clamp-2" style={{ fontSize: "16px", fontWeight: "600", color: "#1e293b", marginBottom: "4px", lineHeight: "1.4" }}>
                            {bookIdForLink ? (
                               <Link to={`/book/${bookIdForLink}`} style={{ color: "inherit", textDecoration: "none" }}>
                                 {record.title || "Unknown Book"}
@@ -241,7 +241,7 @@ function BorrowPage() {
                           block 
                           disabled 
                           icon={<ClockCircleOutlined />} 
-                          style={{ borderRadius: "8px", background: "#f1f5f9", border: "none", color: "#94a3b8" }}
+                          style={{ borderRadius: "8px", background: "#f1f5f9", border: "none", color: "#94a3b8", height: "44px" }}
                         >
                           Request Pending
                         </Button>
@@ -251,7 +251,7 @@ function BorrowPage() {
                           type="primary" 
                           icon={<SyncOutlined />} 
                           onClick={() => openRenewModal(record)}
-                          style={{ borderRadius: "8px" }}
+                          style={{ borderRadius: "8px", height: "44px" }}
                         >
                           Renew Loan
                         </Button>
@@ -280,7 +280,7 @@ function BorrowPage() {
             Please select a new due date:
           </p>
           <DatePicker
-            style={{ width: "100%" }}
+            style={{ width: "100%", height: "44px" }}
             format="YYYY-MM-DD"
             value={newDate}
             onChange={(date) => setNewDate(date)}

@@ -1,5 +1,5 @@
 // ✅ client/src/components/LayoutMenu.jsx
-import { Layout, Menu, Button, Tooltip, Grid } from "antd";
+import { Layout, Menu, Button, Tooltip, Grid, Drawer } from "antd";
 import {
   MenuOutlined,
   HomeOutlined,
@@ -29,6 +29,7 @@ const { useBreakpoint } = Grid;
  */
 function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const navigate = useNavigate();
   const screens = useBreakpoint();
@@ -64,6 +65,7 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
      📋 菜单点击事件
      ========================================================= */
   const handleMenuClick = (e) => {
+    if (isMobile) setMobileMenuOpen(false);
     if (e.key === "logout") {
       // ✅ 触发同步登出广播
       localStorage.setItem("logout_event", Date.now());
@@ -83,36 +85,20 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
   /* =========================================================
      🧱 渲染组件结构
      ========================================================= */
-  return (
-    <Layout style={{ minHeight: "100vh" }}>
-      {/* ✅ Left sidebar navigation */}
-      <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={setCollapsed}
-        width={200}
-        collapsedWidth={isMobile ? 0 : 80}
-        breakpoint="md"
-        className="user-app-sidebar"
-        style={{
-          background: "#001529",
-          height: "100vh",
-          position: "fixed",
-          left: 0,
-          top: 0,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          zIndex: 10,
-        }}
-      >
+  const SidebarContent = (
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
         {/* Header with user info */}
         <div className="user-sidebar-header">
           <div className="user-sidebar-header-content">
             <div className="user-avatar-circle">
               <UserOutlined style={{ fontSize: 24 }} />
-    
-            {!collapsed && (
+            </div>
+            {!collapsed && !isMobile && (
+              <div className="user-info-text">
+                <div className="user-role">Library Reader</div>
+              </div>
+            )}
+            {isMobile && (
               <div className="user-info-text">
                 <div className="user-role">Library Reader</div>
               </div>
@@ -120,82 +106,108 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
           </div>
         </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        </div>
-
-        {/* Collapse toggle button (same position as admin) */}
-        <div
-          className="user-sidebar-collapse-btn"
-          style={{
-            height: 48,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#fff",
-            cursor: "pointer",
-            margin: "8px 12px",
-            borderRadius: 8,
-          }}
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          <MenuOutlined style={{ fontSize: 18 }} />
-        </div>
+        {/* Collapse toggle button (Desktop only) */}
+        {!isMobile && (
+          <div
+            className="user-sidebar-collapse-btn"
+            style={{
+              height: 48,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              cursor: "pointer",
+              margin: "8px 12px",
+              borderRadius: 8,
+            }}
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            <MenuOutlined style={{ fontSize: 18 }} />
+          </div>
+        )}
 
         {/* Main navigation menu */}
-        <div className="user-app-menu">
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[currentPage]}
-          onClick={handleMenuClick}
-          items={[
-            { key: "home", icon: <HomeOutlined />, label: "Home" },
-            { key: "assistant", icon: <RobotOutlined />, label: "Smart Assistant" },
-            { key: "search", icon: <SearchOutlined />, label: "Search" },
-            { key: "borrow", icon: <BookOutlined />, label: "Borrow" },
-            { key: "return", icon: <RollbackOutlined />, label: "Return" },
-            { key: "profile", icon: <UserOutlined />, label: "Profile" },
-            { key: "settings", icon: <SettingOutlined />, label: "Settings" },
-          ]}
-          style={{ flexGrow: 1 }}
-          className="user-menu-items"
-        />
-
+        <div className="user-app-menu" style={{ flexGrow: 1 }}>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[currentPage]}
+            onClick={handleMenuClick}
+            items={[
+              { key: "home", icon: <HomeOutlined />, label: "Home" },
+              { key: "assistant", icon: <RobotOutlined />, label: "Smart Assistant" },
+              { key: "search", icon: <SearchOutlined />, label: "Search" },
+              { key: "borrow", icon: <BookOutlined />, label: "Borrow" },
+              { key: "return", icon: <RollbackOutlined />, label: "Return" },
+              { key: "profile", icon: <UserOutlined />, label: "Profile" },
+              { key: "settings", icon: <SettingOutlined />, label: "Settings" },
+            ]}
+            style={{ flexGrow: 1 }}
+            className="user-menu-items"
+          />
         </div>
 
         <div className="user-logout-menu">
-        {/* Bottom logout button */}
-        <Menu
-          theme="dark"
-          mode="inline"
-          onClick={handleMenuClick}
-          items={[
-            {
-              key: "logout",
-              icon: <LogoutOutlined />,
-              label: "Logout",
-            },
-          ]}
-          style={{
-            borderTop: "1px solid rgba(255,255,255,0.15)",
-            paddingBottom: "1rem",
-          }}
-        />
+          {/* Bottom logout button */}
+          <Menu
+            theme="dark"
+            mode="inline"
+            onClick={handleMenuClick}
+            items={[
+              {
+                key: "logout",
+                icon: <LogoutOutlined />,
+                label: "Logout",
+              },
+            ]}
+            style={{
+              borderTop: "1px solid rgba(255,255,255,0.15)",
+              paddingBottom: "1rem",
+            }}
+          />
         </div>
-      </Sider>
+    </div>
+  );
+
+  return (
+    <Layout style={{ minHeight: "100vh" }}>
+      {/* ✅ Left sidebar navigation (Desktop) */}
+      {!isMobile && (
+        <Sider
+          collapsible
+          collapsed={collapsed}
+          onCollapse={setCollapsed}
+          width={200}
+          collapsedWidth={80}
+          breakpoint="md"
+          className="user-app-sidebar"
+          trigger={null} // Hide default trigger
+          style={{
+            background: "#001529",
+            height: "100vh",
+            position: "fixed",
+            left: 0,
+            top: 0,
+            zIndex: 10,
+          }}
+        >
+          {SidebarContent}
+        </Sider>
+      )}
+
+      {/* ✅ Mobile Drawer Navigation */}
+      {isMobile && (
+        <Drawer
+          placement="left"
+          onClose={() => setMobileMenuOpen(false)}
+          open={mobileMenuOpen}
+          width="75%"
+          styles={{ body: { padding: 0, background: "#001529" } }}
+          closeIcon={null}
+        >
+          {SidebarContent}
+        </Drawer>
+      )}
 
       {/* ✅ Right main content area */}
       <Layout
@@ -224,13 +236,13 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
             {/* Mobile Menu Toggle */}
             <Button
               type="text"
-              icon={collapsed ? <MenuOutlined /> : <MenuOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
+              icon={<MenuOutlined />}
+              onClick={() => isMobile ? setMobileMenuOpen(true) : setCollapsed(!collapsed)}
               style={{ 
                 fontSize: "18px", 
                 width: 46, 
                 height: 46,
-                display: isMobile ? "flex" : "none", // Only show on mobile here as desktop has sidebar
+                display: isMobile ? "flex" : "none", // Only show on mobile
                 alignItems: "center",
                 justifyContent: "center"
               }}
@@ -260,7 +272,7 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
             overflowX: "hidden"
           }}
         >
-          <div className="page-container">
+          <div className={isMobile ? "" : "page-container"}>
           {children || (
             <div
               style={{
