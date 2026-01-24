@@ -17,7 +17,6 @@ function LoginPage() {
   const [loginError, setLoginError] = useState("");
   const [remember, setRemember] = useState(false); // ✅ “记住我”开关
   const [isFlipped, setIsFlipped] = useState(false); // 🔄 Card flip state
-  const [qrModalOpen, setQrModalOpen] = useState(false); // 📱 QR Modal state
   const navigate = useNavigate();
 
   // API 基础地址由全局 api.js 管理，避免 https 页面访问 http 导致的 CSP/Mixed-Content

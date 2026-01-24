@@ -219,6 +219,9 @@ function GlobalNotifier() {
   const openDetail = (item) => {
     setDetailModal({ open: true, data: item });
     setUnreadCount(0);
+    // ✅ 关闭列表 Drawer，实现“互斥弹窗”体验
+    setDrawerOpen(false);
+
     // ✅ 将当前列表全部记为已知，防止轮询后红点再次出现
     try {
       notifications.forEach((n) => lastKnownIds.current.add(n._id));

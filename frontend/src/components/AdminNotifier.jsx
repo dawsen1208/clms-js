@@ -116,17 +116,55 @@ function AdminNotifier() {
       {/* 🔔 Fixed top-right notification button */}
       {isAdmin && (
         <div style={{ position: "fixed", top: 18, right: 24, zIndex: 2000 }}>
+          <Tooltip title="Admin QR Code">
+            <Button
+              shape="circle"
+              icon={<QrcodeOutlined style={{ fontSize: 18 }} />}
+              onClick={() => {
+                setQrModalOpen(true);
+                setDrawerOpen(false); // 互斥关闭
+              }}
+              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.15)", border: "none", marginRight: 15 }}
+            />
+          </Tooltip>
+
           <Tooltip title="User request notifications">
             <Badge count={unread} overflowCount={9}>
               <Button
                 shape="circle"
                 icon={<BellOutlined style={{ fontSize: 18 }} />}
-                onClick={() => setDrawerOpen(true)}
+                onClick={() => {
+                  setDrawerOpen(true);
+                  setQrModalOpen(false); // 互斥关闭
+                }}
               />
             </Badge>
           </Tooltip>
         </div>
       )}
+
+      {/* 📱 QR Code Modal */}
+      <Modal
+        open={qrModalOpen}
+        footer={null}
+        onCancel={() => setQrModalOpen(false)}
+        centered
+        width={360}
+        title={<div style={{ textAlign: "center" }}>📱 Mobile Experience</div>}
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 0" }}>
+          <QRCode 
+            value="https://clmsf5164136.z1.web.core.windows.net/" 
+            size={250} 
+            icon="/icons/app-icon-192.png"
+            errorLevel="H"
+          />
+          <div style={{ marginTop: "24px", textAlign: "center", color: "#64748b" }}>
+            <p style={{ margin: 0, fontWeight: 500 }}>Scan with your phone camera</p>
+            <p style={{ margin: "4px 0 0", fontSize: "13px" }}>to access the low-density mobile view</p>
+          </div>
+        </div>
+      </Modal>
 
       {/* 🗂️ Notification drawer */}
       <Drawer
