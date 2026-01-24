@@ -177,15 +177,12 @@ function BorrowPage() {
     pendingRequests.some(
       (r) => String(r.bookId) === String(bookId) && r.status === "pending"
     );
+
   const isPendingRenewUI = (bookId) => {
     const idStr = String(bookId);
-    // 本页的本地乐观续借 Pending 或后端任一 Pending（续借/归还）均禁用
     return localPendingRenew.includes(idStr) || isPendingAny(idStr);
   };
 
-  /* =========================================================
-     🔒 判断是否处于 Pending 状态 (UI禁用 - 通用)
-     ========================================================= */
   const isPendingUI = (bookId) => {
     const idStr = String(bookId);
     return (

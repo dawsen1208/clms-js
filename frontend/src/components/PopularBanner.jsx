@@ -269,7 +269,8 @@ function PopularBanner() {
                   style={{
                     position: "absolute",
                     top: "8px",
-                    left: "8px",
+                    right: "8px",
+                    left: "auto",
                     background: i < 3 ? "rgba(255, 77, 79, 0.9)" : "rgba(0, 0, 0, 0.6)",
                     color: "#fff",
                     minWidth: "24px",

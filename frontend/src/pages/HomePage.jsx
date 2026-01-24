@@ -124,7 +124,7 @@ function HomePage({ setCurrentPage }) {
                    <div style={{ position: 'relative', marginBottom: '8px' }}>
                       <div style={{ 
                         position: 'absolute', 
-                        top: '8px', left: '8px', 
+                        top: '8px', right: '8px', left: 'auto',
                         background: index < 3 ? 'rgba(239, 68, 68, 0.9)' : 'rgba(148, 163, 184, 0.9)', 
                         color: '#fff', 
                         minWidth: '24px', height: '24px', 
@@ -260,7 +260,7 @@ function HomePage({ setCurrentPage }) {
       </Card>
 
       <div style={{ textAlign: "center", marginTop: "40px", color: "#94a3b8", paddingBottom: "20px" }}>
-        © 2024 CLMS Library System | v1.2.0 (Mobile Optimized)
+        © 2024 CLMS Library System | v1.3.0 (Fixed Mobile Borrow & UI)
       </div>
     </div>
   );
