@@ -9,7 +9,7 @@
   font-family: 'Segoe UI', 'Inter', sans-serif;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 600px) {
   .login-page {
     padding: 1rem;
     flex-direction: column;

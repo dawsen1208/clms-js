@@ -115,16 +115,29 @@ function AdminNotifier() {
     <>
       {/* 🔔 Fixed top-right notification button */}
       {isAdmin && (
-        <div style={{ position: "fixed", top: 18, right: 24, zIndex: 2000 }}>
+        <div style={{ 
+          position: "fixed", 
+          top: 18, 
+          right: 24, 
+          zIndex: 9999, /* Force top layer */
+          display: "flex", /* Ensure horizontal alignment */
+          alignItems: "center",
+          gap: "16px"
+        }}>
           <Tooltip title="Admin QR Code">
             <Button
               shape="circle"
-              icon={<QrcodeOutlined style={{ fontSize: 18 }} />}
+              icon={<QrcodeOutlined style={{ fontSize: 18, color: '#1677ff' }} />}
               onClick={() => {
                 setQrModalOpen(true);
                 setDrawerOpen(false); // 互斥关闭
               }}
-              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.15)", border: "none", marginRight: 15 }}
+              style={{ 
+                boxShadow: "0 2px 8px rgba(0,0,0,0.15)", 
+                border: "1px solid #bae0ff", 
+                background: "#e6f4ff",
+                marginRight: 0 /* handled by gap */
+              }}
             />
           </Tooltip>
 
