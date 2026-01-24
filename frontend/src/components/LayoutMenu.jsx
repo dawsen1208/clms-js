@@ -14,7 +14,7 @@ import {
 } from "@ant-design/icons";
 import { SettingOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import GlobalNotifier from "./GlobalNotifier"; // ✅ 全局用户通知系统
 import "./LayoutMenu.css"; // ✅ New CSS file for consistent styling
 import { useLanguage } from "../contexts/LanguageContext";
@@ -37,6 +37,7 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
   const [qrModalOpen, setQrModalOpen] = useState(false); // 📱 QR Code Modal state
   const [userName, setUserName] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
   const screens = useBreakpoint();
   const isMobile = !screens.md; // md 及以下视为移动端
 
@@ -81,8 +82,10 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
       if (e.key === "assistant") {
         navigate("/assistant");
       } else {
-        // 其余读者页面统一在 /home 路由下通过 currentPage 切换
-        navigate("/home");
+        // 仅当不在 /home 时才跳转，避免重复渲染导致的状态丢失
+        if (location.pathname !== "/home") {
+          navigate("/home");
+        }
       }
     }
   };
@@ -95,35 +98,50 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
     <div className="mobile-bottom-nav">
       <div 
         className={`mobile-nav-item ${currentPage === 'home' ? 'active' : ''}`}
-        onClick={() => { setCurrentPage('home'); navigate('/home'); }}
+        onClick={() => { 
+          setCurrentPage('home'); 
+          if (location.pathname !== "/home") navigate('/home'); 
+        }}
       >
         <HomeOutlined className="nav-icon" />
         <span className="nav-label">{t("common.home")}</span>
       </div>
       <div 
         className={`mobile-nav-item ${currentPage === 'search' ? 'active' : ''}`}
-        onClick={() => { setCurrentPage('search'); navigate('/home'); }}
+        onClick={() => { 
+          setCurrentPage('search'); 
+          if (location.pathname !== "/home") navigate('/home'); 
+        }}
       >
         <SearchOutlined className="nav-icon" />
         <span className="nav-label">{t("common.search")}</span>
       </div>
       <div 
         className={`mobile-nav-item ${currentPage === 'borrow' ? 'active' : ''}`}
-        onClick={() => { setCurrentPage('borrow'); navigate('/home'); }}
+        onClick={() => { 
+          setCurrentPage('borrow'); 
+          if (location.pathname !== "/home") navigate('/home'); 
+        }}
       >
         <BookOutlined className="nav-icon" />
         <span className="nav-label">{t("common.myBooks")}</span>
       </div>
       <div 
         className={`mobile-nav-item ${currentPage === 'profile' ? 'active' : ''}`}
-        onClick={() => { setCurrentPage('profile'); navigate('/home'); }}
+        onClick={() => { 
+          setCurrentPage('profile'); 
+          if (location.pathname !== "/home") navigate('/home'); 
+        }}
       >
         <UserOutlined className="nav-icon" />
         <span className="nav-label">{t("common.profile")}</span>
       </div>
       <div 
         className={`mobile-nav-item ${currentPage === 'settings' ? 'active' : ''}`}
-        onClick={() => { setCurrentPage('settings'); navigate('/home'); }}
+        onClick={() => { 
+          setCurrentPage('settings'); 
+          if (location.pathname !== "/home") navigate('/home'); 
+        }}
       >
         <SettingOutlined className="nav-icon" />
         <span className="nav-label">{t("common.settings")}</span>
