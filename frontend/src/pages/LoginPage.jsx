@@ -273,6 +273,29 @@ function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* 📱 QR Code Modal (For explicit button click) */}
+      <Modal
+        open={qrModalOpen}
+        footer={null}
+        onCancel={() => setQrModalOpen(false)}
+        centered
+        width={360}
+        title={<div style={{ textAlign: "center" }}>📱 Mobile Experience</div>}
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 0" }}>
+          <QRCode 
+            value="https://clmsf5164136.z1.web.core.windows.net/" 
+            size={250} 
+            icon="/icons/app-icon-192.png"
+            errorLevel="H"
+          />
+          <div style={{ marginTop: "24px", textAlign: "center", color: "#64748b" }}>
+            <p style={{ margin: 0, fontWeight: 500 }}>Scan with your phone camera</p>
+            <p style={{ margin: "4px 0 0", fontSize: "13px" }}>to access the low-density mobile view</p>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

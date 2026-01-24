@@ -143,6 +143,8 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
               { key: "return", icon: <RollbackOutlined />, label: "Return" },
               { key: "profile", icon: <UserOutlined />, label: "Profile" },
               { key: "settings", icon: <SettingOutlined />, label: "Settings" },
+              // 📱 Mobile QR Code (Visible in Drawer)
+              { key: "mobile-qr", icon: <QrcodeOutlined />, label: "Mobile Access" },
             ]}
             style={{ flexGrow: 1 }}
             className="user-menu-items"
