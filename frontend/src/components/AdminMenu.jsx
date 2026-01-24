@@ -25,12 +25,14 @@ import AdminDashboard from "../pages/AdminDashboard";
 import AdminNotifier from "./AdminNotifier";
 import { theme, themeUtils } from "../styles/theme";
 import "./AdminMenu.css"; // Custom styles for app-like menu
+import { useLanguage } from "../contexts/LanguageContext";
 
 const { Sider, Content } = Layout;
 const { Title, Paragraph } = Typography;
 const { useBreakpoint } = Grid;
 
 function AdminMenu({ onLogout, children }) {
+  const { t } = useLanguage();
   const [collapsed, setCollapsed] = useState(false);
   const [selected, setSelected] = useState("home");
   const [adminName, setAdminName] = useState("Administrator");
@@ -50,7 +52,7 @@ function AdminMenu({ onLogout, children }) {
       if (user?.name) {
         setAdminName(user.name);
       } else {
-        message.warning("Admin information not detected, please log in again");
+        message.warning(t("admin.adminInfoMissing"));
         onLogout?.();
       }
       try {
@@ -73,7 +75,7 @@ function AdminMenu({ onLogout, children }) {
     };
     window.addEventListener("storage", syncLogout);
     return () => window.removeEventListener("storage", syncLogout);
-  }, []);
+  }, [onLogout, t]);
 
   // 移动端默认收起侧边栏
   useEffect(() => {
@@ -89,7 +91,7 @@ function AdminMenu({ onLogout, children }) {
       onLogout?.();
     } else {
       if (Array.isArray(allowed) && allowed.length > 0 && !allowed.includes(e.key)) {
-        message.warning("You do not have permission to access this module");
+        message.warning(t("admin.noPermission"));
         return;
       }
       setSelected(e.key);
@@ -103,7 +105,7 @@ function AdminMenu({ onLogout, children }) {
     if (Array.isArray(allowed) && allowed.length > 0 && !allowed.includes(selected)) {
       return (
         <div style={{ padding: 24 }}>
-          <Typography.Text type="danger">Permission denied for this module</Typography.Text>
+          <Typography.Text type="danger">{t("admin.permissionDenied")}</Typography.Text>
         </div>
       );
     }
@@ -268,7 +270,7 @@ function AdminMenu({ onLogout, children }) {
             {
               key: "logout",
               icon: <LogoutOutlined style={{ color: "#ff4d4f", fontSize: '18px' }} />,
-              label: <span style={{ color: "#ff4d4f", fontSize: '14px', fontWeight: 500 }}>Logout</span>,
+              label: <span style={{ color: "#ff4d4f", fontSize: '14px', fontWeight: 500 }}>{t("common.logout")}</span>,
             },
           ]}
           style={{
@@ -291,7 +293,7 @@ function AdminMenu({ onLogout, children }) {
         {/* Mobile menu toggle */}
         {isMobile && (
           <div style={{ position: "fixed", top: 18, left: 18, zIndex: 2000 }}>
-            <Tooltip title={collapsed ? "打开菜单" : "收起菜单"}>
+            <Tooltip title={collapsed ? t("admin.openMenu") : t("admin.collapseMenu")}>
               <Button
                 shape="circle"
                 icon={<MenuOutlined style={{ fontSize: 18 }} />}

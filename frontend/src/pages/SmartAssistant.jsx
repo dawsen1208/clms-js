@@ -40,40 +40,49 @@ import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage, showBorr
 import RadarChart from "../components/RadarChart.jsx";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
 
 function SmartAssistant() {
+  const { t, language } = useLanguage();
   /* =========================================================
      🤖 Smart Recommendations
      ========================================================= */
   const [recommends, setRecommends] = useState([]);
-  const [strategy, setStrategy] = useState("System is generating recommendations...");
+  const [strategy, setStrategy] = useState(t("assistant.generating"));
   const [loading, setLoading] = useState(false);
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
   // Controlled modals for robust visibility
   const [limitOpen, setLimitOpen] = useState(false);
   const [successTitle, setSuccessTitle] = useState("");
 
-  // 🔤 Normalize backend strategy text to English when Chinese appears
-  const toEnglishStrategy = (s) => {
-    if (!s) return "Recommendation based on borrow history";
-    let t = String(s);
-    // Replace common Chinese phrases seen from backend
-    t = t.replace("基于您偏借类别", "Based on your preferred categories ");
-    t = t.replace("基于您常借类别", "Based on your frequently borrowed categories ");
-    t = t.replace("未借阅用户推荐：", "For new users: ");
+  // 🔤 Normalize backend strategy text based on language
+  const formatStrategy = (s) => {
+    if (!s) return t("assistant.basedOnHistory");
+    let tStr = String(s);
+    
+    // If Chinese mode, just clean up
+    if (language === 'zh') {
+       // Remove common prefixes if they are redundant or just return as is
+       return tStr;
+    }
+
+    // If English mode, translate common phrases
+    tStr = tStr.replace("基于您偏借类别", t("assistant.basedOnPreferred"));
+    tStr = tStr.replace("基于您常借类别", t("assistant.basedOnPreferred"));
+    tStr = tStr.replace("未借阅用户推荐：", t("assistant.forNewUsers"));
     // Strip decorative emoji/symbols first
-    t = t.replace(/[📚📖⭐️✨🌟📈]/g, "");
-    t = t.replace(/\*+/g, "");
+    tStr = tStr.replace(/[📚📖⭐️✨🌟📈]/g, "");
+    tStr = tStr.replace(/\*+/g, "");
     // Remove trailing Chinese '推荐' even if followed by spaces/emojis
-    t = t.replace(/推荐(?:\s)*$/g, "");
+    tStr = tStr.replace(/推荐(?:\s)*$/g, "");
     // Collapse extra spaces
-    t = t.replace(/\s{2,}/g, " ").trim();
-    t = t.replace(/未知/g, "Unknown");
-    return t;
+    tStr = tStr.replace(/\s{2,}/g, " ").trim();
+    tStr = tStr.replace(/未知/g, t("common.unknown"));
+    return tStr;
   };
 
   const fetchRecommendations = async () => {
-    if (!token) return message.error("Please log in first!");
+    if (!token) return message.error(t("assistant.loginFirst"));
     try {
       setLoading(true);
       const res = await getRecommendations(token);
@@ -97,17 +106,17 @@ function SmartAssistant() {
         }
       } catch {}
       setRecommends(recs);
-      setStrategy(toEnglishStrategy(data.strategy) || "Recommendation based on borrow history");
+      setStrategy(formatStrategy(data.strategy));
     } catch (err) {
       console.error("❌ Failed to fetch recommendations:", err);
-      message.error("Failed to fetch recommendations, please try again later.");
+      message.error(t("assistant.fetchFailed"));
     } finally {
       setLoading(false);
     }
   };
 
   const handleBorrow = async (bookId, title, copies) => {
-    if (!token) return message.warning("Please log in before borrowing!");
+    if (!token) return message.warning(t("assistant.loginToBorrow"));
     try {
       let available = copies;
       if (typeof available !== "number") {
@@ -118,21 +127,20 @@ function SmartAssistant() {
 
       if (available <= 0) {
         Modal.info({
-          title: "Out of stock",
-          content:
-            "This book is currently out of stock. Please check back later or explore other titles.",
-          okText: "Got it",
+          title: t("assistant.outOfStockTitle"),
+          content: t("assistant.outOfStockMsg"),
+          okText: t("assistant.gotIt"),
           centered: true,
         });
-        message.warning("Out of stock — borrow is not available now.");
+        message.warning(t("assistant.borrowUnavailable"));
         console.log("🟡 Borrow blocked due to zero stock:", { bookId, title, available });
         return;
       }
 
       const res = await borrowBook(bookId, token);
       setSuccessTitle(title);
-      showBorrowSuccessModal(title);
-      message.success(res.data.message || `📘 Successfully borrowed “${title}”!`);
+      // showBorrowSuccessModal(title); // We use local controlled modal instead
+      message.success(res.data.message || t("assistant.borrowSuccessMsg"));
       fetchRecommendations(); // ✅ Refresh recommendations after borrowing
     } catch (err) {
       console.error("❌ Borrow failed:", err);
@@ -142,14 +150,14 @@ function SmartAssistant() {
           status: err?.response?.status,
         });
         setLimitOpen(true);
-        showBorrowLimitModal();
+        // showBorrowLimitModal(); // We use local controlled modal
         return;
       }
       const backendMsg = extractErrorMessage(err);
       if (isBorrowLimitError(backendMsg)) {
         console.warn("🔴 Borrow limit matched by message", { backendMsg });
         setLimitOpen(true);
-        showBorrowLimitModal();
+        // showBorrowLimitModal();
         return;
       }
       // Fallback: detect by HTTP status and route
@@ -158,12 +166,17 @@ function SmartAssistant() {
       if (status === 400 && url.includes("/library/borrow/")) {
         console.warn("🔴 Borrow limit fallback by status+route", { status, url });
         setLimitOpen(true);
-        showBorrowLimitModal();
+        // showBorrowLimitModal();
         return;
       }
-      message.error(backendMsg || "Borrow failed, please try again later.");
+      message.error(backendMsg || t("assistant.borrowFailed"));
     }
   };
+
+  useEffect(() => {
+    // Re-format strategy when language changes if we have one
+    setStrategy(prev => formatStrategy(prev)); 
+  }, [language]);
 
   useEffect(() => {
     fetchRecommendations();
@@ -205,7 +218,7 @@ function SmartAssistant() {
       setFilteredBooks(list);
     } catch (err) {
       console.error("❌ Failed to fetch books:", err);
-      message.error("Failed to load books data");
+      message.error(t("assistant.fetchBooksFailed"));
     }
   };
 
@@ -250,7 +263,7 @@ function SmartAssistant() {
       } else if (prev.length < 5) {
         return [...prev, bookId];
       } else {
-        message.warning("You can select up to 5 books to compare");
+        message.warning(t("assistant.selectLimit"));
         return prev;
       }
     });
@@ -261,32 +274,34 @@ function SmartAssistant() {
   const paginatedBooks = filteredBooks.slice(startIdx, startIdx + pageSize);
   const comparisonData = allBooks.filter((b) => selectedIds.includes(b._id));
 
+
+
   const comparisonColumns = [
-    { title: "Title", dataIndex: "title", key: "title", render: (t) => <b>{t}</b> },
-    { title: "Author", dataIndex: "author", key: "author" },
-    { title: "Category", dataIndex: "category", key: "category" },
+    { title: t("assistant.book"), dataIndex: "title", key: "title", render: (t) => <b>{t}</b> },
+    { title: t("bookDetail.author"), dataIndex: "author", key: "author" },
+    { title: t("bookDetail.category"), dataIndex: "category", key: "category" },
     {
-      title: "Description",
+      title: t("assistant.description"),
       dataIndex: "description",
       key: "description",
-      render: (t) => (t ? t.slice(0, 50) + (t.length > 50 ? "..." : "") : "No description"),
+      render: (t) => (t ? t.slice(0, 50) + (t.length > 50 ? "..." : "") : t("assistant.noDescription")),
     },
   ];
 
   // 触发后端比较
   const handleCompare = async () => {
     if (selectedIds.length < 2 || selectedIds.length > 6) {
-      message.warning("Please select 2 to 6 books to compare");
+      message.warning(t("assistant.selectRange"));
       return;
     }
     setCmpLoading(true);
     try {
       const res = await getBookComparison(selectedIds, windowDays);
       setCmpData(res);
-      message.success("Comparison updated");
+      message.success(t("assistant.compareUpdated"));
     } catch (err) {
       console.error("❌ 比较数据获取失败:", err);
-      const msg = err.response?.data?.message || err.message || "Failed to compare books";
+      const msg = err.response?.data?.message || err.message || t("assistant.compareFailed");
       message.error(msg);
     } finally {
       setCmpLoading(false);
@@ -329,11 +344,11 @@ function SmartAssistant() {
         customScore: Math.round(scoreOf(m) * 1000) / 1000,
       };
       return {
-        name: r.book?.title || "Unknown",
+        name: r.book?.title || t("common.unknown"),
         metrics: weighted,
       };
     });
-  }, [cmpData, weights, radarMode]);
+  }, [cmpData, weights, radarMode, language]);
 
   // 当前权重总和提示
   const weightSum = useMemo(() => {
@@ -343,7 +358,7 @@ function SmartAssistant() {
 
   const metricsColumns = [
     {
-      title: "Book",
+      title: t("assistant.book"),
       dataIndex: ["book", "title"],
       key: "title",
       render: (_, row) => (
@@ -357,7 +372,7 @@ function SmartAssistant() {
       ),
     },
     {
-      title: "Ratings",
+      title: t("assistant.ratings"),
       key: "ratings",
       render: (_, row) => (
         <span>
@@ -367,12 +382,12 @@ function SmartAssistant() {
       ),
     },
     {
-      title: "Popularity (30d)",
+      title: `${t("assistant.popularity")} (30d)`,
       dataIndex: ["metrics", "borrow30d"],
       key: "borrow30d",
     },
     {
-      title: "Availability",
+      title: t("assistant.availability"),
       key: "availability",
       render: (_, row) => (
         <span>
@@ -382,7 +397,7 @@ function SmartAssistant() {
       ),
     },
     {
-      title: "Recency",
+      title: t("assistant.recency"),
       key: "recency",
       render: (_, row) => (
         <span>
@@ -392,18 +407,18 @@ function SmartAssistant() {
       ),
     },
     {
-      title: "Match",
+      title: t("assistant.match"),
       dataIndex: ["metrics", "match"],
       key: "match",
       render: (v) => Math.round((v || 0) * 100) / 100,
     },
     {
-      title: "Score (default)",
+      title: t("assistant.scoreDefault"),
       dataIndex: "score",
       key: "score",
     },
     {
-      title: "Score (custom)",
+      title: t("assistant.scoreCustom"),
       dataIndex: "customScore",
       key: "customScore",
     },
@@ -417,7 +432,7 @@ function SmartAssistant() {
       {/* Controlled Success Modal to guarantee visibility */}
       <Modal
         open={!!successTitle}
-        title={`"${successTitle}" Borrowed Successfully`}
+        title={`"${successTitle}" ${t("assistant.borrowSuccessTitle")}`}
         onOk={() => setSuccessTitle("")}
         onCancel={() => setSuccessTitle("")}
         centered
@@ -425,12 +440,12 @@ function SmartAssistant() {
         getContainer={false}
         zIndex={10000}
       >
-        <div>Your borrow request has been completed. Enjoy reading!</div>
+        <div>{t("assistant.borrowSuccessMsg")}</div>
       </Modal>
       {/* Controlled Limit Modal to guarantee visibility */}
       <Modal
         open={limitOpen}
-        title="Borrowing Limit Reached"
+        title={t("assistant.borrowLimitTitle")}
         onOk={() => setLimitOpen(false)}
         onCancel={() => setLimitOpen(false)}
         centered
@@ -439,17 +454,17 @@ function SmartAssistant() {
         zIndex={10000}
       >
         <div>
-          You have reached the maximum number of borrowed books for the current period. Please return some books before borrowing new ones.
+          {t("assistant.limitContent")}
         </div>
       </Modal>
       <Card
         title={
           <div className="page-header">
-            <Typography.Title level={4} style={{ margin: 0 }}>Smart Assistant</Typography.Title>
-            <Typography.Text type="secondary">Personalized Recommendations</Typography.Text>
+            <Typography.Title level={4} style={{ margin: 0 }}>{t("assistant.title")}</Typography.Title>
+            <Typography.Text type="secondary">{t("assistant.subTitle")}</Typography.Text>
             <div className="stats-grid">
-              <Statistic title="Recommended" value={headerStats.recommended} />
-              <Statistic title="Selected" value={headerStats.selected} />
+              <Statistic title={t("assistant.recommended")} value={headerStats.recommended} />
+              <Statistic title={t("assistant.selected")} value={headerStats.selected} />
             </div>
             <Typography.Text style={{ marginTop: 6 }} type="secondary">{strategy}</Typography.Text>
           </div>
@@ -475,13 +490,13 @@ function SmartAssistant() {
                   extra={
                     <Space>
                       <Button size="small" onClick={() => handleSelect(book._id)}>
-                        {selectedIds.includes(book._id) ? 'Remove' : 'Add'}
+                        {selectedIds.includes(book._id) ? t("assistant.remove") : t("assistant.add")}
                       </Button>
-                      <Button size="small" type="primary" icon={<BookOutlined />} onClick={() => handleBorrow(book._id, book.title, book.copies)}>Borrow</Button>
+                      <Button size="small" type="primary" icon={<BookOutlined />} onClick={() => handleBorrow(book._id, book.title, book.copies)}>{t("assistant.borrow")}</Button>
                     </Space>
                   }
                 >
-                  <p>{book.author || 'Unknown'} · <Tag>{book.category || 'Unknown'}</Tag></p>
+                  <p>{book.author || t("common.unknown")} · <Tag>{book.category || t("common.unknown")}</Tag></p>
                 </Card>
               ))}
             </div>
@@ -492,7 +507,7 @@ function SmartAssistant() {
           </div>
         ) : (
           <p style={{ textAlign: "center", color: "#999", padding: "1rem" }}>
-            No recommendations yet — borrow some books to activate the algorithm 😊
+            {t("assistant.noRecs")}
           </p>
         )}
       </Card>
@@ -500,10 +515,10 @@ function SmartAssistant() {
       <Card
         title={
           <div className="page-header">
-            <Typography.Title level={4} style={{ margin: 0 }}>Book Comparison</Typography.Title>
-            <Typography.Text type="secondary">Select up to 5 books to compare</Typography.Text>
+            <Typography.Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("titles.bookComparison")}</Typography.Title>
+            <Typography.Text type="secondary">{t("search.title")}</Typography.Text>
             <div className="stats-grid">
-              <Statistic title="Selected" value={headerStats.selected} />
+              <Statistic title={t("common.total")} value={headerStats.selected} />
             </div>
           </div>
         }
@@ -515,7 +530,7 @@ function SmartAssistant() {
         {/* 🔍 搜索栏 */}
         <Input
           prefix={<SearchOutlined />}
-          placeholder="Search by title or author"
+          placeholder={t("assistant.searchPlaceholder")}
           value={searchTerm}
           onChange={handleSearch}
           allowClear
@@ -536,7 +551,7 @@ function SmartAssistant() {
           }}
           style={{ border: '1px dashed #e5e7eb', padding: 12, borderRadius: 10, marginBottom: 12 }}
         >
-          <Typography.Text type="secondary">Drag a recommendation here to add to comparison</Typography.Text>
+          <Typography.Text type="secondary">{t("assistant.dragTip")}</Typography.Text>
         </div>
         <List
           grid={{ gutter: 16, column: isMobile ? 1 : 3 }}
@@ -552,9 +567,9 @@ function SmartAssistant() {
                       checked={selectedIds.includes(book._id)}
                       onChange={() => handleSelect(book._id)}
                     >
-                      Select
+                      {t("assistant.selectToCompare")}
                     </Checkbox>
-                    {selectedIds.includes(book._id) && <Tag color="green">Added</Tag>}
+                    {selectedIds.includes(book._id) && <Tag color="green">{t("assistant.added")}</Tag>}
                   </Space>
                 }
                 style={{
@@ -562,8 +577,8 @@ function SmartAssistant() {
                   boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
                 }}
               >
-                <p>Author: {book.author || "Unknown"}</p>
-                <p>Category: {book.category || "Unknown"}</p>
+                <p>{t("bookDetail.author")}: {book.author || t("common.unknown")}</p>
+                <p>{t("bookDetail.category")}: {book.category || t("common.unknown")}</p>
               </Card>
             </List.Item>
           )}
@@ -585,28 +600,28 @@ function SmartAssistant() {
           <>
             <Divider />
             <Space wrap>
-              <Typography.Text>Window (days):</Typography.Text>
+              <Typography.Text>{t("assistant.windowDays")}:</Typography.Text>
               <InputNumber min={7} max={180} value={windowDays} onChange={(v) => setWindowDays(v || 30)} />
               <Button type="primary" onClick={handleCompare} disabled={selectedIds.length < 2}>
-                Compare ({selectedIds.length})
+                {t("assistant.compare")} ({selectedIds.length})
               </Button>
             </Space>
 
             <Divider />
             <Card
               size="small"
-              title="Weights"
+              title={t("assistant.weights")}
               style={{ borderRadius: 10 }}
-              extra={<Button onClick={() => setWeights(DEFAULT_WEIGHTS)}>Reset to default</Button>}
+              extra={<Button onClick={() => setWeights(DEFAULT_WEIGHTS)}>{t("assistant.resetDefault")}</Button>}
             >
               <Space direction="vertical" style={{ width: "100%", maxWidth: 900 }}>
                 <Space align="center" style={{ justifyContent: "space-between" }}>
                   <Typography.Text style={{ color: Math.abs(weightSum - 1) < 0.01 ? "#6b7280" : "#d97706" }}>
-                    Total: {weightSum.toFixed(2)}
+                    {t("assistant.total")}: {weightSum.toFixed(2)}
                   </Typography.Text>
                 </Space>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Typography.Text style={{ width: 120 }}>Rating</Typography.Text>
+                  <Typography.Text style={{ width: 120 }}>{t("assistant.ratings")}</Typography.Text>
                   <Slider
                     min={0}
                     max={1}
@@ -619,7 +634,7 @@ function SmartAssistant() {
                   <Typography.Text style={{ width: 56, textAlign: "right" }}>{weights.rating.toFixed(2)}</Typography.Text>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Typography.Text style={{ width: 120 }}>Popularity</Typography.Text>
+                  <Typography.Text style={{ width: 120 }}>{t("assistant.popularity")}</Typography.Text>
                   <Slider
                     min={0}
                     max={1}
@@ -632,7 +647,7 @@ function SmartAssistant() {
                   <Typography.Text style={{ width: 56, textAlign: "right" }}>{weights.popularity.toFixed(2)}</Typography.Text>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Typography.Text style={{ width: 120 }}>Availability</Typography.Text>
+                  <Typography.Text style={{ width: 120 }}>{t("assistant.availability")}</Typography.Text>
                   <Slider
                     min={0}
                     max={1}
@@ -645,7 +660,7 @@ function SmartAssistant() {
                   <Typography.Text style={{ width: 56, textAlign: "right" }}>{weights.availability.toFixed(2)}</Typography.Text>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Typography.Text style={{ width: 120 }}>Recency</Typography.Text>
+                  <Typography.Text style={{ width: 120 }}>{t("assistant.recency")}</Typography.Text>
                   <Slider
                     min={0}
                     max={1}
@@ -658,7 +673,7 @@ function SmartAssistant() {
                   <Typography.Text style={{ width: 56, textAlign: "right" }}>{weights.recency.toFixed(2)}</Typography.Text>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Typography.Text style={{ width: 120 }}>Match</Typography.Text>
+                  <Typography.Text style={{ width: 120 }}>{t("assistant.match")}</Typography.Text>
                   <Slider
                     min={0}
                     max={1}
@@ -675,7 +690,7 @@ function SmartAssistant() {
 
             <Divider />
             <h3 style={{ marginBottom: "1rem" }}>
-              <BarChartOutlined /> Comparison Results
+              <BarChartOutlined /> {t("assistant.comparisonResults")}
             </h3>
             {cmpLoading ? (
               <Spin size="large" style={{ display: "block", margin: "2rem auto" }} />
@@ -692,13 +707,13 @@ function SmartAssistant() {
                   <div>
                     <Space direction="vertical" style={{ width: 360 }}>
                       <Space align="center" style={{ justifyContent: "space-between" }}>
-                        <Typography.Text strong>Radar Mode</Typography.Text>
+                        <Typography.Text strong>{t("assistant.radarMode")}</Typography.Text>
                         <Radio.Group
                           value={radarMode}
                           onChange={(e) => setRadarMode(e.target.value)}
                           options={[
-                            { label: "Default weights", value: "default" },
-                            { label: "Custom weights", value: "custom" },
+                            { label: t("assistant.defaultWeights"), value: "default" },
+                            { label: t("assistant.customWeights"), value: "custom" },
                           ]}
                           optionType="button"
                           buttonStyle="solid"
@@ -710,16 +725,16 @@ function SmartAssistant() {
                 </div>
               ) : (
                 <Collapse defaultActiveKey={[]}>
-                  <Collapse.Panel header="Current Selection (brief info)" key="selection">
+                  <Collapse.Panel header={t("assistant.currentSelection")} key="selection">
                     <List
                       dataSource={allBooks.filter((b) => selectedIds.includes(b._id))}
                       renderItem={(book) => (
                         <List.Item>
                           <List.Item.Meta
                             title={book.title}
-                            description={book.author || "Unknown author"}
+                            description={book.author || t("assistant.unknownAuthor")}
                           />
-                          <Tag>{book.category || "Uncategorized"}</Tag>
+                          <Tag>{book.category || t("assistant.uncategorized")}</Tag>
                         </List.Item>
                       )}
                     />

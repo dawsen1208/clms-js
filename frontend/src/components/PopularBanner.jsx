@@ -11,10 +11,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getRecommendations, borrowBook, getBookDetail } from "../api"; // ✅ 统一 API 调用
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage, showBorrowSuccessModal } from "../utils/borrowUI";
+import { useLanguage } from "../contexts/LanguageContext"; // ✅ Localization
 
 const { useBreakpoint } = Grid;
 
 function PopularBanner() {
+  const { t } = useLanguage();
   const [books, setBooks] = useState([]); // ✅ 动态热门书籍数据
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
@@ -41,11 +43,11 @@ function PopularBanner() {
       if (res.data?.recommended?.length) {
         setBooks(res.data.recommended);
       } else {
-        message.info("No popular recommendations available");
+        message.info(t("popular.noRecs"));
       }
     } catch (err) {
       console.error("❌ Failed to fetch popular recommendations:", err);
-      message.error("Failed to load popular recommendations");
+      message.error(t("popular.loadFail"));
     } finally {
       setLoading(false);
     }
@@ -80,7 +82,7 @@ function PopularBanner() {
   const handleBorrow = async () => {
     if (!selectedBook) return;
     if (!token) {
-      message.error("Please log in before borrowing!");
+      message.error(t("popular.loginFirst"));
       return;
     }
 
@@ -94,13 +96,12 @@ function PopularBanner() {
 
       if (available <= 0) {
         Modal.info({
-          title: "Out of stock",
-          content:
-            "This book is currently out of stock. Please check back later or explore other titles.",
-          okText: "Got it",
+          title: t("popular.outOfStockTitle"),
+          content: t("popular.outOfStockMsg"),
+          okText: t("popular.gotIt"),
           centered: true,
         });
-        message.warning("Out of stock — borrow is not available now.");
+        message.warning(t("popular.outOfStockWarn"));
         console.log("🟡 Borrow blocked due to zero stock:", { bookId: selectedBook._id, title: selectedBook.title, available });
         return;
       }
@@ -108,7 +109,7 @@ function PopularBanner() {
       const res = await borrowBook(selectedBook._id, token);
       setSuccessTitle(selectedBook.title);
       showBorrowSuccessModal(selectedBook.title);
-      message.success(res.data?.message || `"${selectedBook.title}" borrowed successfully!`);
+      message.success(res.data?.message || t("search.borrowSuccessMsg", { title: selectedBook.title }));
       setVisible(false);
     } catch (err) {
       console.error("❌ Borrow failed:", err);
@@ -137,7 +138,7 @@ function PopularBanner() {
         showBorrowLimitModal();
         return;
       }
-      message.error(backendMsg || "Borrow failed, please try again!");
+      message.error(backendMsg || t("popular.borrowFail"));
     }
   };
 
@@ -149,7 +150,7 @@ function PopularBanner() {
       {/* Controlled Success Modal to guarantee visibility */}
       <Modal
         open={!!successTitle}
-        title={`"${successTitle}" Borrowed Successfully`}
+        title={`"${successTitle}" ${t("popular.successTitle")}`}
         onOk={() => setSuccessTitle("")}
         onCancel={() => setSuccessTitle("")}
         centered
@@ -157,12 +158,12 @@ function PopularBanner() {
         getContainer={false}
         zIndex={10000}
       >
-        <div>Your borrow request has been completed. Enjoy reading!</div>
+        <div>{t("popular.successMsg")}</div>
       </Modal>
       {/* Controlled Limit Modal to guarantee visibility */}
       <Modal
         open={limitOpen}
-        title="Borrowing Limit Reached"
+        title={t("popular.limitTitle")}
         onOk={() => setLimitOpen(false)}
         onCancel={() => setLimitOpen(false)}
         centered
@@ -171,7 +172,7 @@ function PopularBanner() {
         zIndex={10000}
       >
         <div>
-          You have reached the maximum number of borrowed books for the current period. Please return some books before borrowing new ones.
+          {t("popular.limitMsg")}
         </div>
       </Modal>
 
@@ -181,7 +182,7 @@ function PopularBanner() {
         title={selectedBook?.title}
         footer={[
           <Button key="close" onClick={() => setVisible(false)}>
-            Close
+            {t("common.close")}
           </Button>,
           <Button
             key="detail"
@@ -189,7 +190,7 @@ function PopularBanner() {
               if (selectedBook) navigate(`/book/${selectedBook._id}`);
             }}
           >
-            View Details
+            {t("common.details")}
           </Button>,
           <Button
             key="borrow"
@@ -197,7 +198,7 @@ function PopularBanner() {
             icon={<BookOutlined />}
             onClick={handleBorrow}
           >
-            Borrow Now
+            {t("common.borrowNow")}
           </Button>,
         ]}
         onCancel={() => setVisible(false)}
@@ -214,7 +215,7 @@ function PopularBanner() {
             }
           >
             <p>
-              <b>Author:</b> {selectedBook.author || "Unknown Author"}
+              <b>Author:</b> {selectedBook.author || t("common.unknown")}
             </p>
             <p>{selectedBook.description || "No description"}</p>
           </Card>
@@ -227,7 +228,7 @@ function PopularBanner() {
     return (
       <div style={{ marginBottom: "1.5rem" }}>
         <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "8px", color: "#1e293b" }}>
-          <FireOutlined style={{ color: "#ff4d4f" }} /> Popular Today
+          <FireOutlined style={{ color: "#ff4d4f" }} /> {t("titles.popularToday")}
         </h2>
         {/* Horizontal Scroll Container */}
         <div
@@ -257,25 +258,33 @@ function PopularBanner() {
                   boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
                   position: "relative",
                   flexShrink: 0,
-                  cursor: "pointer"
+                  cursor: "pointer",
+                  transition: "transform 0.2s"
                 }}
+                onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.98)"}
+                onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
               >
-                {/* Ranking Badge */}
+                {/* Ranking Badge - Moved slightly and styled to not block title */}
                 <div
                   style={{
                     position: "absolute",
-                    top: "0",
-                    left: "0",
-                    background: i < 3 ? "#ff4d4f" : "#8c8c8c",
+                    top: "-6px",
+                    left: "-6px",
+                    background: i < 3 ? "linear-gradient(135deg, #ff4d4f, #ff7875)" : "#8c8c8c",
                     color: "#fff",
-                    padding: "2px 8px",
-                    borderRadius: "12px 0 8px 0",
+                    width: "24px",
+                    height: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "50%",
                     fontSize: "12px",
                     fontWeight: "bold",
-                    zIndex: 1,
+                    zIndex: 2,
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
                   }}
                 >
-                  #{i + 1}
+                  {i + 1}
                 </div>
                 {/* Cover Image */}
                 <div style={{ width: "100%", aspectRatio: "2/3", borderRadius: "8px", overflow: "hidden", marginBottom: "8px", background: "#f0f0f0" }}>
@@ -290,16 +299,16 @@ function PopularBanner() {
                    />
                 </div>
                 {/* Title */}
-                <div style={{ fontSize: "14px", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#1e293b" }}>
+                <div style={{ fontSize: "14px", fontWeight: "600", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#1e293b", marginBottom: "2px" }}>
                   {book.title}
                 </div>
                 <div style={{ fontSize: "12px", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                   {book.author || "Unknown"}
+                   {book.author || t("common.unknown")}
                 </div>
               </div>
             ))
           ) : (
-            <div style={{ padding: "1rem", color: "#888" }}>No popular books available</div>
+            <div style={{ padding: "1rem", color: "#888" }}>{t("titles.popularToday")}</div>
           )}
         </div>
         {renderModals()}
@@ -333,7 +342,7 @@ function PopularBanner() {
           gap: "0.5rem",
         }}
       >
-        <FireOutlined style={{ color: "#ff7875" }} /> Popular Borrowing List
+        <FireOutlined style={{ color: "#ff7875" }} /> {t("titles.popularToday")}
       </h2>
 
       {/* ✅ 动态展示当前书籍 */}
@@ -358,12 +367,12 @@ function PopularBanner() {
             >
               <h3 style={{ color: "#ffd666", margin: "0.2rem 0" }}>No.{index + 1}</h3>
               <p style={{ fontSize: "1.3rem", fontWeight: 500 }}>
-                {books[index].title} — {books[index].author || "Unknown Author"}
+                {books[index].title} — {books[index].author || t("common.unknown")}
               </p>
             </motion.div>
           </AnimatePresence>
         ) : (
-          <p style={{ textAlign: "center", color: "#ccc" }}>No popular books</p>
+          <p style={{ textAlign: "center", color: "#ccc" }}>{t("titles.popularToday")}</p>
         )}
       </div>
 

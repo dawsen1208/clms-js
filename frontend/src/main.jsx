@@ -1,24 +1,19 @@
 // ✅ client/src/main.jsx
 import React, { useState, useEffect } from "react";
-import { unstableSetRender } from 'antd';
+// import { unstableSetRender } from 'antd'; // ❌ Removed unstable API
 import { createRoot } from 'react-dom/client';
+import { LanguageProvider } from "./contexts/LanguageContext"; // ✅ Language Context
 
-unstableSetRender((node, container) => {
-  container._reactRoot ||= createRoot(container);
-  const root = container._reactRoot;
-  root.render(node);
-  return async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    root.unmount();
-  };
-});
+// unstableSetRender((node, container) => { ... }); // ❌ Removed
+
 import ReactDOM from "react-dom/client";
 import "antd/dist/reset.css";
 import "./assets/responsive.css";
 import "./styles/mobile.css"; // ✅ Mobile-first styles
+import "./styles/global.css"; // ✅ Global modern styles
 import { ConfigProvider, message, Grid, theme as antdTheme } from "antd";
 import enUS from "antd/locale/en_US";
-import { registerSW } from 'virtual:pwa-register';
+// import { registerSW } from 'virtual:pwa-register';
 import {
   BrowserRouter,
   Routes,
@@ -205,8 +200,9 @@ function App() {
      🧱 路由结构
      ========================================================= */
   return (
-    <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={enUS} theme={{ token: themeTokens, algorithm }}>
-      <Routes>
+    <LanguageProvider>
+      <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={enUS} theme={{ token: themeTokens, algorithm }}>
+        <Routes>
         {/* 🧾 登录 / 注册页（旧结构恢复） */}
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/register" element={<RegisterReader />} />
@@ -298,9 +294,44 @@ function App() {
             )
           }
         />
-      </Routes>
-    </ConfigProvider>
+        </Routes>
+      </ConfigProvider>
+    </LanguageProvider>
   );
+}
+
+/* =========================================================
+   🛡️ Global Error Boundary for Mobile Debugging
+   ========================================================= */
+class GlobalErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Uncaught error:", error, errorInfo);
+    this.setState({ error, errorInfo });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', color: '#ff4d4f', background: '#fff1f0', height: '100vh', overflow: 'auto' }}>
+          <h2>📱 Mobile Debug Error</h2>
+          <p style={{ fontWeight: 'bold' }}>{this.state.error && this.state.error.toString()}</p>
+          <pre style={{ fontSize: '12px', whiteSpace: 'pre-wrap' }}>
+            {this.state.errorInfo && this.state.errorInfo.componentStack}
+          </pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 /* =========================================================
@@ -308,13 +339,15 @@ function App() {
    ========================================================= */
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <GlobalErrorBoundary>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </GlobalErrorBoundary>
   </React.StrictMode>
 );
 
 // ✅ 注册 Service Worker（仅生产环境，避免开发时缓存导致空白页）
-if (import.meta.env.PROD) {
-  registerSW({ immediate: true });
-}
+// if (import.meta.env.PROD) {
+//   registerSW({ immediate: true });
+// }

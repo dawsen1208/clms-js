@@ -33,11 +33,13 @@ import {
   Legend,
 } from "recharts";
 import "./AdminUserManagePage.css"; // ✅ animation styles
+import { useLanguage } from "../contexts/LanguageContext";
 
 const { Paragraph, Title, Text } = Typography;
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8854d0"];
 
 const AdminUserManagePage = () => {
+  const { t } = useLanguage();
   const [users, setUsers] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -64,7 +66,7 @@ const AdminUserManagePage = () => {
       setTableData(list);
     } catch (err) {
       console.error("❌ Failed to load users:", err);
-      message.error("Failed to load users, please confirm admin login");
+      message.error(t("common.failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -79,30 +81,30 @@ const AdminUserManagePage = () => {
   }, [users]);
 
   // 🔤 Helpers: translate common Chinese labels to English for display
-  const toEnglishCategory = (text) => (text === "未知" ? "Unknown" : text);
+  const toEnglishCategory = (text) => (text === "未知" ? t("admin.unknown") : text);
   const toEnglishPersona = (p) => {
-    if (!p) return "Unknown";
+    if (!p) return t("admin.unknown");
     const s = String(p).trim();
     // Handle common variants by substring match
-    if (/普通读者/.test(s)) return "Regular Reader";
-    if (/高频借阅者/.test(s)) return "Frequent Borrower";
-    if (/新用户/.test(s)) return "New User";
-    if (/管理员/.test(s)) return "Administrator";
-    if (/未知/.test(s)) return "Unknown";
+    if (/普通读者/.test(s)) return t("admin.regularReader");
+    if (/高频借阅者/.test(s)) return t("admin.frequentBorrower");
+    if (/新用户/.test(s)) return t("admin.newUser");
+    if (/管理员/.test(s)) return t("admin.administrator");
+    if (/未知/.test(s)) return t("admin.unknown");
     return s;
   };
   const toEnglishDescription = (d) => {
-    if (!d) return "No detailed persona description.";
-    let t = String(d);
-    t = t.replace(/阅读类型多样，?兴趣广泛。?/g, "Reads diverse types; broad interests.");
-    t = t.replace(/偏好商业类书籍。?/g, "Prefers business books.");
-    t = t.replace(/偏好烹饪类书籍。?/g, "Prefers cooking books.");
-    t = t.replace(/偏好小说(与)?文学类书籍。?/g, "Prefers fiction and literature.");
-    t = t.replace(/新用户，?阅读记录较少。?/g, "New user with limited reading history.");
-    t = t.replace(/借阅频率较高，?习惯按时归还。?/g, "Frequent borrower; returns on time.");
-    t = t.replace(/有逾期记录，?需要提醒。?/g, "Has overdue records; needs reminders.");
-    t = t.replace(/未知/g, "Unknown");
-    return t;
+    if (!d) return t("admin.noDescription");
+    let tStr = String(d);
+    tStr = tStr.replace(/阅读类型多样，?兴趣广泛。?/g, t("admin.readsDiverse"));
+    tStr = tStr.replace(/偏好商业类书籍。?/g, t("admin.prefersBusiness"));
+    tStr = tStr.replace(/偏好烹饪类书籍。?/g, t("admin.prefersCooking"));
+    tStr = tStr.replace(/偏好小说(与)?文学类书籍。?/g, t("admin.prefersFiction"));
+    tStr = tStr.replace(/新用户，?阅读记录较少。?/g, t("admin.newUserDesc"));
+    tStr = tStr.replace(/借阅频率较高，?习惯按时归还。?/g, t("admin.frequentBorrowerDesc"));
+    tStr = tStr.replace(/有逾期记录，?需要提醒。?/g, t("admin.overdueDesc"));
+    tStr = tStr.replace(/未知/g, t("admin.unknown"));
+    return tStr;
   };
 
   /* =========================================================
@@ -127,26 +129,26 @@ const AdminUserManagePage = () => {
      📋 Table columns
      ========================================================= */
   const columns = [
-    { title: "Username", dataIndex: "name", key: "name", width: 140 },
-    { title: "User ID", dataIndex: "userId", key: "userId", width: 120 },
-    { title: "Role", dataIndex: "role", key: "role", width: 120 },
+    { title: t("admin.username"), dataIndex: "name", key: "name", width: 140 },
+    { title: t("admin.userId"), dataIndex: "userId", key: "userId", width: 120 },
+    { title: t("admin.role"), dataIndex: "role", key: "role", width: 120 },
     {
-      title: "Top Category",
+      title: t("admin.topCategory"),
       dataIndex: "topCategory",
       key: "topCategory",
       render: (text) => toEnglishCategory(text) || "—",
       width: 150,
     },
-    { title: "Total Borrows", dataIndex: "totalBorrows", key: "totalBorrows", width: 120 },
+    { title: t("admin.totalBorrows"), dataIndex: "totalBorrows", key: "totalBorrows", width: 120 },
     {
-      title: "Not Returned",
+      title: t("admin.notReturned"),
       dataIndex: "overdueCount",
       key: "overdueCount",
       render: (v) => <Tag color={v > 0 ? "red" : "green"}>{v}</Tag>,
       width: 100,
     },
     {
-      title: "On-time Return Rate",
+      title: t("admin.onTimeRate"),
       dataIndex: "onTimeRate",
       key: "onTimeRate",
       render: (v) => (
@@ -160,7 +162,7 @@ const AdminUserManagePage = () => {
       width: 160,
     },
     {
-      title: "Persona",
+      title: t("admin.persona"),
       dataIndex: "persona",
       key: "persona",
       render: (persona, record) => (
@@ -201,19 +203,19 @@ const AdminUserManagePage = () => {
       <Card
         title={
           <div className="page-header">
-            <Title level={4} style={{ margin: 0 }}>User Management</Title>
-            <Text type="secondary">Borrow personas and behaviors</Text>
+            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("admin.userManage")}</Title>
+            <Text type="secondary">{t("admin.persona")}</Text>
             <Row gutter={[12, 12]} align="middle">
-              <Col xs={12} md={8} lg={8}><Statistic title="Total Users" value={stats.total} /></Col>
-              <Col xs={12} md={8} lg={8}><Statistic title="Admins" value={stats.admins} /></Col>
-              <Col xs={12} md={8} lg={8}><Statistic title="Overdue Users" value={stats.overdueUsers} valueStyle={{ color: "#ff4d4f" }} /></Col>
+              <Col xs={12} md={8} lg={8}><Statistic title={t("admin.totalUsers")} value={stats.total} /></Col>
+              <Col xs={12} md={8} lg={8}><Statistic title={t("admin.admins")} value={stats.admins} /></Col>
+              <Col xs={12} md={8} lg={8}><Statistic title={t("admin.overdueUsers")} value={stats.overdueUsers} valueStyle={{ color: "#ff4d4f" }} /></Col>
             </Row>
             <Row gutter={[12, 12]} align="middle" style={{ marginTop: 8 }}>
-              <Col xs={12} md={8} lg={8}><Statistic title="Avg On-time%" value={stats.avgOnTime} suffix="%" valueStyle={{ color: stats.avgOnTime >= 80 ? "#52c41a" : "#faad14" }} /></Col>
-              <Col xs={12} md={8} lg={8}><Statistic title="Persona Types" value={stats.personaKinds} /></Col>
+              <Col xs={12} md={8} lg={8}><Statistic title={t("admin.avgOnTime")} value={stats.avgOnTime} suffix="%" valueStyle={{ color: stats.avgOnTime >= 80 ? "#52c41a" : "#faad14" }} /></Col>
+              <Col xs={12} md={8} lg={8}><Statistic title={t("admin.personaTypes")} value={stats.personaKinds} /></Col>
               <Col xs={12} md={8} lg={8}>
-                <Card hoverable size="small" title="Persona Distribution" onClick={() => setDistOpen(true)} style={{ borderRadius: 12 }}>
-                  <Text type="secondary">Click to view pie chart</Text>
+                <Card hoverable size="small" title={t("admin.personaDistribution")} onClick={() => setDistOpen(true)} style={{ borderRadius: 12 }}>
+                  <Text type="secondary">{t("admin.clickToViewPie")}</Text>
                 </Card>
               </Col>
             </Row>
@@ -230,7 +232,7 @@ const AdminUserManagePage = () => {
         ) : (
           <>
             <Input.Search
-              placeholder="Search by username"
+              placeholder={t("admin.searchUserPlaceholder")}
               allowClear
               onSearch={(kw) => {
                 const keyword = String(kw || "").trim().toLowerCase();
@@ -254,7 +256,7 @@ const AdminUserManagePage = () => {
               scroll={{ x: 950 }}
               bordered
               locale={{
-                emptyText: "No user data, please check records or login state",
+                emptyText: t("admin.noUserData"),
               }}
               style={{
                 minHeight: "540px",
@@ -270,12 +272,12 @@ const AdminUserManagePage = () => {
       {/* ✅ Modal: can be closed normally */}
       <Modal
         open={modalVisible}
-        title={`📘 Persona: ${selectedPersona ? toEnglishPersona(selectedPersona.persona) : "Unknown"}`}
+        title={`📘 ${t("admin.persona")}: ${selectedPersona ? toEnglishPersona(selectedPersona.persona) : t("admin.unknown")}`}
         onCancel={() => setModalVisible(false)}
         onOk={() => setModalVisible(false)} // ✅ Allow OK/Close to dismiss
         footer={[
           <Button key="close" type="primary" onClick={() => setModalVisible(false)}>
-            Close
+            {t("admin.close")}
           </Button>,
         ]}
         centered
@@ -294,19 +296,19 @@ const AdminUserManagePage = () => {
             textAlign: "justify",
           }}
         >
-          {selectedPersona ? toEnglishDescription(selectedPersona.description) : "No detailed persona description."}
+          {selectedPersona ? toEnglishDescription(selectedPersona.description) : t("admin.noDescription")}
         </Paragraph>
       </Modal>
 
       <Modal
         open={distOpen}
-        title="Persona Distribution"
+        title={t("admin.chartTitle")}
         onCancel={() => setDistOpen(false)}
         footer={null}
         width={720}
       >
         {chartData.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#999" }}>No persona data</p>
+          <p style={{ textAlign: "center", color: "#999" }}>{t("admin.noPersonaData")}</p>
         ) : (
           <ResponsiveContainer width="100%" height={320}>
             <PieChart>

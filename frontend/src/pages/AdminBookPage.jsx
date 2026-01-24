@@ -21,8 +21,10 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import { getBooks, addBook, deleteBook } from "../api"; // ✅ 使用统一 api.js
+import { useLanguage } from "../contexts/LanguageContext";
 
 function AdminBookPage() {
+  const { t } = useLanguage();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -42,7 +44,7 @@ function AdminBookPage() {
       setBooks(res.data);
     } catch (err) {
       console.error("❌ Failed to fetch books:", err);
-      message.error("Failed to load books");
+      message.error(t("common.failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -56,13 +58,13 @@ function AdminBookPage() {
   const handleAddBook = async (values) => {
     try {
       const res = await addBook(values, token);
-      message.success(res.data.message || "Book added successfully!");
+      message.success(res.data.message || t("admin.bookAdded"));
       setAddModalOpen(false);
       form.resetFields();
       fetchBooks();
     } catch (err) {
       console.error("❌ Failed to add book:", err);
-      message.error(err.response?.data?.message || "Failed to add book");
+      message.error(err.response?.data?.message || t("admin.addBookFailed"));
     }
   };
 
@@ -70,11 +72,11 @@ function AdminBookPage() {
   const handleDelete = async (id) => {
     try {
       await deleteBook(id, token);
-      message.success("Book deleted successfully!");
+      message.success(t("admin.bookDeleted"));
       fetchBooks();
     } catch (err) {
       console.error("❌ Delete failed:", err);
-      message.error("Delete failed, please try again later");
+      message.error(t("admin.deleteFailed"));
     }
   };
 
@@ -93,38 +95,38 @@ function AdminBookPage() {
   });
 
   /** ✅ 动态分类选项 */
-  const allCategories = ["All", ...new Set(books.map((b) => b.category || "Unknown"))];
+  const allCategories = ["All", ...new Set(books.map((b) => b.category || t("common.unknown")))];
 
   /** ✅ 表格列 */
   const columns = [
-    { title: "Book ID", dataIndex: "_id", key: "_id", width: 200 },
-    { title: "Title", dataIndex: "title", key: "title" },
-    { title: "Author", dataIndex: "author", key: "author" },
-    { title: "Category", dataIndex: "category", key: "category" },
+    { title: t("admin.bookId"), dataIndex: "_id", key: "_id", width: 200 },
+    { title: t("admin.title"), dataIndex: "title", key: "title" },
+    { title: t("admin.author"), dataIndex: "author", key: "author" },
+    { title: t("admin.category"), dataIndex: "category", key: "category" },
     {
-      title: "Stock",
+      title: t("admin.stock"),
       dataIndex: "copies",
       key: "copies",
       align: "center",
       render: (copies) => (
         <span style={{ color: copies > 0 ? "green" : "red" }}>
-          {copies > 0 ? `${copies} copies` : "Out of stock"}
+          {copies > 0 ? `${copies} ${t("admin.copies")}` : t("admin.outOfStock")}
         </span>
       ),
     },
     {
-      title: "Actions",
+      title: t("admin.actions"),
       key: "actions",
       align: "center",
       render: (_, record) => (
         <Popconfirm
-          title="Confirm deleting this book?"
+          title={t("admin.confirmDelete")}
           onConfirm={() => handleDelete(record._id)}
-          okText="Confirm"
-          cancelText="Cancel"
+          okText={t("common.confirm")}
+          cancelText={t("admin.cancel")}
         >
           <Button danger icon={<DeleteOutlined />} size="small">
-            Delete
+            {t("admin.delete")}
           </Button>
         </Popconfirm>
       ),
@@ -134,10 +136,10 @@ function AdminBookPage() {
   return (
     <div style={{ padding: "1.5rem" }}>
       <Card
-        title="📚 Book Management"
+        title={<Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("admin.bookManage")}</Title>}
         extra={
           <Button icon={<ReloadOutlined />} onClick={fetchBooks}>
-            Refresh
+            {t("admin.refresh")}
           </Button>
         }
         style={{
@@ -149,7 +151,7 @@ function AdminBookPage() {
         <Row gutter={[16, 16]} style={{ marginBottom: "1.5rem" }}>
           <Col xs={24} sm={10} md={8}>
             <Input
-              placeholder="Search by title or author..."
+              placeholder={t("admin.searchPlaceholder")}
               prefix={<SearchOutlined />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -161,7 +163,7 @@ function AdminBookPage() {
               value={filterCategory}
               onChange={setFilterCategory}
               style={{ width: "100%" }}
-              options={allCategories.map((c) => ({ label: c, value: c }))}
+              options={allCategories.map((c) => ({ label: c === "All" ? t("search.filter") : c, value: c }))}
             />
           </Col>
 
@@ -171,9 +173,9 @@ function AdminBookPage() {
               onChange={setFilterStock}
               style={{ width: "100%" }}
               options={[
-                { label: "All", value: "All" },
-                { label: "In stock", value: "In stock" },
-                { label: "Out of stock", value: "Out of stock" },
+                { label: t("search.filter"), value: "All" },
+                { label: t("admin.inStock"), value: "In stock" },
+                { label: t("admin.outOfStock"), value: "Out of stock" },
               ]}
             />
           </Col>
@@ -189,7 +191,7 @@ function AdminBookPage() {
                 fontWeight: "bold",
               }}
             >
-              Add Book
+              {t("admin.addBook")}
             </Button>
           </Col>
         </Row>
@@ -205,14 +207,14 @@ function AdminBookPage() {
           pagination={{
             pageSize: 6,
             showSizeChanger: false,
-            showTotal: (t) => `Total ${t} books`,
+            showTotal: (total) => `${t("admin.total")} ${total}`,
           }}
         />
       </Card>
 
       {/* ➕ 添加书籍弹窗 */}
       <Modal
-        title="➕ Add New Book"
+        title={`➕ ${t("admin.addBook")}`}
         open={addModalOpen}
         onCancel={() => setAddModalOpen(false)}
         footer={null}
@@ -225,23 +227,23 @@ function AdminBookPage() {
           onFinish={handleAddBook}
           style={{ marginTop: "1rem" }}
         >
-          <Form.Item label="Title" name="title" rules={[{ required: true }]}>
-            <Input placeholder="Enter title" />
+          <Form.Item label={t("admin.title")} name="title" rules={[{ required: true }]}>
+            <Input placeholder={t("admin.enterTitle")} />
           </Form.Item>
 
-          <Form.Item label="Author" name="author" rules={[{ required: true }]}>
-            <Input placeholder="Enter author" />
+          <Form.Item label={t("admin.author")} name="author" rules={[{ required: true }]}>
+            <Input placeholder={t("admin.enterAuthor")} />
           </Form.Item>
 
-          <Form.Item label="Category" name="category" rules={[{ required: true }]}>
-            <Input placeholder="e.g., Literature / Technology / History" />
+          <Form.Item label={t("admin.category")} name="category" rules={[{ required: true }]}>
+            <Input placeholder={t("admin.enterCategory")} />
           </Form.Item>
 
-          <Form.Item label="Description" name="description">
-            <Input.TextArea rows={3} maxLength={200} placeholder="Description (optional)" />
+          <Form.Item label={t("admin.description")} name="description">
+            <Input.TextArea rows={3} maxLength={200} placeholder={t("admin.descriptionPlaceholder")} />
           </Form.Item>
 
-          <Form.Item label="Copies" name="copies" rules={[{ required: true }]}>
+          <Form.Item label={t("admin.copies")} name="copies" rules={[{ required: true }]}>
             <InputNumber min={1} style={{ width: "100%" }} />
           </Form.Item>
 
@@ -258,7 +260,7 @@ function AdminBookPage() {
                 fontWeight: "bold",
               }}
             >
-              Add Book
+              {t("admin.addBook")}
             </Button>
           </Form.Item>
         </Form>

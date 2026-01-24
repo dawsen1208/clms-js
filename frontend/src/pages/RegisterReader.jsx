@@ -5,9 +5,11 @@ import { Form, Input, Button, message, Card, Modal } from "antd";
 import "./RegisterReader.css";
 import { CopyOutlined } from "@ant-design/icons";
 import { register } from "../api"; // ✅ Use unified register API
+import { useLanguage } from "../context/LanguageContext";
 
 function RegisterReader() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [modalVisible, setModalVisible] = useState(false);
   const [assignedId, setAssignedId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -27,16 +29,16 @@ function RegisterReader() {
       const res = await register(name, email || "", password, "Reader");
       const id = res.data?.user?.userId;
 
-      if (!id) throw new Error("No assigned user ID received");
+      if (!id) throw new Error(t("register.noId"));
 
       console.log("🟩 System-assigned Reader ID:", id);
       localStorage.setItem("prefillUserId", id);
 
       const copied = await copyToClipboard(id);
       if (copied) {
-        message.success("User ID copied to clipboard; you can log in directly!");
+        message.success(t("register.copySuccess"));
       } else {
-        message.warning("Automatic copy failed; please copy the ID manually.");
+        message.warning(t("register.copyFail"));
       }
 
       // ✅ Open success modal
@@ -47,7 +49,7 @@ function RegisterReader() {
       const msg =
         err.response?.data?.message ||
         err.message ||
-        "Registration failed; please check input or network.";
+        t("register.regFail");
       message.error(msg);
     } finally {
       setLoading(false);
@@ -84,7 +86,7 @@ function RegisterReader() {
   /** ✅ Modal: click OK to go to login */
   const handleModalOk = () => {
     setModalVisible(false);
-  message.info("Redirecting to login...");
+    message.info(t("register.redirectLogin"));
     setTimeout(() => {
       navigate("/login");
     }, 600);
@@ -93,43 +95,43 @@ function RegisterReader() {
   return (
     <div className="register-reader-page">
       {/* ✅ Left: registration form */}
-      <Card className="register-card" title="Reader Registration" style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", background: "#fff" }}>
+      <Card className="register-card" title={t("titles.registerReader")} style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", background: "#fff" }}>
         <p style={{ marginBottom: 20, color: "#555" }}>
-          Create your <b>Reader</b> account to start borrowing books.
+          {t("register.readerDesc")}
         </p>
 
         <Form layout="vertical" onFinish={handleReaderRegister}>
           <Form.Item
             name="name"
-            label="Name"
+            label={t("register.name")}
             rules={[
-              { required: true, message: "Please enter your name" },
-              { pattern: /^(?!\d+$)[A-Za-z][A-Za-z0-9_]*$/, message: "Start with letter; letters, numbers, underscore; not all digits" }
+              { required: true, message: t("register.enterName") },
+              { pattern: /^(?!\d+$)[A-Za-z][A-Za-z0-9_]*$/, message: t("register.nameInvalid") }
             ]}
           >
             <Input
               size="large"
-              placeholder="Enter your name"
+              placeholder={t("register.namePlaceholder")}
               style={{ borderRadius: 8 }}
             />
           </Form.Item>
 
-          <Form.Item name="email" label="Email (optional)">
+          <Form.Item name="email" label={t("register.email")}>
             <Input
               size="large"
-              placeholder="(Optional) Enter your email"
+              placeholder={t("register.emailPlaceholder")}
               style={{ borderRadius: 8 }}
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label="Password"
-            rules={[{ required: true, message: "Please enter your password" }]}
+            label={t("register.password")}
+            rules={[{ required: true, message: t("register.enterPass") }]}
           >
             <Input.Password
               size="large"
-              placeholder="Enter password"
+              placeholder={t("register.passwordPlaceholder")}
               style={{ borderRadius: 8 }}
             />
           </Form.Item>
@@ -143,11 +145,12 @@ function RegisterReader() {
               loading={loading}
               style={{
                 borderRadius: 8,
-                background: "linear-gradient(90deg, #ff9966, #ff5e62)",
+                background: "linear-gradient(90deg, #1677ff, #36cfc9)",
                 fontWeight: "bold",
+                boxShadow: "0 4px 10px rgba(24, 144, 255, 0.3)",
               }}
             >
-              Register as Reader
+              {t("register.registerReaderBtn")}
             </Button>
           </Form.Item>
 
@@ -155,10 +158,10 @@ function RegisterReader() {
             <Button
               type="link"
               block
-              style={{ color: "#1677ff" }}
+              style={{ color: "#722ed1" }}
               onClick={() => navigate("/register-admin")}
             >
-              🧑‍💼 Register as Administrator
+              👉 {t("register.registerAdminBtn")}
             </Button>
             <Button
               type="link"
@@ -166,7 +169,7 @@ function RegisterReader() {
               style={{ color: "#555" }}
               onClick={() => navigate("/login")}
             >
-              👈 Back to Login
+              🔐 {t("register.backToLogin")}
             </Button>
           </div>
         </Form>
@@ -187,16 +190,16 @@ function RegisterReader() {
 
       {/* ✅ Registration success modal */}
       <Modal
-        title="🎉 Registration Successful!"
+        title={t("register.regSuccessTitle")}
         open={modalVisible}
         onOk={handleModalOk}
         onCancel={() => setModalVisible(false)}
-        cancelText="Cancel"
-        okText="Go to Login"
+        cancelText={t("register.cancel")}
+        okText={t("register.goToLogin")}
         centered
       >
         <div style={{ textAlign: "center" }}>
-          <p>Your assigned user ID:</p>
+          <p>{t("register.assignedId")}</p>
           <p
             style={{
               fontSize: "1.3rem",
@@ -210,12 +213,12 @@ function RegisterReader() {
               style={{ marginLeft: 10, color: "#1677ff", cursor: "pointer" }}
               onClick={async () => {
                 const ok = await copyToClipboard(assignedId);
-                if (ok) message.success("Copied to clipboard");
-                else message.warning("Copy failed; please copy manually");
+                if (ok) message.success(t("register.copySuccess"));
+                else message.warning(t("register.manualCopyFail"));
               }}
             />
           </p>
-          <p>This ID has been copied automatically; use it to log in.</p>
+          <p>{t("register.idCopiedMsg")}</p>
         </div>
       </Modal>
     </div>

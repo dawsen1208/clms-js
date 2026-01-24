@@ -15,8 +15,10 @@ import {
   requestReturnLibrary,
   getUserRequestsLibrary,
 } from "../api.js";
+import { useLanguage } from "../contexts/LanguageContext";
 
 function ReturnPage() {
+  const { t } = useLanguage();
   const [borrowed, setBorrowed] = useState([]);
   const [loading, setLoading] = useState(false);
   const [returnModal, setReturnModal] = useState({ open: false, record: null });
@@ -51,7 +53,7 @@ function ReturnPage() {
     const status = getLatestRequestStatus(bookId);
     if (!status) return null;
     const colorMap = { pending: "gold", approved: "green", rejected: "red" };
-    const text = status.charAt(0).toUpperCase() + status.slice(1);
+    const text = t("common." + status) || status;
     return (
       <Tag color={colorMap[status] || "default"} style={{ marginLeft: 8 }}>
         {text}
@@ -64,7 +66,7 @@ function ReturnPage() {
      ========================================================= */
   const fetchBorrowedBooks = async () => {
     if (!token) {
-      message.warning("Please log in first!");
+      message.warning(t("common.loginFirst"));
       return;
     }
 
@@ -83,7 +85,7 @@ function ReturnPage() {
       console.log("📨 当前用户申请:", resRequests.data);
     } catch (err) {
       console.error("❌ Failed to fetch borrow list:", err);
-      message.error("Failed to load borrow list, please try again later.");
+      message.error(t("common.failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -101,7 +103,7 @@ function ReturnPage() {
      ========================================================= */
   const handleConfirmReturn = async () => {
     const record = returnModal.record;
-    if (!record) return message.warning("Book not found, please refresh and try again.");
+    if (!record) return message.warning(t("return.bookNotFound"));
 
     // ✅ 统一 bookId 类型
     const bookId =
@@ -109,7 +111,7 @@ function ReturnPage() {
         ? record.bookId._id
         : record.bookId || record._id;
 
-    if (!bookId) return message.error("Invalid book ID");
+    if (!bookId) return message.error(t("return.invalidBookId"));
 
     // ✅ 立即设置本地 Pending，按钮立刻禁用并显示 Pending
     const idStr = String(bookId);
@@ -127,13 +129,13 @@ function ReturnPage() {
 
 
       // ✅ Correct: message.success
-      message.success("📨 Return request submitted, awaiting admin approval!");
+      message.success(t("return.requestSubmitted"));
 
       setReturnModal({ open: false, record: null });
       fetchBorrowedBooks(); // ✅ 即时刷新（同步后端 Pending）
     } catch (err) {
       console.error("❌ Return request failed:", err);
-      const msg = err.response?.data?.message || "Return request failed, please try again later.";
+      const msg = err.response?.data?.message || t("return.requestFailed");
       message.error(msg);
       // ❌ 提交失败则移除本地 Pending
       setLocalPendingReturn((prev) => prev.filter((x) => x !== idStr));
@@ -168,13 +170,13 @@ function ReturnPage() {
       <Card
         title={
           <div className="page-header">
-            <Title level={4} style={{ margin: 0 }}>My Return Requests</Title>
-            <Text type="secondary">Return operations and statuses</Text>
+            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("titles.myReturnRequests")}</Title>
+            <Text type="secondary">{t("common.returnSystem")}</Text>
             <div className="stats-grid">
-              <Statistic title="Total" value={stats.total} />
-              <Statistic title="Pending" value={stats.pending} valueStyle={{ color: "#faad14" }} />
-              <Statistic title="Approved" value={stats.approved} valueStyle={{ color: "#52c41a" }} />
-              <Statistic title="Rejected" value={stats.rejected} valueStyle={{ color: "#ff4d4f" }} />
+              <Statistic title={t("common.total")} value={stats.total} />
+              <Statistic title={t("common.pending")} value={stats.pending} valueStyle={{ color: "#faad14" }} />
+              <Statistic title={t("common.approved")} value={stats.approved} valueStyle={{ color: "#52c41a" }} />
+              <Statistic title={t("common.rejected")} value={stats.rejected} valueStyle={{ color: "#ff4d4f" }} />
             </div>
           </div>
         }
@@ -188,7 +190,7 @@ function ReturnPage() {
               color: "#fff",
             }}
           >
-            Refresh
+            {t("common.refresh")}
           </Button>
         }
         style={{
@@ -220,7 +222,7 @@ function ReturnPage() {
                         icon={<ClockCircleOutlined />}
                         style={{ borderRadius: 6, background: "#f5f5f5", color: "#8c8c8c" }}
                       >
-                        Pending
+                        {t("common.pending")}
                       </Button>
                     ) : (
                       <Button
@@ -233,7 +235,7 @@ function ReturnPage() {
                         }}
                         onClick={() => openReturnModal(record)}
                       >
-                        Request Return
+                        {t("borrow.requestReturn")}
                       </Button>
                     ),
                   ]}
@@ -247,21 +249,21 @@ function ReturnPage() {
                               to={`/book/${bookIdForLink}`}
                               style={{ color: "#1677ff", fontWeight: 600 }}
                             >
-                              {record.title || record.bookTitle || "Unknown Book"}
+                              {record.title || record.bookTitle || t("profile.unknownBook")}
                             </Link>
                           ) : (
                             <span style={{ color: "#333", fontWeight: 600 }}>
-                              {record.title || record.bookTitle || "Unknown Book"}
+                              {record.title || record.bookTitle || t("profile.unknownBook")}
                             </span>
                           )}
                           {renderStatusTag(bookIdNormalized)}
                         </>
                       )
                     }
-                    description={`📅 Borrowed At: ${
+                    description={`📅 ${t("return.borrowedAt")} ${
                       record.borrowDate
                         ? dayjs(record.borrowDate).format("YYYY-MM-DD")
-                        : "Unknown"
+                        : t("common.unknown")
                     }`}
                   />
                 </List.Item>
@@ -269,32 +271,32 @@ function ReturnPage() {
             }}
           />
         ) : (
-          <Empty description="No books available to return" />
+          <Empty description={t("return.noBooks")} />
         )}
       </Card>
 
       <Modal
-        title="Confirm Return Request"
+        title={t("return.confirmTitle")}
         open={returnModal.open}
         onCancel={() => setReturnModal({ open: false, record: null })}
         onOk={handleConfirmReturn}
-        okText="Submit Request"
-        cancelText="Cancel"
+        okText={t("return.submitRequest")}
+        cancelText={t("common.cancel")}
         centered
         destroyOnClose
       >
         <p style={{ fontSize: "1rem" }}>
-          Are you sure to request return of
+          {t("return.confirmContent")}
           <b>
             “
             {returnModal.record?.title ||
               returnModal.record?.bookTitle ||
-              "Unknown Book"}
+              t("profile.unknownBook")}
             ”</b>
-          ?
+          {t("return.confirmSuffix")}
         </p>
         <p style={{ color: "#888", marginTop: 8 }}>
-          After submission, admin approval is required; inventory will update upon approval.
+          {t("return.adminApprovalNote")}
         </p>
       </Modal>
     </div>

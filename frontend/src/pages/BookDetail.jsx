@@ -3,11 +3,13 @@ import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { Card, Typography, Tag, Divider, List, Empty, Spin, Button, message, Tooltip, Statistic, Row, Col } from "antd";
 import { getBookDetail, getBorrowHistory } from "../api";
 import ReviewModal from "../components/ReviewModal";
+import { useLanguage } from "../contexts/LanguageContext";
 import "./BookDetail.css";
 
 const { Title, Text, Paragraph } = Typography;
 
 function BookDetail() {
+  const { t } = useLanguage();
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -82,8 +84,8 @@ function BookDetail() {
   }, [id]);
 
   if (loading) return <Spin style={{ marginTop: 40 }} />;
-  if (error) return <Text type="danger">Failed to load: {error}</Text>;
-  if (!book) return <Empty description="Book not found" />;
+  if (error) return <Text type="danger">{t("bookDetail.failedToLoad").replace("{error}", error)}</Text>;
+  if (!book) return <Empty description={t("bookDetail.notFound")} />;
 
   return (
     <div className="book-detail-page">
@@ -95,10 +97,10 @@ function BookDetail() {
         border: "1px solid rgba(255, 255, 255, 0.2)"
       }}>
         <div className="page-header" style={{ marginBottom: "2rem" }}>
-          <Title level={2} style={{ margin: "0 0 1rem 0", color: "#1e293b", fontWeight: 700 }}>📚 {book.title}</Title>
+          <Title level={2} className="page-modern-title" style={{ margin: "0 0 1rem 0", color: "#1e293b", fontWeight: 700 }}>📚 {book.title}</Title>
           <div className="meta-tags" style={{ marginBottom: "1.5rem" }}>
-            <Tag color="blue" style={{ borderRadius: 8, fontWeight: 500 }}>✍️ Author: {book.author}</Tag>
-            <Tag color="purple" style={{ borderRadius: 8, fontWeight: 500 }}>📂 Category: {book.category}</Tag>
+            <Tag color="blue" style={{ borderRadius: 8, fontWeight: 500 }}>✍️ {t("bookDetail.author")}: {book.author}</Tag>
+            <Tag color="purple" style={{ borderRadius: 8, fontWeight: 500 }}>📂 {t("bookDetail.category")}: {book.category}</Tag>
           </div>
           <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
             <div style={{ 
@@ -109,7 +111,7 @@ function BookDetail() {
               boxShadow: "0 4px 12px rgba(82, 196, 26, 0.3)"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "12px" }}>In Stock</span>} 
+                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.inStock")}</span>} 
                 value={book.copies || 0} 
                 valueStyle={{ color: "white", fontSize: "24px", fontWeight: 700 }}
               />
@@ -122,7 +124,7 @@ function BookDetail() {
               boxShadow: "0 4px 12px rgba(250, 173, 20, 0.3)"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "12px" }}>Rating</span>} 
+                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.rating")}</span>} 
                 value={book.rating || 0} 
                 valueStyle={{ color: "white", fontSize: "24px", fontWeight: 700 }}
                 suffix="/5"
@@ -136,26 +138,26 @@ function BookDetail() {
               boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "12px" }}>Reviews</span>} 
+                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.reviews")}</span>} 
                 value={book.reviewCount || (Array.isArray(book.reviews) ? book.reviews.length : 0)} 
                 valueStyle={{ color: "white", fontSize: "24px", fontWeight: 700 }}
               />
             </div>
           </div>
         </div>
-        <Paragraph style={{ whiteSpace: "pre-wrap" }}>{book.description || "No description"}</Paragraph>
+        <Paragraph style={{ whiteSpace: "pre-wrap" }}>{book.description || t("bookDetail.noDescription")}</Paragraph>
 
-        <Divider>User Reviews</Divider>
+        <Divider>{t("bookDetail.userReviews")}</Divider>
         {Array.isArray(book.reviews) && book.reviews.length > 0 ? (
           <List
             dataSource={book.reviews}
             renderItem={(rev) => (
               <List.Item>
                 <List.Item.Meta
-                  title={<Text strong>{rev.rating} stars</Text>}
+                  title={<Text strong>{rev.rating} {t("bookDetail.stars")}</Text>}
                   description={
                     <>
-                      <div>{rev.comment || "(No written comment)"}</div>
+                      <div>{rev.comment || t("bookDetail.noComment")}</div>
                       <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
                         {new Date(rev.createdAt).toLocaleString()}
                       </div>
@@ -166,15 +168,15 @@ function BookDetail() {
             )}
           />
         ) : (
-          <Empty description="No reviews yet — be the first!" />
+          <Empty description={t("bookDetail.noReviews")} />
         )}
       <Divider />
         {(() => {
           const canReview = eligible && !hasReviewed;
           const reason = !eligible
-            ? "You can review only after returning"
+            ? t("bookDetail.reviewOnlyAfterReturn")
             : hasReviewed
-            ? "You have already reviewed"
+            ? t("bookDetail.youHaveReviewed")
             : "";
           return (
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -183,17 +185,17 @@ function BookDetail() {
                 onClick={() => navigate(-1)} // Browser back button - preserves state
                 style={{ marginRight: 8 }}
               >
-                ← Back to Previous Page
+                ← {t("bookDetail.back")}
               </Button>
               {canReview ? (
                 <Button type="primary" onClick={() => setReviewOpen(true)}>
-                  Write a Review
+                  {t("bookDetail.writeReview")}
                 </Button>
               ) : (
                 <Tooltip title={reason} placement="top">
                   <span style={{ display: "inline-block" }}>
                     <Button type="primary" disabled>
-                      Write a Review
+                      {t("bookDetail.writeReview")}
                     </Button>
                   </span>
                 </Tooltip>
@@ -218,7 +220,7 @@ function BookDetail() {
               setBook(res?.data);
               setHasReviewed(true);
               setReviewOpen(false);
-              message.success("Review submitted and page updated");
+              message.success(t("bookDetail.reviewSubmitted"));
             } catch (e) {}
           }}
         />

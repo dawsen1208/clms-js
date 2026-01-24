@@ -6,9 +6,11 @@ import "./RegisterAdmin.css";
 import { CopyOutlined } from "@ant-design/icons";
 import { register } from "../api"; // ✅ 统一使用 API 封装
 import axios from "axios"; // 保留 axios 用于认证码扩展（可选）
+import { useLanguage } from "../context/LanguageContext";
 
 function RegisterAdmin() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [modalVisible, setModalVisible] = useState(false);
   const [assignedId, setAssignedId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,7 +24,7 @@ function RegisterAdmin() {
   const handleAdminRegister = async (values) => {
     const { name, email, password, authCode } = values;
     if (!name || !password || !authCode) {
-      return message.warning("Please fill in all required information!");
+      return message.warning(t("register.fillAll"));
     }
 
     try {
@@ -31,7 +33,7 @@ function RegisterAdmin() {
       const res = await register(name, email || "", password, "Administrator", authCode);
       const id = res.data?.user?.userId;
 
-      if (!id) throw new Error("System-assigned user ID not received");
+      if (!id) throw new Error(t("register.noId"));
       console.log("🟩 Administrator system-assigned ID:", id);
 
       // ✅ 存储预填 ID
@@ -40,9 +42,9 @@ function RegisterAdmin() {
       // ✅ 自动复制到剪贴板（带降级兜底）
       const copied = await copyToClipboard(id);
       if (copied) {
-        message.success("System ID copied automatically, you can log in directly!");
+        message.success(t("register.copySuccess"));
       } else {
-        message.warning("Automatic copy failed; please copy the ID manually.");
+        message.warning(t("register.copyFail"));
       }
 
       // ✅ 显示注册成功弹窗
@@ -53,7 +55,7 @@ function RegisterAdmin() {
       const msg =
         err.response?.data?.message ||
         err.message ||
-        "Registration failed, please check auth code or network connection";
+        t("register.regFail");
       message.error(msg);
     } finally {
       setLoading(false);
@@ -90,7 +92,7 @@ function RegisterAdmin() {
   /** ✅ Modal: go to login */
   const handleModalOk = () => {
     setModalVisible(false);
-    message.info("Redirecting to login page...");
+    message.info(t("register.redirectLogin"));
     setTimeout(() => {
       navigate("/login");
     }, 600);
@@ -99,55 +101,55 @@ function RegisterAdmin() {
   return (
     <div className="register-admin-page" style={{ padding: "2rem" }}>
       {/* ✅ 左侧注册表单 */}
-      <Card className="register-card" title="Administrator Registration" style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", background: "#fff" }}>
+      <Card className="register-card" title={t("titles.registerAdmin")} style={{ borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", background: "#fff" }}>
         <p style={{ marginBottom: 20, color: "#555" }}>
-          Register as an <b>Administrator</b> to manage the Intelligent Library.
+          {t("register.adminDesc")}
         </p>
 
         <Form layout="vertical" onFinish={handleAdminRegister}>
           <Form.Item
             name="name"
-            label="Name"
+            label={t("register.name")}
             rules={[
-              { required: true, message: "Please enter your name" },
-              { pattern: /^(?!\d+$)[A-Za-z][A-Za-z0-9_]*$/, message: "Start with letter; letters, numbers, underscore; not all digits" }
+              { required: true, message: t("register.enterName") },
+              { pattern: /^(?!\d+$)[A-Za-z][A-Za-z0-9_]*$/, message: t("register.nameInvalid") }
             ]}
           >
             <Input
               size="large"
-              placeholder="Enter your name"
+              placeholder={t("register.namePlaceholder")}
               style={{ borderRadius: 8 }}
             />
           </Form.Item>
 
-          <Form.Item name="email" label="Email (optional)">
+          <Form.Item name="email" label={t("register.email")}>
             <Input
               size="large"
-              placeholder="(Optional) Enter your email"
+              placeholder={t("register.emailPlaceholder")}
               style={{ borderRadius: 8 }}
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label="Password"
-            rules={[{ required: true, message: "Please enter your password" }]}
+            label={t("register.password")}
+            rules={[{ required: true, message: t("register.enterPass") }]}
           >
             <Input.Password
               size="large"
-              placeholder="Enter password"
+              placeholder={t("register.passwordPlaceholder")}
               style={{ borderRadius: 8 }}
             />
           </Form.Item>
 
           <Form.Item
             name="authCode"
-            label="Administrator Auth Code"
-            rules={[{ required: true, message: "Please enter administrator auth code (default: admin)" }]}
+            label={t("register.authCode")}
+            rules={[{ required: true, message: t("register.enterAuth") }]}
           >
             <Input
               size="large"
-              placeholder="Enter administrator auth code (default: admin)"
+              placeholder={t("register.authCodePlaceholder")}
               style={{ borderRadius: 8 }}
             />
           </Form.Item>
@@ -166,7 +168,7 @@ function RegisterAdmin() {
                 boxShadow: "0 4px 10px rgba(118,75,162,0.3)",
               }}
             >
-              Register as Administrator
+              {t("register.registerAdminBtn")}
             </Button>
           </Form.Item>
 
@@ -177,7 +179,7 @@ function RegisterAdmin() {
               style={{ color: "#1677ff" }}
               onClick={() => navigate("/register")}
             >
-              👈 Back to Reader Registration
+              👈 {t("register.backToReader")}
             </Button>
             <Button
               type="link"
@@ -185,7 +187,7 @@ function RegisterAdmin() {
               style={{ color: "#555" }}
               onClick={() => navigate("/login")}
             >
-              🔐 Back to Login
+              🔐 {t("register.backToLogin")}
             </Button>
           </div>
         </Form>
@@ -206,16 +208,16 @@ function RegisterAdmin() {
 
       {/* ✅ Registration success modal */}
       <Modal
-        title="🎉 Administrator registration successful!"
+        title={t("register.regSuccessTitle")}
         open={modalVisible}
         onOk={handleModalOk}
         onCancel={() => setModalVisible(false)}
-        cancelText="Cancel"
-        okText="Go to Login"
+        cancelText={t("register.cancel")}
+        okText={t("register.goToLogin")}
         centered
       >
         <div style={{ textAlign: "center" }}>
-          <p>You have been assigned an administrator ID:</p>
+          <p>{t("register.assignedAdminId")}</p>
           <p
             style={{
               fontSize: "1.3rem",
@@ -229,12 +231,12 @@ function RegisterAdmin() {
               style={{ marginLeft: 10, color: "#1677ff", cursor: "pointer" }}
               onClick={async () => {
                 const ok = await copyToClipboard(assignedId);
-                if (ok) message.success("Copied!");
-                else message.error("Copy failed; please copy manually.");
+                if (ok) message.success(t("register.copySuccess"));
+                else message.error(t("register.manualCopyFail"));
               }}
             />
           </p>
-          <p>The ID has been auto-copied; you can log in directly.</p>
+          <p>{t("register.idCopiedMsg")}</p>
         </div>
       </Modal>
     </div>

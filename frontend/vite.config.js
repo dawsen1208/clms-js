@@ -11,39 +11,14 @@ import { VitePWA } from 'vite-plugin-pwa'
 // ============================================================
 
 export default defineConfig({
+  base: '/', // ✅ 确保绝对路径，避免嵌套路由（如 /books/:id）刷新后资源 404
   plugins: [
     react(),
-    VitePWA({
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-icon-180.png'],
-      manifest: {
-        name: 'CLMS-JS 图书馆管理系统',
-        short_name: 'CLMS-JS',
-        start_url: '/',
-        display: 'standalone',
-        background_color: '#ffffff',
-        theme_color: '#1677ff',
-        icons: [
-          // Use your custom icons placed under /public/icons
-          { src: '/icons/apple-icon-180.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
-          { src: '/icons/manifest-icon-192.maskable.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-          { src: '/icons/manifest-icon-512.maskable.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
-        ]
-      },
-      workbox: {
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4MB limit for large assets
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
-            handler: 'NetworkOnly'
-          }
-        ]
-      }
-    })
+    // VitePWA({ ... }) // 暂时注释掉 PWA 以排除缓存干扰
   ],
 
   server: {
-    host: 'localhost',  // 明确绑定到 localhost，避免网卡变化
+    host: '0.0.0.0',  // ✅ 允许局域网访问
     port: 5174,
     strictPort: true,   // 固定端口，避免端口漂移导致访问失败
     cors: true,         // ✅ 允许跨域请求（访问后端API）

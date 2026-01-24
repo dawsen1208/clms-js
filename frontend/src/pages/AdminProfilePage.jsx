@@ -17,10 +17,12 @@ import {
 } from "antd";
 import { UserOutlined, MailOutlined, EditOutlined, SaveOutlined, CloseOutlined, UploadOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import { getProfile, updateProfile, getPendingRequestsLibrary, uploadAvatar } from "../api";
- 
- const { Title } = Typography;
+import { useLanguage } from "../contexts/LanguageContext";
+
+const { Title } = Typography;
 
 const AdminProfilePage = () => {
+  const { t } = useLanguage();
   const [profile, setProfile] = useState(null);
   const [email, setEmail] = useState("");
   const [editing, setEditing] = useState(false);
@@ -73,8 +75,8 @@ const AdminProfilePage = () => {
         .map((r) => ({
           _id: r._id,
           userId: r.userId,
-          userName: r.userName || "Unknown user",
-          bookTitle: r.bookTitle || r.bookId?.title || "Unknown book",
+          userName: r.userName || t("admin.unknownUser"),
+          bookTitle: r.bookTitle || r.bookId?.title || t("admin.unknownBook"),
           type: r.type || (r.returned === false ? "return" : "renew"),
           status: r.status || (r.returned === false ? "pending" : "approved"),
           createdAt: r.createdAt || r.borrowedAt,
@@ -84,7 +86,7 @@ const AdminProfilePage = () => {
       setRequests(pending);
     } catch (err) {
       console.error("❌ Failed to fetch requests:", err);
-      message.error("Failed to load requests");
+      message.error(t("admin.requestsLoadFailed"));
     } finally {
       setLoading(false);
     }
@@ -101,12 +103,12 @@ const AdminProfilePage = () => {
   const handleUpdateEmail = async () => {
     try {
       await updateProfile(token, { email });
-      message.success("Email updated");
+      message.success(t("admin.emailUpdated"));
       setEditing(false);
       fetchProfile();
     } catch (err) {
       console.error("❌ Failed to update email:", err);
-      message.error("Failed to update email");
+      message.error(t("admin.emailUpdateFailed"));
     }
   };
 
@@ -118,11 +120,11 @@ const AdminProfilePage = () => {
     formData.append("avatar", file);
     try {
       await uploadAvatar(token, formData);
-      message.success("Avatar updated 🎉");
+      message.success(t("admin.avatarUpdated"));
       fetchProfile();
     } catch (err) {
       console.error("❌ Failed to upload avatar:", err);
-      message.error("Failed to upload avatar");
+      message.error(t("admin.avatarUpdateFailed"));
     }
   };
 
@@ -130,44 +132,44 @@ const AdminProfilePage = () => {
      📋 Pending requests table (with handled time)
      ========================================================= */
   const columns = [
-    { title: "User", dataIndex: "userName", key: "userName" },
-    { title: "User ID", dataIndex: "userId", key: "userId" },
+    { title: t("admin.username"), dataIndex: "userName", key: "userName" },
+    { title: t("admin.userId"), dataIndex: "userId", key: "userId" },
     {
-      title: "Book Title",
+      title: t("admin.bookTitle"),
       dataIndex: "bookTitle",
       key: "bookTitle",
-      render: (v) => v || "Unknown book",
+      render: (v) => v || t("admin.unknownBook"),
     },
     {
-      title: "Type",
+      title: t("admin.type"),
       dataIndex: "type",
       key: "type",
       render: (v) =>
         v === "renew" ? (
-          <Tag color="blue">Renew</Tag>
+          <Tag color="blue">{t("admin.renew")}</Tag>
         ) : (
-          <Tag color="purple">Return</Tag>
+          <Tag color="purple">{t("admin.return")}</Tag>
         ),
     },
     {
-      title: "Request Time",
+      title: t("admin.requestedAt"),
       dataIndex: "createdAt",
       key: "createdAt",
       render: (v) => (v ? new Date(v).toLocaleString() : "—"),
     },
     {
-      title: "Handled At",
+      title: t("admin.handledAt"),
       dataIndex: "time",
       key: "time",
       render: (v) =>
         v ? (
           <span>{new Date(v).toLocaleString()}</span>
         ) : (
-          <span style={{ color: "#aaa" }}>Not handled</span>
+          <span style={{ color: "#aaa" }}>{t("admin.notHandled")}</span>
         ),
     },
     {
-      title: "Status",
+      title: t("admin.status"),
       dataIndex: "status",
       key: "status",
       render: (v) => (
@@ -181,10 +183,10 @@ const AdminProfilePage = () => {
           }
         >
           {v === "pending"
-            ? "Pending"
+            ? t("admin.pending")
             : v === "approved"
-            ? "Approved"
-            : "Rejected"}
+            ? t("admin.approved")
+            : t("admin.rejected")}
         </Tag>
       ),
     },
@@ -228,10 +230,10 @@ const AdminProfilePage = () => {
           style={{ marginBottom: 20 }}
         />
         <Title level={3} style={{ marginBottom: 4 }}>
-          {profile.name || "Admin"}
+          {profile.name || t("admin.administrator")}
         </Title>
         <div style={{ color: "#888", marginBottom: 12 }}>
-          Role: {profile.role}
+          {t("admin.role")}: {profile.role}
         </div>
 
         <Upload
@@ -240,7 +242,7 @@ const AdminProfilePage = () => {
           accept="image/*"
         >
           <Button icon={<UploadOutlined />} type="primary">
-            Change Avatar
+            {t("admin.changeAvatar")}
           </Button>
         </Upload>
       </div>
@@ -264,7 +266,7 @@ const AdminProfilePage = () => {
             marginBottom: 10,
           }}
         >
-          <span style={{ fontWeight: 500 }}>Email</span>
+          <span style={{ fontWeight: 500 }}>{t("admin.email")}</span>
           <Space>
             {editing ? (
               <>
@@ -275,17 +277,17 @@ const AdminProfilePage = () => {
                   style={{ width: 180 }}
                 />
                 <Button size="small" type="primary" onClick={handleUpdateEmail}>
-                  Save
+                  {t("admin.save")}
                 </Button>
                 <Button size="small" onClick={() => setEditing(false)}>
-                  Cancel
+                  {t("admin.cancel")}
                 </Button>
               </>
             ) : (
               <>
-                <span>{profile.email || "No email set"}</span>
+                <span>{profile.email || t("admin.noEmail")}</span>
                 <Button size="small" onClick={() => setEditing(true)}>
-                  Edit
+                  {t("admin.edit")}
                 </Button>
               </>
             )}
@@ -298,7 +300,7 @@ const AdminProfilePage = () => {
         title={
           <span>
             <ClockCircleOutlined style={{ marginRight: 8 }} />
-            Pending Requests (total {requests.length})
+            {t("admin.pendingRequests")} ({t("admin.total")} {requests.length})
           </span>
         }
         bordered
@@ -318,11 +320,11 @@ const AdminProfilePage = () => {
             columns={columns}
             rowKey="_id"
             pagination={{ pageSize: 5 }}
-            locale={{ emptyText: "No pending requests 🎉" }}
+            locale={{ emptyText: t("admin.noPendingRequests") }}
           />
         )}
       </Card>
-    </Card>
+    </div>
   );
 };
 

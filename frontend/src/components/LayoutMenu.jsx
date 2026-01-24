@@ -17,9 +17,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GlobalNotifier from "./GlobalNotifier"; // ✅ 全局用户通知系统
 import "./LayoutMenu.css"; // ✅ New CSS file for consistent styling
+import { useLanguage } from "../contexts/LanguageContext";
 
 const { Sider, Content, Header } = Layout;
-const { useBreakpoint } = Grid;
+// const { useBreakpoint } = Grid; // ❌ Moved inside component
 
 /**
  * 📚 用户端主布局组件
@@ -29,6 +30,8 @@ const { useBreakpoint } = Grid;
  * - 内置全局通知（右上角铃铛）
  */
 function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
+  const { t } = useLanguage();
+  const { useBreakpoint } = Grid; // ✅ Moved here
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false); // 📱 QR Code Modal state
@@ -87,6 +90,47 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
   /* =========================================================
      🧱 渲染组件结构
      ========================================================= */
+  // 📱 Mobile Bottom Navigation
+  const MobileBottomNav = () => (
+    <div className="mobile-bottom-nav">
+      <div 
+        className={`mobile-nav-item ${currentPage === 'home' ? 'active' : ''}`}
+        onClick={() => { setCurrentPage('home'); navigate('/home'); }}
+      >
+        <HomeOutlined className="nav-icon" />
+        <span className="nav-label">{t("common.home")}</span>
+      </div>
+      <div 
+        className={`mobile-nav-item ${currentPage === 'search' ? 'active' : ''}`}
+        onClick={() => { setCurrentPage('search'); navigate('/search'); }}
+      >
+        <SearchOutlined className="nav-icon" />
+        <span className="nav-label">{t("common.search")}</span>
+      </div>
+      <div 
+        className={`mobile-nav-item ${currentPage === 'borrow' ? 'active' : ''}`}
+        onClick={() => { setCurrentPage('borrow'); navigate('/borrow'); }}
+      >
+        <BookOutlined className="nav-icon" />
+        <span className="nav-label">{t("common.myBooks")}</span>
+      </div>
+      <div 
+        className={`mobile-nav-item ${currentPage === 'profile' ? 'active' : ''}`}
+        onClick={() => { setCurrentPage('profile'); navigate('/profile'); }}
+      >
+        <UserOutlined className="nav-icon" />
+        <span className="nav-label">{t("common.profile")}</span>
+      </div>
+      <div 
+        className={`mobile-nav-item ${currentPage === 'settings' ? 'active' : ''}`}
+        onClick={() => { setCurrentPage('settings'); navigate('/settings'); }}
+      >
+        <SettingOutlined className="nav-icon" />
+        <span className="nav-label">{t("common.settings")}</span>
+      </div>
+    </div>
+  );
+
   const SidebarContent = (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
         {/* Header with user info */}
@@ -97,12 +141,12 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
             </div>
             {!collapsed && !isMobile && (
               <div className="user-info-text">
-                <div className="user-role">Library Reader</div>
+                <div className="user-role">{t("role.libraryReader")}</div>
               </div>
             )}
             {isMobile && (
               <div className="user-info-text">
-                <div className="user-role">Library Reader</div>
+                <div className="user-role">{t("role.libraryReader")}</div>
               </div>
             )}
           </div>
@@ -136,15 +180,13 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
             selectedKeys={[currentPage]}
             onClick={handleMenuClick}
             items={[
-              { key: "home", icon: <HomeOutlined />, label: "Home" },
-              { key: "assistant", icon: <RobotOutlined />, label: "Smart Assistant" },
-              { key: "search", icon: <SearchOutlined />, label: "Search" },
-              { key: "borrow", icon: <BookOutlined />, label: "Borrow" },
-              { key: "return", icon: <RollbackOutlined />, label: "Return" },
-              { key: "profile", icon: <UserOutlined />, label: "Profile" },
-              { key: "settings", icon: <SettingOutlined />, label: "Settings" },
-              // 📱 Mobile QR Code (Visible in Drawer)
-              { key: "mobile-qr", icon: <QrcodeOutlined />, label: "Mobile Access" },
+              { key: "home", icon: <HomeOutlined />, label: t("common.home") },
+              { key: "assistant", icon: <RobotOutlined />, label: t("common.smartRec") }, // Using smartRec as proxy for Assistant or add new key. "Smart Assistant" isn't in translations yet.
+              { key: "search", icon: <SearchOutlined />, label: t("common.search") },
+              { key: "borrow", icon: <BookOutlined />, label: t("common.borrowManage") },
+              { key: "return", icon: <RollbackOutlined />, label: t("common.returnSystem") },
+              { key: "profile", icon: <UserOutlined />, label: t("common.profile") },
+              { key: "settings", icon: <SettingOutlined />, label: t("common.settings") },
             ]}
             style={{ flexGrow: 1 }}
             className="user-menu-items"
@@ -161,7 +203,7 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
               {
                 key: "logout",
                 icon: <LogoutOutlined />,
-                label: "Logout",
+                label: t("common.logout"),
               },
             ]}
             style={{
@@ -219,6 +261,7 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
           marginLeft: isMobile ? 0 : (collapsed ? 80 : 200),
           transition: "margin-left 0.3s ease",
           minHeight: "100vh",
+          paddingBottom: isMobile ? "80px" : 0, // 📱 Prevent content from being hidden by bottom nav
         }}
       >
         {/* ✅ Top Navigation Bar (Mobile & Desktop) */}
@@ -229,7 +272,8 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            boxShadow: isMobile ? "none" : "0 2px 8px rgba(0,0,0,0.06)", // 📱 Cleaner mobile header
+            borderBottom: isMobile ? "1px solid #f0f0f0" : "none",
             height: 64,
             position: "sticky",
             top: 0,
@@ -237,50 +281,48 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {/* Mobile Menu Toggle */}
-            <Button
-              type="text"
-              icon={<MenuOutlined />}
-              onClick={() => isMobile ? setMobileMenuOpen(true) : setCollapsed(!collapsed)}
-              style={{ 
-                fontSize: "18px", 
-                width: 46, 
-                height: 46,
-                display: isMobile ? "flex" : "none", // Only show on mobile
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            />
+            {/* Desktop Collapse Button */}
+            {!isMobile && (
+              <Button
+                type="text"
+                icon={collapsed ? <MenuOutlined /> : <MenuOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                style={{ fontSize: "16px", width: 64, height: 64 }}
+              />
+            )}
             
             {/* Title */}
-            <div style={{ fontSize: "18px", fontWeight: 600, color: "#1e293b", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: "18px", fontWeight: 600, color: "#1e293b", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "8px" }}>
+              {isMobile && <img src="/icons/apple-icon-180.png" alt="Logo" style={{ width: 24, height: 24, borderRadius: 4 }} onError={(e) => e.target.style.display='none'} />}
               CLMS Library
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {/* 📱 Mobile Access QR Code (Always Visible) */}
-            <Tooltip title="Scan to open on mobile">
-              <Button 
-                type="primary"
-                ghost
-                icon={<QrcodeOutlined />} 
-                onClick={() => setQrModalOpen(true)}
-                style={{ 
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  height: "36px",
-                  padding: "0 12px",
-                  borderRadius: "18px",
-                  border: "1px solid #1677ff",
-                  background: "#e6f4ff",
-                  boxShadow: "0 2px 6px rgba(22, 119, 255, 0.2)"
-                }}
-              >
-                <span style={{ fontWeight: 500 }}>Mobile</span>
-              </Button>
-            </Tooltip>
+            {/* 📱 Mobile Access QR Code (Desktop Only) */}
+            {!isMobile && (
+              <Tooltip title={t("login.scanToOpen")}>
+                <Button 
+                  type="primary"
+                  ghost
+                  icon={<QrcodeOutlined />} 
+                  onClick={() => setQrModalOpen(true)}
+                  style={{ 
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    height: "36px",
+                    padding: "0 12px",
+                    borderRadius: "18px",
+                    border: "1px solid #1677ff",
+                    background: "#e6f4ff",
+                    boxShadow: "0 2px 6px rgba(22, 119, 255, 0.2)"
+                  }}
+                >
+                  <span style={{ fontWeight: 500 }}>{t("mobile.experience")}</span>
+                </Button>
+              </Tooltip>
+            )}
 
             {/* Global Notifier (Bell) */}
             <div style={{ display: "flex", alignItems: "center" }}>
@@ -295,7 +337,7 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
             onCancel={() => setQrModalOpen(false)}
             centered
             width={360}
-            title={<div style={{ textAlign: "center" }}>📱 Mobile Experience</div>}
+            title={<div style={{ textAlign: "center" }}>📱 {t("mobile.experience")}</div>}
           >
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "20px 0" }}>
               <QRCode 
@@ -305,8 +347,8 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
                 errorLevel="H"
               />
               <div style={{ marginTop: "24px", textAlign: "center", color: "#64748b" }}>
-                <p style={{ margin: 0, fontWeight: 500 }}>Scan with your phone camera</p>
-                <p style={{ margin: "4px 0 0", fontSize: "13px" }}>to access the low-density mobile view</p>
+                <p style={{ margin: 0, fontWeight: 500 }}>{t("mobile.scanCamera")}</p>
+                <p style={{ margin: "4px 0 0", fontSize: "13px" }}>{t("mobile.scanDesc")}</p>
               </div>
             </div>
           </Modal>
@@ -332,11 +374,14 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
                 fontSize: "1rem",
               }}
             >
-              ⚠️ Page failed to load, please log in again.
+              ⚠️ {t("error.pageLoad")}
             </div>
           )}
           </div>
         </Content>
+
+        {/* 📱 Render Mobile Bottom Nav */}
+        {isMobile && <MobileBottomNav />}
       </Layout>
     </Layout>
   );

@@ -39,6 +39,7 @@ import {
 import { getBooks, borrowBook, getBorrowedBooks } from "../api"; // ✅ use unified API
 import { requestRenewLibrary, requestReturnLibrary, getUserRequestsLibrary } from "../api.js";
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage, showBorrowSuccessModal } from "../utils/borrowUI";
+import { useLanguage } from "../contexts/LanguageContext"; // ✅ Added
 import { Link } from "react-router-dom";
 import BookGrid from "../components/BookGrid";
 import EnhancedSearchBar from "../components/EnhancedSearchBar";
@@ -47,9 +48,11 @@ import "./SearchPage.css";
 
 const { Panel } = Collapse;
 const { Title, Text } = Typography;
-const { useBreakpoint } = Grid;
+// const { useBreakpoint } = Grid; // ❌ Moved inside
 
 function SearchPage() {
+  const { language, t } = useLanguage();
+  const { useBreakpoint } = Grid; // ✅ Moved here
   const screens = useBreakpoint();
   const isMobile = !screens.md; // <768px 视为移动端
   const [books, setBooks] = useState([]);
@@ -96,7 +99,7 @@ function SearchPage() {
 
       // ✅ Auto group by category
       const grouped = allBooks.reduce((acc, book) => {
-        const cat = book.category || "Uncategorized";
+        const cat = book.category || t("search.uncategorized");
         if (!acc[cat]) acc[cat] = [];
         acc[cat].push(book);
         return acc;
@@ -153,7 +156,7 @@ function SearchPage() {
       }
     } catch (err) {
       console.error("❌ Failed to fetch books:", err);
-      message.error("Failed to load books, please check backend connection");
+      message.error(t("search.loadFailed"));
     } finally {
       setLoading(false);
     }
@@ -163,25 +166,24 @@ function SearchPage() {
      📘 Borrow book (with login check)
      ========================================================= */
   const handleBorrow = async (bookId, title, copies) => {
-    if (!token) return message.warning("Please log in before borrowing");
+    if (!token) return message.warning(t("search.loginToBorrow"));
     
     // Check if user has already borrowed 2 copies of this book
     const currentBorrowedCount = userBorrowedBooksCount[bookId] || 0;
     if (currentBorrowedCount >= 2) {
       Modal.info({
-        title: "Borrowing Limit Reached",
-        content: "You have already borrowed the maximum of 2 copies of this book.",
-        okText: "Got it",
+        title: t("assistant.borrowLimitTitle"),
+        content: t("search.limitMsg"),
+        okText: t("assistant.gotIt"),
       });
       return;
     }
     
     if (copies <= 0) {
       Modal.info({
-        title: "Out of stock",
-        content:
-          "This book is currently out of stock. Please check back later or explore other titles.",
-        okText: "Got it",
+        title: t("assistant.outOfStockTitle"),
+        content: t("assistant.outOfStockMsg"),
+        okText: t("assistant.gotIt"),
       });
       return;
     }
@@ -189,7 +191,7 @@ function SearchPage() {
       const res = await borrowBook(bookId, token);
       setSuccessTitle(title);
       showBorrowSuccessModal(title);
-      message.success(res.data.message || `📖 Successfully borrowed "${title}"!`);
+      message.success(res.data.message || t("search.borrowSuccessMsg", { title }));
       fetchBooks(); // ✅ refresh inventory after borrowing
     } catch (err) {
       console.error("❌ Borrow failed:", err);
@@ -218,41 +220,41 @@ function SearchPage() {
         showBorrowLimitModal();
         return;
       }
-      message.error(backendMsg || "Borrow failed, please try again later.");
+      message.error(backendMsg || t("assistant.borrowFailed"));
     }
   };
 
   // Quick renew: extend by given days
   const handleRenew = async (bookId, days = 7) => {
-    if (!token) return message.warning("Please log in before renewing");
+    if (!token) return message.warning(t("search.loginToRenew"));
     try {
       setLocalPendingSet(prev => {
         const next = new Set(prev); next.add(String(bookId)); return next;
       });
       const payload = { type: "renew", bookId, days };
       await requestRenewLibrary(payload, token);
-      message.success(`Renewed for +${days} days`);
+      message.success(t("search.renewSuccess", { days }));
       fetchBooks();
     } catch (err) {
       console.error("❌ Renew failed:", err);
-      message.error("Renew failed, please try again later");
+      message.error(t("search.renewFailed"));
       setLocalPendingSet(prev => { const next = new Set(prev); next.delete(String(bookId)); return next; });
     }
   };
 
   const handleReturn = async (bookId) => {
-    if (!token) return message.warning("Please log in before returning");
+    if (!token) return message.warning(t("search.loginToReturn"));
     try {
       setLocalPendingSet(prev => {
         const next = new Set(prev); next.add(String(bookId)); return next;
       });
       const payload = { type: "return", bookId };
       await requestReturnLibrary(payload, token);
-      message.success("Return request submitted");
+      message.success(t("search.returnSuccess"));
       fetchBooks();
     } catch (err) {
       console.error("❌ Return failed:", err);
-      message.error("Return failed, please try again later");
+      message.error(t("search.returnFailed"));
       setLocalPendingSet(prev => { const next = new Set(prev); next.delete(String(bookId)); return next; });
     }
   };
@@ -266,7 +268,7 @@ function SearchPage() {
     if (!searchText) {
       // If search is empty, show all books
       const grouped = books.reduce((acc, book) => {
-        const cat = book.category || "Uncategorized";
+        const cat = book.category || t("search.uncategorized");
         if (!acc[cat]) acc[cat] = [];
         acc[cat].push(book);
         return acc;
@@ -303,13 +305,13 @@ function SearchPage() {
     filtered = sortBooks(filtered, sortBy);
 
     if (filtered.length === 0) {
-      message.warning("No matching results found");
+      message.warning(t("search.noResults"));
       return;
     }
 
     // ✅ Regroup
     const grouped = filtered.reduce((acc, b) => {
-      const cat = b.category || "Uncategorized";
+      const cat = b.category || t("search.uncategorized");
       if (!acc[cat]) acc[cat] = [];
       acc[cat].push(b);
       return acc;
@@ -373,23 +375,23 @@ function SearchPage() {
     return (
       <div className="mobile-low-density-view" style={{ padding: "16px", background: "#f8fafc", minHeight: "100vh" }}>
         {/* Controlled Modals */}
-        <Modal open={!!successTitle} title="Success" onOk={() => setSuccessTitle("")} onCancel={() => setSuccessTitle("")} centered footer={null}>
+        <Modal open={!!successTitle} title={t("search.success")} onOk={() => setSuccessTitle("")} onCancel={() => setSuccessTitle("")} centered footer={null}>
            <div style={{ textAlign: 'center', padding: '20px' }}>
              <div style={{ fontSize: '40px', marginBottom: '10px' }}>🎉</div>
-             <h3>"{successTitle}" Borrowed!</h3>
-             <Button type="primary" onClick={() => setSuccessTitle("")} block size="large" style={{ marginTop: '20px' }}>OK</Button>
+             <h3>"{successTitle}" {t("search.borrowSuccess")}</h3>
+             <Button type="primary" onClick={() => setSuccessTitle("")} block size="large" style={{ marginTop: '20px' }}>{t("common.close")}</Button>
            </div>
         </Modal>
-        <Modal open={limitOpen} title="Limit Reached" onOk={() => setLimitOpen(false)} onCancel={() => setLimitOpen(false)} centered footer={null}>
+        <Modal open={limitOpen} title={t("search.limitReached")} onOk={() => setLimitOpen(false)} onCancel={() => setLimitOpen(false)} centered footer={null}>
            <div style={{ padding: '10px' }}>
-             <p>You have reached the maximum borrowing limit.</p>
-             <Button type="primary" onClick={() => setLimitOpen(false)} block>Got it</Button>
+             <p>{t("search.limitReachedMsg")}</p>
+             <Button type="primary" onClick={() => setLimitOpen(false)} block>{t("common.close")}</Button>
            </div>
         </Modal>
 
         {/* 📱 Mobile Drawers */}
         <Drawer
-          title="Categories"
+          title={t("search.category")}
           placement="bottom"
           height="60vh"
           onClose={() => setCateDrawerOpen(false)}
@@ -401,7 +403,7 @@ function SearchPage() {
               onClick={() => { setSelectedCategory(""); setCateDrawerOpen(false); }}
               style={{ padding: '8px 16px', fontSize: '14px', borderRadius: '20px', marginBottom: '8px' }}
             >
-              All Books
+              {t("search.allBooks")}
             </Tag>
             {categories.map(cat => (
               <Tag 
@@ -417,14 +419,14 @@ function SearchPage() {
         </Drawer>
 
         <Drawer
-          title="Filter & Sort"
+          title={t("search.filter")}
           placement="bottom"
           height="auto"
           onClose={() => setFilterDrawerOpen(false)}
           open={filterDrawerOpen}
         >
           <div style={{ marginBottom: "24px" }}>
-            <Title level={5}>Sort By</Title>
+            <Title level={5}>{t("search.sort")}</Title>
             <Select
               defaultValue="latest"
               size="large"
@@ -432,19 +434,19 @@ function SearchPage() {
               onChange={(val) => { setSortBy(val); }}
               value={sortBy}
               options={[
-                { label: "Latest Arrivals", value: "latest" },
-                { label: "Most Popular", value: "most_borrowed" },
-                { label: "High Stock", value: "stock_high" },
+                { label: t("search.latest"), value: "latest" },
+                { label: t("search.popular"), value: "most_borrowed" },
+                { label: t("search.inStock"), value: "stock_high" },
               ]}
             />
           </div>
-          <Button type="primary" size="large" block onClick={() => setFilterDrawerOpen(false)}>Done</Button>
+          <Button type="primary" size="large" block onClick={() => setFilterDrawerOpen(false)}>{t("common.close")}</Button>
         </Drawer>
 
         {/* 🔍 Search Header */}
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-             <Title level={3} style={{ margin: 0 }}>Discover</Title>
+             <Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("search.title")}</Title>
              <div style={{ display: "flex", gap: "12px" }}>
                 <Button 
                   icon={<AppstoreOutlined />} 
@@ -509,7 +511,7 @@ function SearchPage() {
                      <Tag style={{ margin: 0, border: 'none', background: '#f1f5f9', color: '#64748b' }}>{book.publishedYear}</Tag>
                      <div style={{ fontSize: "13px", color: book.copies > 0 ? "#10b981" : "#ef4444", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
                         <div style={{ width: 6, height: 6, borderRadius: '50%', background: book.copies > 0 ? "#10b981" : "#ef4444" }}></div>
-                        {book.copies > 0 ? `${book.copies} Left` : "Out"}
+                        {book.copies > 0 ? `${book.copies} ${t("search.left")}` : t("search.out")}
                      </div>
                   </div>
                 </div>
@@ -529,7 +531,7 @@ function SearchPage() {
                          fontWeight: 600
                        }}
                      >
-                       Borrowed
+                       {t("search.borrowedBtn")}
                      </Button>
                   ) : (
                      <Button 
@@ -545,7 +547,7 @@ function SearchPage() {
                          boxShadow: "0 4px 12px rgba(37, 99, 235, 0.2)"
                        }}
                      >
-                       Borrow
+                       {t("search.borrowBtn")}
                      </Button>
                   )}
                 </div>
@@ -553,7 +555,7 @@ function SearchPage() {
             ))}
             
             {mobileDisplayBooks.length === 0 && (
-              <Empty description="No books found" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              <Empty description={t("search.noResults")} image={Empty.PRESENTED_IMAGE_SIMPLE} />
             )}
           </div>
         )}
@@ -569,7 +571,7 @@ function SearchPage() {
       {/* Controlled Success Modal to guarantee visibility */}
       <Modal
         open={!!successTitle}
-        title={`"${successTitle}" Borrowed Successfully`}
+        title={t("search.success")}
         onOk={() => setSuccessTitle("")}
         onCancel={() => setSuccessTitle("")}
         centered
@@ -577,12 +579,12 @@ function SearchPage() {
         getContainer={false}
         zIndex={10000}
       >
-        <div>Your borrow request has been completed. Enjoy reading!</div>
+        <div>{t("search.borrowSuccess")}</div>
       </Modal>
       {/* Controlled Limit Modal to guarantee visibility */}
       <Modal
         open={limitOpen}
-        title="Borrowing Limit Reached"
+        title={t("search.limitReached")}
         onOk={() => setLimitOpen(false)}
         onCancel={() => setLimitOpen(false)}
         centered
@@ -591,18 +593,18 @@ function SearchPage() {
         zIndex={10000}
       >
         <div>
-          You have reached the maximum number of borrowed books for the current period. Please return some books before borrowing new ones.
+          {t("search.limitReachedMsg")}
         </div>
       </Modal>
       <Card
         title={
           <div className="page-header">
-            <Title level={4} style={{ margin: 0 }}>Book Search</Title>
-            <Text type="secondary">Find titles and authors</Text>
+            <Title level={2} className="page-modern-title" style={{ margin: "0 0 8px 0" }}>{t("search.title")}</Title>
+            <Text type="secondary" style={{ display: "block", marginBottom: 16 }}>{t("search.placeholder")}</Text>
             <div className="stats-grid">
-              <Statistic title="Total" value={stats.total} />
-              <Statistic title="Categories" value={stats.catCount} />
-              <Statistic title="In Stock" value={stats.inStock} valueStyle={{ color: "#52c41a" }} />
+              <Statistic title={t("common.total")} value={stats.total} />
+              <Statistic title={t("search.category")} value={stats.catCount} />
+              <Statistic title={t("search.inStock")} value={stats.inStock} valueStyle={{ color: "#52c41a" }} />
             </div>
           </div>
         }
@@ -616,7 +618,7 @@ function SearchPage() {
               color: "#fff",
             }}
           >
-            Refresh
+            {t("common.refresh")}
           </Button>
         }
         style={{
@@ -637,7 +639,7 @@ function SearchPage() {
                 const arr = JSON.parse(raw);
                 if (!arr.includes(id)) arr.push(id);
                 localStorage.setItem('compare_ids', JSON.stringify(arr));
-                message.success('Added to Compare');
+                message.success(t("assistant.compareUpdated"));
               } catch {}
             }}
             categoriesList={categories.map(c => c.name)}
@@ -649,7 +651,7 @@ function SearchPage() {
           <div style={{ marginBottom: "1rem" }}>
             <Input
               prefix={<SearchOutlined />}
-              placeholder="Search books..."
+              placeholder={t("search.placeholder")}
               onPressEnter={(e) => handleSearch(e.target.value)}
               style={{ width: '100%' }}
             />
@@ -668,7 +670,7 @@ function SearchPage() {
               { 
                 label: (
                   <span>
-                    <AppstoreOutlined /> Card View
+                    <AppstoreOutlined /> {t("search.cardView")}
                   </span>
                 ), 
                 value: "grid" 
@@ -676,7 +678,7 @@ function SearchPage() {
               { 
                 label: (
                   <span>
-                    <UnorderedListOutlined /> List View
+                    <UnorderedListOutlined /> {t("search.listView")}
                   </span>
                 ), 
                 value: "list" 
@@ -688,15 +690,15 @@ function SearchPage() {
               value={sortBy}
               onChange={(v) => setSortBy(v)}
               options={[
-                { label: "Latest", value: "latest" },
-                { label: "Most Borrowed", value: "most_borrowed" },
-                { label: "Stock High", value: "stock_high" },
+                { label: t("search.latest"), value: "latest" },
+                { label: t("search.popular"), value: "most_borrowed" },
+                { label: t("search.inStock"), value: "stock_high" },
               ]}
             />
           </div>
           <div style={{ marginTop: 12 }}>
             <Button onClick={() => setShowAdvanced((s) => !s)}>
-              {showAdvanced ? "Hide Advanced Filters" : "Show Advanced Filters"}
+              {showAdvanced ? t("search.hideAdvanced") : t("search.showAdvanced")}
             </Button>
           </div>
         </div>
@@ -704,7 +706,7 @@ function SearchPage() {
         {/* 📂 Category Selector for Card View */}
         {viewMode === "grid" && categories.length > 0 && (
           <div style={{ marginBottom: "1rem", textAlign: "center" }}>
-            <div style={{ marginBottom: "8px", fontWeight: 500 }}>Select Category:</div>
+            <div style={{ marginBottom: "8px", fontWeight: 500 }}>{t("search.selectCategory")}:</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center" }}>
               <Button
                 key="all"
@@ -716,7 +718,7 @@ function SearchPage() {
                   color: !selectedCategory ? "white" : undefined
                 }}
               >
-                All Categories ({categories.reduce((sum, cat) => sum + cat.books.length, 0)})
+                {t("search.allCategories")} ({categories.reduce((sum, cat) => sum + cat.books.length, 0)})
               </Button>
               {categories.map((cat) => (
                 <Button
@@ -743,7 +745,7 @@ function SearchPage() {
               <Col span={12}>
                 <Select
                   allowClear
-                  placeholder="Filter by category"
+                  placeholder={t("search.filterByCategory")}
                   options={categories.map(c => ({ label: c.name, value: c.name }))}
                   style={{ width: "100%" }}
                   onChange={(val) => {
@@ -752,7 +754,7 @@ function SearchPage() {
                       return;
                     }
                     const grouped = books.reduce((acc, b) => {
-                      const cat = b.category || "Uncategorized";
+                      const cat = b.category || t("search.uncategorized");
                       if (!acc[cat]) acc[cat] = [];
                       acc[cat].push(b);
                       return acc;
@@ -765,7 +767,7 @@ function SearchPage() {
               <Col span={12}>
                 <Select
                   allowClear
-                  placeholder="Filter by year >="
+                  placeholder={t("search.filterByYear")}
                   options={[
                     { label: "2024", value: 2024 },
                     { label: "2023", value: 2023 },
@@ -776,7 +778,7 @@ function SearchPage() {
                   onChange={(val) => {
                     const filtered = books.filter(b => (b.publishedYear || 0) >= (val || 0));
                     const grouped = filtered.reduce((acc, b) => {
-                      const cat = b.category || "Uncategorized";
+                      const cat = b.category || t("search.uncategorized");
                       if (!acc[cat]) acc[cat] = [];
                       acc[cat].push(b);
                       return acc;
@@ -796,7 +798,7 @@ function SearchPage() {
             style={{ display: "block", margin: "2rem auto" }}
           />
         ) : categories.length === 0 ? (
-          <Empty description="No matching books" />
+          <Empty description={t("search.noResults")} />
         ) : (
           <>
             {viewMode === "grid" ? (
@@ -849,7 +851,7 @@ function SearchPage() {
                     key={cat.name}
                     header={
                       <span style={{ fontWeight: 600 }}>
-                        <FolderOpenOutlined /> {cat.name} (Total {cat.books.length})
+                        <FolderOpenOutlined /> {cat.name} ({t("common.total")} {cat.books.length})
                       </span>
                     }
                   >
@@ -865,7 +867,7 @@ function SearchPage() {
                               disabled={book.copies <= 0 || userBorrowedBooks.has(book._id) || (userBorrowedBooksCount[book._id] || 0) >= 2}
                               onClick={() => handleBorrow(book._id, book.title, book.copies)}
                             >
-                              {book.copies <= 0 ? 'Out of Stock' : (userBorrowedBooksCount[book._id] || 0) >= 2 ? 'Max 2 Copies' : userBorrowedBooks.has(book._id) ? 'Borrowed' : 'Borrow'}
+                              {book.copies <= 0 ? t("search.outOfStock") : (userBorrowedBooksCount[book._id] || 0) >= 2 ? t("search.maxCopies") : userBorrowedBooks.has(book._id) ? t("search.borrowedBtn") : t("search.borrowBtn")}
                             </Button>,
                           ]}
                         >
@@ -887,7 +889,7 @@ function SearchPage() {
                               >
                                 <span>
                                   <UserOutlined style={{ color: '#8c8c8c', marginRight: 4 }} />
-                                  {book.author || "Unknown Author"}
+                                  {book.author || t("common.unknown")}
                                 </span>
                                 {book.category && (
                                   <span>
@@ -908,7 +910,7 @@ function SearchPage() {
                                 )}
                                 <span>
                                   <BookOutlined style={{ color: '#8c8c8c', marginRight: 4 }} />
-                                  Available: {book.copies || 0} copies
+                                  {t("search.availableCopies").replace("{count}", book.copies || 0)}
                                 </span>
                               </div>
                             }

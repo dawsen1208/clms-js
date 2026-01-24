@@ -1,15 +1,20 @@
 // ✅ client/src/pages/HomePage.jsx
 import { useEffect, useState } from "react";
 import { Card, Typography, Spin, message, Statistic, Row, Col, Button, Grid } from "antd";
-import { SearchOutlined, BookOutlined, HistoryOutlined } from "@ant-design/icons";
+import { SearchOutlined, BookOutlined, HistoryOutlined, FireOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom"; // ✅ Added
 import PopularBanner from "../components/PopularBanner";
 import { getRecommendations } from "../api"; // ✅ unified API source
 import "./HomePage.css";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const { Title, Paragraph } = Typography;
-const { useBreakpoint } = Grid;
+// const { useBreakpoint } = Grid; // ❌ Moved inside
 
 function HomePage({ setCurrentPage }) {
+  const { t } = useLanguage();
+  const navigate = useNavigate(); // ✅ Added
+  const { useBreakpoint } = Grid; // ✅ Moved here
   const [recommended, setRecommended] = useState([]);
   const [loading, setLoading] = useState(false);
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
@@ -46,8 +51,8 @@ function HomePage({ setCurrentPage }) {
       <div className="home-page-mobile" style={{ padding: '16px', maxWidth: '100vw', overflowX: 'hidden' }}>
         {/* ✅ 1. Compact Welcome Banner */}
         <div style={{ marginBottom: '24px' }}>
-          <Title level={4} style={{ margin: 0, color: '#1e293b' }}>
-            👋 Welcome to CLMS
+          <Title level={2} className="page-modern-title" style={{ margin: "0 0 16px 0" }}>
+            👋 {t("common.welcome")}
           </Title>
         </div>
 
@@ -63,7 +68,7 @@ function HomePage({ setCurrentPage }) {
                 onClick={() => setCurrentPage('search')}
                 style={{ height: '48px', borderRadius: '12px', background: '#3b82f6', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}
               >
-                Search Books
+                {t("common.searchBooks")}
               </Button>
             </Col>
             <Col span={12}>
@@ -75,7 +80,7 @@ function HomePage({ setCurrentPage }) {
                 onClick={() => setCurrentPage('profile')}
                 style={{ height: '48px', borderRadius: '12px', borderColor: '#cbd5e1', color: '#475569' }}
               >
-                My Borrowings
+                {t("titles.myBorrowings")}
               </Button>
             </Col>
           </Row>
@@ -84,8 +89,8 @@ function HomePage({ setCurrentPage }) {
         {/* ✅ 3. Popular Borrowing List (Horizontal Scroll) */}
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <Title level={5} style={{ margin: 0, fontSize: '18px' }}>Popular Books</Title>
-            <Button type="link" size="small" onClick={() => setCurrentPage('search')} style={{ color: '#3b82f6' }}>View All</Button>
+            <Title level={5} style={{ margin: 0, fontSize: '18px' }}>{t("titles.popularToday")}</Title>
+            <Button type="link" size="small" onClick={() => setCurrentPage('search')} style={{ color: '#3b82f6' }}>{t("common.viewAll")}</Button>
           </div>
           
           {loading ? (
@@ -97,9 +102,9 @@ function HomePage({ setCurrentPage }) {
                    key={book._id}
                    bordered={false}
                    hoverable
-                   onClick={() => message.info(`Opening ${book.title}...`)}
+                   onClick={() => navigate(`/book/${book._id}`)}
                    style={{ 
-                     minWidth: '140px', 
+                     minWidth: '140px',  
                      maxWidth: '140px', 
                      flexShrink: 0,
                      borderRadius: '12px',
@@ -136,7 +141,7 @@ function HomePage({ setCurrentPage }) {
                    
                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '12px' }}>
                       <FireOutlined style={{ color: '#f59e0b' }} />
-                      <span>{book.borrowCount || Math.floor(Math.random() * 50) + 10} borrows</span>
+                      <span>{book.borrowCount || Math.floor(Math.random() * 50) + 10} {t("common.borrows")}</span>
                    </div>
                  </Card>
                ))}
@@ -147,14 +152,14 @@ function HomePage({ setCurrentPage }) {
         {/* ✅ 4. Recommended (Vertical List) - Keeping existing logic but simplified */}
         <div style={{ marginBottom: '20px' }}>
            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <Title level={5} style={{ margin: 0, fontSize: '18px' }}>For You</Title>
+              <Title level={5} style={{ margin: 0, fontSize: '18px' }}>{t("titles.recommended")}</Title>
            </div>
            
            {loading ? <Spin /> : (
              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                {recommended.slice(0, 5).map(book => (
                  <div key={book._id} 
-                      onClick={() => message.info(`Opening ${book.title}...`)}
+                      onClick={() => navigate(`/book/${book._id}`)}
                       style={{ 
                         display: 'flex', 
                         gap: '16px', 
@@ -174,7 +179,7 @@ function HomePage({ setCurrentPage }) {
                       <Typography.Text strong ellipsis style={{ fontSize: '16px', color: '#1e293b', display: 'block', marginBottom: '4px' }}>{book.title}</Typography.Text>
                       <Typography.Text ellipsis type="secondary" style={{ fontSize: '14px' }}>{book.author}</Typography.Text>
                       <div style={{ marginTop: '4px' }}>
-                        <span style={{ fontSize: '12px', color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: '10px' }}>{book.category || 'General'}</span>
+                        <span style={{ fontSize: '12px', color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: '10px' }}>{book.category || t("common.general")}</span>
                       </div>
                     </div>
                  </div>
@@ -199,15 +204,12 @@ function HomePage({ setCurrentPage }) {
 
       {/* ✅ Welcome card */}
       <Card className="welcome-card">
-        <Title level={3} className="home-title">
-          📚 Welcome to Community Library Management System
+        <Title level={2} className="page-modern-title" style={{ textAlign: "center", width: "100%" }}>
+          {t("common.welcomeFull")}
         </Title>
 
         <Paragraph className="home-paragraph">
-          This is an intelligent library system designed for community readers.
-          You can quickly navigate via the left menu to search, borrow, return,
-          and your profile modules. The system includes smart recommendations
-          and smart comparisons to make borrowing more convenient and efficient.
+          {t("common.welcomeDesc")}
         </Paragraph>
       </Card>
 
@@ -216,33 +218,33 @@ function HomePage({ setCurrentPage }) {
         <Row gutter={[24, 24]} justify="center">
           <Col xs={24} sm={12} md={6}>
             <div style={{ textAlign: "center", padding: "20px", background: "rgba(59, 130, 246, 0.1)", borderRadius: "12px" }}>
-              <Statistic title="Popular Books" value={metrics.rec} valueStyle={{ color: '#3b82f6', fontSize: '24px', fontWeight: 'bold' }} />
+              <Statistic title={t("titles.popularToday")} value={metrics.rec} valueStyle={{ color: '#3b82f6', fontSize: '24px', fontWeight: 'bold' }} />
             </div>
           </Col>
           <Col xs={24} sm={12} md={6}>
             <div style={{ textAlign: "center", padding: "20px", background: "rgba(16, 185, 129, 0.1)", borderRadius: "12px" }}>
-              <Statistic title="Fast Search" value={"⚡"} valueStyle={{ color: '#10b981', fontSize: '24px' }} />
+              <Statistic title={t("common.fastSearch")} value={"⚡"} valueStyle={{ color: '#10b981', fontSize: '24px' }} />
             </div>
           </Col>
           <Col xs={24} sm={12} md={6}>
             <div style={{ textAlign: "center", padding: "20px", background: "rgba(245, 158, 11, 0.1)", borderRadius: "12px" }}>
-              <Statistic title="Easy Borrow" value={"📚"} valueStyle={{ color: '#f59e0b', fontSize: '24px' }} />
+              <Statistic title={t("common.easyBorrow")} value={"📚"} valueStyle={{ color: '#f59e0b', fontSize: '24px' }} />
             </div>
           </Col>
           <Col xs={24} sm={12} md={6}>
             <div style={{ textAlign: "center", padding: "20px", background: "rgba(239, 68, 68, 0.1)", borderRadius: "12px" }}>
-              <Statistic title="Simple Return" value={"✅"} valueStyle={{ color: '#ef4444', fontSize: '24px' }} />
+              <Statistic title={t("common.simpleReturn")} value={"✅"} valueStyle={{ color: '#ef4444', fontSize: '24px' }} />
             </div>
           </Col>
         </Row>
         <div style={{ marginTop: 16 }}>
-        <Title level={4} className="system-overview-title">✨ System Overview</Title>
+        <Title level={4} className="system-overview-title">✨ {t("common.systemOverview")}</Title>
         <ul className="system-overview-list">
-          <li>📖 <b>Book Search:</b> Quickly find collection info and available copies.</li>
-          <li>📗 <b>Borrow Management:</b> One-click borrow and renew operations.</li>
-          <li>📘 <b>Return System:</b> Conveniently return books and update inventory.</li>
-          <li>🤖 <b>Smart Recommendations:</b> Personalized suggestions based on reading history.</li>
-          <li>👤 <b>Profile:</b> View borrow history and recommended books.</li>
+          <li>📖 <b>{t("common.bookSearch")}:</b> {t("common.bookSearchDesc")}</li>
+          <li>📗 <b>{t("common.borrowManage")}:</b> {t("common.borrowManageDesc")}</li>
+          <li>📘 <b>{t("common.returnSystem")}:</b> {t("common.returnSystemDesc")}</li>
+          <li>🤖 <b>{t("common.smartRec")}:</b> {t("common.smartRecDesc")}</li>
+          <li>👤 <b>{t("common.profile")}:</b> {t("common.profileDesc")}</li>
         </ul>
         </div>
       </Card>

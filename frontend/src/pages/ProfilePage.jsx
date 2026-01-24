@@ -5,7 +5,8 @@ import { UserOutlined, CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutl
 import dayjs from "dayjs";
 import "./ProfilePage.css";
 import { theme, themeUtils } from "../styles/theme";
-const { Title, Text } = Typography;
+import { Grid } from "antd";
+import { useLanguage } from "../contexts/LanguageContext";
 import {
   getProfile,
   updateProfile,
@@ -19,6 +20,9 @@ import ProfileInfo from "../components/Profile/ProfileInfo";
 import ProfileTabs from "../components/Profile/ProfileTabs";
 
 function ProfilePage() {
+  const { t } = useLanguage();
+  const { Title, Text } = Typography;
+  const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const [loading, setLoading] = useState(false);
@@ -73,7 +77,7 @@ function ProfilePage() {
       if (!u) throw new Error("Empty response");
 
       setEmail(u.email || "");
-      setName(u.name || "Unnamed user");
+      setName(u.name || t("profile.unnamedUser"));
 
       const fullAvatar = getCleanAvatarUrl(u.avatar);
       setAvatarUrl(fullAvatar ? `${fullAvatar}?t=${Date.now()}` : null);
@@ -297,41 +301,41 @@ function ProfilePage() {
      📋 借阅历史表
      ========================================================= */
   const historyColumns = [
-    { title: "Book Title", dataIndex: "title", key: "title" },
-    { title: "Borrow Date", dataIndex: "borrowDate", key: "borrowDate" },
-    { title: "Due Date", dataIndex: "dueDate", key: "dueDate" },
-    { title: "Renew Date", dataIndex: "renewDate", key: "renewDate" },
-    { title: "Renewed", dataIndex: "renewed", key: "renewed" },
-    { title: "Return Date", dataIndex: "returnDate", key: "returnDate" },
-    { title: "Returned", dataIndex: "returned", key: "returned" },
+    { title: t("admin.bookTitle"), dataIndex: "title", key: "title" },
+    { title: t("admin.borrowDate"), dataIndex: "borrowDate", key: "borrowDate" },
+    { title: t("borrow.dueDate"), dataIndex: "dueDate", key: "dueDate" },
+    { title: t("admin.renewDate"), dataIndex: "renewDate", key: "renewDate" },
+    { title: t("admin.renewed"), dataIndex: "renewed", key: "renewed" },
+    { title: t("admin.returnDate"), dataIndex: "returnDate", key: "returnDate" },
+    { title: t("admin.returned"), dataIndex: "returned", key: "returned" },
   ];
 
   /* =========================================================
      📨 我的申请记录表
      ========================================================= */
   const requestColumns = [
-    { title: "Book Title", dataIndex: "bookTitle", key: "bookTitle" },
+    { title: t("admin.bookTitle"), dataIndex: "bookTitle", key: "bookTitle" },
     {
-      title: "Type",
+      title: t("admin.type"),
       dataIndex: "type",
       key: "type",
-      render: (t) =>
-        t === "renew" ? <Tag color="blue">Renew</Tag> : <Tag color="purple">Return</Tag>,
+      render: (tVal) =>
+        tVal === "renew" ? <Tag color="blue">{t("admin.renew")}</Tag> : <Tag color="purple">{t("admin.return")}</Tag>,
     },
     {
-      title: "Status",
+      title: t("admin.status"),
       dataIndex: "status",
       key: "status",
       render: renderStatusTag,
     },
     {
-      title: "Request Time",
+      title: t("profile.requestTime"),
       dataIndex: "createdAt",
       key: "createdAt",
       render: (t) => (t ? dayjs(t).format("YYYY-MM-DD HH:mm") : "—"),
     },
     {
-      title: "Handled At",
+      title: t("admin.handledAt"),
       dataIndex: "handledAt",
       key: "handledAt",
       render: (t) =>
@@ -350,7 +354,7 @@ function ProfilePage() {
   if (isMobile) {
     return (
       <div className="profile-page-mobile page-container" style={{ minHeight: "100vh", background: "#f8fafc" }}>
-        <Title level={4} style={{ marginBottom: "16px" }}>My Profile</Title>
+        <Title level={4} style={{ marginBottom: "16px" }}>{t("profile.myProfile")}</Title>
         
         {/* Avatar Section */}
         <div style={{ background: "#fff", borderRadius: "12px", padding: "24px", textAlign: "center", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
@@ -360,28 +364,28 @@ function ProfilePage() {
             icon={<UserOutlined />} 
             style={{ marginBottom: "12px", border: "2px solid #fff", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }} 
           />
-          <div style={{ fontSize: "20px", fontWeight: "bold", color: "#1e293b" }}>{name || "Unnamed user"}</div>
-          <Tag color="blue" style={{ marginTop: "8px" }}>{userLS.role || "Reader"}</Tag>
+          <div style={{ fontSize: "20px", fontWeight: "bold", color: "#1e293b" }}>{name || t("profile.unnamedUser")}</div>
+          <Tag color="blue" style={{ marginTop: "8px" }}>{userLS.role === "admin" ? t("role.libraryAdmin") : t("role.libraryReader")}</Tag>
           
           <div style={{ marginTop: "20px" }}>
              <Upload showUploadList={false} customRequest={handleUpload} accept="image/*">
-               <Button icon={<UploadOutlined />} style={{ borderRadius: "20px", height: "40px", padding: "0 24px" }}>Change Avatar</Button>
+               <Button icon={<UploadOutlined />} style={{ borderRadius: "20px", height: "40px", padding: "0 24px" }}>{t("profile.uploadAvatar")}</Button>
              </Upload>
           </div>
         </div>
 
         {/* Email Section */}
         <div style={{ background: "#fff", borderRadius: "12px", padding: "16px", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-          <div style={{ fontSize: "14px", color: "#64748b", marginBottom: "8px" }}>Email Address</div>
+          <div style={{ fontSize: "14px", color: "#64748b", marginBottom: "8px" }}>{t("profile.emailAddress")}</div>
           {emailEditing ? (
               <div style={{ display: "flex", gap: "8px" }}>
                   <Input value={email} onChange={e => setEmail(e.target.value)} style={{ height: "40px", flex: 1 }} />
-                  <Button type="primary" onClick={handleSaveEmail} style={{ height: "40px" }}>Save</Button>
+                  <Button type="primary" onClick={handleSaveEmail} style={{ height: "40px" }}>{t("admin.save")}</Button>
               </div>
           ) : (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "16px", color: "#333" }}>{email || "Not set"}</span>
-                  <Button type="text" onClick={() => setEmailEditing(true)} style={{ color: "#3b82f6" }}>Edit</Button>
+                  <span style={{ fontSize: "16px", color: "#333" }}>{email || t("profile.notSet")}</span>
+                  <Button type="text" onClick={() => setEmailEditing(true)} style={{ color: "#3b82f6" }}>{t("admin.edit")}</Button>
               </div>
           )}
         </div>
@@ -389,11 +393,11 @@ function ProfilePage() {
         {/* Stats Grid */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
           <div style={{ background: "#3b82f6", borderRadius: "12px", padding: "16px", color: "#fff", boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)" }}>
-             <div style={{ fontSize: "12px", opacity: 0.9 }}>Borrowed</div>
+             <div style={{ fontSize: "12px", opacity: 0.9 }}>{t("profile.borrowed")}</div>
              <div style={{ fontSize: "24px", fontWeight: "bold" }}>{stats.totalHistory}</div>
           </div>
           <div style={{ background: "#8b5cf6", borderRadius: "12px", padding: "16px", color: "#fff", boxShadow: "0 2px 8px rgba(139, 92, 246, 0.3)" }}>
-             <div style={{ fontSize: "12px", opacity: 0.9 }}>Active Requests</div>
+             <div style={{ fontSize: "12px", opacity: 0.9 }}>{t("profile.activeRequests")}</div>
              <div style={{ fontSize: "24px", fontWeight: "bold" }}>{stats.pending}</div>
           </div>
         </div>
@@ -403,14 +407,14 @@ function ProfilePage() {
            <div onClick={() => setHistoryModalVisible(true)} style={{ padding: "16px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                  <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#3b82f6" }}>📚</div>
-                 <span style={{ fontSize: "16px", fontWeight: "500", color: "#333" }}>Borrow History</span>
+                 <span style={{ fontSize: "16px", fontWeight: "500", color: "#333" }}>{t("admin.history")}</span>
               </div>
               <span style={{ color: "#cbd5e1" }}>&gt;</span>
            </div>
            <div onClick={() => setRequestsModalVisible(true)} style={{ padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                  <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#f5f3ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#8b5cf6" }}>📨</div>
-                 <span style={{ fontSize: "16px", fontWeight: "500", color: "#333" }}>My Requests</span>
+                 <span style={{ fontSize: "16px", fontWeight: "500", color: "#333" }}>{t("profile.myRequests")}</span>
               </div>
               <span style={{ color: "#cbd5e1" }}>&gt;</span>
            </div>
@@ -418,7 +422,7 @@ function ProfilePage() {
 
         {/* Modals (Mobile Optimized) */}
         <Modal
-          title="Borrow History"
+          title={t("admin.history")}
           open={historyModalVisible}
           onCancel={() => setHistoryModalVisible(false)}
           footer={null}
@@ -432,13 +436,13 @@ function ProfilePage() {
                     <Card key={item.key} size="small" style={{ background: "#fff", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
                       <div style={{ fontWeight: "bold", marginBottom: "8px", fontSize: "16px", color: "#333" }}>{item.title}</div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px", color: "#666" }}>
-                        <div><span style={{ color: "#94a3b8" }}>Borrow:</span> <br/>{item.borrowDate}</div>
-                        <div><span style={{ color: "#94a3b8" }}>Due:</span> <br/>{item.dueDate}</div>
-                        <div><span style={{ color: "#94a3b8" }}>Return:</span> <br/>{item.returnDate}</div>
-                        <div><span style={{ color: "#94a3b8" }}>Status:</span> <br/>{item.returned === "✅ Yes" ? <Tag color="green">Returned</Tag> : <Tag color="orange">Borrowed</Tag>}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("admin.borrowDate")}:</span> <br/>{item.borrowDate}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("borrow.dueDate")}:</span> <br/>{item.dueDate}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("admin.returnDate")}:</span> <br/>{item.returnDate}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("admin.status")}:</span> <br/>{item.returned === "✅ Yes" ? <Tag color="green">{t("admin.returned")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag>}</div>
                       </div>
                     </Card>
-                  )) : <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>No borrow records</div>}
+                  )) : <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>{t("borrow.noBorrowRecords")}</div>}
              </div>
              {history.length > pageSize && (
                 <div style={{ textAlign: "center", marginTop: "20px", paddingBottom: "20px" }}>
@@ -454,7 +458,7 @@ function ProfilePage() {
         </Modal>
 
         <Modal
-          title="My Requests"
+          title={t("profile.myRequests")}
           open={requestsModalVisible}
           onCancel={() => setRequestsModalVisible(false)}
           footer={null}
@@ -467,17 +471,17 @@ function ProfilePage() {
                   {requests.length > 0 ? requests.map((req) => (
                     <Card key={req._id} size="small" style={{ background: "#fff", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", alignItems: "flex-start" }}>
-                          <div style={{ fontWeight: "bold", fontSize: "16px", color: "#333", flex: 1, marginRight: "8px" }} className="text-clamp-2">{req.bookTitle || "Unknown Book"}</div>
+                          <div style={{ fontWeight: "bold", fontSize: "16px", color: "#333", flex: 1, marginRight: "8px" }} className="text-clamp-2">{req.bookTitle || t("admin.unknownBook")}</div>
                           {renderStatusTag(req.status)}
                        </div>
                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", color: "#666" }}>
                           <div>
-                            {req.type === "renew" ? <Tag color="blue">Renew</Tag> : <Tag color="purple">Return</Tag>}
+                            {req.type === "renew" ? <Tag color="blue">{t("admin.renew")}</Tag> : <Tag color="purple">{t("admin.return")}</Tag>}
                           </div>
                           <div>{req.createdAt ? dayjs(req.createdAt).format("YYYY-MM-DD") : "-"}</div>
                        </div>
                     </Card>
-                  )) : <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>No request records</div>}
+                  )) : <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>{t("profile.noRequestRecords")}</div>}
              </div>
         </Modal>
       </div>
@@ -486,6 +490,7 @@ function ProfilePage() {
 
   return (
     <div className="profile-page" style={themeUtils.getPageContainerStyle()}>
+      <Title level={2} className="page-modern-title" style={{ marginBottom: "20px" }}>{t("titles.profile")}</Title>
       <Card
         style={{
           ...themeUtils.getGlassStyle(),
@@ -545,14 +550,14 @@ function ProfilePage() {
                   e.currentTarget.style.boxShadow = "0 4px 15px rgba(59, 130, 246, 0.3)";
                 }}
               >
-                📷 Change Avatar
+                📷 {t("profile.uploadAvatar")}
               </Button>
             </Upload>
           </div>
 
           {/* Email and Role Information */}
           <Descriptions bordered column={1} style={{ marginBottom: theme.spacing.xl, borderRadius: theme.borderRadius.lg, overflow: "hidden", textAlign: "left" }}>
-            <Descriptions.Item label={<span style={{ fontWeight: 600, color: "#374151" }}>📧 Email</span>}>
+            <Descriptions.Item label={<span style={{ fontWeight: 600, color: "#374151" }}>📧 {t("profile.emailAddress")}</span>}>
               {emailEditing ? (
                 <Space>
                   <Input
@@ -576,12 +581,12 @@ function ProfilePage() {
                       background: `linear-gradient(90deg, ${theme.colors.status.success}, #059669)`
                     }}
                   >
-                    💾 Save
+                    💾 {t("admin.save")}
                   </Button>
                 </Space>
               ) : (
                 <Space>
-                  <span style={{ color: theme.colors.neutral.darkGray, fontFamily: theme.typography.fontFamily.primary }}>{email || "No email set"}</span>
+                  <span style={{ color: theme.colors.neutral.darkGray, fontFamily: theme.typography.fontFamily.primary }}>{email || t("profile.notSet")}</span>
                   <Button 
                     size="small" 
                     onClick={() => setEmailEditing(true)}
@@ -589,12 +594,12 @@ function ProfilePage() {
                       ...themeUtils.getPrimaryButtonStyle()
                     }}
                   >
-                    ✏️ Edit
+                    ✏️ {t("admin.edit")}
                   </Button>
                 </Space>
               )}
             </Descriptions.Item>
-            <Descriptions.Item label={<span style={{ fontWeight: theme.typography.fontWeight.semibold, color: theme.colors.neutral.darkerGray, fontFamily: theme.typography.fontFamily.primary }}>👤 Role</span>}>
+            <Descriptions.Item label={<span style={{ fontWeight: theme.typography.fontWeight.semibold, color: theme.colors.neutral.darkerGray, fontFamily: theme.typography.fontFamily.primary }}>👤 {t("admin.role")}</span>}>
               <Tag color={theme.colors.primary.main} style={{ borderRadius: theme.borderRadius.md, fontWeight: theme.typography.fontWeight.medium }}>
                 {userLS.role || "Reader"}
               </Tag>
@@ -606,8 +611,8 @@ function ProfilePage() {
            🧑‍💼 用户画像部分 (MIDDLE)
            ========================================================= */}
         <div style={{ marginBottom: theme.spacing.xl }}>
-          <Title level={3} style={{ margin: "0 0 1rem 0", color: theme.colors.neutral.black, fontWeight: theme.typography.fontWeight.bold, fontFamily: theme.typography.fontFamily.primary }}>
-            📊 User Profile
+          <Title level={2} className="page-modern-title" style={{ margin: "0 0 1rem 0", fontFamily: theme.typography.fontFamily.primary }}>
+            {t("titles.profile")}
           </Title>
           <div style={{ 
             background: theme.colors.primary.gradient, 
@@ -624,15 +629,15 @@ function ProfilePage() {
                 </div>
               </div>
               <div>
-                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: theme.typography.fontSize.sm, fontFamily: theme.typography.fontFamily.primary }}>Total Books Borrowed</Text>
+                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: theme.typography.fontSize.sm, fontFamily: theme.typography.fontFamily.primary }}>{t("admin.totalBorrows")}</Text>
                 <div style={{ fontSize: theme.typography.fontSize.md, fontWeight: theme.typography.fontWeight.semibold }}>{stats.totalHistory}</div>
               </div>
               <div>
-                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: theme.typography.fontSize.sm, fontFamily: theme.typography.fontFamily.primary }}>Active Requests</Text>
+                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: theme.typography.fontSize.sm, fontFamily: theme.typography.fontFamily.primary }}>{t("profile.activeRequests")}</Text>
                 <div style={{ fontSize: theme.typography.fontSize.md, fontWeight: theme.typography.fontWeight.semibold }}>{stats.pending}</div>
               </div>
               <div>
-                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: theme.typography.fontSize.sm, fontFamily: theme.typography.fontFamily.primary }}>Return Rate</Text>
+                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: theme.typography.fontSize.sm, fontFamily: theme.typography.fontFamily.primary }}>{t("admin.onTimeRate")}</Text>
                 <div style={{ fontSize: theme.typography.fontSize.md, fontWeight: theme.typography.fontWeight.semibold }}>
                   {stats.totalHistory > 0 ? Math.round((stats.returned / stats.totalHistory) * 100) : 0}%
                 </div>
@@ -784,7 +789,7 @@ function ProfilePage() {
            📋 Modal for My Requests Details
            ========================================================= */}
         <Modal
-          title={<span style={{ fontWeight: theme.typography.fontWeight.semibold, color: theme.colors.neutral.darkerGray, fontFamily: theme.typography.fontFamily.primary }}>📨 My Requests Details</span>}
+          title={<span style={{ fontWeight: theme.typography.fontWeight.semibold, color: theme.colors.neutral.darkerGray, fontFamily: theme.typography.fontFamily.primary }}>📨 {t("profile.myRequests")}</span>}
           open={requestsModalVisible}
           onCancel={() => setRequestsModalVisible(false)}
           footer={null}
@@ -814,17 +819,17 @@ function ProfilePage() {
                   {requests.length > 0 ? requests.map((req) => (
                     <Card key={req._id} size="small" style={{ background: "#fff", borderRadius: "8px", border: "1px solid #f0f0f0" }}>
                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", alignItems: "flex-start" }}>
-                          <div style={{ fontWeight: "bold", fontSize: "15px", color: "#333", flex: 1, marginRight: "8px" }}>{req.bookTitle || "Unknown Book"}</div>
+                          <div style={{ fontWeight: "bold", fontSize: "15px", color: "#333", flex: 1, marginRight: "8px" }}>{req.bookTitle || t("admin.unknownBook")}</div>
                           {renderStatusTag(req.status)}
                        </div>
                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", color: "#666" }}>
                           <div>
-                            {req.type === "renew" ? <Tag color="blue">Renew</Tag> : <Tag color="purple">Return</Tag>}
+                            {req.type === "renew" ? <Tag color="blue">{t("admin.renew")}</Tag> : <Tag color="purple">{t("admin.return")}</Tag>}
                           </div>
                           <div>{req.createdAt ? dayjs(req.createdAt).format("YYYY-MM-DD") : "-"}</div>
                        </div>
                     </Card>
-                  )) : <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>No request records</div>}
+                  )) : <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>{t("profile.noRequestRecords")}</div>}
                 </div>
               ) : (
                 <Table
@@ -832,7 +837,7 @@ function ProfilePage() {
                   columns={requestColumns}
                   rowKey="_id"
                   pagination={{ pageSize: 5 }}
-                  locale={{ emptyText: "No request records" }}
+                  locale={{ emptyText: t("profile.noRequestRecords") }}
                   style={{ borderRadius: 8, overflow: "hidden" }}
                 />
               )}

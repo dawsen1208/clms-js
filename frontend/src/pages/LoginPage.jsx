@@ -6,11 +6,13 @@ import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { login as apiLogin } from "../api.js";
+import { useLanguage } from "../contexts/LanguageContext";
 
 /**
  * 🔐 登录页面（支持 sessionStorage 隔离 + 局域网兼容）
  */
 function LoginPage() {
+  const { t } = useLanguage();
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ function LoginPage() {
   /** ✅ 登录逻辑 */
   const handleLogin = async () => {
     if (!userId || !password) {
-      setLoginError("Please enter User ID and password");
+      setLoginError(t("login.errorEmpty"));
       return;
     }
 
@@ -40,7 +42,7 @@ function LoginPage() {
          ✨ 登录数据保存：根治 token 丢失 / jwt malformed
          ========================================================= */
       if (!token || typeof token !== "string") {
-        message.error("Login failed: server did not return a valid token");
+        message.error(t("login.errorToken"));
         return;
       }
 
@@ -57,7 +59,7 @@ function LoginPage() {
         console.log("ℹ️ 临时登录：关闭浏览器后自动登出");
       }
 
-      message.success(`Welcome back, ${user.name}!`);
+      message.success(t("login.welcomeBackUser", { name: user.name }));
 
       // ✅ 跳转到不同主页
       if (user.role === "Administrator") {
@@ -67,7 +69,7 @@ function LoginPage() {
       }
     } catch (err) {
       console.error("❌ Login failed:", err);
-      setLoginError("Login failed, please check your User ID or password");
+      setLoginError(t("login.errorInvalid"));
     } finally {
       setLoading(false);
     }
@@ -79,7 +81,7 @@ function LoginPage() {
     if (prefill) {
       setUserId(prefill);
       message.info({
-        content: `Your registration ID has been prefilled: ${prefill}`,
+        content: t("login.prefillInfo", { id: prefill }),
         duration: 3,
       });
       setTimeout(() => localStorage.removeItem("prefillUserId"), 1500);
@@ -103,12 +105,12 @@ function LoginPage() {
             fontSize: "24px",
             color: "white"
           }}>📚</div>
-          <div style={{ fontSize: "24px", fontWeight: 700, color: "#1e293b" }}>Welcome Back</div>
-          <div style={{ fontSize: "14px", color: "#64748b", marginTop: "4px" }}>Sign in to continue</div>
+          <div style={{ fontSize: "24px", fontWeight: 700, color: "#1e293b" }}>{t("login.welcomeBack")}</div>
+          <div style={{ fontSize: "14px", color: "#64748b", marginTop: "4px" }}>{t("login.signInToContinue")}</div>
         </div>
       } style={{ width: "420px", maxWidth: "90vw", borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", background: "#fff" }}>
         <p style={{ marginBottom: 24, color: "#64748b", textAlign: "center", fontSize: "14px" }}>
-          Please log in with your system-assigned <b>User ID</b> and password.
+          {t("login.instruction")}
         </p>
 
         {loginError && (
@@ -126,15 +128,15 @@ function LoginPage() {
 
         <Form layout="vertical" onFinish={handleLogin}>
           <Form.Item
-            label="User ID"
+            label={t("login.userIdLabel")}
             name="userId"
-            rules={[{ required: true, message: "Please enter User ID" }]}
+            rules={[{ required: true, message: t("login.enterUserId") }]}
           >
             <Input
               size="large"
               value={userId}
               onChange={(e) => setUserId(e.target.value)}
-              placeholder="e.g. r10001 / a10001"
+              placeholder={t("login.userIdPlaceholder")}
               style={{ 
                 borderRadius: 12,
                 border: "1px solid #e2e8f0",
@@ -145,15 +147,15 @@ function LoginPage() {
           </Form.Item>
 
           <Form.Item
-            label="Password"
+            label={t("login.passwordLabel")}
             name="password"
-            rules={[{ required: true, message: "Please enter password" }]}
+            rules={[{ required: true, message: t("login.enterPassword") }]}
           >
             <Input.Password
               size="large"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
+              placeholder={t("login.passwordPlaceholder")}
               style={{ 
                 borderRadius: 12,
                 border: "1px solid #e2e8f0",
@@ -170,7 +172,7 @@ function LoginPage() {
               onChange={(e) => setRemember(e.target.checked)}
               style={{ float: "left" }}
             >
-              Remember me
+              {t("login.rememberMe")}
             </Checkbox>
           </Form.Item>
 
@@ -192,7 +194,7 @@ function LoginPage() {
                 fontWeight: "bold",
               }}
             >
-              🔐 Login
+              🔐 {t("login.loginBtn")}
             </Button>
           </Form.Item>
 
@@ -254,7 +256,7 @@ function LoginPage() {
               />
               <div className="flip-hint-text">
                 <ScanOutlined style={{ marginRight: 6 }} />
-                Click to scan Mobile Code
+                {t("login.scanMobile")}
               </div>
             </div>
             
@@ -271,7 +273,7 @@ function LoginPage() {
               </div>
               <div className="flip-hint-text" style={{ color: "#475569", marginTop: "20px" }}>
                 <QrcodeOutlined style={{ marginRight: 6 }} />
-                Scan to open on mobile
+                {t("login.scanToOpen")}
               </div>
             </div>
           </div>

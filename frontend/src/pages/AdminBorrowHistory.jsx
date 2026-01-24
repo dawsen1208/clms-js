@@ -17,6 +17,7 @@ import {
 } from "antd";
 import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 import { getBorrowHistoryAllLibrary } from "../api";
+import { useLanguage } from "../contexts/LanguageContext";
 import dayjs from "dayjs";
 import "./AdminBorrowHistory.css";
 
@@ -24,6 +25,7 @@ const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
 
 function AdminBorrowHistory() {
+  const { t } = useLanguage();
   const [records, setRecords] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -45,7 +47,7 @@ function AdminBorrowHistory() {
 
   /** ✅ Fetch all borrow records */
   const fetchRecords = async () => {
-    if (!token) return message.warning("Please log in first!");
+    if (!token) return message.warning(t("common.loginFirst"));
     try {
       setLoading(true);
       const res = await getBorrowHistoryAllLibrary(token);
@@ -54,7 +56,7 @@ function AdminBorrowHistory() {
       setFiltered(list);
     } catch (err) {
       console.error("❌ Failed to fetch borrow records:", err);
-      message.error("Failed to load borrow records");
+      message.error(t("common.failedToLoad"));
     } finally {
       setLoading(false);
     }
@@ -111,40 +113,40 @@ function AdminBorrowHistory() {
 
   /** ✅ Table columns */
   const columns = [
-    { title: "Username", dataIndex: "userName", key: "userName" },
-    { title: "User ID", dataIndex: "userId", key: "userId" },
-    { title: "Book Title", dataIndex: "bookTitle", key: "bookTitle" },
+    { title: t("admin.username"), dataIndex: "userName", key: "userName" },
+    { title: t("admin.userId"), dataIndex: "userId", key: "userId" },
+    { title: t("admin.bookTitle"), dataIndex: "bookTitle", key: "bookTitle" },
     {
-      title: "Borrow Date",
+      title: t("admin.borrowDate"),
       dataIndex: "borrowDate",
       key: "borrowDate",
       render: (v) => (v ? dayjs(v).format("YYYY-MM-DD") : "—"),
     },
     {
-      title: "Renew Date",
+      title: t("admin.renewDate"),
       dataIndex: "renewDate",
       key: "renewDate",
       render: (v) => (v ? dayjs(v).format("YYYY-MM-DD") : "—"),
     },
     {
-      title: "Renewed",
+      title: t("admin.renewed"),
       dataIndex: "renewed",
       key: "renewed",
       render: (v) =>
-        v ? <Tag color="blue">Yes</Tag> : <Tag color="default">No</Tag>,
+        v ? <Tag color="blue">{t("admin.yes")}</Tag> : <Tag color="default">{t("admin.no")}</Tag>,
     },
     {
-      title: "Return Date",
+      title: t("admin.returnDate"),
       dataIndex: "returnDate",
       key: "returnDate",
       render: (v) => (v ? dayjs(v).format("YYYY-MM-DD") : "—"),
     },
     {
-      title: "Returned",
+      title: t("admin.returned"),
       dataIndex: "returned",
       key: "returned",
       render: (v) =>
-        v ? <Tag color="green">Returned</Tag> : <Tag color="red">Not returned</Tag>,
+        v ? <Tag color="green">{t("admin.returned")}</Tag> : <Tag color="red">{t("admin.notReturned")}</Tag>,
     },
   ];
 
@@ -153,19 +155,19 @@ function AdminBorrowHistory() {
       <Card
         title={
           <div className="page-header">
-            <Title level={4} style={{ margin: 0 }}>Borrow Records</Title>
-            <Text type="secondary">Overview and filters</Text>
+            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("admin.history")}</Title>
+            <Text type="secondary">{t("admin.historyOverview")}</Text>
             <div className="stats-grid">
-              <Statistic title="Total" value={stats.total} />
-              <Statistic title="Renewed" value={stats.renewedYes} />
-              <Statistic title="Returned" value={stats.returnedYes} valueStyle={{ color: "#52c41a" }} />
-              <Statistic title="Not Returned" value={stats.notReturned} valueStyle={{ color: "#ff4d4f" }} />
+              <Statistic title={t("admin.total")} value={stats.total} />
+              <Statistic title={t("admin.renewed")} value={stats.renewedYes} />
+              <Statistic title={t("admin.returned")} value={stats.returnedYes} valueStyle={{ color: "#52c41a" }} />
+              <Statistic title={t("admin.notReturned")} value={stats.notReturned} valueStyle={{ color: "#ff4d4f" }} />
             </div>
           </div>
         }
         extra={
           <Button icon={<ReloadOutlined />} onClick={fetchRecords}>
-            Refresh
+            {t("admin.refresh")}
           </Button>
         }
         style={{
@@ -180,7 +182,7 @@ function AdminBorrowHistory() {
         >
           <Space wrap>
             <Input
-              placeholder="Search Username / User ID"
+              placeholder={t("admin.searchUserOrId")}
               prefix={<SearchOutlined />}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
@@ -189,30 +191,30 @@ function AdminBorrowHistory() {
             <RangePicker
               value={dateRange}
               onChange={setDateRange}
-              placeholder={["Start date", "End date"]}
+              placeholder={[t("admin.startDate"), t("admin.endDate")]}
             />
             <Segmented
               value={renewFilter === null ? "all" : renewFilter ? "yes" : "no"}
               onChange={(v) => setRenewFilter(v === "all" ? null : v === "yes")}
               options={[
-                { label: "Renewed: All", value: "all" },
-                { label: "Yes", value: "yes" },
-                { label: "No", value: "no" },
+                { label: t("admin.renewedAll"), value: "all" },
+                { label: t("admin.yes"), value: "yes" },
+                { label: t("admin.no"), value: "no" },
               ]}
             />
             <Segmented
               value={returnFilter === null ? "all" : returnFilter ? "yes" : "no"}
               onChange={(v) => setReturnFilter(v === "all" ? null : v === "yes")}
               options={[
-                { label: "Returned: All", value: "all" },
-                { label: "Yes", value: "yes" },
-                { label: "No", value: "no" },
+                { label: t("admin.returnedAll"), value: "all" },
+                { label: t("admin.yes"), value: "yes" },
+                { label: t("admin.no"), value: "no" },
               ]}
             />
             <Button type="primary" onClick={handleSearch}>
-              Search
+              {t("common.search")}
             </Button>
-            <Button onClick={handleReset}>Reset</Button>
+            <Button onClick={handleReset}>{t("admin.reset")}</Button>
           </Space>
         </Space>
 
@@ -221,8 +223,8 @@ function AdminBorrowHistory() {
           dataSource={filtered}
           loading={loading}
           rowKey="_id"
-          pagination={{ pageSize: 6, showTotal: (t) => `Total ${t} records` }}
-          locale={{ emptyText: <Empty description="No matching records" /> }}
+          pagination={{ pageSize: 6, showTotal: (total) => `${t("admin.totalRecords")} ${total} ${t("admin.recordsSuffix")}` }}
+          locale={{ emptyText: <Empty description={t("admin.noRecords")} /> }}
           size="middle"
           scroll={{ x: 800 }}
         />

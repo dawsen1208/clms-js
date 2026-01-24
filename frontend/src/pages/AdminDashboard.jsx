@@ -4,10 +4,12 @@ import { Card, Statistic, Row, Col, Typography, Divider, Button, Tooltip, Tag, S
 import { BookOutlined, UserOutlined, ClockCircleOutlined, ReloadOutlined, AlertOutlined, TeamOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import "./AdminDashboard.css";
 import { getBooksLibrary, getAllRequestsLibrary, getUserAnalytics, getBorrowedBooksLibrary, getBorrowHistoryLibrary, getBorrowHistoryAllLibrary, getBooks, getLibraryStats } from "../api.js";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const { Title, Text } = Typography;
 
 const AdminDashboard = () => {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState({
     books: 0,
@@ -82,10 +84,10 @@ const AdminDashboard = () => {
         onTimeRate: stats?.onTimeRate ?? (historyOnTimeRate || onTimeRateAvg),
       });
 
-      setAnnouncements(buildSystemAnnouncements());
+      setAnnouncements(buildSystemAnnouncements(t));
 
       // Build charts data
-      const catAgg = aggregateCategories(books);
+      const catAgg = aggregateCategories(books, t);
       setChartData({
         trend30d: buildBorrowTrend30d(history),
         categoryPie: catAgg.items,
@@ -111,11 +113,11 @@ const AdminDashboard = () => {
         title={
           <div className="dash-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <Title level={3} style={{ margin: 0, color: "#1e293b", fontWeight: 700 }}>
-                📊 Admin Dashboard
+              <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
+                {t("admin.dashboard")}
               </Title>
               <Text type="secondary" style={{ fontSize: "14px", color: "#64748b" }}>
-                Overview and quick actions
+                {t("admin.overview")}
               </Text>
             </div>
           </div>
@@ -139,7 +141,7 @@ const AdminDashboard = () => {
               e.currentTarget.style.transform = "translateY(0)";
               e.currentTarget.style.boxShadow = "0 4px 15px rgba(59, 130, 246, 0.3)";
             }}
-          onClick={refresh}>Refresh</Button>
+          onClick={refresh}>{t("admin.refresh")}</Button>
         }
         className="dash-card"
         style={{
@@ -160,7 +162,7 @@ const AdminDashboard = () => {
               color: "white"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>Total Books</span>} 
+                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBooks")}</span>} 
                 value={metrics.books}
                 prefix={<BookOutlined style={{ color: "white" }} />} 
                 valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
@@ -176,7 +178,7 @@ const AdminDashboard = () => {
               color: "white"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>Active Readers</span>} 
+                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeReaders")}</span>} 
                 value={metrics.activeReaders} 
                 prefix={<TeamOutlined style={{ color: "white" }} />} 
                 valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
@@ -192,7 +194,7 @@ const AdminDashboard = () => {
               color: "white"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>Total Borrowed</span>} 
+                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBorrowed")}</span>} 
                 value={metrics.totalBorrowed} 
                 prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
                 valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
@@ -208,7 +210,7 @@ const AdminDashboard = () => {
               color: "white"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>Overdue Books</span>} 
+                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks")}</span>} 
                 value={metrics.overdueBooks} 
                 prefix={<AlertOutlined style={{ color: "white" }} />} 
                 valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
@@ -224,7 +226,7 @@ const AdminDashboard = () => {
               color: "white"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>Pending Requests</span>} 
+                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.pendingRequests")}</span>} 
                 value={metrics.pendingRequests} 
                 prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
                 valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
@@ -240,7 +242,7 @@ const AdminDashboard = () => {
               color: "white"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>On-time Return Rate</span>} 
+                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.onTimeRate")}</span>} 
                 value={metrics.onTimeRate} 
                 suffix="%"
                 prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
@@ -254,7 +256,7 @@ const AdminDashboard = () => {
 
         <Row gutter={[16, 16]}>
           <Col xs={24} md={12}>
-            <Card title="Borrow Trend (30d)" hoverable className="section-card" style={{
+            <Card title={t("admin.borrowTrend")} hoverable className="section-card" style={{
               borderRadius: 16,
               boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
               background: "rgba(255, 255, 255, 0.9)",
@@ -266,7 +268,7 @@ const AdminDashboard = () => {
             </Card>
           </Col>
           <Col xs={24} md={6}>
-            <Card title="Category Ratio" hoverable className="section-card" style={{
+            <Card title={t("admin.categoryRatio")} hoverable className="section-card" style={{
               borderRadius: 16,
               boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
               background: "rgba(255, 255, 255, 0.9)",
@@ -278,7 +280,7 @@ const AdminDashboard = () => {
             </Card>
           </Col>
           <Col xs={24} md={6}>
-            <Card title="User Growth" hoverable className="section-card" style={{
+            <Card title={t("admin.userGrowth")} hoverable className="section-card" style={{
               borderRadius: 16,
               boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
               background: "rgba(255, 255, 255, 0.9)",
@@ -293,7 +295,7 @@ const AdminDashboard = () => {
 
         <Row gutter={[16, 16]}>
           <Col xs={24} md={24}>
-            <Card title="System Announcements" hoverable className="section-card" style={{
+            <Card title={t("admin.systemAnnouncements")} hoverable className="section-card" style={{
               borderRadius: 16,
               boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
               background: "rgba(255, 255, 255, 0.9)",
@@ -311,7 +313,7 @@ const AdminDashboard = () => {
         </Row>
       </Card>
       <Modal
-        title="Category Details"
+        title={t("admin.categoryDetails")}
         open={detailsOpen}
         onCancel={() => setDetailsOpen(false)}
         footer={null}
@@ -322,15 +324,15 @@ const AdminDashboard = () => {
           dataSource={categoryDetails}
           pagination={{ pageSize: 8 }}
           columns={[
-            { title: 'Category', dataIndex: 'category' },
-            { title: 'Titles', dataIndex: 'titles' },
-            { title: 'Copies', dataIndex: 'copies' },
-            { title: 'Percentage', dataIndex: 'percentage', render: (p) => `${p}%` },
+            { title: t("admin.category"), dataIndex: 'category' },
+            { title: t("admin.titles"), dataIndex: 'titles' },
+            { title: t("admin.copies"), dataIndex: 'copies' },
+            { title: t("admin.percentage"), dataIndex: 'percentage', render: (p) => `${p}%` },
           ]}
         />
       </Modal>
       <Modal
-        title="Borrow Trend (30 days)"
+        title={t("admin.borrowTrendTitle")}
         open={trendOpen}
         onCancel={() => setTrendOpen(false)}
         footer={null}
@@ -341,13 +343,13 @@ const AdminDashboard = () => {
           dataSource={trendDetails}
           pagination={{ pageSize: 15 }}
           columns={[
-            { title: 'Date', dataIndex: 'date' },
-            { title: 'Borrows', dataIndex: 'count' },
+            { title: t("admin.date"), dataIndex: 'date' },
+            { title: t("admin.borrows"), dataIndex: 'count' },
           ]}
         />
       </Modal>
       <Modal
-        title="User Growth (10 weeks)"
+        title={t("admin.userGrowthTitle")}
         open={growthOpen}
         onCancel={() => setGrowthOpen(false)}
         footer={null}
@@ -358,14 +360,14 @@ const AdminDashboard = () => {
           dataSource={growthDetails}
           pagination={{ pageSize: 10 }}
           columns={[
-            { title: 'Week', dataIndex: 'week' },
-            { title: 'Unique Borrowers', dataIndex: 'users' },
-            { title: 'New Borrowers vs Prev Week', dataIndex: 'newUsers' },
+            { title: t("admin.week"), dataIndex: 'week' },
+            { title: t("admin.uniqueBorrowers"), dataIndex: 'users' },
+            { title: t("admin.newBorrowers"), dataIndex: 'newUsers' },
           ]}
         />
       </Modal>
       <Modal
-        title="System Announcements"
+        title={t("admin.systemAnnouncements")}
         open={annOpen}
         onCancel={() => setAnnOpen(false)}
         footer={null}
@@ -387,7 +389,7 @@ const AdminDashboard = () => {
         </Row>
       </Modal>
       <Modal
-        title={selectedAnn?.title || 'Announcement'}
+        title={selectedAnn?.title || t("admin.announcement")}
         open={annDetailOpen}
         onCancel={() => setAnnDetailOpen(false)}
         footer={null}
@@ -484,44 +486,44 @@ function buildGrowthDetails(history = []) {
   return arr.map(({ week, users, newUsers }) => ({ week, users, newUsers }));
 }
 
-function buildSystemAnnouncements() {
+function buildSystemAnnouncements(t) {
   const fmt = (d) => new Date(d).toISOString().slice(0, 19).replace('T', ' ');
   const now = Date.now();
   const ann = [
     {
       id: 'rel-1',
-      tag: 'Release',
+      tag: t('admin.tag_release'),
       color: 'blue',
-      title: 'v1.3.0 Admin Dashboard Upgrade',
-      summary: 'KPI cards, real data charts, and interactive details added',
-      content: 'What\'s new:\n• KPI Cards: Total Books, Total Borrowed, Pending Requests, Overdue, Active Readers, On-time Return Rate.\n• Charts: Borrow Trend (30d), Category Ratio, User Growth.\n• Details: Click any card to view drill-down tables.\n• Category Ratio: shows real title and copy counts by category.\nNotes: This update improves data visibility and admin efficiency.',
+      title: t('admin.ann_v130_title'),
+      summary: t('admin.ann_v130_summary'),
+      content: t('admin.ann_v130_content'),
       date: fmt(now - 3600 * 1000),
     },
     {
       id: 'feat-1',
-      tag: 'Feature',
+      tag: t('admin.tag_feature'),
       color: 'green',
-      title: 'Reader UI Unification',
-      summary: 'Unified theme, button styles, and sidebar across login and register pages',
-      content: 'UI changes:\n• Consistent blue theme and typography.\n• Unified card sizes and layout across Login / Register pages.\n• Mobile improvements for sidebar and content containers.',
+      title: t('admin.ann_feat1_title'),
+      summary: t('admin.ann_feat1_summary'),
+      content: t('admin.ann_feat1_content'),
       date: fmt(now - 24 * 3600 * 1000),
     },
     {
       id: 'maint-1',
-      tag: 'Maintenance',
+      tag: t('admin.tag_maintenance'),
       color: 'gold',
-      title: 'Backend API compatibility update',
-      summary: 'Fixed analytics route and added /api/library/stats',
-      content: 'Changes:\n• Analytics path corrected to /api/users/manage.\n• New stats endpoint /api/library/stats for KPI aggregation.\n• Improved fallbacks to ensure charts render from history data when stats unavailable.',
+      title: t('admin.ann_maint1_title'),
+      summary: t('admin.ann_maint1_summary'),
+      content: t('admin.ann_maint1_content'),
       date: fmt(now - 48 * 3600 * 1000),
     },
     {
       id: 'notice-1',
-      tag: 'Notice',
+      tag: t('admin.tag_notice'),
       color: 'purple',
-      title: 'Upcoming: Borrow/Return one-step actions',
-      summary: 'Inline renew/return actions in cards with non-intrusive reminders',
-      content: 'Plan:\n• One-step Borrow/Return/Renew on book cards.\n• Non-intrusive due reminders and quick renew buttons (+7/+14).\n• Smart Assistant interactions with drag-to-compare.\nETA: next minor release.',
+      title: t('admin.ann_notice1_title'),
+      summary: t('admin.ann_notice1_summary'),
+      content: t('admin.ann_notice1_content'),
       date: fmt(now - 72 * 3600 * 1000),
     },
   ];
@@ -542,10 +544,10 @@ function buildBorrowTrend30d(history = []) {
   return arr;
 }
 
-function aggregateCategories(books = []) {
+function aggregateCategories(books = [], t) {
   const map = new Map();
   books.forEach((b) => {
-    const c = b.category || 'Unknown';
+    const c = b.category || t('admin.category_unknown');
     const prev = map.get(c) || { titles: 0, copies: 0 };
     map.set(c, { titles: prev.titles + 1, copies: prev.copies + (Number(b.copies || 0)) });
   });

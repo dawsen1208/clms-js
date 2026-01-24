@@ -1,0 +1,20 @@
+.page-modern-title {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent; /* Fallback */
+  font-weight: 800 !important;
+  font-size: 28px !important;
+  letter-spacing: -0.5px;
+  margin-bottom: 24px !important;
+  display: inline-block;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .page-modern-title {
+    font-size: 24px !important;
+    margin-bottom: 16px !important;
+  }
+}

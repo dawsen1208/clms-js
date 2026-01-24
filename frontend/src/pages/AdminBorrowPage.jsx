@@ -32,18 +32,20 @@ import {
   getAllRequestsLibrary as getAllRequests,
   approveRequestLibrary as approveRequest,
 } from "../api.js";
+import { useLanguage } from "../context/LanguageContext";
 
 const { Option } = Select;
 const { Title, Text } = Typography;
 
 const STATUS_INFO = {
-  approved: { color: "green", icon: <CheckCircleOutlined />, text: "Approved" },
-  rejected: { color: "red", icon: <CloseCircleOutlined />, text: "Rejected" },
-  invalid: { color: "default", icon: <ExclamationCircleOutlined />, text: "Invalid" },
-  pending: { color: "gold", icon: <ClockCircleOutlined />, text: "Pending" },
+  approved: { color: "green", icon: <CheckCircleOutlined /> },
+  rejected: { color: "red", icon: <CloseCircleOutlined /> },
+  invalid: { color: "default", icon: <ExclamationCircleOutlined /> },
+  pending: { color: "gold", icon: <ClockCircleOutlined /> },
 };
 
 function AdminBorrowPage() {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState([]);
   const [filtered, setFiltered] = useState([]);
@@ -139,31 +141,31 @@ function AdminBorrowPage() {
 
     modal.confirm({
       centered: true,
-      title: `Confirm approving this ${record.type === "renew" ? "renew" : "return"} request?`,
+      title: `${t("admin.confirmApproveTitle")} ${record.type === "renew" ? t("admin.renew") : t("admin.return")} ${t("admin.request")}`,
       icon: <ExclamationCircleOutlined />,
       content: (
         <div>
-          User: <b>{record.userName}</b>
+          {t("admin.userLabel")}: <b>{record.userName}</b>
           <br />
-          Book: <b>{record.bookTitle}</b>
+          {t("admin.bookLabel")}: <b>{record.bookTitle}</b>
           <br />
-          Requested At: {dayjs(record.createdAt).format("YYYY-MM-DD HH:mm")}
+          {t("admin.requestedAt")}: {dayjs(record.createdAt).format("YYYY-MM-DD HH:mm")}
         </div>
       ),
-      okText: "Approve",
-      cancelText: "Cancel",
+      okText: t("admin.approve"),
+      cancelText: t("admin.cancel"),
       onOk: async () => {
         console.log("🚀 onOk triggered, sending approve request...");
         try {
           const res = await approveRequest(record._id, true, null, token);
-          message.success(res.data?.message || "Approved ✅");
+          message.success(res.data?.message || t("admin.approvedSuccess"));
           beep();
 
           // ✅ Refresh immediately after approval
           await fetchRequests();
         } catch (err) {
           console.error("❌ Approval error:", err);
-          message.error(err?.response?.data?.message || "Approval failed");
+          message.error(err?.response?.data?.message || t("admin.approvalFailed"));
         }
       },
     });
@@ -176,27 +178,27 @@ function AdminBorrowPage() {
     let reason = "";
     modal.confirm({
       centered: true,
-      title: "Reject Request",
+      title: t("admin.rejectTitle"),
       icon: <CloseCircleOutlined style={{ color: "red" }} />,
       content: (
         <Input.TextArea
-          placeholder="Enter rejection reason (optional)"
+          placeholder={t("admin.rejectReasonPlaceholder")}
           onChange={(e) => (reason = e.target.value)}
           rows={3}
         />
       ),
-      okText: "Confirm Reject",
-      cancelText: "Cancel",
+      okText: t("admin.reject"),
+      cancelText: t("admin.cancel"),
       onOk: async () => {
         try {
           const res = await approveRequest(record._id, false, reason, token);
-          message.warning(res.data?.message || "Request rejected");
+          message.success(res.data?.message || t("admin.requestRejected"));
           beep();
           // ✅ Refresh immediately after rejection
           await fetchRequests();
         } catch (err) {
           console.error("❌ Reject failed:", err);
-          message.error(err?.response?.data?.message || "Reject failed");
+          message.error(err?.response?.data?.message || t("admin.rejectFailed"));
         }
       },
     });
@@ -219,7 +221,7 @@ function AdminBorrowPage() {
       if (r.type === "renew" && stock != null && stock > approvalPrefs.autoApproveWhenStockGt) {
         try { await approveRequest(r._id, true, null, token); beep(); } catch {}
       } else if (overdue != null && overdue > approvalPrefs.autoRejectWhenOverdueGt) {
-        try { await approveRequest(r._id, false, "Auto-reject: overdue times exceeded", token); beep(); } catch {}
+        try { await approveRequest(r._id, false, t("admin.autoRejectOverdue"), token); beep(); } catch {}
       }
     }
     await fetchRequests();
@@ -232,7 +234,7 @@ function AdminBorrowPage() {
         if (approvalPrefs.defaultBulkAction === "approve") {
           await approveRequest(r._id, true, null, token);
         } else {
-          await approveRequest(r._id, false, "Bulk reject", token);
+          await approveRequest(r._id, false, t("admin.bulkReject"), token);
         }
         beep();
       } catch {}
@@ -245,9 +247,16 @@ function AdminBorrowPage() {
      ========================================================= */
   const renderStatusTag = (status) => {
     const info = STATUS_INFO[status] || STATUS_INFO.pending;
+    let label = "";
+    switch (status) {
+      case "approved": label = t("admin.approved"); break;
+      case "rejected": label = t("admin.rejected"); break;
+      case "invalid": label = t("admin.invalid"); break;
+      case "pending": default: label = t("admin.pending"); break;
+    }
     return (
       <Tag color={info.color} icon={info.icon} style={{ borderRadius: 8, fontWeight: 500, padding: "4px 8px", fontSize: "12px" }}>
-        {info.text}
+        {label}
       </Tag>
     );
   };
@@ -257,7 +266,7 @@ function AdminBorrowPage() {
      ========================================================= */
   const columns = [
     {
-      title: "Username",
+      title: t("admin.username"),
       dataIndex: "userName",
       key: "userName",
       render: (text) => (
@@ -270,7 +279,7 @@ function AdminBorrowPage() {
       ellipsis: true,
     },
     {
-      title: "Book Title",
+      title: t("admin.bookTitle"),
       dataIndex: "bookTitle",
       key: "bookTitle",
       render: (text) => (
@@ -283,43 +292,43 @@ function AdminBorrowPage() {
       ellipsis: true,
     },
     {
-      title: "Type",
+      title: t("admin.type"),
       dataIndex: "type",
       key: "type",
       render: (text) =>
         text === "renew" ? (
-          <Tag color="blue">Renew</Tag>
+          <Tag color="blue">{t("admin.renew")}</Tag>
         ) : (
-          <Tag color="purple">Return</Tag>
+          <Tag color="purple">{t("admin.return")}</Tag>
         ),
       filters: [
-        { text: "Renew", value: "renew" },
-        { text: "Return", value: "return" },
+        { text: t("admin.renew"), value: "renew" },
+        { text: t("admin.return"), value: "return" },
       ],
       onFilter: (value, record) => record.type === value,
     },
     {
-      title: "Status",
+      title: t("admin.status"),
       dataIndex: "status",
       key: "status",
       render: renderStatusTag,
       filters: [
-        { text: "Pending", value: "pending" },
-        { text: "Approved", value: "approved" },
-        { text: "Rejected", value: "rejected" },
-        { text: "Invalid", value: "invalid" },
+        { text: t("admin.pending"), value: "pending" },
+        { text: t("admin.approved"), value: "approved" },
+        { text: t("admin.rejected"), value: "rejected" },
+        { text: t("admin.invalid"), value: "invalid" },
       ],
       onFilter: (value, record) => record.status === value,
     },
     {
-      title: "Requested At",
+      title: t("admin.requestedAt"),
       dataIndex: "createdAt",
       key: "createdAt",
       render: (t) => (t ? dayjs(t).format("YYYY-MM-DD HH:mm") : "—"),
       sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
     },
     {
-      title: "Handled At",
+      title: t("admin.handledAt"),
       dataIndex: "handledAt",
       key: "handledAt",
       render: (t) =>
@@ -331,12 +340,12 @@ function AdminBorrowPage() {
       sorter: (a, b) => new Date(a.handledAt || 0) - new Date(b.handledAt || 0),
     },
     {
-      title: "Reason",
+      title: t("admin.reason"),
       dataIndex: "reason",
       key: "reason",
       render: (text, record) =>
         record.status === "rejected" || record.status === "invalid" ? (
-          <Tooltip title={text || "No reason provided"}>
+          <Tooltip title={text || t("admin.noReason")}>
             <span style={{ color: "#8c8c8c" }}>{text || "—"}</span>
           </Tooltip>
         ) : (
@@ -345,7 +354,7 @@ function AdminBorrowPage() {
       responsive: ["lg"],
     },
     {
-      title: "Actions",
+      title: t("admin.actions"),
       key: "action",
       render: (_, record) => (
         <Space>
@@ -356,7 +365,7 @@ function AdminBorrowPage() {
             onClick={() => handleApprove(record)}
             disabled={record.status !== "pending"}
           >
-            ✅ Approve
+            {t("admin.approve")}
           </Button>
           <Button
             danger
@@ -364,7 +373,7 @@ function AdminBorrowPage() {
             onClick={() => handleReject(record)}
             disabled={record.status !== "pending"}
           >
-            ❌ Reject
+            {t("admin.reject")}
           </Button>
         </Space>
       ),
@@ -395,9 +404,9 @@ function AdminBorrowPage() {
         }}
         title={
           <div className="page-header" style={{ marginBottom: "1rem" }}>
-            <Title level={3} style={{ margin: 0, color: theme.colors.neutral.black, fontWeight: theme.typography.fontWeight.bold, fontFamily: theme.typography.fontFamily.primary }}>📋 Borrow Management</Title>
+            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("admin.borrowManage")}</Title>
             <div style={{ marginBottom: "1.5rem" }}>
-              <Text type="secondary" style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.neutral.darkGray, fontFamily: theme.typography.fontFamily.primary }}>Approve renewals and returns</Text>
+              <Text type="secondary" style={{ fontSize: theme.typography.fontSize.sm, color: theme.colors.neutral.darkGray, fontFamily: theme.typography.fontFamily.primary }}>{t("admin.approveRenewals")}</Text>
             </div>
             <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem", marginTop: "1rem" }}>
               <div style={{ 
@@ -408,7 +417,7 @@ function AdminBorrowPage() {
                 boxShadow: theme.shadows.lg
               }}>
                 <Statistic 
-                  title={<span style={{ color: theme.colors.neutral.white, fontSize: theme.typography.fontSize.sm, fontFamily: theme.typography.fontFamily.primary }}>Total</span>} 
+                  title={<span style={{ color: theme.colors.neutral.white, fontSize: theme.typography.fontSize.sm, fontFamily: theme.typography.fontFamily.primary }}>{t("admin.total")}</span>} 
                   value={stats.total} 
                   valueStyle={{ color: theme.colors.neutral.white, fontSize: theme.typography.fontSize.xxl, fontWeight: theme.typography.fontWeight.bold }}
                 />
@@ -421,7 +430,7 @@ function AdminBorrowPage() {
                 boxShadow: theme.shadows.lg
               }}>
                 <Statistic 
-                  title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "14px" }}>Pending</span>} 
+                  title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "14px" }}>{t("admin.pending")}</span>} 
                   value={stats.pending} 
                   valueStyle={{ color: "white", fontSize: "28px", fontWeight: 700 }}
                 />
@@ -434,7 +443,7 @@ function AdminBorrowPage() {
                 boxShadow: theme.shadows.lg
               }}>
                 <Statistic 
-                  title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "14px" }}>Approved</span>} 
+                  title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "14px" }}>{t("admin.approved")}</span>} 
                   value={stats.approved} 
                   valueStyle={{ color: "white", fontSize: "28px", fontWeight: 700 }}
                 />
@@ -447,7 +456,7 @@ function AdminBorrowPage() {
                 boxShadow: theme.shadows.lg
               }}>
                 <Statistic 
-                  title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "14px" }}>Rejected</span>} 
+                  title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "14px" }}>{t("admin.rejected")}</span>} 
                   value={stats.rejected} 
                   valueStyle={{ color: "white", fontSize: "28px", fontWeight: 700 }}
                 />
@@ -460,7 +469,7 @@ function AdminBorrowPage() {
                 boxShadow: theme.shadows.lg
               }}>
                 <Statistic 
-                  title={<span style={{ color: "rgba(55,65,81,0.9)", fontSize: "14px" }}>Invalid</span>} 
+                  title={<span style={{ color: "rgba(55,65,81,0.9)", fontSize: "14px" }}>{t("admin.invalid")}</span>} 
                   value={stats.invalid} 
                   valueStyle={{ color: "#374151", fontSize: "28px", fontWeight: 700 }}
                 />
@@ -490,13 +499,13 @@ function AdminBorrowPage() {
             onClick={fetchRequests}
             loading={loading}
           >
-            🔄 Refresh
+            {t("admin.refresh")}
           </Button>
         }
       >
         <Space className="filters" style={{ marginBottom: "1rem" }} wrap>
           <Input
-            placeholder="Search by username or book title"
+            placeholder={t("admin.searchUserOrBook")}
             prefix={<SearchOutlined />}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
@@ -512,9 +521,9 @@ function AdminBorrowPage() {
             value={filterType}
             onChange={setFilterType}
             options={[
-              { label: "All", value: "all" },
-              { label: "Renew", value: "renew" },
-              { label: "Return", value: "return" },
+              { label: t("admin.all"), value: "all" },
+              { label: t("admin.renew"), value: "renew" },
+              { label: t("admin.return"), value: "return" },
             ]}
           />
           <Select
@@ -525,11 +534,11 @@ function AdminBorrowPage() {
               borderRadius: 12
             }}
           >
-            <Option value="all">All statuses</Option>
-            <Option value="pending">Pending</Option>
-            <Option value="approved">Approved</Option>
-            <Option value="rejected">Rejected</Option>
-            <Option value="invalid">Invalid</Option>
+            <Option value="all">{t("admin.allStatuses")}</Option>
+            <Option value="pending">{t("admin.pending")}</Option>
+            <Option value="approved">{t("admin.approved")}</Option>
+            <Option value="rejected">{t("admin.rejected")}</Option>
+            <Option value="invalid">{t("admin.invalid")}</Option>
           </Select>
           <Button 
             onClick={() => { setSearchText(""); setFilterType("all"); setFilterStatus("all"); }}
@@ -550,13 +559,13 @@ function AdminBorrowPage() {
               e.currentTarget.style.boxShadow = "0 2px 8px rgba(139, 92, 246, 0.3)";
             }}
           >
-            🔄 Reset
+            {t("admin.reset")}
           </Button>
           <Button type="default" onClick={autoProcessEligible}>
-            ⚙️ Auto Process Eligible
+            {t("admin.autoProcess")}
           </Button>
           <Button type="default" onClick={bulkProcessPending}>
-            📦 Bulk Process Pending ({approvalPrefs.defaultBulkAction === "approve" ? "Approve" : "Reject"})
+            {t("admin.bulkProcess")} ({approvalPrefs.defaultBulkAction === "approve" ? t("admin.approve") : t("admin.reject")})
           </Button>
         </Space>
 
@@ -570,7 +579,7 @@ function AdminBorrowPage() {
           scroll={{ x: 900 }}
           pagination={{
             pageSize: 8,
-            showTotal: (t) => `Total ${t} requests`,
+            showTotal: (total) => `${t("admin.total")} ${total}`,
           }}
           size="middle"
           rowClassName={(record) => (record.status === "pending" ? "row-pending" : "")}
