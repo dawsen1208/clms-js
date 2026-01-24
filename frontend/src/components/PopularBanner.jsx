@@ -77,157 +77,12 @@ function PopularBanner() {
   };
 
   /* =========================================================
-     📖 借阅逻辑（统一 API 调用）
-     ========================================================= */
-  const handleBorrow = async () => {
-    if (!selectedBook) return;
-    if (!token) {
-      message.error(t("popular.loginFirst"));
-      return;
-    }
-
-    try {
-      // Preflight stock check using detail if copies is not available
-      let available = typeof selectedBook.copies === "number" ? selectedBook.copies : undefined;
-      if (typeof available !== "number") {
-        const detail = await getBookDetail(selectedBook._id);
-        available = Number(detail?.data?.copies ?? 0);
-      }
-
-      if (available <= 0) {
-        Modal.info({
-          title: t("popular.outOfStockTitle"),
-          content: t("popular.outOfStockMsg"),
-          okText: t("popular.gotIt"),
-          centered: true,
-        });
-        message.warning(t("popular.outOfStockWarn"));
-        console.log("🟡 Borrow blocked due to zero stock:", { bookId: selectedBook._id, title: selectedBook.title, available });
-        return;
-      }
-
-      const res = await borrowBook(selectedBook._id, token);
-      setSuccessTitle(selectedBook.title);
-      showBorrowSuccessModal(selectedBook.title);
-      message.success(res.data?.message || t("search.borrowSuccessMsg", { title: selectedBook.title }));
-      setVisible(false);
-    } catch (err) {
-      console.error("❌ Borrow failed:", err);
-      if (err?.__borrowLimit) {
-        console.warn("🔴 Borrow limit flagged by interceptor", {
-          url: err?.config?.url,
-          status: err?.response?.status,
-        });
-        setLimitOpen(true);
-        showBorrowLimitModal();
-        return;
-      }
-      const backendMsg = extractErrorMessage(err);
-      if (isBorrowLimitError(backendMsg)) {
-        console.warn("🔴 Borrow limit matched by message", { backendMsg });
-        setLimitOpen(true);
-        showBorrowLimitModal();
-        return;
-      }
-      // Fallback: detect by HTTP status and route
-      const status = err?.response?.status;
-      const url = err?.config?.url || "";
-      if (status === 400 && url.includes("/library/borrow/")) {
-        console.warn("🔴 Borrow limit fallback by status+route", { status, url });
-        setLimitOpen(true);
-        showBorrowLimitModal();
-        return;
-      }
-      message.error(backendMsg || t("popular.borrowFail"));
-    }
-  };
-
-  /* =========================================================
      🧱 渲染组件
      ========================================================= */
-  const renderModals = () => (
-    <>
-      {/* Controlled Success Modal to guarantee visibility */}
-      <Modal
-        open={!!successTitle}
-        title={`"${successTitle}" ${t("popular.successTitle")}`}
-        onOk={() => setSuccessTitle("")}
-        onCancel={() => setSuccessTitle("")}
-        centered
-        maskClosable
-        getContainer={false}
-        zIndex={10000}
-      >
-        <div>{t("popular.successMsg")}</div>
-      </Modal>
-      {/* Controlled Limit Modal to guarantee visibility */}
-      <Modal
-        open={limitOpen}
-        title={t("popular.limitTitle")}
-        onOk={() => setLimitOpen(false)}
-        onCancel={() => setLimitOpen(false)}
-        centered
-        maskClosable
-        getContainer={false}
-        zIndex={10000}
-      >
-        <div>
-          {t("popular.limitMsg")}
-        </div>
-      </Modal>
-
-      {/* ✅ Book detail modal */}
-      <Modal
-        open={visible}
-        title={selectedBook?.title}
-        footer={[
-          <Button key="close" onClick={() => setVisible(false)}>
-            {t("common.close")}
-          </Button>,
-          <Button
-            key="detail"
-            onClick={() => {
-              if (selectedBook) navigate(`/book/${selectedBook._id}`);
-            }}
-          >
-            {t("common.details")}
-          </Button>,
-          <Button
-            key="borrow"
-            type="primary"
-            icon={<BookOutlined />}
-            onClick={handleBorrow}
-          >
-            {t("common.borrowNow")}
-          </Button>,
-        ]}
-        onCancel={() => setVisible(false)}
-        centered
-      >
-        {selectedBook && (
-          <Card
-            cover={
-              <img
-                src={selectedBook.cover || "https://via.placeholder.com/400x250"}
-                alt={selectedBook.title}
-                style={{ borderRadius: "8px" }}
-              />
-            }
-          >
-            <p>
-              <b>Author:</b> {selectedBook.author || t("common.unknown")}
-            </p>
-            <p>{selectedBook.description || "No description"}</p>
-          </Card>
-        )}
-      </Modal>
-    </>
-  );
-
   if (isMobile) {
     return (
       <div style={{ marginBottom: "1.5rem" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "8px", color: "#1e293b" }}>
+        <h2 className="page-modern-title" style={{ fontSize: "20px", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "8px" }}>
           <FireOutlined style={{ color: "#ff4d4f" }} /> {t("titles.popularToday")}
         </h2>
         {/* Horizontal Scroll Container */}
@@ -331,8 +186,6 @@ function PopularBanner() {
         minHeight: "130px",
       }}
     >
-      {renderModals()}
-
       {/* ✅ 标题 */}
       <h2
         style={{

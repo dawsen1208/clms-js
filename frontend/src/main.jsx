@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 // import { unstableSetRender } from 'antd'; // ❌ Removed unstable API
 import { createRoot } from 'react-dom/client';
-import { LanguageProvider } from "./contexts/LanguageContext"; // ✅ Language Context
+import { LanguageProvider, useLanguage } from "./contexts/LanguageContext"; // ✅ Language Context
 
 // unstableSetRender((node, container) => { ... }); // ❌ Removed
 
@@ -13,6 +13,7 @@ import "./styles/mobile.css"; // ✅ Mobile-first styles
 import "./styles/global.css"; // ✅ Global modern styles
 import { ConfigProvider, message, Grid, theme as antdTheme } from "antd";
 import enUS from "antd/locale/en_US";
+import zhCN from "antd/locale/zh_CN";
 // import { registerSW } from 'virtual:pwa-register';
 import {
   BrowserRouter,
@@ -61,6 +62,7 @@ const PrivateRoute = ({ children }) => {
    🌍 主应用组件
    ========================================================= */
 function App() {
+  const { language } = useLanguage(); // ✅ Get current language
   // ✅ 登录状态
   const [token, setToken] = useState(
     sessionStorage.getItem("token") || localStorage.getItem("token")
@@ -135,6 +137,7 @@ function App() {
     fontFamily: "'Segoe UI', 'Inter', sans-serif",
   };
 
+  const locale = language === 'zh' ? zhCN : enUS;
 
   /* =========================================================
      ✅ 登录逻辑（由 LoginPage 回调触发）
@@ -340,9 +343,11 @@ class GlobalErrorBoundary extends React.Component {
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <GlobalErrorBoundary>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <LanguageProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </LanguageProvider>
     </GlobalErrorBoundary>
   </React.StrictMode>
 );

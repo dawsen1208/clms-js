@@ -268,7 +268,13 @@ function BorrowPage() {
                  typeof record.bookId === "object"
                    ? record.bookId?._id
                    : record.bookId;
-               const pending = isPendingRenewUI(bookIdNormalized);
+               
+               // Determine pending status
+               const pendingReq = pendingRequests.find(r => String(r.bookId) === String(bookIdNormalized) && r.status === 'pending');
+               const isRenewPending = localPendingRenew.includes(String(bookIdNormalized)) || (pendingReq && pendingReq.type === 'renew');
+               const isReturnPending = localPendingReturn.includes(String(bookIdNormalized)) || (pendingReq && pendingReq.type === 'return');
+               const isPending = isRenewPending || isReturnPending;
+               
                const bookIdForLink = bookIdNormalized || null;
 
                return (
@@ -297,7 +303,7 @@ function BorrowPage() {
                    </div>
                    
                    <div style={{ display: "flex", gap: "12px" }}>
-                      {pending ? (
+                      {isRenewPending ? (
                         <Button 
                           block 
                           disabled 
@@ -306,20 +312,21 @@ function BorrowPage() {
                         >
                           {t("borrow.renewPending")}
                         </Button>
-                      ) : (
+                      ) : isReturnPending ? null : (
                         <Button 
                           block 
                           type="primary" 
                           icon={<SyncOutlined />} 
                           onClick={() => openRenewModal(record)}
                           style={{ borderRadius: "8px", height: "44px" }}
+                          disabled={isPending}
                         >
                           {t("borrow.renewLoan")}
                         </Button>
                       )}
 
                       {/* ✅ Return Button for Mobile */}
-                      {pending ? (
+                      {isReturnPending ? (
                          <Button
                            block
                            disabled
@@ -328,7 +335,7 @@ function BorrowPage() {
                          >
                            {t("borrow.returnPending")}
                          </Button>
-                      ) : (
+                      ) : isRenewPending ? null : (
                          <Button 
                            block 
                            danger
@@ -336,6 +343,7 @@ function BorrowPage() {
                            icon={<RollbackOutlined />} 
                            onClick={() => openReturnModal(record)}
                            style={{ borderRadius: "8px", height: "44px", borderColor: "#ff4d4f", color: "#ff4d4f" }}
+                           disabled={isPending}
                          >
                            {t("borrow.requestReturn")}
                          </Button>
