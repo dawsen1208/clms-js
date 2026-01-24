@@ -22,6 +22,14 @@ function HomePage({ setCurrentPage }) {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
+  const titleStyle = {
+    background: "linear-gradient(90deg, #1d4ed8, #3b82f6)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    marginBottom: "16px",
+    fontWeight: "bold"
+  };
+
   /* =========================================================
      📚 Fetch popular recommendations (backend logic)
      ========================================================= */
@@ -51,7 +59,7 @@ function HomePage({ setCurrentPage }) {
       <div className="home-page-mobile" style={{ padding: '16px', maxWidth: '100vw', overflowX: 'hidden' }}>
         {/* ✅ 1. Compact Welcome Banner */}
         <div style={{ marginBottom: '24px' }}>
-          <Title level={2} className="page-modern-title" style={{ margin: "0 0 16px 0" }}>
+          <Title level={2} className="page-modern-title" style={{ margin: "0 0 16px 0", ...titleStyle }}>
             👋 {t("common.welcome")}
           </Title>
         </div>
@@ -116,16 +124,18 @@ function HomePage({ setCurrentPage }) {
                    <div style={{ position: 'relative', marginBottom: '8px' }}>
                       <div style={{ 
                         position: 'absolute', 
-                        top: 0, left: 0, 
-                        background: index < 3 ? '#ef4444' : '#94a3b8', 
+                        top: '8px', left: '8px', 
+                        background: index < 3 ? 'rgba(239, 68, 68, 0.9)' : 'rgba(148, 163, 184, 0.9)', 
                         color: '#fff', 
-                        width: '24px', height: '24px', 
-                        borderRadius: '0 0 8px 0', 
+                        minWidth: '24px', height: '24px', 
+                        borderRadius: '12px', 
+                        padding: '0 6px',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: '12px', fontWeight: 'bold',
-                        zIndex: 1
+                        zIndex: 1,
+                        backdropFilter: 'blur(4px)'
                       }}>
-                        {index + 1}
+                        #{index + 1}
                       </div>
                       <img 
                         src={book.cover} 

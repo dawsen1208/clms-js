@@ -321,7 +321,30 @@ function BorrowPage() {
                           {t("borrow.renewLoan")}
                         </Button>
                       )}
-                   </div>
+
+                      {/* ✅ Return Button for Mobile */}
+                      {pending ? (
+                         <Button
+                           block
+                           disabled
+                           icon={<ClockCircleOutlined />}
+                           style={{ borderRadius: "8px", background: "#f1f5f9", border: "none", color: "#94a3b8", height: "44px" }}
+                         >
+                           {t("borrow.returnPending")}
+                         </Button>
+                      ) : (
+                         <Button 
+                           block 
+                           danger
+                           type="default"
+                           icon={<RollbackOutlined />} 
+                           onClick={() => openReturnModal(record)}
+                           style={{ borderRadius: "8px", height: "44px", borderColor: "#ff4d4f", color: "#ff4d4f" }}
+                         >
+                           {t("borrow.requestReturn")}
+                         </Button>
+                      )}
+                    </div>
                  </div>
                );
              })}

@@ -264,27 +264,28 @@ function PopularBanner() {
                 onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.98)"}
                 onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
               >
-                {/* Ranking Badge - Moved slightly and styled to not block title */}
+                {/* Ranking Badge - Adjusted to not obstruct */}
                 <div
                   style={{
                     position: "absolute",
-                    top: "-6px",
-                    left: "-6px",
-                    background: i < 3 ? "linear-gradient(135deg, #ff4d4f, #ff7875)" : "#8c8c8c",
+                    top: "8px",
+                    left: "8px",
+                    background: i < 3 ? "rgba(255, 77, 79, 0.9)" : "rgba(0, 0, 0, 0.6)",
                     color: "#fff",
-                    width: "24px",
+                    minWidth: "24px",
                     height: "24px",
+                    padding: "0 6px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    borderRadius: "50%",
+                    borderRadius: "12px",
                     fontSize: "12px",
                     fontWeight: "bold",
                     zIndex: 2,
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                    backdropFilter: "blur(4px)"
                   }}
                 >
-                  {i + 1}
+                  #{i + 1}
                 </div>
                 {/* Cover Image */}
                 <div style={{ width: "100%", aspectRatio: "2/3", borderRadius: "8px", overflow: "hidden", marginBottom: "8px", background: "#f0f0f0" }}>

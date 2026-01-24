@@ -198,8 +198,8 @@ function SettingsPage({ appearance, onChange, user }) {
                     <div style={{ marginTop: 8 }}>
                       <Radio.Group value={language} onChange={(e) => setLanguage(e.target.value)}>
                         <Space direction="horizontal">
-                          <Radio value="en">{t("settings.english")}</Radio>
-                          <Radio value="zh">{t("settings.chinese")}</Radio>
+                          <Radio.Button value="en">🇺🇸 English</Radio.Button>
+                          <Radio.Button value="zh">🇨🇳 中文</Radio.Button>
                         </Space>
                       </Radio.Group>
                     </div>
