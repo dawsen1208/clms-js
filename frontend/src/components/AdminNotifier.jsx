@@ -39,6 +39,7 @@ function AdminNotifier() {
   const [requests, setRequests] = useState([]);
   const [unread, setUnread] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false); // ✅ Fix: Add missing state
   const [isAdmin, setIsAdmin] = useState(false);
   const lastCountRef = useRef(0);
   const screens = useBreakpoint();
