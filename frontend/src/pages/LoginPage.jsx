@@ -234,8 +234,12 @@ function LoginPage() {
       </Card>
 
       {/* ✅ 右侧插图区 (带翻转动画) */}
-      <div className="login-illustration">
-        <div className={`flip-container ${isFlipped ? "flipped" : ""}`} onClick={() => setIsFlipped(!isFlipped)}>
+      <div 
+        className="login-illustration" 
+        onClick={() => setIsFlipped(!isFlipped)}
+        style={{ cursor: "pointer" }}
+      >
+        <div className={`flip-container ${isFlipped ? "flipped" : ""}`}>
           <div className="flipper">
             {/* 正面：插画 */}
             <div className="front">

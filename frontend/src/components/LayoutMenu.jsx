@@ -262,15 +262,24 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
             {/* 📱 Mobile Access QR Code (Always Visible) */}
             <Tooltip title="Scan to open on mobile">
               <Button 
-                icon={<QrcodeOutlined style={{ color: '#1677ff' }} />} 
-                shape="circle" 
+                type="primary"
+                ghost
+                icon={<QrcodeOutlined />} 
                 onClick={() => setQrModalOpen(true)}
                 style={{ 
-                  border: "1px solid #bae0ff", 
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  height: "36px",
+                  padding: "0 12px",
+                  borderRadius: "18px",
+                  border: "1px solid #1677ff",
                   background: "#e6f4ff",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.05)" 
+                  boxShadow: "0 2px 6px rgba(22, 119, 255, 0.2)"
                 }}
-              />
+              >
+                <span style={{ fontWeight: 500 }}>Mobile</span>
+              </Button>
             </Tooltip>
 
             {/* Global Notifier (Bell) */}

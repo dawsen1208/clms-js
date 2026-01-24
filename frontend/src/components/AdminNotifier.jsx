@@ -126,19 +126,28 @@ function AdminNotifier() {
         }}>
           <Tooltip title="Admin QR Code">
             <Button
-              shape="circle"
-              icon={<QrcodeOutlined style={{ fontSize: 18, color: '#1677ff' }} />}
+              type="primary"
+              ghost
+              icon={<QrcodeOutlined />}
               onClick={() => {
                 setQrModalOpen(true);
                 setDrawerOpen(false); // 互斥关闭
               }}
               style={{ 
-                boxShadow: "0 2px 8px rgba(0,0,0,0.15)", 
-                border: "1px solid #bae0ff", 
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                height: "36px",
+                padding: "0 12px",
+                borderRadius: "18px",
+                border: "1px solid #1677ff",
                 background: "#e6f4ff",
+                boxShadow: "0 2px 6px rgba(22, 119, 255, 0.2)",
                 marginRight: 0 /* handled by gap */
               }}
-            />
+            >
+              <span style={{ fontWeight: 500 }}>Mobile</span>
+            </Button>
           </Tooltip>
 
           <Tooltip title="User request notifications">
