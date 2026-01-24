@@ -19,10 +19,11 @@ import ProfileStats from "../components/Profile/ProfileStats";
 import ProfileInfo from "../components/Profile/ProfileInfo";
 import ProfileTabs from "../components/Profile/ProfileTabs";
 
+const { useBreakpoint } = Grid;
+
 function ProfilePage() {
   const { t } = useLanguage();
   const { Title, Text } = Typography;
-  const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const [loading, setLoading] = useState(false);
