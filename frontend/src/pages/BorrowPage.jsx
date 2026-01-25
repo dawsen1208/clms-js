@@ -383,6 +383,23 @@ function BorrowPage() {
             }}
           />
         </Modal>
+
+        {/* ✅ Return Confirmation Modal (Mobile) */}
+        <Modal
+          title={t("borrow.confirmReturnTitle")}
+          open={returnModal.open}
+          onCancel={() => setReturnModal({ open: false, record: null })}
+          onOk={handleConfirmReturn}
+          okText={t("common.submit")}
+          cancelText={t("common.cancel")}
+          centered
+          destroyOnClose
+        >
+          <p>{t("borrow.confirmReturnContent")}</p>
+          {returnModal.record && (
+             <p><strong>{returnModal.record.title || t("common.unknown")}</strong></p>
+          )}
+        </Modal>
       </div>
     );
   }
