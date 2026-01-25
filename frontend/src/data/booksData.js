@@ -1,5 +1,6 @@
 // src/data/booksData.js
 export const popularBooks = [
+  // Force update: ensure cloud deployment picks up local images
   {
     _id: "68f221eabb071927684e9419",
     title: "The Intelligent Investor",
