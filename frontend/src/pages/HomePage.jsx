@@ -40,10 +40,20 @@ function HomePage() {
     try {
       setLoading(true);
       const res = await getRecommendations(token);
-      setRecommended(res.data.recommended || []);
+      // ✅ 优先使用后端数据，如果没有数据则回退到静态数据
+      if (res.data?.recommended?.length) {
+        setRecommended(res.data.recommended);
+      } else {
+        // Fallback to static data if backend returns empty (for demo purposes)
+        // You can import this from booksData.js if you export it
+        const { popularBooks } = await import("../data/booksData");
+        setRecommended(popularBooks);
+      }
     } catch (err) {
       console.error("❌ Failed to fetch recommendations:", err);
-      message.error("Unable to load popular recommendations");
+      // Fallback on error
+      const { popularBooks } = await import("../data/booksData");
+      setRecommended(popularBooks);
     } finally {
       setLoading(false);
     }
