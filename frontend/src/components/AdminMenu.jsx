@@ -1,9 +1,8 @@
 // ✅ client/src/components/AdminMenu.jsx
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Card, Typography, message, Grid, Button, Tooltip } from "antd";
+import { Layout, Menu, Typography, message, Grid, Button, Tooltip } from "antd";
 import {
   MenuOutlined,
-  HomeOutlined,
   BookOutlined,
   DatabaseOutlined,
   HistoryOutlined,
@@ -11,33 +10,40 @@ import {
   UserOutlined,
   LogoutOutlined,
   DashboardOutlined,
-  BarChartOutlined,
-  SettingOutlined,
 } from "@ant-design/icons";
+import { useLocation, useNavigate } from "react-router-dom"; // ✅ Added router hooks
 
-// ✅ 导入页面组件
-import AdminBookPage from "../pages/AdminBookPage";
-import AdminBorrowPage from "../pages/AdminBorrowPage";
-import AdminBorrowHistory from "../pages/AdminBorrowHistory";
-import AdminUserManagePage from "../pages/AdminUserManagePage";
-import AdminProfilePage from "../pages/AdminProfilePage"; // ✅ 新增
-import AdminDashboard from "../pages/AdminDashboard";
 import AdminNotifier from "./AdminNotifier";
-import { theme, themeUtils } from "../styles/theme";
-import "./AdminMenu.css"; // Custom styles for app-like menu
+import { theme } from "../styles/theme";
+import "./AdminMenu.css";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const { Sider, Content } = Layout;
-const { Title, Paragraph } = Typography;
-const { useBreakpoint } = Grid;
 
 function AdminMenu({ onLogout, children }) {
+  const { useBreakpoint } = Grid; // ✅ Moved inside component
   const { t } = useLanguage();
   const [collapsed, setCollapsed] = useState(false);
-  const [selected, setSelected] = useState("home");
-  const [adminName, setAdminName] = useState("Administrator");
   const screens = useBreakpoint();
   const isMobile = !screens.md;
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // ✅ Determine selected key from URL
+  const getSelectedKey = () => {
+    const path = location.pathname;
+    if (path.includes("/admin/dashboard")) return "home";
+    if (path.includes("/admin/books")) return "book";
+    if (path.includes("/admin/borrow")) return "borrow";
+    if (path.includes("/admin/history")) return "history";
+    if (path.includes("/admin/users")) return "users";
+    if (path.includes("/admin/profile")) return "profile";
+    if (path.includes("/admin/settings")) return "settings";
+    return "home";
+  };
+
+  const selected = getSelectedKey();
+  const [adminName, setAdminName] = useState("Administrator");
   const [allowed, setAllowed] = useState(null);
 
   /* =========================================================
@@ -61,15 +67,11 @@ function AdminMenu({ onLogout, children }) {
         const key = user?.userId || user?.email || user?.name || "";
         const mods = map[key]?.modules || null;
         setAllowed(mods);
-        if (Array.isArray(mods) && mods.length > 0 && !mods.includes("home")) {
-          setSelected(mods[0]);
-        }
       } catch {}
     } catch {
       onLogout?.();
     }
 
-    // ✅ 跨标签页同步登出
     const syncLogout = (e) => {
       if (e.key === "logout_event") onLogout?.();
     };
@@ -77,7 +79,6 @@ function AdminMenu({ onLogout, children }) {
     return () => window.removeEventListener("storage", syncLogout);
   }, [onLogout, t]);
 
-  // 移动端默认收起侧边栏
   useEffect(() => {
     if (isMobile) setCollapsed(true);
   }, [isMobile]);
@@ -94,54 +95,63 @@ function AdminMenu({ onLogout, children }) {
         message.warning(t("admin.noPermission"));
         return;
       }
-      setSelected(e.key);
+      // ✅ Navigation Logic
+      switch (e.key) {
+        case "home": navigate("/admin/dashboard"); break;
+        case "book": navigate("/admin/books"); break;
+        case "borrow": navigate("/admin/borrow"); break;
+        case "history": navigate("/admin/history"); break;
+        case "users": navigate("/admin/users"); break;
+        case "profile": navigate("/admin/profile"); break;
+        case "settings": navigate("/admin/settings"); break;
+        default: navigate("/admin/dashboard");
+      }
     }
   };
 
-  /* =========================================================
-     🧱 内容渲染逻辑
-     ========================================================= */
-  const renderContent = () => {
-    if (Array.isArray(allowed) && allowed.length > 0 && !allowed.includes(selected)) {
-      return (
-        <div style={{ padding: 24 }}>
-          <Typography.Text type="danger">{t("admin.permissionDenied")}</Typography.Text>
-        </div>
-      );
-    }
-    switch (selected) {
-      case "book":
-        return <AdminBookPage />;
-      case "borrow":
-        return <AdminBorrowPage />;
-      case "history":
-        return <AdminBorrowHistory />;
-      case "users":
-        return <AdminUserManagePage />;
-      case "profile":
-        // ✅ 显示管理员个人主页（申请处理页面）
-        return <AdminProfilePage />;
-      case "home":
-        return children ? children : <AdminDashboard />;
-      case "settings":
-        return children ? children : <SettingsPage />;
-      default:
-        return children ? children : <AdminDashboard />;
-    }
+  // 📱 Mobile Bottom Navigation
+  const MobileBottomNav = () => {
+    const navItems = [
+      { key: "home", icon: <DashboardOutlined />, label: "Dashboard" },
+      { key: "book", icon: <BookOutlined />, label: "Books" },
+      { key: "borrow", icon: <DatabaseOutlined />, label: "Borrow" },
+      { key: "users", icon: <TeamOutlined />, label: "Users" },
+      { key: "profile", icon: <UserOutlined />, label: "Profile" },
+    ];
+
+    // Filter items based on allowed permissions if set
+    const filteredItems = allowed 
+      ? navItems.filter(item => allowed.includes(item.key) || item.key === 'home' || item.key === 'profile') 
+      : navItems;
+
+    return (
+      <div className="mobile-bottom-nav">
+        {filteredItems.map(item => (
+          <div 
+            key={item.key}
+            className={`mobile-nav-item ${selected === item.key ? 'active' : ''}`}
+            onClick={() => handleMenuClick({ key: item.key })}
+          >
+            {React.cloneElement(item.icon, { className: "nav-icon" })}
+            <span className="nav-label">{item.label}</span>
+          </div>
+        ))}
+      </div>
+    );
   };
 
   /* =========================================================
-     🧩 渲染整体布局 - Netflix style sidebar
+     🧩 渲染整体布局
      ========================================================= */
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      {/* ✅ Netflix-style Left sidebar navigation */}
+      {!isMobile && (
       <Sider
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
         width={240}
-        collapsedWidth={isMobile ? 0 : 80}
+        collapsedWidth={80}
         breakpoint="md"
         style={{
           background: '#001528',
@@ -157,7 +167,6 @@ function AdminMenu({ onLogout, children }) {
         }}
         className="app-sidebar"
       >
-        {/* Netflix-style Logo Header */}
         <div className="sidebar-header">
           <div className="sidebar-logo">
             <DashboardOutlined className="sidebar-logo-icon" />
@@ -165,7 +174,6 @@ function AdminMenu({ onLogout, children }) {
           </div>
         </div>
 
-        {/* Enhanced collapse button */}
         <div
           className="sidebar-collapse-btn"
           style={{
@@ -183,7 +191,6 @@ function AdminMenu({ onLogout, children }) {
           <MenuOutlined style={{ fontSize: 18 }} />
         </div>
 
-        {/* Netflix-style Main menu */}
         <Menu
           theme="dark"
           mode="inline"
@@ -261,7 +268,6 @@ function AdminMenu({ onLogout, children }) {
           className="app-like-menu"
         />
 
-        {/* Netflix-style Logout section */}
         <Menu
           theme="dark"
           mode="inline"
@@ -282,27 +288,15 @@ function AdminMenu({ onLogout, children }) {
           className="logout-menu"
         />
       </Sider>
+      )}
 
-      {/* ✅ Main content area + notification system */}
       <Layout
         style={{
-          marginLeft: isMobile ? 0 : (collapsed ? 80 : 240), // Updated width from 200 to 240
+          marginLeft: isMobile ? 0 : (collapsed ? 80 : 240),
           transition: "margin-left 0.3s ease",
+          paddingBottom: isMobile ? "80px" : 0,
         }}
       >
-        {/* Mobile menu toggle */}
-        {isMobile && (
-          <div style={{ position: "fixed", top: 18, left: 18, zIndex: 2000 }}>
-            <Tooltip title={collapsed ? t("admin.openMenu") : t("admin.collapseMenu")}>
-              <Button
-                shape="circle"
-                icon={<MenuOutlined style={{ fontSize: 18 }} />}
-                onClick={() => setCollapsed(!collapsed)}
-              />
-            </Tooltip>
-          </div>
-        )}
-        {/* 🔔 管理员通知系统 */}
         <AdminNotifier />
 
         <Content
@@ -313,9 +307,10 @@ function AdminMenu({ onLogout, children }) {
           }}
         >
           <div className="page-container">
-            {renderContent()}
+            {children}
           </div>
         </Content>
+        {isMobile && <MobileBottomNav />}
       </Layout>
     </Layout>
   );

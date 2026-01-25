@@ -16,6 +16,8 @@ import {
   Statistic,
   Divider,
   Space,
+  Grid,
+  List
 } from "antd";
 import {
   ReloadOutlined,
@@ -37,9 +39,12 @@ import { useLanguage } from "../contexts/LanguageContext";
 
 const { Paragraph, Title, Text } = Typography;
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8854d0"];
+const { useBreakpoint } = Grid;
 
 const AdminUserManagePage = () => {
   const { t } = useLanguage();
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [users, setUsers] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -244,25 +249,77 @@ const AdminUserManagePage = () => {
               style={{ maxWidth: 280, marginBottom: 12 }}
             />
 
-            <Table
-              dataSource={tableData}
-              columns={columns}
-              rowKey="userId"
-              pagination={{
-                pageSize: 7,
-                showSizeChanger: false,
-                position: ["bottomCenter"],
-              }}
-              scroll={{ x: 950 }}
-              bordered
-              locale={{
-                emptyText: t("admin.noUserData"),
-              }}
-              style={{
-                minHeight: "540px",
-                borderRadius: "10px",
-              }}
-            />
+            {isMobile ? (
+              <List
+                dataSource={tableData}
+                loading={loading}
+                pagination={{ pageSize: 7 }}
+                renderItem={(item) => (
+                  <List.Item style={{ padding: 0, marginBottom: 16 }}>
+                    <Card
+                      hoverable
+                      style={{ width: '100%', borderRadius: 12 }}
+                      actions={[
+                        <Button 
+                          type="link" 
+                          onClick={() => handlePersonaClick(item.persona, item.personaDescription)}
+                        >
+                          {t("admin.viewPersona")}
+                        </Button>
+                      ]}
+                    >
+                      <Card.Meta
+                        avatar={<UserOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
+                        title={<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                            <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{item.name}</span>
+                            <Tag color={item.role === 'Administrator' ? 'purple' : 'blue'}>{item.role}</Tag>
+                        </div>}
+                        description={
+                          <div style={{ marginTop: 8 }}>
+                            <div style={{ marginBottom: 4 }}>ID: {item.userId}</div>
+                            <div style={{ marginBottom: 4 }}>
+                              {t("admin.topCategory")}: {toEnglishCategory(item.topCategory)}
+                            </div>
+                            <div style={{ marginBottom: 4 }}>
+                              {t("admin.totalBorrows")}: <span style={{ fontWeight: 'bold' }}>{item.totalBorrows}</span>
+                            </div>
+                            <div style={{ marginBottom: 4 }}>
+                               {t("admin.notReturned")}: <Tag color={item.overdueCount > 0 ? "red" : "green"}>{item.overdueCount}</Tag>
+                            </div>
+                            <div style={{ marginBottom: 4 }}>
+                              {t("admin.onTimeRate")}: <Progress percent={item.onTimeRate} size="small" steps={5} strokeColor={item.onTimeRate >= 80 ? '#52c41a' : '#ff4d4f'} />
+                            </div>
+                            <div>
+                              {t("admin.persona")}: <Tag color="blue">{toEnglishPersona(item.persona)}</Tag>
+                            </div>
+                          </div>
+                        }
+                      />
+                    </Card>
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Table
+                dataSource={tableData}
+                columns={columns}
+                rowKey="userId"
+                pagination={{
+                  pageSize: 7,
+                  showSizeChanger: false,
+                  position: ["bottomCenter"],
+                }}
+                scroll={{ x: 950 }}
+                bordered
+                locale={{
+                  emptyText: t("admin.noUserData"),
+                }}
+                style={{
+                  minHeight: "540px",
+                  borderRadius: "10px",
+                }}
+              />
+            )}
 
             
           </>

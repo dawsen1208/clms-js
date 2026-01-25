@@ -14,15 +14,21 @@ import {
   Table,
   Upload,
   Spin,
+  Grid
 } from "antd";
-import { UserOutlined, MailOutlined, EditOutlined, SaveOutlined, CloseOutlined, UploadOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import { UserOutlined, MailOutlined, EditOutlined, SaveOutlined, CloseOutlined, UploadOutlined, ClockCircleOutlined, LogoutOutlined } from "@ant-design/icons";
 import { getProfile, updateProfile, getPendingRequestsLibrary, uploadAvatar } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
+const { useBreakpoint } = Grid;
 
 const AdminProfilePage = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [profile, setProfile] = useState(null);
   const [email, setEmail] = useState("");
   const [editing, setEditing] = useState(false);
@@ -192,6 +198,19 @@ const AdminProfilePage = () => {
     },
   ];
 
+  /* =========================================================
+     🚪 Logout (Mobile)
+     ========================================================= */
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    localStorage.setItem("logout_event", Date.now());
+    message.success(t("common.logoutSuccess") || "Logged out successfully");
+    navigate("/login");
+  };
+
   if (!profile) {
     return (
       <div style={{ textAlign: "center", marginTop: "4rem" }}>
@@ -208,11 +227,11 @@ const AdminProfilePage = () => {
       bordered={false}
       style={{
         maxWidth: 960,
-        margin: "2rem auto",
+        margin: isMobile ? "1rem auto" : "2rem auto",
         borderRadius: 20,
         boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
         background: "#fff",
-        padding: "2.5rem 3rem",
+        padding: isMobile ? "1.5rem" : "2.5rem 3rem",
       }}
     >
       {/* 🧑‍💼 Top avatar + basic info */}
@@ -314,6 +333,63 @@ const AdminProfilePage = () => {
             size="large"
             style={{ display: "block", margin: "2rem auto" }}
           />
+        ) : isMobile ? (
+          <List
+            dataSource={requests}
+            pagination={{ pageSize: 5 }}
+            renderItem={(item) => (
+              <List.Item style={{ padding: 0, marginBottom: 16 }}>
+                <Card
+                  hoverable
+                  style={{ width: "100%", borderRadius: 12 }}
+                >
+                  <Card.Meta
+                    title={
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontWeight: "bold", fontSize: "16px", maxWidth: "70%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {item.bookTitle}
+                        </span>
+                        <Tag
+                          color={
+                            item.status === "pending"
+                              ? "orange"
+                              : item.status === "approved"
+                              ? "green"
+                              : "red"
+                          }
+                        >
+                          {item.status === "pending"
+                            ? t("admin.pending")
+                            : item.status === "approved"
+                            ? t("admin.approved")
+                            : t("admin.rejected")}
+                        </Tag>
+                      </div>
+                    }
+                    description={
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ marginBottom: 4 }}>
+                          👤 {t("admin.username")}: {item.userName}
+                        </div>
+                        <div style={{ marginBottom: 4 }}>
+                          📌 {t("admin.type")}:{" "}
+                          {item.type === "renew" ? (
+                            <Tag color="blue">{t("admin.renew")}</Tag>
+                          ) : (
+                            <Tag color="purple">{t("admin.return")}</Tag>
+                          )}
+                        </div>
+                        <div style={{ marginBottom: 4 }}>
+                          🕒 {t("admin.requestedAt")}:{" "}
+                          {item.createdAt ? new Date(item.createdAt).toLocaleString() : "—"}
+                        </div>
+                      </div>
+                    }
+                  />
+                </Card>
+              </List.Item>
+            )}
+          />
         ) : (
           <Table
             dataSource={requests}
@@ -324,6 +400,26 @@ const AdminProfilePage = () => {
           />
         )}
       </Card>
+
+      {/* 📱 Mobile Logout Button */}
+      {isMobile && (
+        <Button
+          type="primary"
+          danger
+          icon={<LogoutOutlined />}
+          onClick={handleLogout}
+          block
+          style={{ 
+            marginTop: '1rem', 
+            height: '48px', 
+            fontSize: '16px', 
+            borderRadius: '12px',
+            fontWeight: 'bold'
+          }}
+        >
+          {t("common.logout") || "Logout"}
+        </Button>
+      )}
     </Card>
   );
 };

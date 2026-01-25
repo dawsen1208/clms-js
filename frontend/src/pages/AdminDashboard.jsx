@@ -323,6 +323,7 @@ const AdminDashboard = () => {
           rowKey={(r) => r.category}
           dataSource={categoryDetails}
           pagination={{ pageSize: 8 }}
+          scroll={{ x: "max-content" }}
           columns={[
             { title: t("admin.category"), dataIndex: 'category' },
             { title: t("admin.titles"), dataIndex: 'titles' },
@@ -342,6 +343,7 @@ const AdminDashboard = () => {
           rowKey={(r) => r.date}
           dataSource={trendDetails}
           pagination={{ pageSize: 15 }}
+          scroll={{ x: "max-content" }}
           columns={[
             { title: t("admin.date"), dataIndex: 'date' },
             { title: t("admin.borrows"), dataIndex: 'count' },

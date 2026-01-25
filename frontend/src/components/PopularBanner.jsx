@@ -13,9 +13,9 @@ import { getRecommendations, borrowBook, getBookDetail } from "../api"; // ✅ �
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage, showBorrowSuccessModal } from "../utils/borrowUI";
 import { useLanguage } from "../contexts/LanguageContext"; // ✅ Localization
 
-const { useBreakpoint } = Grid;
 
 function PopularBanner() {
+  const { useBreakpoint } = Grid; // ✅ Moved inside component
   const { t } = useLanguage();
   const [books, setBooks] = useState([]); // ✅ 动态热门书籍数据
   const [index, setIndex] = useState(0);
@@ -75,6 +75,124 @@ function PopularBanner() {
     setSelectedBook(book);
     setVisible(true);
   };
+
+  /* =========================================================
+     🛒 Borrow Logic & Modals
+     ========================================================= */
+  const handleBorrow = async (book) => {
+    if (!token) {
+      message.warning(t("search.loginToBorrow"));
+      return;
+    }
+    if (!book) return;
+
+    try {
+      setLoading(true);
+      await borrowBook(book._id, token);
+      // Success
+      setSuccessTitle(book.title);
+      showBorrowSuccessModal(book.title); // Helper
+      setVisible(false); // Close detail modal
+    } catch (err) {
+      console.error("❌ Borrow failed:", err);
+      // Limit check
+      const backendMsg = extractErrorMessage(err);
+      if (isBorrowLimitError(backendMsg)) {
+        setLimitOpen(true);
+        showBorrowLimitModal(); 
+        return;
+      }
+      if (err?.response?.status === 400 && err?.config?.url?.includes("/borrow/")) {
+         setLimitOpen(true);
+         showBorrowLimitModal();
+         return;
+      }
+      message.error(backendMsg || t("search.borrowFailed"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderModals = () => (
+    <>
+      {/* Book Detail Modal */}
+      <Modal
+        open={visible}
+        title={selectedBook?.title || t("common.unknown")}
+        onCancel={() => setVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setVisible(false)}>
+            {t("common.close")}
+          </Button>,
+          <Button 
+            key="borrow" 
+            type="primary" 
+            onClick={() => handleBorrow(selectedBook)}
+            disabled={selectedBook?.stock <= 0 || loading}
+            loading={loading}
+          >
+            {selectedBook?.stock > 0 ? t("search.borrowBtn") : t("search.outOfStock")}
+          </Button>
+        ]}
+        centered
+      >
+        {selectedBook && (
+          <div style={{ display: "flex", gap: "16px" }}>
+            <div style={{ width: "100px", flexShrink: 0 }}>
+              <img 
+                src={selectedBook.cover} 
+                alt={selectedBook.title}
+                style={{ width: "100%", borderRadius: "4px", objectFit: "cover" }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src="https://via.placeholder.com/100x150?text=No+Cover";
+                }}
+              />
+            </div>
+            <div>
+              <p><strong>{t("bookDetail.author")}:</strong> {selectedBook.author}</p>
+              <p><strong>{t("bookDetail.category")}:</strong> {selectedBook.category}</p>
+              <p><strong>{t("bookDetail.inStock")}:</strong> {selectedBook.stock}</p>
+              <p style={{ marginTop: 8, color: "#666" }}>{selectedBook.description || t("bookDetail.noDescription")}</p>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        open={!!successTitle}
+        title={t("search.success")}
+        onOk={() => setSuccessTitle("")}
+        onCancel={() => setSuccessTitle("")}
+        centered
+        footer={[
+          <Button key="ok" type="primary" onClick={() => setSuccessTitle("")}>
+            {t("common.confirm")}
+          </Button>
+        ]}
+      >
+        <p>{t("search.borrowSuccessMsg", { title: successTitle })}</p>
+      </Modal>
+
+      {/* Limit Modal */}
+      <Modal
+        open={limitOpen}
+        title={t("search.limitReached")}
+        onOk={() => setLimitOpen(false)}
+        onCancel={() => setLimitOpen(false)}
+        centered
+        footer={[
+          <Button key="ok" type="primary" onClick={() => setLimitOpen(false)}>
+            {t("common.confirm")}
+          </Button>
+        ]}
+      >
+        <p>{t("search.limitReachedMsg")}</p>
+      </Modal>
+    </>
+  );
+
 
   /* =========================================================
      🧱 渲染组件

@@ -13,7 +13,14 @@ import {
   Popconfirm,
   Row,
   Col,
+  Typography,
+  Grid,
+  List,
+  Tag
 } from "antd";
+
+const { Title } = Typography;
+const { useBreakpoint } = Grid;
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -25,6 +32,8 @@ import { useLanguage } from "../contexts/LanguageContext";
 
 function AdminBookPage() {
   const { t } = useLanguage();
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -196,20 +205,60 @@ function AdminBookPage() {
           </Col>
         </Row>
 
-        {/* 📋 表格 */}
-        <Table
-          rowKey="_id"
-          columns={columns}
-          dataSource={filteredBooks}
-          loading={loading}
-          bordered
-          scroll={{ x: 'max-content' }}
-          pagination={{
-            pageSize: 6,
-            showSizeChanger: false,
-            showTotal: (total) => `${t("admin.total")} ${total}`,
-          }}
-        />
+        {/* 📋 表格/列表 */}
+        {isMobile ? (
+          <List
+            loading={loading}
+            dataSource={filteredBooks}
+            pagination={{ pageSize: 6 }}
+            renderItem={(item) => (
+              <List.Item style={{ padding: 0, marginBottom: 16 }}>
+                <Card 
+                  hoverable
+                  style={{ width: '100%', borderRadius: 12 }}
+                  actions={[
+                    <Popconfirm
+                      title={t("admin.confirmDelete")}
+                      onConfirm={() => handleDelete(item._id)}
+                      okText={t("common.confirm")}
+                      cancelText={t("admin.cancel")}
+                    >
+                      <Button danger type="text" icon={<DeleteOutlined />}>{t("admin.delete")}</Button>
+                    </Popconfirm>
+                  ]}
+                >
+                  <Card.Meta
+                    title={<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                      <span style={{fontWeight: 'bold', fontSize: '16px', maxWidth: '70%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{item.title}</span>
+                      <Tag color={item.copies > 0 ? "green" : "red"}>{item.copies > 0 ? t("admin.inStock") : t("admin.outOfStock")}</Tag>
+                    </div>}
+                    description={
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{marginBottom: 4}}>👤 {t("admin.author")}: {item.author}</div>
+                        <div style={{marginBottom: 4}}>🏷️ {t("admin.category")}: {item.category}</div>
+                        <div>📦 {t("admin.stock")}: <span style={{color: item.copies > 0 ? 'green' : 'red', fontWeight: 'bold'}}>{item.copies}</span></div>
+                      </div>
+                    }
+                  />
+                </Card>
+              </List.Item>
+            )}
+          />
+        ) : (
+          <Table
+            rowKey="_id"
+            columns={columns}
+            dataSource={filteredBooks}
+            loading={loading}
+            bordered
+            scroll={{ x: 'max-content' }}
+            pagination={{
+              pageSize: 6,
+              showSizeChanger: false,
+              showTotal: (total) => `${t("admin.total")} ${total}`,
+            }}
+          />
+        )}
       </Card>
 
       {/* ➕ 添加书籍弹窗 */}

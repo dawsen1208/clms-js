@@ -11,7 +11,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 const { Title, Paragraph } = Typography;
 // const { useBreakpoint } = Grid; // ❌ Moved inside
 
-function HomePage({ setCurrentPage }) {
+function HomePage() {
   const { t } = useLanguage();
   const navigate = useNavigate(); // ✅ Added
   const { useBreakpoint } = Grid; // ✅ Moved here
@@ -98,7 +98,7 @@ function HomePage({ setCurrentPage }) {
         <div style={{ marginBottom: '32px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <Title level={5} style={{ margin: 0, fontSize: '18px' }}>{t("titles.popularToday")}</Title>
-            <Button type="link" size="small" onClick={() => setCurrentPage('search')} style={{ color: '#3b82f6' }}>{t("common.viewAll")}</Button>
+            <Button type="link" size="small" onClick={() => navigate('/search')} style={{ color: '#3b82f6' }}>{t("common.viewAll")}</Button>
           </div>
           
           {loading ? (

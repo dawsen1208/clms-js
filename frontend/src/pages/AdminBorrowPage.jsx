@@ -16,6 +16,8 @@ import {
   Statistic,
   Divider,
   Empty,
+  Grid,
+  List
 } from "antd";
 import "./AdminBorrowPage.css";
 import { theme, themeUtils } from "../styles/theme";
@@ -26,6 +28,7 @@ import {
   ExclamationCircleOutlined,
   SearchOutlined,
   ClockCircleOutlined,
+  BookOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
@@ -36,6 +39,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 
 const { Option } = Select;
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid;
 
 const STATUS_INFO = {
   approved: { color: "green", icon: <CheckCircleOutlined /> },
@@ -81,6 +85,8 @@ function AdminBorrowPage() {
 
   // ✅ v5 推荐写法：使用 useModal
   const [modal, contextHolder] = Modal.useModal();
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
 
   const stats = useMemo(() => {
     const total = requests.length;
@@ -571,20 +577,90 @@ function AdminBorrowPage() {
 
         <Divider style={{ margin: "12px 0" }} />
 
-        <Table
-          rowKey="_id"
-          columns={columns}
-          dataSource={filtered}
-          loading={loading}
-          scroll={{ x: 900 }}
-          pagination={{
-            pageSize: 8,
-            showTotal: (total) => `${t("admin.total")} ${total}`,
-          }}
-          size="middle"
-          rowClassName={(record) => (record.status === "pending" ? "row-pending" : "")}
-          locale={{ emptyText: <Empty description="No matching requests" /> }}
-        />
+        {isMobile ? (
+          <List
+            loading={loading}
+            dataSource={filtered}
+            pagination={{ pageSize: 8 }}
+            renderItem={(item) => (
+              <List.Item style={{ padding: 0, marginBottom: 16 }}>
+                <Card
+                  hoverable
+                  style={{ width: "100%", borderRadius: 12 }}
+                  actions={[
+                    <Button
+                      type="text"
+                      icon={<CheckCircleOutlined />}
+                      style={{ color: "green" }}
+                      onClick={() => handleApprove(item)}
+                      disabled={item.status !== "pending"}
+                    >
+                      {t("admin.approve")}
+                    </Button>,
+                    <Button
+                      type="text"
+                      danger
+                      icon={<CloseCircleOutlined />}
+                      onClick={() => handleReject(item)}
+                      disabled={item.status !== "pending"}
+                    >
+                      {t("admin.reject")}
+                    </Button>
+                  ]}
+                >
+                  <Card.Meta
+                    title={
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontWeight: "bold", fontSize: "16px", maxWidth: "70%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {item.bookTitle}
+                        </span>
+                        {renderStatusTag(item.status)}
+                      </div>
+                    }
+                    description={
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ marginBottom: 4 }}>
+                          👤 {t("admin.username")}: {item.userName}
+                        </div>
+                        <div style={{ marginBottom: 4 }}>
+                          📌 {t("admin.type")}:{" "}
+                          {item.type === "renew" ? (
+                            <Tag color="blue">{t("admin.renew")}</Tag>
+                          ) : (
+                            <Tag color="purple">{t("admin.return")}</Tag>
+                          )}
+                        </div>
+                        <div style={{ marginBottom: 4 }}>
+                          🕒 {t("admin.requestedAt")}: {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
+                        </div>
+                        {(item.status === "rejected" || item.status === "invalid") && (
+                          <div style={{ marginBottom: 4 }}>
+                            ❓ {t("admin.reason")}: {item.reason || t("admin.noReason")}
+                          </div>
+                        )}
+                      </div>
+                    }
+                  />
+                </Card>
+              </List.Item>
+            )}
+          />
+        ) : (
+          <Table
+            rowKey="_id"
+            columns={columns}
+            dataSource={filtered}
+            loading={loading}
+            scroll={{ x: 900 }}
+            pagination={{
+              pageSize: 8,
+              showTotal: (total) => `${t("admin.total")} ${total}`,
+            }}
+            size="middle"
+            rowClassName={(record) => (record.status === "pending" ? "row-pending" : "")}
+            locale={{ emptyText: <Empty description="No matching requests" /> }}
+          />
+        )}
       </Card>
     </div>
   );

@@ -31,11 +31,10 @@ import {
 } from "../api.js"; // ✅ 统一使用 /library 路由
 import { useLanguage } from "../contexts/LanguageContext"; // ✅ Import Hook
 
-const { useBreakpoint } = Grid;
-
 function BorrowPage() {
   const { t } = useLanguage(); // ✅ Use Hook
   const { Title, Text } = Typography;
+  const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const [borrowed, setBorrowed] = useState([]);

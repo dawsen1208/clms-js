@@ -1,39 +1,36 @@
 // ✅ client/src/main.jsx
 import React, { useState, useEffect } from "react";
-// import { unstableSetRender } from 'antd'; // ❌ Removed unstable API
 import { createRoot } from 'react-dom/client';
-import { LanguageProvider, useLanguage } from "./contexts/LanguageContext"; // ✅ Language Context
-
-// unstableSetRender((node, container) => { ... }); // ❌ Removed
+import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 
 import ReactDOM from "react-dom/client";
 import "antd/dist/reset.css";
 import "./assets/responsive.css";
-import "./styles/mobile.css"; // ✅ Mobile-first styles
-import "./styles/global.css"; // ✅ Global modern styles
+import "./styles/mobile.css";
+import "./styles/global.css";
 import { ConfigProvider, message, Grid, theme as antdTheme } from "antd";
 import enUS from "antd/locale/en_US";
 import zhCN from "antd/locale/zh_CN";
-// import { registerSW } from 'virtual:pwa-register';
 import {
   BrowserRouter,
   Routes,
   Route,
   Navigate,
   useNavigate,
+  useLocation
 } from "react-router-dom";
 
-// ✅ 全局组件
+// ✅ Global Components
 import LayoutMenu from "./components/LayoutMenu";
 import AdminMenu from "./components/AdminMenu";
 import SettingsPage from "./pages/SettingsPage";
 
-// ✅ 登录 / 注册页（恢复原有独立页面结构）
+// ✅ Auth Pages
 import LoginPage from "./pages/LoginPage";
 import RegisterReader from "./pages/RegisterReader";
 import RegisterAdmin from "./pages/RegisterAdmin";
 
-// ✅ 普通用户功能页
+// ✅ User Pages
 import HomePage from "./pages/HomePage";
 import SearchPage from "./pages/SearchPage";
 import BorrowPage from "./pages/BorrowPage";
@@ -42,39 +39,59 @@ import ProfilePage from "./pages/ProfilePage";
 import SmartAssistant from "./pages/SmartAssistant";
 import BookDetail from "./pages/BookDetail";
 
-// ✅ 管理员功能页
+// ✅ Admin Pages
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminBookPage from "./pages/AdminBookPage";
+import AdminBorrowPage from "./pages/AdminBorrowPage";
+import AdminBorrowHistory from "./pages/AdminBorrowHistory";
+import AdminUserManagePage from "./pages/AdminUserManagePage";
+import AdminProfilePage from "./pages/AdminProfilePage";
+import AdminSettingsPage from "./pages/AdminSettingsPage";
 
 console.log("✅ main.jsx loaded");
 
-// 已移除弃用的 Modal.config，统一在具体 Modal 使用处设置属性
+// 🚫 强制注销 Service Worker 并清除缓存
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (let registration of registrations) {
+      registration.unregister();
+      console.log('SW unregistered:', registration);
+    }
+  });
+  // 尝试清除缓存 (Optional, careful with this in production if you rely on it for other things, but requested by user)
+  if ('caches' in window) {
+    caches.keys().then((names) => {
+      for (let name of names) {
+        caches.delete(name);
+        console.log('Cache deleted:', name);
+      }
+    });
+  }
+}
 
-/* =========================================================
-   🔒 登录保护组件：无 Token 自动跳转登录页
-   ========================================================= */
+// 🏗️ 显示构建信息
+if (typeof __BUILD_INFO__ !== 'undefined') {
+  console.log(
+    `%c Build Info %c ${__BUILD_INFO__.time} | v${__BUILD_INFO__.version} `,
+    'background:#35495e ; padding: 1px; border-radius: 3px 0 0 3px;  color: #fff',
+    'background:#41b883 ; padding: 1px; border-radius: 0 3px 3px 0;  color: #fff'
+  );
+}
+
 const PrivateRoute = ({ children }) => {
-  const token =
-    sessionStorage.getItem("token") || localStorage.getItem("token");
+  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
   return token ? children : <Navigate to="/login" replace />;
 };
 
-/* =========================================================
-   🌍 主应用组件
-   ========================================================= */
 function App() {
-  const { language } = useLanguage(); // ✅ Get current language
-  // ✅ 登录状态
+  const { language } = useLanguage();
   const [token, setToken] = useState(
     sessionStorage.getItem("token") || localStorage.getItem("token")
   );
   const [user, setUser] = useState(
-    JSON.parse(
-      sessionStorage.getItem("user") ||
-        localStorage.getItem("user") ||
-        "{}"
-    )
+    JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}")
   );
-  const [currentPage, setCurrentPage] = useState("home");
+
   const [appearance, setAppearance] = useState(() => {
     try {
       const saved = localStorage.getItem("appearance_prefs");
@@ -122,10 +139,8 @@ function App() {
     colorBgContainer: isDark ? '#141414' : '#FFFFFF',
     colorBgLayout: isDark ? '#0b0b0b' : '#F5F7FA',
     colorBorder: appearance.highContrast ? (isDark ? '#ffffff' : '#000000') : '#E5EAF2',
-
     borderRadius: 12,
     boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-
     controlHeight: isMobile ? 32 : 36,
     controlPaddingHorizontal: isMobile ? 10 : 12,
     paddingXS: isMobile ? 6 : 8,
@@ -139,11 +154,7 @@ function App() {
 
   const locale = language === 'zh' ? zhCN : enUS;
 
-  /* =========================================================
-     ✅ 登录逻辑（由 LoginPage 回调触发）
-     ========================================================= */
   const handleLogin = (newToken, newUser) => {
-    // ✅ 存储登录状态（sessionStorage 优先）
     sessionStorage.setItem("token", newToken);
     sessionStorage.setItem("user", JSON.stringify(newUser));
     localStorage.setItem("token", newToken);
@@ -153,7 +164,6 @@ function App() {
     setUser(newUser);
     message.success("Login successful! 🎉");
 
-    // ✅ 跳转不同主页
     if (newUser.role === "Administrator") {
       navigate("/admin/dashboard");
     } else {
@@ -161,9 +171,6 @@ function App() {
     }
   };
 
-  /* =========================================================
-     🚪 登出逻辑（彻底清空所有存储）
-     ========================================================= */
   const handleLogout = () => {
     sessionStorage.clear();
     localStorage.removeItem("token");
@@ -175,137 +182,71 @@ function App() {
     message.info("You have logged out safely.");
   };
 
-  /* =========================================================
-     📖 普通读者页面导航逻辑
-     ========================================================= */
-  const renderReaderPage = () => {
-    switch (currentPage) {
-      case "home":
-        return <HomePage setCurrentPage={setCurrentPage} />;
-      case "search":
-        return <SearchPage />;
-      case "borrow":
-        return <BorrowPage />;
-      case "return":
-        return <ReturnPage />;
-      case "profile":
-        return <ProfilePage user={user} />;
-      case "assistant":
-        return <SmartAssistant />;
-      case "settings":
-        return <SettingsPage appearance={appearance} onChange={setAppearance} user={user} />;
-      default:
-        return <HomePage setCurrentPage={setCurrentPage} />;
-    }
-  };
+  // ✅ Layout Wrappers
+  const UserLayoutWrapper = ({ children }) => (
+    <PrivateRoute>
+      <LayoutMenu onLogout={handleLogout}>
+        {children}
+      </LayoutMenu>
+    </PrivateRoute>
+  );
 
-  /* =========================================================
-     🧱 路由结构
-     ========================================================= */
+  const AdminLayoutWrapper = ({ children }) => (
+    <PrivateRoute>
+      <AdminMenu onLogout={handleLogout}>
+        {children}
+      </AdminMenu>
+    </PrivateRoute>
+  );
+
   return (
     <LanguageProvider>
       <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={enUS} theme={{ token: themeTokens, algorithm }}>
         <Routes>
-        {/* 🧾 登录 / 注册页（旧结构恢复） */}
-        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-        <Route path="/register" element={<RegisterReader />} />
-        <Route path="/register-admin" element={<RegisterAdmin />} />
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/register" element={<RegisterReader />} />
+          <Route path="/register-admin" element={<RegisterAdmin />} />
 
-        {/* 📚 读者端受保护页面 */}
-        <Route
-          path="/home"
-          element={
-            <PrivateRoute>
-              <LayoutMenu
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                onLogout={handleLogout}
-              >
-                {renderReaderPage()}
-              </LayoutMenu>
-            </PrivateRoute>
-          }
-        />
+          {/* ✅ User Routes */}
+          <Route path="/home" element={<UserLayoutWrapper><HomePage /></UserLayoutWrapper>} />
+          <Route path="/search" element={<UserLayoutWrapper><SearchPage /></UserLayoutWrapper>} />
+          <Route path="/borrow" element={<UserLayoutWrapper><BorrowPage /></UserLayoutWrapper>} />
+          <Route path="/return" element={<UserLayoutWrapper><ReturnPage /></UserLayoutWrapper>} />
+          <Route path="/profile" element={<UserLayoutWrapper><ProfilePage user={user} /></UserLayoutWrapper>} />
+          <Route path="/assistant" element={<UserLayoutWrapper><SmartAssistant /></UserLayoutWrapper>} />
+          <Route path="/settings" element={<UserLayoutWrapper><SettingsPage appearance={appearance} onChange={setAppearance} user={user} /></UserLayoutWrapper>} />
+          <Route path="/book/:id" element={<UserLayoutWrapper><BookDetail /></UserLayoutWrapper>} />
 
-        {/* 🤖 智能助手页 */}
-        <Route
-          path="/assistant"
-          element={
-            <PrivateRoute>
-              <LayoutMenu
-                currentPage="assistant"
-                setCurrentPage={setCurrentPage}
-                onLogout={handleLogout}
-              >
-                <SmartAssistant />
-              </LayoutMenu>
-            </PrivateRoute>
-          }
-        />
+          {/* ✅ Admin Routes */}
+          <Route path="/admin/dashboard" element={<AdminLayoutWrapper><AdminDashboard /></AdminLayoutWrapper>} />
+          <Route path="/admin/books" element={<AdminLayoutWrapper><AdminBookPage /></AdminLayoutWrapper>} />
+          <Route path="/admin/borrow" element={<AdminLayoutWrapper><AdminBorrowPage /></AdminLayoutWrapper>} />
+          <Route path="/admin/history" element={<AdminLayoutWrapper><AdminBorrowHistory /></AdminLayoutWrapper>} />
+          <Route path="/admin/users" element={<AdminLayoutWrapper><AdminUserManagePage /></AdminLayoutWrapper>} />
+          <Route path="/admin/profile" element={<AdminLayoutWrapper><AdminProfilePage /></AdminLayoutWrapper>} />
+          <Route path="/admin/settings" element={<AdminLayoutWrapper><AdminSettingsPage /></AdminLayoutWrapper>} />
 
-
-        {/* 📖 书籍详情页（读者端） */}
-        <Route
-          path="/book/:id"
-          element={
-            <PrivateRoute>
-              <LayoutMenu
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                onLogout={handleLogout}
-              >
-                <BookDetail />
-              </LayoutMenu>
-            </PrivateRoute>
-          }
-        />
-
-        {/* 🧑‍💼 管理员控制台 */}
-        <Route
-          path="/admin/dashboard"
-          element={
-            <PrivateRoute>
-              <AdminMenu onLogout={handleLogout}>
-                <AdminDashboard />
-              </AdminMenu>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/admin/settings"
-          element={
-            <PrivateRoute>
-              <AdminMenu onLogout={handleLogout}>
-                <SettingsPage appearance={appearance} onChange={setAppearance} user={user} />
-              </AdminMenu>
-            </PrivateRoute>
-          }
-        />
-
-        {/* 🚀 默认路由 */}
-        <Route
-          path="*"
-          element={
-            token ? (
-              user?.role === "Administrator" ? (
-                <Navigate to="/admin/dashboard" replace />
+          {/* ✅ Default Route */}
+          <Route
+            path="*"
+            element={
+              token ? (
+                user?.role === "Administrator" ? (
+                  <Navigate to="/admin/dashboard" replace />
+                ) : (
+                  <Navigate to="/home" replace />
+                )
               ) : (
-                <Navigate to="/home" replace />
+                <Navigate to="/login" replace />
               )
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
+            }
+          />
         </Routes>
       </ConfigProvider>
     </LanguageProvider>
   );
 }
 
-/* =========================================================
-   🛡️ Global Error Boundary for Mobile Debugging
-   ========================================================= */
 class GlobalErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -337,9 +278,6 @@ class GlobalErrorBoundary extends React.Component {
   }
 }
 
-/* =========================================================
-   🚀 启动 React 应用渲染
-   ========================================================= */
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <GlobalErrorBoundary>
@@ -351,8 +289,3 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     </GlobalErrorBoundary>
   </React.StrictMode>
 );
-
-// ✅ 注册 Service Worker（仅生产环境，避免开发时缓存导致空白页）
-// if (import.meta.env.PROD) {
-//   registerSW({ immediate: true });
-// }

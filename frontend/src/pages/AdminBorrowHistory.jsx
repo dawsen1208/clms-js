@@ -14,8 +14,10 @@ import {
   Statistic,
   Empty,
   Segmented,
+  Grid,
+  List
 } from "antd";
-import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
+import { SearchOutlined, ReloadOutlined, UserOutlined, BookOutlined } from "@ant-design/icons";
 import { getBorrowHistoryAllLibrary } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import dayjs from "dayjs";
@@ -23,9 +25,12 @@ import "./AdminBorrowHistory.css";
 
 const { RangePicker } = DatePicker;
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid;
 
 function AdminBorrowHistory() {
   const { t } = useLanguage();
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [records, setRecords] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -218,16 +223,69 @@ function AdminBorrowHistory() {
           </Space>
         </Space>
 
-        <Table
-          columns={columns}
-          dataSource={filtered}
-          loading={loading}
-          rowKey="_id"
-          pagination={{ pageSize: 6, showTotal: (total) => `${t("admin.totalRecords")} ${total} ${t("admin.recordsSuffix")}` }}
-          locale={{ emptyText: <Empty description={t("admin.noRecords")} /> }}
-          size="middle"
-          scroll={{ x: 800 }}
-        />
+        {isMobile ? (
+          <List
+            dataSource={filtered}
+            loading={loading}
+            pagination={{ pageSize: 6 }}
+            renderItem={(item) => (
+              <List.Item style={{ padding: 0, marginBottom: 16 }}>
+                <Card
+                  hoverable
+                  style={{ width: "100%", borderRadius: 12 }}
+                >
+                  <Card.Meta
+                    title={
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontWeight: "bold", fontSize: "16px", maxWidth: "70%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {item.bookTitle}
+                        </span>
+                        <Tag color={item.returned ? "green" : "red"}>
+                          {item.returned ? t("admin.returnedYes") : t("admin.returnedNo")}
+                        </Tag>
+                      </div>
+                    }
+                    description={
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ marginBottom: 4 }}>
+                          👤 {t("admin.borrower")}: {item.userName}
+                        </div>
+                        <div style={{ marginBottom: 4 }}>
+                          📅 {t("admin.borrowDate")}: {dayjs(item.borrowDate).format("YYYY-MM-DD")}
+                        </div>
+                        <div style={{ marginBottom: 4 }}>
+                          🛑 {t("admin.dueDate")}: {dayjs(item.dueDate).format("YYYY-MM-DD")}
+                        </div>
+                        {item.returned && (
+                          <div style={{ marginBottom: 4 }}>
+                            ✅ {t("admin.returnDate")}: {dayjs(item.returnDate).format("YYYY-MM-DD")}
+                          </div>
+                        )}
+                        <div style={{ marginBottom: 4 }}>
+                          🔄 {t("admin.renewed")}:{" "}
+                          <Tag color={item.renewed ? "blue" : "default"}>
+                            {item.renewed ? t("admin.yes") : t("admin.no")}
+                          </Tag>
+                        </div>
+                      </div>
+                    }
+                  />
+                </Card>
+              </List.Item>
+            )}
+          />
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={filtered}
+            loading={loading}
+            rowKey="_id"
+            pagination={{ pageSize: 6, showTotal: (total) => `${t("admin.totalRecords")} ${total} ${t("admin.recordsSuffix")}` }}
+            locale={{ emptyText: <Empty description={t("admin.noRecords")} /> }}
+            size="middle"
+            scroll={{ x: 800 }}
+          />
+        )}
       </Card>
     </div>
   );

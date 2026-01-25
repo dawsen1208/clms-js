@@ -23,12 +23,12 @@ import { getBorrowHistory, getReviewReminders, getUserRequestsLibrary } from "..
 import "./GlobalNotifier.css";
 
 const { Text } = Typography;
-const { useBreakpoint } = Grid;
 
 /**
  * 🔔 用户端全局通知系统（Drawer + 实时提醒 + 详情弹窗）
  */
 function GlobalNotifier() {
+  const { useBreakpoint } = Grid; // ✅ Moved inside component
   const notifPrefs = (() => {
     try {
       const raw = localStorage.getItem("notification_prefs");

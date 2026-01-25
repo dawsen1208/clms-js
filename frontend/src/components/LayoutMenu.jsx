@@ -72,22 +72,36 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
   const handleMenuClick = (e) => {
     if (isMobile) setMobileMenuOpen(false);
     if (e.key === "logout") {
-      // ✅ 触发同步登出广播
       localStorage.setItem("logout_event", Date.now());
       onLogout();
     } else {
-      setCurrentPage(e.key);
-      // ✅ 在详情页等子路由中点击菜单时，跳转到对应的页面路由
-      if (e.key === "assistant") {
-        navigate("/assistant");
-      } else {
-        // 仅当不在 /home 时才跳转，避免重复渲染导致的状态丢失
-        if (location.pathname !== "/home") {
-          navigate("/home");
-        }
+      // ✅ 使用 React Router 导航
+      switch (e.key) {
+        case "home": navigate("/home"); break;
+        case "search": navigate("/search"); break;
+        case "borrow": navigate("/borrow"); break;
+        case "return": navigate("/return"); break;
+        case "profile": navigate("/profile"); break;
+        case "assistant": navigate("/assistant"); break;
+        case "settings": navigate("/settings"); break;
+        default: navigate("/home");
       }
     }
   };
+
+  const getSelectedKey = () => {
+    const path = location.pathname;
+    if (path.includes("/home")) return "home";
+    if (path.includes("/search")) return "search";
+    if (path.includes("/borrow")) return "borrow";
+    if (path.includes("/return")) return "return";
+    if (path.includes("/profile")) return "profile";
+    if (path.includes("/assistant")) return "assistant";
+    if (path.includes("/settings")) return "settings";
+    return "home";
+  };
+  
+  const currentKey = getSelectedKey();
 
   /* =========================================================
      🧱 渲染组件结构
@@ -96,51 +110,36 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
   const MobileBottomNav = () => (
     <div className="mobile-bottom-nav">
       <div 
-        className={`mobile-nav-item ${currentPage === 'home' ? 'active' : ''}`}
-        onClick={() => { 
-          setCurrentPage('home'); 
-          if (location.pathname !== "/home") navigate('/home'); 
-        }}
+        className={`mobile-nav-item ${currentKey === 'home' ? 'active' : ''}`}
+        onClick={() => navigate('/home')}
       >
         <HomeOutlined className="nav-icon" />
         <span className="nav-label">{t("common.home")}</span>
       </div>
       <div 
-        className={`mobile-nav-item ${currentPage === 'search' ? 'active' : ''}`}
-        onClick={() => { 
-          setCurrentPage('search'); 
-          if (location.pathname !== "/home") navigate('/home'); 
-        }}
+        className={`mobile-nav-item ${currentKey === 'search' ? 'active' : ''}`}
+        onClick={() => navigate('/search')}
       >
         <SearchOutlined className="nav-icon" />
         <span className="nav-label">{t("common.search")}</span>
       </div>
       <div 
-        className={`mobile-nav-item ${currentPage === 'borrow' ? 'active' : ''}`}
-        onClick={() => { 
-          setCurrentPage('borrow'); 
-          if (location.pathname !== "/home") navigate('/home'); 
-        }}
+        className={`mobile-nav-item ${currentKey === 'borrow' ? 'active' : ''}`}
+        onClick={() => navigate('/borrow')}
       >
         <BookOutlined className="nav-icon" />
         <span className="nav-label">{t("common.myBooks")}</span>
       </div>
       <div 
-        className={`mobile-nav-item ${currentPage === 'profile' ? 'active' : ''}`}
-        onClick={() => { 
-          setCurrentPage('profile'); 
-          if (location.pathname !== "/home") navigate('/home'); 
-        }}
+        className={`mobile-nav-item ${currentKey === 'profile' ? 'active' : ''}`}
+        onClick={() => navigate('/profile')}
       >
         <UserOutlined className="nav-icon" />
         <span className="nav-label">{t("common.profile")}</span>
       </div>
       <div 
-        className={`mobile-nav-item ${currentPage === 'settings' ? 'active' : ''}`}
-        onClick={() => { 
-          setCurrentPage('settings'); 
-          if (location.pathname !== "/home") navigate('/home'); 
-        }}
+        className={`mobile-nav-item ${currentKey === 'settings' ? 'active' : ''}`}
+        onClick={() => navigate('/settings')}
       >
         <SettingOutlined className="nav-icon" />
         <span className="nav-label">{t("common.settings")}</span>
@@ -194,11 +193,11 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
           <Menu
             theme="dark"
             mode="inline"
-            selectedKeys={[currentPage]}
+            selectedKeys={[currentKey]}
             onClick={handleMenuClick}
             items={[
               { key: "home", icon: <HomeOutlined />, label: t("common.home") },
-              { key: "assistant", icon: <RobotOutlined />, label: t("common.smartRec") }, // Using smartRec as proxy for Assistant or add new key. "Smart Assistant" isn't in translations yet.
+              { key: "assistant", icon: <RobotOutlined />, label: t("common.smartRec") }, 
               { key: "search", icon: <SearchOutlined />, label: t("common.search") },
               { key: "borrow", icon: <BookOutlined />, label: t("common.borrowManage") },
               { key: "return", icon: <RollbackOutlined />, label: t("common.returnSystem") },
@@ -278,7 +277,9 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
           marginLeft: isMobile ? 0 : (collapsed ? 80 : 200),
           transition: "margin-left 0.3s ease",
           minHeight: "100vh",
-          paddingBottom: isMobile ? "80px" : 0, // 📱 Prevent content from being hidden by bottom nav
+          // 📱 Mobile: Layout becomes a fixed container to allow independent content scrolling
+          height: isMobile ? "100vh" : "auto",
+          overflow: isMobile ? "hidden" : "visible",
         }}
       >
         {/* ✅ Top Navigation Bar (Mobile & Desktop) */}
@@ -292,9 +293,12 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
             boxShadow: isMobile ? "none" : "0 2px 8px rgba(0,0,0,0.06)", // 📱 Cleaner mobile header
             borderBottom: isMobile ? "1px solid #f0f0f0" : "none",
             height: 64,
-            position: "sticky",
+            // 📱 On mobile, Header is part of the fixed flex layout, so sticky is not needed (it stays at top)
+            // On desktop, we keep sticky
+            position: isMobile ? "relative" : "sticky",
             top: 0,
             zIndex: 100,
+            flexShrink: 0, // Prevent header from shrinking
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -325,12 +329,20 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
 
         {/* Main content area */}
         <Content
+          id="page-content" // ✅ Identify as scroll container
           style={{
             padding: isMobile ? "0" : "24px", // Remove padding on mobile to allow full width
             background: "#f0f2f5",
-            minHeight: "calc(100vh - 64px)",
+            // 📱 Mobile: Independent scroll container
+            height: isMobile ? "calc(100vh - 64px)" : "calc(100vh - 64px)", 
+            overflowY: isMobile ? "auto" : "visible",
+            overflowX: "hidden",
             transition: "all 0.3s ease",
-            overflowX: "hidden"
+            // 📱 Mobile: Add bottom padding for TabBar + Safe Area
+            paddingBottom: isMobile ? "calc(72px + env(safe-area-inset-bottom))" : 0,
+            // 📱 Mobile: Ensure smooth scrolling and snap points work
+            scrollPaddingBottom: isMobile ? "calc(72px + env(safe-area-inset-bottom))" : 0,
+            WebkitOverflowScrolling: "touch", // Smooth scroll on iOS
           }}
         >
           <div className={isMobile ? "" : "page-container"}>
@@ -346,6 +358,8 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
               ⚠️ {t("error.pageLoad")}
             </div>
           )}
+          {/* 📱 Mobile: Optional Spacer as a backup */}
+          {isMobile && <div style={{ height: "1px" }} />}
           </div>
         </Content>
 

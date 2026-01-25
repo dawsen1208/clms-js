@@ -1,7 +1,6 @@
 // ✅ vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 
 // ============================================================
 // 🌐 改进说明：
@@ -10,12 +9,33 @@ import { VitePWA } from 'vite-plugin-pwa'
 // - 保留你的原始结构与风格
 // ============================================================
 
+// 获取当前构建时间
+const buildTime = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+const buildVersion = process.env.npm_package_version || '1.3.1';
+
 export default defineConfig({
   base: '/', // ✅ 确保绝对路径，避免嵌套路由（如 /books/:id）刷新后资源 404
   plugins: [
     react(),
-    // VitePWA({ ... }) // 暂时注释掉 PWA 以排除缓存干扰
   ],
+  define: {
+    // 注入构建信息
+    '__BUILD_INFO__': JSON.stringify({
+      time: buildTime,
+      version: buildVersion,
+      commit: 'latest' // 如果有 git 可以尝试注入 git hash，这里先用 latest
+    })
+  },
+  build: {
+    // 确保构建产物文件名带有 hash，防止缓存
+    rollupOptions: {
+      output: {
+        entryFileNames: `assets/[name].[hash].js`,
+        chunkFileNames: `assets/[name].[hash].js`,
+        assetFileNames: `assets/[name].[hash].[ext]`
+      }
+    }
+  },
 
   server: {
     host: '0.0.0.0',  // ✅ 允许局域网访问

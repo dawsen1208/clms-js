@@ -1,12 +1,13 @@
 // ✅ client/src/pages/ProfilePage.jsx
 import { useEffect, useState, useMemo } from "react";
 import { Card, message, Spin, Typography, Statistic, Tag, Avatar, Upload, Button, Input, Space, Descriptions, Table, Pagination, Modal } from "antd";
-import { UserOutlined, CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined, UploadOutlined, SaveOutlined } from "@ant-design/icons";
+import { UserOutlined, CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined, UploadOutlined, SaveOutlined, LogoutOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "./ProfilePage.css";
 import { theme, themeUtils } from "../styles/theme";
 import { Grid } from "antd";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
 import {
   getProfile,
   updateProfile,
@@ -19,11 +20,11 @@ import ProfileStats from "../components/Profile/ProfileStats";
 import ProfileInfo from "../components/Profile/ProfileInfo";
 import ProfileTabs from "../components/Profile/ProfileTabs";
 
-const { useBreakpoint } = Grid;
-
 function ProfilePage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const { Title, Text } = Typography;
+  const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const [loading, setLoading] = useState(false);
@@ -67,6 +68,14 @@ function ProfilePage() {
     const pending = requests.filter((r) => r.status === "pending").length;
     return { totalHistory, returned, renewed, pending };
   }, [history, requests]);
+
+  const handleLogout = () => {
+    sessionStorage.clear();
+    localStorage.clear();
+    localStorage.setItem("logout_event", Date.now());
+    message.success(t("common.logoutSuccess") || "Logged out successfully");
+    navigate("/login");
+  };
 
   /* =========================================================
      👤 获取用户信息
@@ -420,6 +429,17 @@ function ProfilePage() {
               <span style={{ color: "#cbd5e1" }}>&gt;</span>
            </div>
         </div>
+
+        <Button 
+            type="primary" 
+            danger 
+            icon={<LogoutOutlined />} 
+            onClick={handleLogout} 
+            style={{ marginTop: '20px', height: '48px', fontSize: '16px', borderRadius: '12px', fontWeight: 'bold' }} 
+            block
+        >
+            {t("common.logout") || "Logout"}
+        </Button>
 
         {/* Modals (Mobile Optimized) */}
         <Modal

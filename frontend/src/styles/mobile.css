@@ -1,53 +1,49 @@
-/* 📱 Global Mobile Styles - Low Density Mode */
+/* 📱 Mobile Specific Styles */
+
 @media (max-width: 768px) {
-  /* 1. 强制全宽与重置容器 */
-  html, body, #root {
-    overflow-x: hidden;
-    width: 100%;
-    min-height: 100vh; /* ✅ Prevent height collapse */
+  /* Global scroll padding for mobile to ensure anchors don't hide behind bottom nav */
+  html, body {
+    scroll-padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+  
+  /* 1. Typography Adjustments */
+  h1 { font-size: 24px !important; }
+  h2 { font-size: 20px !important; }
+  h3 { font-size: 18px !important; }
+  h4 { font-size: 16px !important; }
+  
+  .ant-typography {
+    font-size: 14px !important;
   }
 
-  .ant-layout, .ant-layout-content, .site-layout, .page-container {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important; /* 让内部元素决定 padding */
-  }
-
-  /* 消除侧边栏影响 */
-  .ant-layout-sider {
-    display: none !important;
-    width: 0 !important;
-    min-width: 0 !important;
-    max-width: 0 !important;
-    flex: 0 0 0 !important;
-  }
-
-  /* 2. 卡片样式重置 - 低密度模式 */
-  .ant-card, .mobile-card {
-    width: 100% !important;
-    margin-bottom: 16px !important;
-    border-radius: 16px !important; /* 圆角 14-18px */
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
-    border: none !important;
+  /* 2. Component Overrides */
+  .ant-card {
+    border-radius: 12px !important;
   }
   
   .ant-card-body {
-    padding: 20px !important; /* 内边距 16-20px */
+    padding: 16px !important;
   }
 
-  /* 3. 字体与行高 - 消除密集感 */
-  body, .ant-typography, div, span, p {
-    line-height: 1.6 !important;
+  .ant-table {
+    font-size: 12px !important;
   }
 
-  h1, h2, h3, h4, h5, .ant-typography-h1, .ant-typography-h2, .ant-typography-h3, .ant-typography-h4, .ant-typography-h5 {
-    line-height: 1.4 !important;
-    margin-bottom: 0.5em !important;
+  .ant-modal-body {
+    padding: 16px !important;
   }
 
-  /* 4. 文本截断与防重叠 */
+  /* 3. Layout Adjustments */
+  .page-container {
+    padding: 12px !important;
+  }
+
+  .ant-descriptions-item-label,
+  .ant-descriptions-item-content {
+    padding: 8px 12px !important;
+  }
+
+  /* 4. Utility Classes */
   .text-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -138,6 +134,8 @@
   z-index: 1000;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.03);
   padding-bottom: env(safe-area-inset-bottom, 0); /* iPhone X+ safe area */
+  /* Ensure it sits on top of content */
+  transform: translateZ(0); 
 }
 
 .mobile-nav-item {
@@ -192,4 +190,5 @@
   z-index: 100;
   display: flex;
   gap: 12px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
