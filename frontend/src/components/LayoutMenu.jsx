@@ -276,9 +276,9 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
         style={{
           marginLeft: isMobile ? 0 : (collapsed ? 80 : 200),
           transition: "margin-left 0.3s ease",
-          minHeight: "100vh",
+          minHeight: "100dvh",
           // 📱 Mobile: Layout becomes a fixed container to allow independent content scrolling
-          height: isMobile ? "100vh" : "auto",
+          height: isMobile ? "100dvh" : "auto",
           overflow: isMobile ? "hidden" : "visible",
         }}
       >
@@ -334,14 +334,15 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
             padding: isMobile ? "0" : "24px", // Remove padding on mobile to allow full width
             background: "#f0f2f5",
             // 📱 Mobile: Independent scroll container
-            height: isMobile ? "calc(100vh - 64px)" : "calc(100vh - 64px)", 
+            height: isMobile ? "calc(100dvh - 64px)" : "calc(100dvh - 64px)", 
             overflowY: isMobile ? "auto" : "visible",
             overflowX: "hidden",
             transition: "all 0.3s ease",
             // 📱 Mobile: Add bottom padding for TabBar + Safe Area
-            paddingBottom: isMobile ? "calc(72px + env(safe-area-inset-bottom))" : 0,
+            // 🔥 Increased padding to ensure content is not hidden behind floating browser bars or app tab bar
+            paddingBottom: isMobile ? "calc(130px + env(safe-area-inset-bottom))" : 0,
             // 📱 Mobile: Ensure smooth scrolling and snap points work
-            scrollPaddingBottom: isMobile ? "calc(72px + env(safe-area-inset-bottom))" : 0,
+            scrollPaddingBottom: isMobile ? "calc(130px + env(safe-area-inset-bottom))" : 0,
             WebkitOverflowScrolling: "touch", // Smooth scroll on iOS
           }}
         >
