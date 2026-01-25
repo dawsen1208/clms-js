@@ -17,6 +17,26 @@ import { useLanguage } from "../contexts/LanguageContext"; // ✅ Localization
 function PopularBanner() {
   const { useBreakpoint } = Grid; // ✅ Moved inside component
   const { t } = useLanguage();
+  const popularBooks = [
+    {
+      id: 1,
+      title: "Insightful Psychology",
+      borrows: 47,
+      cover: "https://m.media-amazon.com/images/I/713jIoMO3UL._AC_UY327_FMwebp_QL65_.jpg",
+    },
+    {
+      id: 2,
+      title: "Advanced Art",
+      borrows: 47,
+      cover: "https://m.media-amazon.com/images/I/51E2055ZGUL._AC_UY327_FMwebp_QL65_.jpg",
+    },
+    {
+      id: 3,
+      title: "Elegant Art",
+      borrows: 46,
+      cover: "https://m.media-amazon.com/images/I/81wgcld4wxL._AC_UY327_FMwebp_QL65_.jpg",
+    },
+  ];
   const [books, setBooks] = useState([]); // ✅ 动态热门书籍数据
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);

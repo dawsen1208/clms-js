@@ -14,6 +14,8 @@ const { Title, Paragraph } = Typography;
 function HomePage() {
   const { t } = useLanguage();
   const navigate = useNavigate(); // ✅ Added
+
+
   const { useBreakpoint } = Grid; // ✅ Moved here
   const [recommended, setRecommended] = useState([]);
   const [loading, setLoading] = useState(false);
