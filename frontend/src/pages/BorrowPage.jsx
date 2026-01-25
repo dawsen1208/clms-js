@@ -366,6 +366,7 @@ function BorrowPage() {
           centered
           destroyOnClose
           width="90%"
+          zIndex={2000} // ✅ Ensure it's above mobile bottom nav
         >
           <p style={{ marginBottom: 10 }}>
             {t("borrow.selectDate")}:
@@ -394,6 +395,7 @@ function BorrowPage() {
           cancelText={t("common.cancel")}
           centered
           destroyOnClose
+          zIndex={2000} // ✅ Ensure it's above mobile bottom nav
         >
           <p>{t("borrow.confirmReturnContent")}</p>
           {returnModal.record && (
