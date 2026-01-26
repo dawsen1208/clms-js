@@ -229,7 +229,7 @@ function App() {
           <Route path="/admin/history" element={<AdminLayoutWrapper><AdminBorrowHistory /></AdminLayoutWrapper>} />
           <Route path="/admin/users" element={<AdminLayoutWrapper><AdminUserManagePage /></AdminLayoutWrapper>} />
           <Route path="/admin/profile" element={<AdminLayoutWrapper><AdminProfilePage /></AdminLayoutWrapper>} />
-          <Route path="/admin/settings" element={<AdminLayoutWrapper><AdminSettingsPage /></AdminLayoutWrapper>} />
+          <Route path="/admin/settings" element={<AdminLayoutWrapper><AdminSettingsPage appearance={appearance} onChange={setAppearance} user={user} /></AdminLayoutWrapper>} />
 
           {/* ✅ Default Route */}
           <Route

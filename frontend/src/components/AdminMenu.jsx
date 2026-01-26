@@ -10,6 +10,7 @@ import {
   UserOutlined,
   LogoutOutlined,
   DashboardOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom"; // ✅ Added router hooks
 
@@ -112,16 +113,17 @@ function AdminMenu({ onLogout, children }) {
   // 📱 Mobile Bottom Navigation
   const MobileBottomNav = () => {
     const navItems = [
-      { key: "home", icon: <DashboardOutlined />, label: "Dashboard" },
-      { key: "book", icon: <BookOutlined />, label: "Books" },
-      { key: "borrow", icon: <DatabaseOutlined />, label: "Borrow" },
-      { key: "users", icon: <TeamOutlined />, label: "Users" },
-      { key: "profile", icon: <UserOutlined />, label: "Profile" },
+      { key: "home", icon: <DashboardOutlined />, label: t("admin.dashboard") },
+      { key: "book", icon: <BookOutlined />, label: t("admin.bookManage") },
+      { key: "borrow", icon: <DatabaseOutlined />, label: t("admin.borrowManage") },
+      { key: "users", icon: <TeamOutlined />, label: t("admin.userManage") },
+      { key: "profile", icon: <UserOutlined />, label: t("common.profile") },
+      { key: "settings", icon: <SettingOutlined />, label: t("common.settings") },
     ];
 
     // Filter items based on allowed permissions if set
     const filteredItems = allowed 
-      ? navItems.filter(item => allowed.includes(item.key) || item.key === 'home' || item.key === 'profile') 
+      ? navItems.filter(item => allowed.includes(item.key) || item.key === 'home' || item.key === 'profile' || item.key === 'settings') 
       : navItems;
 
     return (
@@ -170,7 +172,7 @@ function AdminMenu({ onLogout, children }) {
         <div className="sidebar-header">
           <div className="sidebar-logo">
             <DashboardOutlined className="sidebar-logo-icon" />
-            {!collapsed && <span>Library Admin</span>}
+            {!collapsed && <span>{t("bookDetail.libraryAdmin")}</span>}
           </div>
         </div>
 
@@ -200,63 +202,73 @@ function AdminMenu({ onLogout, children }) {
             { 
               key: "home", 
               icon: <DashboardOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>Dashboard</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.dashboard")}</span>
             },
             { 
               key: "book", 
               icon: <BookOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>Books</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.bookManage")}</span>
             },
             { 
               key: "borrow", 
               icon: <DatabaseOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>Borrow</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.borrowManage")}</span>
             },
             { 
               key: "history", 
               icon: <HistoryOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>History</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.history")}</span>
             },
             { 
               key: "users", 
               icon: <TeamOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>Users</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.userManage")}</span>
             },
             { 
               key: "profile", 
               icon: <UserOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>Profile</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("common.profile")}</span>
+            },
+            { 
+              key: "settings", 
+              icon: <SettingOutlined style={{ fontSize: '18px' }} />, 
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("common.settings")}</span>
             },
           ].filter(i => allowed.includes(i.key)) : [
             { 
               key: "home", 
               icon: <DashboardOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>Dashboard</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.dashboard")}</span>
             },
             { 
               key: "book", 
               icon: <BookOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>Books</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.bookManage")}</span>
             },
             { 
               key: "borrow", 
               icon: <DatabaseOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>Borrow</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.borrowManage")}</span>
             },
             { 
               key: "history", 
               icon: <HistoryOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>History</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.history")}</span>
             },
             { 
               key: "users", 
               icon: <TeamOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>Users</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.userManage")}</span>
             },
             { 
               key: "profile", 
               icon: <UserOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>Profile</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("common.profile")}</span>
+            },
+            { 
+              key: "settings", 
+              icon: <SettingOutlined style={{ fontSize: '18px' }} />, 
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("common.settings")}</span>
             },
           ])}
           style={{ 

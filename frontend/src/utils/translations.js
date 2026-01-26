@@ -298,6 +298,7 @@ export const translations = {
       emailNotif: "Email notifications",
       reminderDays: "Reminder days",
       privacySecurity: "Privacy & Security",
+      security: "Security",
       twoFactor: "Two-factor enabled",
       twoFactorDisabled: "Two-factor disabled",
       updatePassword: "Update Password",
@@ -375,6 +376,9 @@ export const translations = {
       signedOutDevice: "Signed out device",
       cacheCleared: "Local cache cleared",
       // Admin Settings
+      adminApproval: "Approval Settings",
+      roles: "Roles & Permissions",
+      adminApprovalSettings: "Admin Approval Settings",
       adminApprovalTitle: "Admin Approval Settings",
       autoApproveStock: "Auto-approve when stock >",
       autoRejectOverdue: "Auto-reject when overdue times >",
@@ -498,6 +502,7 @@ export const translations = {
       pageLoad: "Page load failed, please re-login."
     },
     admin: {
+      settings: "Settings",
       borrowManage: "Borrow Management",
       bookManage: "Book Management",
       userManage: "User Management",
@@ -1009,6 +1014,7 @@ export const translations = {
       returnSuccess: "归还申请已提交"
     },
     settings: {
+      security: "安全",
       english: "英文",
       chinese: "中文",
       appearance: "外观",
@@ -1116,6 +1122,7 @@ export const translations = {
       signedOutDevice: "已登出设备",
       cacheCleared: "本地缓存已清除",
       // Admin Settings
+      adminApprovalSettings: "管理员审批设置",
       adminApprovalTitle: "管理员审批设置",
       autoApproveStock: "库存 > 时自动批准",
       autoRejectOverdue: "逾期次数 > 时自动拒绝",
@@ -1302,12 +1309,13 @@ export const translations = {
        uncategorized: "未分类",
        book: "书籍"
      },
-     admin: {
-      borrowManage: "借阅管理",
-      bookManage: "图书管理",
-      userManage: "用户管理",
-      dashboard: "仪表盘",
-      history: "借阅历史",
+    admin: {
+     settings: "设置",
+     borrowManage: "借阅管理",
+     bookManage: "图书管理",
+     userManage: "用户管理",
+     dashboard: "仪表盘",
+     history: "借阅历史",
       addBook: "添加书籍",
       refresh: "刷新",
       searchPlaceholder: "搜索书名或作者...",
