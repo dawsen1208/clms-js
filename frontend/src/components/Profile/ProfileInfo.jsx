@@ -2,11 +2,13 @@
 import { Card, Typography, Button, Input, Space } from "antd";
 import { SaveOutlined, EditOutlined } from "@ant-design/icons";
 import { useState } from "react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 const { Title, Text } = Typography;
 
 function ProfileInfo({ userLS, email, setEmail, emailEditing, setEmailEditing, handleSaveEmail }) {
   const [tempEmail, setTempEmail] = useState(email);
+  const { t } = useLanguage();
 
   const handleEditEmail = () => {
     setTempEmail(email);
@@ -20,7 +22,7 @@ function ProfileInfo({ userLS, email, setEmail, emailEditing, setEmailEditing, h
 
   return (
     <Card 
-      title="Account Information" 
+      title={t("profile.accountInfo")}
       style={{ 
         borderRadius: 16,
         boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
@@ -30,23 +32,23 @@ function ProfileInfo({ userLS, email, setEmail, emailEditing, setEmailEditing, h
     >
       <div style={{ display: "grid", gap: "1rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0" }}>
-          <Text strong style={{ color: "#374151" }}>User ID:</Text>
+          <Text strong style={{ color: "#374151" }}>{t("profile.userIdLabel")}</Text>
           <Text style={{ color: "#6b7280", fontFamily: "monospace" }}>{userLS.userId || userLS._id}</Text>
         </div>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0" }}>
-          <Text strong style={{ color: "#374151" }}>Role:</Text>
+          <Text strong style={{ color: "#374151" }}>{t("profile.roleLabel")}</Text>
           <Text style={{ color: "#6b7280" }}>{userLS.role || "Reader"}</Text>
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0" }}>
-          <Text strong style={{ color: "#374151" }}>Email:</Text>
+          <Text strong style={{ color: "#374151" }}>{t("profile.emailLabel")}</Text>
           {emailEditing ? (
             <Space>
               <Input
                 value={tempEmail}
                 onChange={(e) => setTempEmail(e.target.value)}
-                placeholder="Enter your email"
+                placeholder={t("profile.emailPlaceholder")}
                 size="small"
                 style={{ width: 200 }}
               />
@@ -64,15 +66,15 @@ function ProfileInfo({ userLS, email, setEmail, emailEditing, setEmailEditing, h
                   border: "none"
                 }}
               >
-                Save
+                {t("common.save")}
               </Button>
               <Button size="small" onClick={handleCancelEdit} style={{ borderRadius: 8 }}>
-                Cancel
+                {t("common.cancel")}
               </Button>
             </Space>
           ) : (
             <Space>
-              <Text style={{ color: "#6b7280" }}>{email || "Not set"}</Text>
+              <Text style={{ color: "#6b7280" }}>{email || t("profile.notSet")}</Text>
               <Button 
                 type="link" 
                 icon={<EditOutlined />}
@@ -80,15 +82,15 @@ function ProfileInfo({ userLS, email, setEmail, emailEditing, setEmailEditing, h
                 size="small"
                 style={{ color: "#3b82f6" }}
               >
-                Edit
+                {t("common.edit")}
               </Button>
             </Space>
           )}
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0" }}>
-          <Text strong style={{ color: "#374151" }}>Name:</Text>
-          <Text style={{ color: "#6b7280" }}>{userLS.name || "Unnamed user"}</Text>
+          <Text strong style={{ color: "#374151" }}>{t("profile.nameLabel")}</Text>
+          <Text style={{ color: "#6b7280" }}>{userLS.name || t("profile.unnamedUser")}</Text>
         </div>
       </div>
     </Card>

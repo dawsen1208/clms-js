@@ -707,7 +707,7 @@ function ProfilePage() {
           }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
               <div>
-                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: theme.typography.fontSize.sm, fontFamily: theme.typography.fontFamily.primary }}>Member Since</Text>
+                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: theme.typography.fontSize.sm, fontFamily: theme.typography.fontFamily.primary }}>{t("profile.memberSince")}</Text>
                 <div style={{ fontSize: theme.typography.fontSize.md, fontWeight: theme.typography.fontWeight.semibold }}>
                   {userLS.createdAt ? dayjs(userLS.createdAt).format("YYYY-MM-DD") : "Recently"}
                 </div>
@@ -757,13 +757,13 @@ function ProfilePage() {
               onClick={() => setHistoryModalVisible(true)}
             >
               <Statistic 
-                title={<span style={{ color: theme.colors.neutral.white, fontSize: theme.typography.fontSize.lg, fontWeight: theme.typography.fontWeight.medium, fontFamily: theme.typography.fontFamily.primary }}>Borrow History</span>} 
+                title={<span style={{ color: theme.colors.neutral.white, fontSize: theme.typography.fontSize.lg, fontWeight: theme.typography.fontWeight.medium, fontFamily: theme.typography.fontFamily.primary }}>{t("profile.borrowHistory")}</span>} 
                 value={history.length} 
                 valueStyle={{ color: theme.colors.neutral.white, fontWeight: theme.typography.fontWeight.bold, fontSize: theme.typography.fontSize.xxl }}
                 prefix={<span style={{ fontSize: theme.typography.fontSize.xl }}>📚</span>}
               />
               <div style={{ marginTop: theme.spacing.sm, fontSize: theme.typography.fontSize.sm, color: "rgba(255,255,255,0.8)", fontFamily: theme.typography.fontFamily.primary }}>
-                Total {history.length} books borrowed
+                {t("profile.totalBooksBorrowed", { count: history.length })}
               </div>
             </Card>
 
@@ -789,13 +789,13 @@ function ProfilePage() {
               onClick={() => setRequestsModalVisible(true)}
             >
               <Statistic 
-                title={<span style={{ color: theme.colors.neutral.white, fontSize: theme.typography.fontSize.lg, fontWeight: theme.typography.fontWeight.medium, fontFamily: theme.typography.fontFamily.primary }}>My Requests</span>} 
+                title={<span style={{ color: theme.colors.neutral.white, fontSize: theme.typography.fontSize.lg, fontWeight: theme.typography.fontWeight.medium, fontFamily: theme.typography.fontFamily.primary }}>{t("profile.myRequests")}</span>} 
                 value={requests.length} 
                 valueStyle={{ color: theme.colors.neutral.white, fontWeight: theme.typography.fontWeight.bold, fontSize: theme.typography.fontSize.xxl }}
                 prefix={<span style={{ fontSize: theme.typography.fontSize.xl }}>📨</span>}
               />
               <div style={{ marginTop: theme.spacing.sm, fontSize: theme.typography.fontSize.sm, color: "rgba(255,255,255,0.8)", fontFamily: theme.typography.fontFamily.primary }}>
-                {stats.pending} pending, {stats.approved} approved
+                {t("profile.pendingApproved", { pending: stats.pending, approved: stats.approved })}
               </div>
             </Card>
           </div>
@@ -805,7 +805,7 @@ function ProfilePage() {
            📋 Modal for Borrow History Details
            ========================================================= */}
         <Modal
-          title={<span style={{ fontWeight: theme.typography.fontWeight.semibold, color: theme.colors.neutral.darkerGray, fontFamily: theme.typography.fontFamily.primary }}>📚 Borrow History Details</span>}
+          title={<span style={{ fontWeight: theme.typography.fontWeight.semibold, color: theme.colors.neutral.darkerGray, fontFamily: theme.typography.fontFamily.primary }}>📚 {t("profile.borrowHistory")}</span>}
           open={historyModalVisible}
           onCancel={() => setHistoryModalVisible(false)}
           footer={null}
@@ -836,13 +836,13 @@ function ProfilePage() {
                     <Card key={item.key} size="small" style={{ background: "#fff", borderRadius: "8px", border: "1px solid #f0f0f0" }}>
                       <div style={{ fontWeight: "bold", marginBottom: "8px", fontSize: "15px", color: "#333" }}>{item.title}</div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px", color: "#666" }}>
-                        <div><span style={{ color: "#999" }}>Borrow:</span> <br/>{item.borrowDate}</div>
-                        <div><span style={{ color: "#999" }}>Due:</span> <br/>{item.dueDate}</div>
-                        <div><span style={{ color: "#999" }}>Return:</span> <br/>{item.returnDate}</div>
-                        <div><span style={{ color: "#999" }}>Status:</span> <br/>{item.returned === "✅ Yes" ? <Tag color="green">Returned</Tag> : <Tag color="orange">Borrowed</Tag>}</div>
+                        <div><span style={{ color: "#999" }}>{t("admin.borrowDate")}:</span> <br/>{item.borrowDate}</div>
+                        <div><span style={{ color: "#999" }}>{t("borrow.dueDate")}:</span> <br/>{item.dueDate}</div>
+                        <div><span style={{ color: "#999" }}>{t("admin.returnDate")}:</span> <br/>{item.returnDate}</div>
+                        <div><span style={{ color: "#999" }}>{t("admin.status")}:</span> <br/>{item.returned === "✅ Yes" ? <Tag color="green">{t("profile.returnedStats")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag>}</div>
                       </div>
                     </Card>
-                  )) : <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>No borrow records</div>}
+                  )) : <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>{t("borrow.noBorrowRecords")}</div>}
                 </div>
               ) : (
                 <Table

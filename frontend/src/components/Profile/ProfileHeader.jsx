@@ -2,10 +2,12 @@
 import { Avatar, Typography, Button, Upload } from "antd";
 import { UserOutlined, UploadOutlined } from "@ant-design/icons";
 import { useState } from "react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 const { Title, Text } = Typography;
 
 function ProfileHeader({ userLS, avatarUrl, name, onAvatarUpload, avatarUploading }) {
+  const { t } = useLanguage();
   // Ensure we don't display mixed content if passed down prop is still raw
   // But usually parent component passes processed URL.
   // We trust avatarUrl is already processed by parent.
@@ -24,7 +26,7 @@ function ProfileHeader({ userLS, avatarUrl, name, onAvatarUpload, avatarUploadin
         }}
       />
       <Title level={2} style={{ margin: 0, color: "#1e293b", fontSize: "24px", fontWeight: 600 }}>
-        {name || "Unnamed user"}
+        {name || t("profile.unnamedUser")}
       </Title>
       <Text type="secondary" style={{ fontSize: "14px", color: "#64748b", marginTop: "4px" }}>
         {userLS.role || "Reader"}
@@ -57,7 +59,7 @@ function ProfileHeader({ userLS, avatarUrl, name, onAvatarUpload, avatarUploadin
             e.currentTarget.style.boxShadow = "0 4px 15px rgba(59, 130, 246, 0.3)";
           }}
         >
-          📷 Change Avatar
+          {t("profile.changeAvatar")}
         </Button>
       </Upload>
     </div>

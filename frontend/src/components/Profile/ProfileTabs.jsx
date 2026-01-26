@@ -2,6 +2,7 @@
 import { Tabs, Table, Tag, Pagination } from "antd";
 import { CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 const { TabPane } = Tabs;
 
@@ -16,6 +17,7 @@ function ProfileTabs({
   pageSize, 
   stats 
 }) {
+  const { t } = useLanguage();
   
   const paginatedData = history.slice(
     (currentPage - 1) * pageSize,
@@ -24,7 +26,7 @@ function ProfileTabs({
 
   return (
     <Tabs defaultActiveKey="1" style={{ marginTop: "2rem" }}>
-      <TabPane tab="📚 Borrow History" key="1">
+      <TabPane tab={t("profile.borrowHistoryTab")} key="1">
         <div style={{ marginTop: "1rem" }}>
           <Table
             columns={historyColumns}
@@ -43,13 +45,13 @@ function ProfileTabs({
               size="small"
               showSizeChanger={false}
               showQuickJumper={false}
-              showTotal={(total) => `Total ${total} records`}
+              showTotal={(total) => t("profile.totalRecords", { total })}
             />
           </div>
         </div>
       </TabPane>
       
-      <TabPane tab="📋 My Requests" key="2">
+      <TabPane tab={t("profile.myRequestsTab")} key="2">
         <div style={{ marginTop: "1rem" }}>
           <Table
             columns={requestColumns}
