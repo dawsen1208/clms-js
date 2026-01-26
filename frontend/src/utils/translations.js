@@ -369,8 +369,9 @@ export const translations = {
       // Messages
       passwordLength: "New password must be at least 8 characters",
       passwordMismatch: "New passwords do not match",
+      wrongCurrentPassword: "Current password is incorrect",
       notLoggedIn: "Not logged in",
-      passwordUpdated: "Password updated",
+      passwordUpdated: "Password updated successfully",
       changePasswordFailed: "Failed to change password",
       signedOutAll: "Signed out all devices",
       signedOutDevice: "Signed out device",
@@ -1115,9 +1116,10 @@ export const translations = {
       rejectOpt: "拒绝",
       // Messages
       passwordLength: "新密码至少需要8个字符",
-      passwordMismatch: "两次输入的密码不一致",
+      passwordMismatch: "两次输入的新密码不一致",
+      wrongCurrentPassword: "当前密码输入错误",
       notLoggedIn: "未登录",
-      passwordUpdated: "密码已更新",
+      passwordUpdated: "密码修改成功",
       changePasswordFailed: "修改密码失败",
       signedOutAll: "已登出所有设备",
       signedOutDevice: "已登出设备",

@@ -487,7 +487,17 @@ function SettingsPage({ appearance, onChange, user }) {
                            setPasswordModalOpen(false); 
                          } catch (e) { 
                            console.error("Change password failed (user settings):", e);
-                           message.error(e?.response?.data?.message || e?.message || t("settings.changePasswordFailed")); 
+                           if (e?.response?.status === 401 || e?.response?.status === 400) {
+                             Modal.error({
+                               title: t("settings.updatePassword"),
+                               content: t("settings.wrongCurrentPassword"),
+                             });
+                           } else {
+                             Modal.error({
+                               title: t("settings.updatePassword"),
+                               content: e?.response?.data?.message || e?.message || t("settings.changePasswordFailed"),
+                             });
+                           }
                          } finally {
                            setPasswordLoading(false);
                          }
