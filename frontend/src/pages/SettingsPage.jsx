@@ -165,6 +165,7 @@ function SettingsPage({ appearance, onChange, user }) {
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
   const [devicesModalOpen, setDevicesModalOpen] = useState(false);
   const [languageModalOpen, setLanguageModalOpen] = useState(false);
   const [themeModeModalOpen, setThemeModeModalOpen] = useState(false);
@@ -438,33 +439,45 @@ function SettingsPage({ appearance, onChange, user }) {
                   </div>
                 </Space>
                 <Modal
-                  title={t("settings.updatePassword")}
-                  open={passwordModalOpen}
-                  onCancel={() => setPasswordModalOpen(false)}
-                  footer={null}
-                  destroyOnClose
-                >
-                   <Form layout="vertical" onFinish={async (values) => {
-                     const { currentPassword, newPassword, confirmPassword } = values;
-                     if (!newPassword || newPassword.length < 8) { message.error(t("settings.passwordLength")); return; }
-                     if (newPassword !== confirmPassword) { message.error(t("settings.passwordMismatch")); return; }
-                     try { if (!token) { message.error(t("settings.notLoggedIn")); return; } await changePassword(token, currentPassword, newPassword); message.success(t("settings.passwordUpdated")); setPasswordModalOpen(false); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.changePasswordFailed")); }
-                   }}>
-                     <Form.Item name="currentPassword" label={t("settings.currentPassword")} rules={[{ required: true }] }>
-                       <Input.Password autoComplete="current-password" />
-                     </Form.Item>
-                     <Form.Item name="newPassword" label={t("settings.newPassword")} rules={[{ required: true }] }>
-                       <Input.Password autoComplete="new-password" />
-                     </Form.Item>
-                     <Form.Item name="confirmPassword" label={t("settings.confirmPassword")} rules={[{ required: true }] }>
-                       <Input.Password autoComplete="new-password" />
-                     </Form.Item>
-                     <div style={{ textAlign: 'right' }}>
-                        <Button onClick={() => setPasswordModalOpen(false)} style={{ marginRight: 8 }}>{t("common.cancel")}</Button>
-                        <Button type="primary" htmlType="submit">{t("settings.updatePassword")}</Button>
-                     </div>
-                   </Form>
-                </Modal>
+                    title={t("settings.updatePassword")}
+                    open={passwordModalOpen}
+                    onCancel={() => !passwordLoading && setPasswordModalOpen(false)}
+                    footer={null}
+                    destroyOnClose
+                  >
+                     <Form layout="vertical" onFinish={async (values) => {
+                       const { currentPassword, newPassword, confirmPassword } = values;
+                       if (!newPassword || newPassword.length < 8) { message.error(t("settings.passwordLength")); return; }
+                       if (newPassword !== confirmPassword) { message.error(t("settings.passwordMismatch")); return; }
+                       
+                       try { 
+                         setPasswordLoading(true);
+                         if (!token) { throw new Error(t("settings.notLoggedIn")); } 
+                         await changePassword(token, currentPassword, newPassword); 
+                         message.success(t("settings.passwordUpdated")); 
+                         setPasswordModalOpen(false); 
+                       } catch (e) { 
+                         console.error("Change password failed:", e);
+                         message.error(e?.response?.data?.message || e?.message || t("settings.changePasswordFailed")); 
+                       } finally {
+                         setPasswordLoading(false);
+                       }
+                     }}>
+                       <Form.Item name="currentPassword" label={t("settings.currentPassword")} rules={[{ required: true }] }>
+                         <Input.Password autoComplete="current-password" />
+                       </Form.Item>
+                       <Form.Item name="newPassword" label={t("settings.newPassword")} rules={[{ required: true }] }>
+                         <Input.Password autoComplete="new-password" />
+                       </Form.Item>
+                       <Form.Item name="confirmPassword" label={t("settings.confirmPassword")} rules={[{ required: true }] }>
+                         <Input.Password autoComplete="new-password" />
+                       </Form.Item>
+                       <div style={{ textAlign: 'right' }}>
+                          <Button onClick={() => setPasswordModalOpen(false)} style={{ marginRight: 8 }} disabled={passwordLoading}>{t("common.cancel")}</Button>
+                          <Button type="primary" htmlType="submit" loading={passwordLoading}>{t("settings.updatePassword")}</Button>
+                       </div>
+                     </Form>
+                  </Modal>
                 <Modal
                   title={t("settings.deviceManagement")}
                   open={devicesModalOpen}
