@@ -64,12 +64,12 @@ function ProfilePage() {
 
   const stats = useMemo(() => {
     const totalHistory = history.length;
-    const returned = history.filter((h) => h.returned.includes(t("profile.yes"))).length;
-    const renewed = history.filter((h) => h.renewed.includes(t("profile.yes"))).length;
+    const returned = history.filter((h) => h.isReturned).length;
+    const renewed = history.filter((h) => h.isRenewed).length;
     const pending = requests.filter((r) => r.status === "pending").length;
     const approved = requests.filter((r) => r.status === "approved").length;
     return { totalHistory, returned, renewed, pending, approved };
-  }, [history, requests, t]);
+  }, [history, requests]);
 
   const handleLogout = () => {
     sessionStorage.clear();
@@ -134,19 +134,17 @@ function ProfilePage() {
       const now = dayjs();
       const mapped = Array.from(byBook.values()).map((item, index) => {
         const due = item.dueDate ? dayjs(item.dueDate) : null;
-        let color = "#1677ff";
-        let status = "—";
+        let dueDiff = 0;
+        let dueStatus = "normal"; // normal, warning, overdue
+
         if (due) {
-          const diff = due.diff(now, "day");
-          if (diff >= 10) {
-            color = "green";
-            status = t("profile.remainingDays", { days: diff });
-          } else if (diff >= 1) {
-            color = "orange";
-            status = t("profile.remainingDays", { days: diff });
+          dueDiff = due.diff(now, "day");
+          if (dueDiff >= 10) {
+            dueStatus = "normal";
+          } else if (dueDiff >= 1) {
+            dueStatus = "warning";
           } else {
-            color = "red";
-            status = t("profile.overdueDays", { days: Math.abs(diff) });
+            dueStatus = "overdue";
           }
         }
 
@@ -155,22 +153,16 @@ function ProfilePage() {
 
         return {
           key: index,
-          title: item.title || t("profile.unknownBook"),
-          borrowDate: item.borrowDate ? dayjs(item.borrowDate).format("YYYY-MM-DD") : "—",
-          dueDate: item.dueDate ? (
-            <span>
-              {dayjs(item.dueDate).format("YYYY-MM-DD")}
-              <br />
-              <span style={{ color, fontSize: "0.85em" }}>{status}</span>
-            </span>
-          ) : (
-            "—"
-          ),
+          title: item.title, // Store raw title
+          borrowDate: item.borrowDate, // Store raw date string
+          dueDate: item.dueDate, // Store raw date string
+          dueDiff: dueDiff,
+          dueStatus: dueStatus,
           // 若已续借，显示更新后的到期日
-          renewDate: isRenewed && item.dueDate ? dayjs(item.dueDate).format("YYYY-MM-DD") : "—",
-          renewed: isRenewed ? `✅ ${t("profile.yes")}` : `❌ ${t("profile.no")}`,
-          returnDate: item.returnDate ? dayjs(item.returnDate).format("YYYY-MM-DD") : "—",
-          returned: isReturned ? `✅ ${t("profile.yes")}` : `❌ ${t("profile.no")}`,
+          renewDate: isRenewed && item.dueDate ? item.dueDate : null,
+          isRenewed: isRenewed,
+          returnDate: item.returnDate,
+          isReturned: isReturned,
         };
       });
 
@@ -488,12 +480,12 @@ function ProfilePage() {
              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {paginatedData.length > 0 ? paginatedData.map((item) => (
                     <Card key={item.key} size="small" style={{ background: "#fff", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-                      <div style={{ fontWeight: "bold", marginBottom: "8px", fontSize: "16px", color: "#333" }}>{item.title}</div>
+                      <div style={{ fontWeight: "bold", marginBottom: "8px", fontSize: "16px", color: "#333" }}>{item.title || t("profile.unknownBook")}</div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px", color: "#666" }}>
-                        <div><span style={{ color: "#94a3b8" }}>{t("admin.borrowDate")}:</span> <br/>{item.borrowDate}</div>
-                        <div><span style={{ color: "#94a3b8" }}>{t("borrow.dueDate")}:</span> <br/>{item.dueDate}</div>
-                        <div><span style={{ color: "#94a3b8" }}>{t("admin.returnDate")}:</span> <br/>{item.returnDate}</div>
-                        <div><span style={{ color: "#94a3b8" }}>{t("admin.status")}:</span> <br/>{item.returned === "✅ Yes" ? <Tag color="green">{t("admin.returned")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag>}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("admin.borrowDate")}:</span> <br/>{item.borrowDate ? dayjs(item.borrowDate).format("YYYY-MM-DD") : "—"}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("borrow.dueDate")}:</span> <br/>{item.dueDate ? dayjs(item.dueDate).format("YYYY-MM-DD") : "—"}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("admin.returnDate")}:</span> <br/>{item.returnDate ? dayjs(item.returnDate).format("YYYY-MM-DD") : "—"}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("admin.status")}:</span> <br/>{item.isReturned ? <Tag color="green">{t("admin.returned")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag>}</div>
                       </div>
                     </Card>
                   )) : <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>{t("borrow.noBorrowRecords")}</div>}
@@ -835,12 +827,12 @@ function ProfilePage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {paginatedData.length > 0 ? paginatedData.map((item) => (
                     <Card key={item.key} size="small" style={{ background: "#fff", borderRadius: "8px", border: "1px solid #f0f0f0" }}>
-                      <div style={{ fontWeight: "bold", marginBottom: "8px", fontSize: "15px", color: "#333" }}>{item.title}</div>
+                      <div style={{ fontWeight: "bold", marginBottom: "8px", fontSize: "15px", color: "#333" }}>{item.title || t("profile.unknownBook")}</div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px", color: "#666" }}>
-                        <div><span style={{ color: "#999" }}>{t("admin.borrowDate")}:</span> <br/>{item.borrowDate}</div>
-                        <div><span style={{ color: "#999" }}>{t("borrow.dueDate")}:</span> <br/>{item.dueDate}</div>
-                        <div><span style={{ color: "#94a3b8" }}>{t("admin.returnDate")}:</span> <br/>{item.returnDate}</div>
-                        <div><span style={{ color: "#94a3b8" }}>{t("admin.status")}:</span> <br/>{item.returned === `✅ ${t("profile.yes")}` ? <Tag color="green">{t("profile.returnedStats")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag>}</div>
+                        <div><span style={{ color: "#999" }}>{t("admin.borrowDate")}:</span> <br/>{item.borrowDate ? dayjs(item.borrowDate).format("YYYY-MM-DD") : "—"}</div>
+                        <div><span style={{ color: "#999" }}>{t("borrow.dueDate")}:</span> <br/>{item.dueDate ? dayjs(item.dueDate).format("YYYY-MM-DD") : "—"}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("admin.returnDate")}:</span> <br/>{item.returnDate ? dayjs(item.returnDate).format("YYYY-MM-DD") : "—"}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("admin.status")}:</span> <br/>{item.isReturned ? <Tag color="green">{t("profile.returnedStats")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag>}</div>
                       </div>
                     </Card>
                   )) : <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>{t("borrow.noBorrowRecords")}</div>}

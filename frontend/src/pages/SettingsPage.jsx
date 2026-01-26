@@ -1,5 +1,12 @@
 import React, { useMemo, useEffect, useState } from "react";
-import { Card, Typography, Radio, Space, Divider, Input, Switch, Form, Button, Table, Tag, message, Select, InputNumber, Checkbox, Tabs, Grid } from "antd";
+import { Card, Typography, Radio, Space, Divider, Input, Switch, Form, Button, Table, Tag, message, Select, InputNumber, Checkbox, Tabs, Grid, Modal, ColorPicker } from "antd";
+import { 
+  LockOutlined, DesktopOutlined, DeleteOutlined, SafetyCertificateOutlined,
+  GlobalOutlined, BgColorsOutlined, FormatPainterOutlined, FontSizeOutlined, 
+  CalendarOutlined, SearchOutlined, SortAscendingOutlined, AppstoreOutlined, 
+  TagsOutlined, ReloadOutlined, RobotOutlined, BuildOutlined, TeamOutlined,
+  BellOutlined, SettingOutlined, PictureOutlined
+} from "@ant-design/icons";
 import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks } from "../api";
 import { useLanguage } from "../contexts/LanguageContext"; // ✅ Import Hook
 
@@ -157,6 +164,21 @@ function SettingsPage({ appearance, onChange, user }) {
 
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [devicesModalOpen, setDevicesModalOpen] = useState(false);
+  const [languageModalOpen, setLanguageModalOpen] = useState(false);
+  const [themeModeModalOpen, setThemeModeModalOpen] = useState(false);
+  const [themeColorModalOpen, setThemeColorModalOpen] = useState(false);
+  const [fontSizeModalOpen, setFontSizeModalOpen] = useState(false);
+  const [bgModalOpen, setBgModalOpen] = useState(false);
+  const [reminderDaysModalOpen, setReminderDaysModalOpen] = useState(false);
+  const [searchPrefModalOpen, setSearchPrefModalOpen] = useState(false);
+  const [sortPrefModalOpen, setSortPrefModalOpen] = useState(false);
+  const [viewPrefModalOpen, setViewPrefModalOpen] = useState(false);
+  const [categoryPrefModalOpen, setCategoryPrefModalOpen] = useState(false);
+  const [autoRulesModalOpen, setAutoRulesModalOpen] = useState(false);
+  const [bulkActionModalOpen, setBulkActionModalOpen] = useState(false);
+  const [rolesModalOpen, setRolesModalOpen] = useState(false);
 
   const fetchSessions = async () => {
     if (!token) return;
@@ -196,19 +218,25 @@ function SettingsPage({ appearance, onChange, user }) {
             label: t("settings.language"),
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.language")}</Title>}>
-                <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                  <div>
-                    <Text style={{ fontWeight: 600 }}>{t("settings.switchLanguage")}</Text>
-                    <div style={{ marginTop: 8 }}>
-                      <Radio.Group value={language} onChange={(e) => setLanguage(e.target.value)}>
-                        <Space direction="horizontal">
-                          <Radio.Button value="en">🇺🇸 English</Radio.Button>
-                          <Radio.Button value="zh">🇨🇳 中文</Radio.Button>
-                        </Space>
-                      </Radio.Group>
-                    </div>
-                  </div>
-                </Space>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                  <Card hoverable onClick={() => setLanguageModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                    <Space align="start">
+                        <GlobalOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                        <div>
+                            <Text strong style={{ display: 'block' }}>{t("settings.language")}</Text>
+                            <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.languageDesc")}</Text>
+                        </div>
+                    </Space>
+                  </Card>
+                </div>
+                <Modal title={t("settings.language")} open={languageModalOpen} onCancel={() => setLanguageModalOpen(false)} footer={null}>
+                   <Radio.Group value={language} onChange={(e) => setLanguage(e.target.value)} style={{ width: '100%' }}>
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                        <Radio value="en" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>🇺🇸 English</Radio>
+                        <Radio value="zh" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>🇨🇳 中文</Radio>
+                      </Space>
+                   </Radio.Group>
+                </Modal>
               </Card>
             ),
           },
@@ -217,70 +245,91 @@ function SettingsPage({ appearance, onChange, user }) {
             label: t("settings.appearance"),
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.appearance")}</Title>}>
-                <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                  <div>
-                    <Text style={{ fontWeight: 600 }}>{t("settings.themeMode")}</Text>
-                    <div style={{ marginTop: 8 }}>
-                      <Radio.Group value={appearance?.mode || 'light'} onChange={(e) => handleUpdate({ mode: e.target.value })}>
-                        <Space direction="horizontal">
-                          <Radio value="light">{t("settings.light")}</Radio>
-                          <Radio value="dark">{t("settings.dark")}</Radio>
+                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                        <Space>
+                            <BgColorsOutlined style={{ fontSize: 20, color: '#faad14' }} />
+                            <Text strong>{t("settings.highContrast")}</Text>
                         </Space>
-                      </Radio.Group>
+                        <Switch checked={!!appearance?.highContrast} onChange={(v) => handleUpdate({ highContrast: v })} />
                     </div>
-                  </div>
-                  <div>
-                    <Text style={{ fontWeight: 600 }}>{t("settings.themeColor")}</Text>
-                    <div style={{ marginTop: 8 }}>
-                      <Radio.Group value={appearance?.themeColor || 'blue'} onChange={(e) => handleUpdate({ themeColor: e.target.value })}>
-                        <Space direction="horizontal">
-                          <Radio value="blue">{t("settings.blue")}</Radio>
-                          <Radio value="purple">{t("settings.purple")}</Radio>
-                          <Radio value="green">{t("settings.green")}</Radio>
-                          <Radio value="custom">{t("settings.custom")}</Radio>
-                        </Space>
-                      </Radio.Group>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                       <Card hoverable onClick={() => setThemeModeModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                          <Space align="start">
+                              <BgColorsOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
+                              <div>
+                                  <Text strong style={{ display: 'block' }}>{t("settings.themeMode")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.themeModeDesc")}</Text>
+                              </div>
+                          </Space>
+                       </Card>
+                       <Card hoverable onClick={() => setThemeColorModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                          <Space align="start">
+                              <FormatPainterOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                              <div>
+                                  <Text strong style={{ display: 'block' }}>{t("settings.themeColor")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.themeColorDesc")}</Text>
+                              </div>
+                          </Space>
+                       </Card>
+                       <Card hoverable onClick={() => setFontSizeModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                          <Space align="start">
+                              <FontSizeOutlined style={{ fontSize: 24, color: '#52c41a' }} />
+                              <div>
+                                  <Text strong style={{ display: 'block' }}>{t("settings.fontSize")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.fontSizeDesc")}</Text>
+                              </div>
+                          </Space>
+                       </Card>
+                       <Card hoverable onClick={() => setBgModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                          <Space align="start">
+                              <PictureOutlined style={{ fontSize: 24, color: '#eb2f96' }} />
+                              <div>
+                                  <Text strong style={{ display: 'block' }}>{t("settings.customBackground")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.customBackgroundDesc")}</Text>
+                              </div>
+                          </Space>
+                       </Card>
                     </div>
-                    {appearance?.themeColor === 'custom' && (
-                      <div style={{ marginTop: 10 }}>
-                        <Input type="color" value={appearance?.customColor || '#1677FF'} onChange={(e) => handleUpdate({ customColor: e.target.value })} style={{ width: 80, padding: 0, border: 'none', background: 'transparent' }} />
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <Text style={{ fontWeight: 600 }}>{t("settings.customBackground")}</Text>
-                    <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
-                       <Input
-                         type="color"
-                         value={appearance?.backgroundColor || '#ffffff'}
-                         onChange={(e) => handleUpdate({ backgroundColor: e.target.value })}
-                         style={{ width: 50, height: 32, padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' }}
-                       />
-                       {appearance?.backgroundColor && (
-                         <Button size="small" onClick={() => handleUpdate({ backgroundColor: "" })}>
-                           {t("common.reset")}
-                         </Button>
-                       )}
-                    </div>
-                  </div>
-                  <div>
-                    <Text style={{ fontWeight: 600 }}>{t("settings.fontSize")}</Text>
-                    <div style={{ marginTop: 8 }}>
-                      <Radio.Group value={appearance?.fontSize || 'normal'} onChange={(e) => handleUpdate({ fontSize: e.target.value })}>
-                        <Space direction="horizontal">
-                          <Radio value="normal">{t("settings.normal")}</Radio>
-                          <Radio value="large">{t("settings.large")}</Radio>
-                        </Space>
-                      </Radio.Group>
-                    </div>
-                  </div>
-                  <div>
-                    <Space align="center">
-                      <Text style={{ fontWeight: 600 }}>{t("settings.highContrast")}</Text>
-                      <Switch checked={!!appearance?.highContrast} onChange={(v) => handleUpdate({ highContrast: v })} />
+                 </Space>
+                 <Modal title={t("settings.themeMode")} open={themeModeModalOpen} onCancel={() => setThemeModeModalOpen(false)} footer={null}>
+                     <Radio.Group value={appearance?.mode || 'light'} onChange={(e) => handleUpdate({ mode: e.target.value })} style={{ width: '100%' }}>
+                       <Space direction="vertical" style={{ width: '100%' }}>
+                          <Radio value="light" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.light")}</Radio>
+                          <Radio value="dark" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.dark")}</Radio>
+                       </Space>
+                     </Radio.Group>
+                 </Modal>
+                 <Modal title={t("settings.themeColor")} open={themeColorModalOpen} onCancel={() => setThemeColorModalOpen(false)} footer={null}>
+                     <Radio.Group value={appearance?.themeColor || 'blue'} onChange={(e) => handleUpdate({ themeColor: e.target.value })} style={{ width: '100%' }}>
+                       <Space direction="vertical" style={{ width: '100%' }}>
+                          <Radio value="blue" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.blue")}</Radio>
+                          <Radio value="purple" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.purple")}</Radio>
+                          <Radio value="green" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.green")}</Radio>
+                          <Radio value="custom" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.custom")}</Radio>
+                       </Space>
+                     </Radio.Group>
+                     {appearance?.themeColor === 'custom' && (
+                        <div style={{ marginTop: 16 }}>
+                           <ColorPicker value={appearance?.customColor || '#1677FF'} onChange={(c) => handleUpdate({ customColor: c.toHexString() })} showText />
+                        </div>
+                     )}
+                 </Modal>
+                 <Modal title={t("settings.fontSize")} open={fontSizeModalOpen} onCancel={() => setFontSizeModalOpen(false)} footer={null}>
+                     <Radio.Group value={appearance?.fontSize || 'normal'} onChange={(e) => handleUpdate({ fontSize: e.target.value })} style={{ width: '100%' }}>
+                       <Space direction="vertical" style={{ width: '100%' }}>
+                          <Radio value="normal" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.normal")}</Radio>
+                          <Radio value="large" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.large")}</Radio>
+                       </Space>
+                     </Radio.Group>
+                 </Modal>
+                 <Modal title={t("settings.customBackground")} open={bgModalOpen} onCancel={() => setBgModalOpen(false)} footer={null}>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                       <ColorPicker value={appearance?.backgroundColor || '#ffffff'} onChange={(c) => handleUpdate({ backgroundColor: c.toHexString() })} showText style={{ width: '100%' }} />
+                       <Button onClick={() => handleUpdate({ backgroundColor: "" })}>{t("common.reset")}</Button>
                     </Space>
-                  </div>
-                </Space>
+                 </Modal>
               </Card>
             ),
           },
@@ -289,28 +338,42 @@ function SettingsPage({ appearance, onChange, user }) {
             label: t("settings.notifications"),
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.notifications")}</Title>}>
-                <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                  <Space align="center">
-                    <Text style={{ width: 160 }}>{t("settings.inAppNotif")}</Text>
-                    <Switch checked={!!notifPrefs.inApp} onChange={(v) => saveNotifications({ inApp: v })} />
-                  </Space>
-                  <Space align="center">
-                    <Text style={{ width: 160 }}>{t("settings.emailNotif")}</Text>
-                    <Switch checked={!!notifPrefs.email} onChange={(v) => saveNotifications({ email: v })} disabled={!user?.email} />
-                  </Space>
-                  <div>
-                    <Text style={{ fontWeight: 600 }}>{t("settings.reminderDays")}</Text>
-                    <div style={{ marginTop: 8 }}>
-                      <Radio.Group value={notifPrefs.reminderDays || 3} onChange={(e) => saveNotifications({ reminderDays: Number(e.target.value) })}>
+                <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
                         <Space>
-                          <Radio value={1}>1 {t("common.day")}</Radio>
-                          <Radio value={3}>3 {t("common.days")}</Radio>
-                          <Radio value={5}>5 {t("common.days")}</Radio>
+                            <BellOutlined style={{ fontSize: 20, color: '#faad14' }} />
+                            <Text strong>{t("settings.inAppNotif")}</Text>
                         </Space>
-                      </Radio.Group>
-                    </div>
-                  </div>
+                        <Switch checked={!!notifPrefs.inApp} onChange={(v) => saveNotifications({ inApp: v })} />
+                   </div>
+                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                        <Space>
+                            <BellOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                            <Text strong>{t("settings.emailNotif")}</Text>
+                        </Space>
+                        <Switch checked={!!notifPrefs.email} onChange={(v) => saveNotifications({ email: v })} disabled={!user?.email} />
+                   </div>
+                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                       <Card hoverable onClick={() => setReminderDaysModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                          <Space align="start">
+                              <CalendarOutlined style={{ fontSize: 24, color: '#f5222d' }} />
+                              <div>
+                                  <Text strong style={{ display: 'block' }}>{t("settings.reminderDays")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.reminderDaysDesc")}</Text>
+                              </div>
+                          </Space>
+                       </Card>
+                   </div>
                 </Space>
+                <Modal title={t("settings.reminderDays")} open={reminderDaysModalOpen} onCancel={() => setReminderDaysModalOpen(false)} footer={null}>
+                    <Radio.Group value={notifPrefs.reminderDays || 3} onChange={(e) => saveNotifications({ reminderDays: Number(e.target.value) })} style={{ width: '100%' }}>
+                       <Space direction="vertical" style={{ width: '100%' }}>
+                          <Radio value={1} style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>1 {t("common.day")}</Radio>
+                          <Radio value={3} style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>3 {t("common.days")}</Radio>
+                          <Radio value={5} style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>5 {t("common.days")}</Radio>
+                       </Space>
+                     </Radio.Group>
+                </Modal>
               </Card>
             ),
           },
@@ -320,47 +383,103 @@ function SettingsPage({ appearance, onChange, user }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.privacySecurity")}</Title>}>
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                  <div>
-                    <Tag color={securityPrefs.twoFactorEnabled ? 'green' : 'default'}>
-                      {securityPrefs.twoFactorEnabled ? t("settings.twoFactor") : t("settings.twoFactorDisabled")}
-                    </Tag>
-                    <Switch checked={!!securityPrefs.twoFactorEnabled} onChange={(v) => saveSecurity({ twoFactorEnabled: v })} style={{ marginLeft: 12 }} />
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                      <Space>
+                          <SafetyCertificateOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+                          <Text strong>{t("settings.twoFactor")}</Text>
+                      </Space>
+                      <Switch checked={!!securityPrefs.twoFactorEnabled} onChange={(v) => saveSecurity({ twoFactorEnabled: v })} />
                   </div>
-                  <Form layout="vertical" onFinish={async (values) => {
-                    const { currentPassword, newPassword, confirmPassword } = values;
-                    if (!newPassword || newPassword.length < 8) { message.error(t("settings.passwordLength")); return; }
-                    if (newPassword !== confirmPassword) { message.error(t("settings.passwordMismatch")); return; }
-                    try { if (!token) { message.error(t("settings.notLoggedIn")); return; } await changePassword(token, currentPassword, newPassword); message.success(t("settings.passwordUpdated")); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.changePasswordFailed")); }
-                  }}>
-                    <Form.Item name="currentPassword" label={t("settings.currentPassword")} rules={[{ required: true }] }>
-                      <Input.Password autoComplete="current-password" />
-                    </Form.Item>
-                    <Form.Item name="newPassword" label={t("settings.newPassword")} rules={[{ required: true }] }>
-                      <Input.Password autoComplete="new-password" />
-                    </Form.Item>
-                    <Form.Item name="confirmPassword" label={t("settings.confirmPassword")} rules={[{ required: true }] }>
-                      <Input.Password autoComplete="new-password" />
-                    </Form.Item>
-                    <Button type="primary" htmlType="submit">{t("settings.updatePassword")}</Button>
-                  </Form>
-                  <div>
-                    <Space style={{ marginBottom: 8 }}>
-                      <Button onClick={fetchSessions}>{t("settings.refreshDevices")}</Button>
-                      <Button danger onClick={async () => { try { if (!token) { message.error(t("settings.notLoggedIn")); return; } await revokeAllSessions(token); message.success(t("settings.signedOutAll")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutAllFailed")); } }}>{t("settings.signOutAll")}</Button>
-                    </Space>
-                    <Table loading={sessionsLoading} dataSource={sessions} size="small" pagination={false} columns={[
-                      { title: t("settings.device"), dataIndex: 'device', key: 'device' },
-                      { title: t("settings.ip"), dataIndex: 'ip', key: 'ip' },
-                      { title: t("settings.loginTime"), dataIndex: 'loginTime', key: 'loginTime', render: (v) => new Date(v).toLocaleString() },
-                      { title: t("settings.action"), key: 'action', render: (_, r) => (
-                        <Button danger size="small" onClick={async () => { try { if (!token) { message.error(t("settings.notLoggedIn")); return; } if (!r.id) { message.error(t("settings.sessionIdMissing")); return; } await revokeSession(token, r.id); message.success(t("settings.signedOutDevice")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutDeviceFailed")); } }}>{t("assistant.remove")}</Button>
-                      ) }
-                    ]} />
-                  </div>
-                  <div>
-                    <Button danger onClick={() => { try { localStorage.clear(); } catch {} message.success(t("settings.cacheCleared")); }}>{t("settings.clearCache")}</Button>
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                    <Card hoverable onClick={() => setPasswordModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                      <Space align="start">
+                          <LockOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                          <div>
+                              <Text strong style={{ display: 'block' }}>{t("settings.updatePassword")}</Text>
+                              <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.updatePasswordDesc")}</Text>
+                          </div>
+                      </Space>
+                    </Card>
+                    <Card hoverable onClick={() => { setDevicesModalOpen(true); fetchSessions(); }} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                      <Space align="start">
+                          <DesktopOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                          <div>
+                              <Text strong style={{ display: 'block' }}>{t("settings.deviceManagement")}</Text>
+                              <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.deviceManagementDesc")}</Text>
+                          </div>
+                      </Space>
+                    </Card>
+                     <Card hoverable onClick={() => { 
+                         Modal.confirm({
+                             title: t("settings.clearCache"),
+                             content: t("settings.clearCacheDesc"),
+                             onOk: () => {
+                                 try { localStorage.clear(); } catch {} 
+                                 message.success(t("settings.cacheCleared"));
+                             }
+                         });
+                     }} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Space align="start">
+                           <DeleteOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
+                           <div>
+                               <Text strong type="danger" style={{ display: 'block' }}>{t("settings.clearCache")}</Text>
+                               <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.clearCacheDesc")}</Text>
+                           </div>
+                       </Space>
+                     </Card>
                   </div>
                 </Space>
+                <Modal
+                  title={t("settings.updatePassword")}
+                  open={passwordModalOpen}
+                  onCancel={() => setPasswordModalOpen(false)}
+                  footer={null}
+                  destroyOnClose
+                >
+                   <Form layout="vertical" onFinish={async (values) => {
+                     const { currentPassword, newPassword, confirmPassword } = values;
+                     if (!newPassword || newPassword.length < 8) { message.error(t("settings.passwordLength")); return; }
+                     if (newPassword !== confirmPassword) { message.error(t("settings.passwordMismatch")); return; }
+                     try { if (!token) { message.error(t("settings.notLoggedIn")); return; } await changePassword(token, currentPassword, newPassword); message.success(t("settings.passwordUpdated")); setPasswordModalOpen(false); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.changePasswordFailed")); }
+                   }}>
+                     <Form.Item name="currentPassword" label={t("settings.currentPassword")} rules={[{ required: true }] }>
+                       <Input.Password autoComplete="current-password" />
+                     </Form.Item>
+                     <Form.Item name="newPassword" label={t("settings.newPassword")} rules={[{ required: true }] }>
+                       <Input.Password autoComplete="new-password" />
+                     </Form.Item>
+                     <Form.Item name="confirmPassword" label={t("settings.confirmPassword")} rules={[{ required: true }] }>
+                       <Input.Password autoComplete="new-password" />
+                     </Form.Item>
+                     <div style={{ textAlign: 'right' }}>
+                        <Button onClick={() => setPasswordModalOpen(false)} style={{ marginRight: 8 }}>{t("common.cancel")}</Button>
+                        <Button type="primary" htmlType="submit">{t("settings.updatePassword")}</Button>
+                     </div>
+                   </Form>
+                </Modal>
+                <Modal
+                  title={t("settings.deviceManagement")}
+                  open={devicesModalOpen}
+                  onCancel={() => setDevicesModalOpen(false)}
+                  footer={null}
+                  width={800}
+                >
+                   <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
+                      <Text type="secondary">{t("settings.deviceManagementDesc")}</Text>
+                      <Space>
+                        <Button onClick={fetchSessions}>{t("settings.refreshDevices")}</Button>
+                        <Button danger onClick={async () => { try { if (!token) { message.error(t("settings.notLoggedIn")); return; } await revokeAllSessions(token); message.success(t("settings.signedOutAll")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutAllFailed")); } }}>{t("settings.signOutAll")}</Button>
+                      </Space>
+                   </Space>
+                   <Table loading={sessionsLoading} dataSource={sessions} size="small" pagination={false} columns={[
+                     { title: t("settings.device"), dataIndex: 'device', key: 'device' },
+                     { title: t("settings.ip"), dataIndex: 'ip', key: 'ip' },
+                     { title: t("settings.loginTime"), dataIndex: 'loginTime', key: 'loginTime', render: (v) => new Date(v).toLocaleString() },
+                     { title: t("settings.action"), key: 'action', render: (_, r) => (
+                       <Button danger size="small" onClick={async () => { try { if (!token) { message.error(t("settings.notLoggedIn")); return; } if (!r.id) { message.error(t("settings.sessionIdMissing")); return; } await revokeSession(token, r.id); message.success(t("settings.signedOutDevice")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutDeviceFailed")); } }}>{t("assistant.remove")}</Button>
+                     ) }
+                   ]} />
+                </Modal>
               </Card>
             ),
           },
@@ -369,47 +488,70 @@ function SettingsPage({ appearance, onChange, user }) {
             label: t("settings.operation"),
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.operationPrefs")}</Title>}>
-                <Space direction="vertical" size={16}>
-                  <div>
-                    <Text style={{ fontWeight: 600 }}>{t("settings.defaultSearch")}</Text>
-                    <div style={{ marginTop: 8 }}>
-                      <Radio.Group value={operationPrefs.searchBy} onChange={(e) => saveOperation({ searchBy: e.target.value })}>
+                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
                         <Space>
-                          <Radio value="title">{t("settings.titleOpt")}</Radio>
-                          <Radio value="author">{t("settings.authorOpt")}</Radio>
-                          <Radio value="category">{t("settings.categoryOpt")}</Radio>
+                            <SettingOutlined style={{ fontSize: 20, color: '#722ed1' }} />
+                            <Text strong>{t("settings.showAdvanced")}</Text>
                         </Space>
-                      </Radio.Group>
+                        <Switch checked={!!operationPrefs.showAdvanced} onChange={(v) => saveOperation({ showAdvanced: v })} />
                     </div>
-                  </div>
-                  <div>
-                    <Text style={{ fontWeight: 600 }}>{t("settings.defaultSort")}</Text>
-                    <div style={{ marginTop: 8 }}>
-                      <Radio.Group value={operationPrefs.sortBy} onChange={(e) => saveOperation({ sortBy: e.target.value })}>
-                        <Space>
-                          <Radio value="latest">{t("settings.latestOpt")}</Radio>
-                          <Radio value="most_borrowed">{t("settings.mostBorrowedOpt")}</Radio>
-                          <Radio value="stock_high">{t("settings.stockHighOpt")}</Radio>
-                        </Space>
-                      </Radio.Group>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                       <Card hoverable onClick={() => setSearchPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                          <Space align="start">
+                              <SearchOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
+                              <div>
+                                  <Text strong style={{ display: 'block' }}>{t("settings.defaultSearch")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.searchPrefsDesc")}</Text>
+                              </div>
+                          </Space>
+                       </Card>
+                       <Card hoverable onClick={() => setSortPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                          <Space align="start">
+                              <SortAscendingOutlined style={{ fontSize: 24, color: '#eb2f96' }} />
+                              <div>
+                                  <Text strong style={{ display: 'block' }}>{t("settings.defaultSort")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.sortPrefsDesc")}</Text>
+                              </div>
+                          </Space>
+                       </Card>
+                       <Card hoverable onClick={() => setViewPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                          <Space align="start">
+                              <AppstoreOutlined style={{ fontSize: 24, color: '#fa8c16' }} />
+                              <div>
+                                  <Text strong style={{ display: 'block' }}>{t("settings.defaultView")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.viewPrefsDesc")}</Text>
+                              </div>
+                          </Space>
+                       </Card>
                     </div>
-                  </div>
-                  <div>
-                    <Text style={{ fontWeight: 600 }}>{t("settings.defaultView")}</Text>
-                    <div style={{ marginTop: 8 }}>
-                      <Radio.Group value={operationPrefs.view} onChange={(e) => saveOperation({ view: e.target.value })}>
-                        <Space>
-                          <Radio value="grid">{t("settings.cardViewOpt")}</Radio>
-                          <Radio value="list">{t("settings.listViewOpt")}</Radio>
-                        </Space>
-                      </Radio.Group>
-                    </div>
-                  </div>
-                  <Space align="center">
-                    <Text style={{ fontWeight: 600 }}>{t("settings.showAdvanced")}</Text>
-                    <Switch checked={!!operationPrefs.showAdvanced} onChange={(v) => saveOperation({ showAdvanced: v })} />
-                  </Space>
-                </Space>
+                 </Space>
+                 <Modal title={t("settings.defaultSearch")} open={searchPrefModalOpen} onCancel={() => setSearchPrefModalOpen(false)} footer={null}>
+                     <Radio.Group value={operationPrefs.searchBy} onChange={(e) => saveOperation({ searchBy: e.target.value })} style={{ width: '100%' }}>
+                       <Space direction="vertical" style={{ width: '100%' }}>
+                          <Radio value="title" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.titleOpt")}</Radio>
+                          <Radio value="author" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.authorOpt")}</Radio>
+                          <Radio value="category" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.categoryOpt")}</Radio>
+                       </Space>
+                     </Radio.Group>
+                 </Modal>
+                 <Modal title={t("settings.defaultSort")} open={sortPrefModalOpen} onCancel={() => setSortPrefModalOpen(false)} footer={null}>
+                     <Radio.Group value={operationPrefs.sortBy} onChange={(e) => saveOperation({ sortBy: e.target.value })} style={{ width: '100%' }}>
+                       <Space direction="vertical" style={{ width: '100%' }}>
+                          <Radio value="latest" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.latestOpt")}</Radio>
+                          <Radio value="most_borrowed" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.mostBorrowedOpt")}</Radio>
+                          <Radio value="stock_high" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.stockHighOpt")}</Radio>
+                       </Space>
+                     </Radio.Group>
+                 </Modal>
+                 <Modal title={t("settings.defaultView")} open={viewPrefModalOpen} onCancel={() => setViewPrefModalOpen(false)} footer={null}>
+                     <Radio.Group value={operationPrefs.view} onChange={(e) => saveOperation({ view: e.target.value })} style={{ width: '100%' }}>
+                       <Space direction="vertical" style={{ width: '100%' }}>
+                          <Radio value="grid" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.cardViewOpt")}</Radio>
+                          <Radio value="list" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.listViewOpt")}</Radio>
+                       </Space>
+                     </Radio.Group>
+                 </Modal>
               </Card>
             ),
           },
@@ -418,27 +560,47 @@ function SettingsPage({ appearance, onChange, user }) {
             label: t("settings.recommendation"),
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.recommendationSettings")}</Title>}>
-                <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                  <div>
-                    <Text style={{ fontWeight: 600 }}>{t("settings.preferredCategories")}</Text>
-                    <div style={{ marginTop: 8 }}>
-                      <Select mode="multiple" allowClear placeholder={t("settings.selectPreferred")} value={recommendPrefs.preferredCategories} onChange={(vals) => saveRecommend({ preferredCategories: vals })} options={allCategories.map(c => ({ label: c, value: c }))} style={{ width: '100%' }} />
+                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                        <Space>
+                            <TagsOutlined style={{ fontSize: 20, color: '#faad14' }} />
+                            <Text strong>{t("settings.autoLearn")}</Text>
+                        </Space>
+                        <Switch checked={!!recommendPrefs.autoLearn} onChange={(v) => saveRecommend({ autoLearn: v })} />
                     </div>
-                  </div>
-                  <div>
-                    <Text style={{ fontWeight: 600 }}>{t("settings.excludedCategories")}</Text>
-                    <div style={{ marginTop: 8 }}>
-                      <Select mode="multiple" allowClear placeholder={t("settings.selectExcluded")} value={recommendPrefs.excludedCategories} onChange={(vals) => saveRecommend({ excludedCategories: vals })} options={allCategories.map(c => ({ label: c, value: c }))} style={{ width: '100%' }} />
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                       <Card hoverable onClick={() => setCategoryPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                          <Space align="start">
+                              <TagsOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                              <div>
+                                  <Text strong style={{ display: 'block' }}>{t("settings.categoryPrefs")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.categoryPrefsDesc")}</Text>
+                              </div>
+                          </Space>
+                       </Card>
+                       <Card hoverable onClick={() => { try { localStorage.removeItem('recommend_behavior'); localStorage.removeItem('compare_ids'); message.success(t("settings.dataReset")); } catch {} }} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                          <Space align="start">
+                              <ReloadOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
+                              <div>
+                                  <Text strong type="danger" style={{ display: 'block' }}>{t("settings.resetData")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.resetData")}</Text>
+                              </div>
+                          </Space>
+                       </Card>
                     </div>
-                  </div>
-                  <Space align="center">
-                    <Text style={{ fontWeight: 600 }}>{t("settings.autoLearn")}</Text>
-                    <Switch checked={!!recommendPrefs.autoLearn} onChange={(v) => saveRecommend({ autoLearn: v })} />
-                  </Space>
-                  <div>
-                    <Button danger onClick={() => { try { localStorage.removeItem('recommend_behavior'); localStorage.removeItem('compare_ids'); message.success(t("settings.dataReset")); } catch {} }}>{t("settings.resetData")}</Button>
-                  </div>
-                </Space>
+                 </Space>
+                 <Modal title={t("settings.categoryPrefs")} open={categoryPrefModalOpen} onCancel={() => setCategoryPrefModalOpen(false)} footer={null}>
+                    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                      <div>
+                        <Text style={{ fontWeight: 600 }}>{t("settings.preferredCategories")}</Text>
+                        <Select mode="multiple" allowClear placeholder={t("settings.selectPreferred")} value={recommendPrefs.preferredCategories} onChange={(vals) => saveRecommend({ preferredCategories: vals })} options={allCategories.map(c => ({ label: c, value: c }))} style={{ width: '100%', marginTop: 8 }} />
+                      </div>
+                      <div>
+                        <Text style={{ fontWeight: 600 }}>{t("settings.excludedCategories")}</Text>
+                        <Select mode="multiple" allowClear placeholder={t("settings.selectExcluded")} value={recommendPrefs.excludedCategories} onChange={(vals) => saveRecommend({ excludedCategories: vals })} options={allCategories.map(c => ({ label: c, value: c }))} style={{ width: '100%', marginTop: 8 }} />
+                      </div>
+                    </Space>
+                 </Modal>
               </Card>
             ),
           },
@@ -448,36 +610,60 @@ function SettingsPage({ appearance, onChange, user }) {
               label: t("settings.adminApproval"),
               children: (
                 <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.adminApprovalSettings")}</Title>}>
-                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                    <div>
-                      <Text style={{ fontWeight: 600 }}>{t("settings.autoApproveStock")}</Text>
-                      <div style={{ marginTop: 8 }}>
-                        <InputNumber min={0} max={99} value={adminApprovalPrefs.autoApproveWhenStockGt} onChange={(v) => saveAdminApproval({ autoApproveWhenStockGt: Number(v || 0) })} />
-                      </div>
-                      <Text type="secondary">{t("settings.appliesToRenew")}</Text>
-                    </div>
-                    <div>
-                      <Text style={{ fontWeight: 600 }}>{t("settings.autoRejectOverdue")}</Text>
-                      <div style={{ marginTop: 8 }}>
-                        <InputNumber min={0} max={99} value={adminApprovalPrefs.autoRejectWhenOverdueGt} onChange={(v) => saveAdminApproval({ autoRejectWhenOverdueGt: Number(v || 0) })} />
-                      </div>
-                    </div>
-                    <div>
-                      <Text style={{ fontWeight: 600 }}>{t("settings.defaultBulkAction")}</Text>
-                      <div style={{ marginTop: 8 }}>
-                        <Radio.Group value={adminApprovalPrefs.defaultBulkAction} onChange={(e) => saveAdminApproval({ defaultBulkAction: e.target.value })}>
+                   <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
                           <Space>
-                            <Radio value="approve">{t("settings.approveOpt")}</Radio>
-                            <Radio value="reject">{t("settings.rejectOpt")}</Radio>
+                              <BellOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+                              <Text strong>{t("settings.approvalSound")}</Text>
                           </Space>
-                        </Radio.Group>
+                          <Switch checked={!!adminApprovalPrefs.soundEnabled} onChange={(v) => saveAdminApproval({ soundEnabled: v })} />
                       </div>
-                    </div>
-                    <Space align="center">
-                      <Text style={{ fontWeight: 600 }}>{t("settings.approvalSound")}</Text>
-                      <Switch checked={!!adminApprovalPrefs.soundEnabled} onChange={(v) => saveAdminApproval({ soundEnabled: v })} />
-                    </Space>
-                  </Space>
+                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                         <Card hoverable onClick={() => setAutoRulesModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                            <Space align="start">
+                                <RobotOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                                <div>
+                                    <Text strong style={{ display: 'block' }}>{t("settings.autoRules")}</Text>
+                                    <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.autoRulesDesc")}</Text>
+                                </div>
+                            </Space>
+                         </Card>
+                         <Card hoverable onClick={() => setBulkActionModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                            <Space align="start">
+                                <BuildOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                                <div>
+                                    <Text strong style={{ display: 'block' }}>{t("settings.defaultBulkAction")}</Text>
+                                    <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.bulkActionDesc")}</Text>
+                                </div>
+                            </Space>
+                         </Card>
+                      </div>
+                   </Space>
+                   <Modal title={t("settings.autoRules")} open={autoRulesModalOpen} onCancel={() => setAutoRulesModalOpen(false)} footer={null}>
+                      <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                        <div>
+                          <Text style={{ fontWeight: 600 }}>{t("settings.autoApproveStock")}</Text>
+                          <div style={{ marginTop: 8 }}>
+                            <InputNumber min={0} max={99} value={adminApprovalPrefs.autoApproveWhenStockGt} onChange={(v) => saveAdminApproval({ autoApproveWhenStockGt: Number(v || 0) })} style={{ width: '100%' }} />
+                          </div>
+                          <Text type="secondary">{t("settings.appliesToRenew")}</Text>
+                        </div>
+                        <div>
+                          <Text style={{ fontWeight: 600 }}>{t("settings.autoRejectOverdue")}</Text>
+                          <div style={{ marginTop: 8 }}>
+                            <InputNumber min={0} max={99} value={adminApprovalPrefs.autoRejectWhenOverdueGt} onChange={(v) => saveAdminApproval({ autoRejectWhenOverdueGt: Number(v || 0) })} style={{ width: '100%' }} />
+                          </div>
+                        </div>
+                      </Space>
+                   </Modal>
+                   <Modal title={t("settings.defaultBulkAction")} open={bulkActionModalOpen} onCancel={() => setBulkActionModalOpen(false)} footer={null}>
+                      <Radio.Group value={adminApprovalPrefs.defaultBulkAction} onChange={(e) => saveAdminApproval({ defaultBulkAction: e.target.value })} style={{ width: '100%' }}>
+                         <Space direction="vertical" style={{ width: '100%' }}>
+                            <Radio value="approve" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.approveOpt")}</Radio>
+                            <Radio value="reject" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.rejectOpt")}</Radio>
+                         </Space>
+                       </Radio.Group>
+                   </Modal>
                 </Card>
               ),
             },
@@ -487,35 +673,50 @@ function SettingsPage({ appearance, onChange, user }) {
               children: (
                 <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.adminRolesTitle")}</Title>}>
                   <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                    <Form layout="inline" onFinish={() => {
-                      const id = (permEditing.id || '').trim();
-                      if (!id) { message.error(t("settings.adminIdRequired")); return; }
-                      const next = { ...adminPermissions, [id]: { modules: permEditing.modules || [] } };
-                      saveAdminPermissions(next);
-                      setPermEditing({ id: '', modules: [] });
-                      message.success(t("settings.permissionsSaved"));
-                    }}>
-                      <Form.Item label={t("settings.adminId")}>
-                        <Input placeholder={t("settings.adminIdPlaceholder")} value={permEditing.id} onChange={(e) => setPermEditing({ ...permEditing, id: e.target.value })} style={{ width: 240 }} />
-                      </Form.Item>
-                      <Form.Item label={t("settings.modules")}>
-                        <Checkbox.Group options={moduleOptions} value={permEditing.modules} onChange={(vals) => setPermEditing({ ...permEditing, modules: vals })} />
-                      </Form.Item>
-                      <Form.Item>
-                        <Button type="primary" htmlType="submit">{t("settings.save")}</Button>
-                      </Form.Item>
-                    </Form>
-                    <Table dataSource={Object.entries(adminPermissions).map(([id, v]) => ({ key: id, id, modules: (v?.modules || []) }))} size="small" pagination={false} columns={[
-                      { title: t("settings.admin"), dataIndex: 'id', key: 'id' },
-                      { title: t("settings.modules"), dataIndex: 'modules', key: 'modules', render: (m) => (m && m.length ? m.join(', ') : '—') },
-                      { title: t("settings.action"), key: 'action', render: (_, r) => (
-                        <Space>
-                          <Button onClick={() => setPermEditing({ id: r.id, modules: r.modules })}>{t("settings.edit")}</Button>
-                          <Button danger onClick={() => { const next = { ...adminPermissions }; delete next[r.id]; saveAdminPermissions(next); }}>{t("settings.delete")}</Button>
-                        </Space>
-                      ) }
-                    ]} />
+                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                         <Card hoverable onClick={() => setRolesModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                            <Space align="start">
+                                <TeamOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
+                                <div>
+                                    <Text strong style={{ display: 'block' }}>{t("settings.manageRoles")}</Text>
+                                    <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.manageRolesDesc")}</Text>
+                                </div>
+                            </Space>
+                         </Card>
+                     </div>
                   </Space>
+                  <Modal title={t("settings.manageRoles")} open={rolesModalOpen} onCancel={() => setRolesModalOpen(false)} footer={null} width={800}>
+                    <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                      <Form layout="inline" onFinish={() => {
+                        const id = (permEditing.id || '').trim();
+                        if (!id) { message.error(t("settings.adminIdRequired")); return; }
+                        const next = { ...adminPermissions, [id]: { modules: permEditing.modules || [] } };
+                        saveAdminPermissions(next);
+                        setPermEditing({ id: '', modules: [] });
+                        message.success(t("settings.permissionsSaved"));
+                      }}>
+                        <Form.Item label={t("settings.adminId")}>
+                          <Input placeholder={t("settings.adminIdPlaceholder")} value={permEditing.id} onChange={(e) => setPermEditing({ ...permEditing, id: e.target.value })} style={{ width: 240 }} />
+                        </Form.Item>
+                        <Form.Item label={t("settings.modules")}>
+                          <Checkbox.Group options={moduleOptions} value={permEditing.modules} onChange={(vals) => setPermEditing({ ...permEditing, modules: vals })} />
+                        </Form.Item>
+                        <Form.Item>
+                          <Button type="primary" htmlType="submit">{t("settings.save")}</Button>
+                        </Form.Item>
+                      </Form>
+                      <Table dataSource={Object.entries(adminPermissions).map(([id, v]) => ({ key: id, id, modules: (v?.modules || []) }))} size="small" pagination={false} columns={[
+                        { title: t("settings.admin"), dataIndex: 'id', key: 'id' },
+                        { title: t("settings.modules"), dataIndex: 'modules', key: 'modules', render: (m) => (m && m.length ? m.join(', ') : '—') },
+                        { title: t("settings.action"), key: 'action', render: (_, r) => (
+                          <Space>
+                            <Button onClick={() => setPermEditing({ id: r.id, modules: r.modules })}>{t("settings.edit")}</Button>
+                            <Button danger onClick={() => { const next = { ...adminPermissions }; delete next[r.id]; saveAdminPermissions(next); }}>{t("settings.delete")}</Button>
+                          </Space>
+                        ) }
+                      ]} />
+                    </Space>
+                  </Modal>
                 </Card>
               ),
             }
