@@ -1,6 +1,6 @@
 // ✅ client/src/pages/LoginPage.jsx
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Card, Checkbox, message, Typography, QRCode } from "antd";
+import { Form, Input, Button, Card, Checkbox, message, Typography, QRCode, Modal } from "antd";
 import { QrcodeOutlined, ScanOutlined } from "@ant-design/icons";
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
