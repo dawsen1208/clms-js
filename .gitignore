@@ -6,7 +6,7 @@ backend/uploads/*
 !backend/uploads/.gitkeep
 
 # 前端构建产物
-frontend/dist/
+# frontend/dist/
 
 # 环境变量文件（包含敏感信息）
 .env
