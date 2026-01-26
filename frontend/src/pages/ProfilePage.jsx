@@ -243,6 +243,27 @@ function ProfilePage() {
   };
 
   /* =========================================================
+     👤 Update Name
+     ========================================================= */
+  const handleSaveName = async () => {
+    if (!name.trim()) return message.warning(t("profile.nameEmpty"));
+    try {
+      const res = await updateProfile(token, { name });
+      const u = res.data?.user || {};
+      const updatedUser = { ...userLS, name: u.name || name };
+      sessionStorage.setItem("user", JSON.stringify(updatedUser));
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setName(u.name || name);
+      setNameEditing(false);
+      message.success(t("profile.nameUpdated"));
+      await fetchUserProfile();
+    } catch (err) {
+      console.error("❌ Failed to update name:", err);
+      message.error(t("profile.nameUpdateFailed"));
+    }
+  };
+
+  /* =========================================================
      ✉️ 更新邮箱
      ========================================================= */
   const handleSaveEmail = async () => {
