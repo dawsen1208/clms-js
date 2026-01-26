@@ -470,8 +470,6 @@ function BorrowPage() {
                       >
                         {t("borrow.renewPending")}
                       </Button>
-                    ) : isReturnPending ? (
-                       <Button disabled style={{ visibility: "hidden", width: 0, padding: 0, border: 0 }} />
                     ) : (
                       <Button
                         type="primary"
@@ -481,29 +479,6 @@ function BorrowPage() {
                         disabled={isPending}
                       >
                         {t("borrow.renewLoan")}
-                      </Button>
-                    ),
-                    
-                    isReturnPending ? (
-                      <Button
-                        disabled
-                        icon={<ClockCircleOutlined />}
-                        style={{ borderRadius: 6, background: "#f5f5f5", color: "#8c8c8c" }}
-                      >
-                        {t("borrow.returnPending")}
-                      </Button>
-                    ) : isRenewPending ? (
-                       <Button disabled style={{ visibility: "hidden", width: 0, padding: 0, border: 0 }} />
-                    ) : (
-                      <Button
-                        type="primary"
-                        danger
-                        icon={<RollbackOutlined />}
-                        style={{ borderRadius: 6 }}
-                        onClick={() => openReturnModal(record)}
-                        disabled={isPending}
-                      >
-                        {t("borrow.requestReturn")}
                       </Button>
                     )
                   ]}

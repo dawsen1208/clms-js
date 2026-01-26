@@ -40,18 +40,61 @@ function HomePage() {
     try {
       setLoading(true);
       const res = await getRecommendations(token);
-      // ✅ 优先使用后端数据，如果没有数据则回退到静态数据
-      if (res.data?.recommended?.length) {
-        setRecommended(res.data.recommended);
+      const { popularBooks } = await import("../data/booksData");
+
+      const normalizeBooks = (books) =>
+        (books || []).map((book, index) => {
+          // 1. Try to find static cover match by ID (using imported popularBooks)
+          const staticMatch = popularBooks.find(b => b._id === book._id);
+
+          // 2. Resolve cover from various properties
+          let cover =
+            book.cover ||
+            book.coverUrl ||
+            book.image ||
+            book.imageUrl;
+
+          // 3. If no cover, fallback to static match
+          if (!cover && staticMatch?.cover) {
+            cover = staticMatch.cover;
+          }
+
+          // 4. If still no cover, fallback to popularBooks by index (cycling)
+          if (!cover && popularBooks.length > 0) {
+            const fallbackBook = popularBooks[index % popularBooks.length];
+            cover = fallbackBook.cover;
+          }
+
+          // 5. Last resort default
+          if (!cover) cover = "/books/cleancode.jpg";
+
+          // 6. URL Normalization (Cloud/Backend compatibility)
+          if (typeof cover === "string") {
+            if (cover.startsWith("http") || cover.startsWith("data:")) {
+              // Absolute URL, keep it
+            } else if (cover.startsWith("/books/")) {
+              // Static asset, keep it
+            } else {
+              // Backend relative path -> prepend API base
+              const apiBase = import.meta.env.VITE_API_BASE;
+              if (apiBase) {
+                const cleanBase = apiBase.replace(/\/$/, "");
+                const cleanPath = cover.startsWith("/") ? cover : `/${cover}`;
+                cover = `${cleanBase}${cleanPath}`;
+              }
+            }
+          }
+          return { ...book, cover };
+        });
+
+      const backendBooks = res.data?.recommended || [];
+      if (backendBooks.length) {
+        setRecommended(normalizeBooks(backendBooks));
       } else {
-        // Fallback to static data if backend returns empty (for demo purposes)
-        // You can import this from booksData.js if you export it
-        const { popularBooks } = await import("../data/booksData");
-        setRecommended(popularBooks);
+        setRecommended(normalizeBooks(popularBooks));
       }
     } catch (err) {
       console.error("❌ Failed to fetch recommendations:", err);
-      // Fallback on error
       const { popularBooks } = await import("../data/booksData");
       setRecommended(popularBooks);
     } finally {
