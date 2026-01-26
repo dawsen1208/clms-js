@@ -332,7 +332,7 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
           id="page-content" // ✅ Identify as scroll container
           style={{
             padding: isMobile ? "0" : "24px", // Remove padding on mobile to allow full width
-            background: "#f0f2f5",
+            // background: "#f0f2f5", // ❌ Removed to respect theme token (custom background)
             // 📱 Mobile: Independent scroll container
             height: isMobile ? "calc(100dvh - 64px)" : "calc(100dvh - 64px)", 
             overflowY: isMobile ? "auto" : "visible",

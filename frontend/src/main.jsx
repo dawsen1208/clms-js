@@ -106,6 +106,7 @@ function App() {
     };
   });
   const navigate = useNavigate();
+  const location = useLocation();
   const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
   const isMobile = !screens.md;
@@ -128,6 +129,10 @@ function App() {
   const baseFontSize = appearance.fontSize === "large" ? (isMobile ? 15 : 16) : (isMobile ? 13 : 14);
   const algorithm = isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
 
+  // 🎨 Dynamic Background Logic
+  const isHome = location.pathname === '/home' || location.pathname === '/';
+  const customBg = (!isHome && appearance.backgroundColor) ? appearance.backgroundColor : null;
+
   const themeTokens = {
     colorPrimary: resolvePrimary(),
     colorInfo: resolvePrimary(),
@@ -137,7 +142,7 @@ function App() {
     colorText: appearance.highContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#E6E6E6' : '#1F2937'),
     colorTextSecondary: appearance.highContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#CFCFCF' : '#6B7280'),
     colorBgContainer: isDark ? '#141414' : '#FFFFFF',
-    colorBgLayout: isDark ? '#0b0b0b' : '#F5F7FA',
+    colorBgLayout: customBg || (isDark ? '#0b0b0b' : '#F5F7FA'),
     colorBorder: appearance.highContrast ? (isDark ? '#ffffff' : '#000000') : '#E5EAF2',
     borderRadius: 12,
     boxShadow: '0 4px 12px rgba(0,0,0,0.08)',

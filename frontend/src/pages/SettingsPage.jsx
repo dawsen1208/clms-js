@@ -244,6 +244,22 @@ function SettingsPage({ appearance, onChange, user }) {
                     )}
                   </div>
                   <div>
+                    <Text style={{ fontWeight: 600 }}>{t("settings.customBackground")}</Text>
+                    <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 12 }}>
+                       <Input
+                         type="color"
+                         value={appearance?.backgroundColor || '#ffffff'}
+                         onChange={(e) => handleUpdate({ backgroundColor: e.target.value })}
+                         style={{ width: 50, height: 32, padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' }}
+                       />
+                       {appearance?.backgroundColor && (
+                         <Button size="small" onClick={() => handleUpdate({ backgroundColor: "" })}>
+                           {t("common.reset")}
+                         </Button>
+                       )}
+                    </div>
+                  </div>
+                  <div>
                     <Text style={{ fontWeight: 600 }}>{t("settings.fontSize")}</Text>
                     <div style={{ marginTop: 8 }}>
                       <Radio.Group value={appearance?.fontSize || 'normal'} onChange={(e) => handleUpdate({ fontSize: e.target.value })}>
