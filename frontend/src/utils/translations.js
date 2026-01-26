@@ -513,6 +513,7 @@ export const translations = {
       searchPlaceholder: "Search by title or author...",
       username: "Username",
       bookTitle: "Book Title",
+      title: "Book Title",
       type: "Type",
       status: "Status",
       requestedAt: "Requested At",
@@ -1460,7 +1461,18 @@ export const translations = {
       approvalFailed: "批准失败",
       rejectFailed: "拒绝失败",
       requestRejected: "申请已拒绝",
-      approvedSuccess: "批准成功"
+      approvedSuccess: "批准成功",
+      totalBooks: "藏书总量",
+      activeReaders: "活跃读者",
+      totalBorrowed: "累计借阅",
+      overdueBooks: "逾期图书",
+      borrowTrend: "借阅趋势 (30天)",
+      categoryRatio: "分类占比",
+      userGrowth: "用户增长",
+      title: "书名",
+      category: "分类",
+      renewDate: "续借日期",
+      chartTitle: "用户画像分布"
     }
   }
 };

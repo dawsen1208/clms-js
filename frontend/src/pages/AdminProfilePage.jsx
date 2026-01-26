@@ -251,8 +251,10 @@ const AdminProfilePage = () => {
         <Title level={3} style={{ marginBottom: 4 }}>
           {profile.name || t("admin.administrator")}
         </Title>
-        <div style={{ color: "#888", marginBottom: 12 }}>
-          {t("admin.role")}: {profile.role}
+        <div style={{ marginBottom: 12 }}>
+          <Tag color="purple" style={{ fontSize: '14px', padding: '4px 12px' }}>
+            {profile.role === "Administrator" ? t("admin.administrator") : profile.role}
+          </Tag>
         </div>
 
         <Upload
