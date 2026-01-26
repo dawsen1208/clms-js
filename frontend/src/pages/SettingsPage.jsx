@@ -7,7 +7,7 @@ import {
   TagsOutlined, ReloadOutlined, RobotOutlined, BuildOutlined, TeamOutlined,
   BellOutlined, SettingOutlined, PictureOutlined
 } from "@ant-design/icons";
-import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks } from "../api";
+import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks, sendAuthCode, bindEmail, toggle2FA } from "../api";
 import { useLanguage } from "../contexts/LanguageContext"; // ✅ Import Hook
 
 const { Title, Text } = Typography;
@@ -18,6 +18,27 @@ function SettingsPage({ appearance, onChange, user }) {
   const [modal, contextHolder] = Modal.useModal();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
+
+  const [email, setEmail] = useState("");
+  const [boundEmail, setBoundEmail] = useState(user?.email || "");
+  const [emailCode, setEmailCode] = useState("");
+  const [authCodeSent, setAuthCodeSent] = useState(false);
+  const [timer, setTimer] = useState(0);
+  const [loadingEmail, setLoadingEmail] = useState(false);
+
+  useEffect(() => {
+    if (user?.email) {
+      setBoundEmail(user.email);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    let interval;
+    if (timer > 0) {
+      interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
 
   const token = useMemo(() => {
     return sessionStorage.getItem("token") || localStorage.getItem("token");
@@ -40,6 +61,67 @@ function SettingsPage({ appearance, onChange, user }) {
         await updateProfile(token, { preferences: { notifications: next } });
       }
     } catch {}
+  };
+
+  const handleSendAuthCode = async () => {
+    if (!email) {
+      message.error(t("settings.enterEmail"));
+      return;
+    }
+    try {
+      setLoadingEmail(true);
+      await sendAuthCode(token, email);
+      message.success(t("settings.codeSent"));
+      setAuthCodeSent(true);
+      setTimer(60);
+    } catch (err) {
+      message.error(t("settings.sendFailed"));
+    } finally {
+      setLoadingEmail(false);
+    }
+  };
+
+  const handleBindEmail = async () => {
+    if (!emailCode) {
+      message.error(t("settings.enterCode"));
+      return;
+    }
+    try {
+      setLoadingEmail(true);
+      await bindEmail(token, email, emailCode);
+      message.success(t("settings.bindSuccess"));
+      
+      const storedUser = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
+      storedUser.email = email;
+      sessionStorage.setItem("user", JSON.stringify(storedUser));
+      localStorage.setItem("user", JSON.stringify(storedUser));
+      
+      setBoundEmail(email);
+
+      setAuthCodeSent(false);
+      setEmailCode("");
+      setTimer(0);
+    } catch (err) {
+      message.error(t("settings.bindFailed"));
+    } finally {
+      setLoadingEmail(false);
+    }
+  };
+
+  const handleToggle2FA = async (checked) => {
+    // Check if email is bound first
+    if (!boundEmail && checked) {
+      message.warning(t("settings.bindEmailFirst"));
+      return;
+    }
+
+    try {
+      await toggle2FA(token, checked);
+      saveSecurity({ twoFactorEnabled: checked });
+      message.success(checked ? t("settings.2faEnabled") : t("settings.2faDisabled"));
+    } catch (err) {
+      message.error(t("settings.operationFailed"));
+    }
   };
 
   const [operationPrefs, setOperationPrefs] = useState(() => {
@@ -357,12 +439,44 @@ function SettingsPage({ appearance, onChange, user }) {
                         </Space>
                         <Switch checked={!!notifPrefs.inApp} onChange={(v) => saveNotifications({ inApp: v })} />
                    </div>
+
+                   {/* Email Binding Section */}
+                   <Card type="inner" title={t("settings.emailConfig")} size="small" style={{ borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                        <Text type="secondary">{t("settings.emailDesc")}</Text>
+                        <Space.Compact style={{ width: '100%' }}>
+                          <Input 
+                            placeholder={t("settings.emailPlaceholder")} 
+                            value={email || (boundEmail || "")} 
+                            onChange={(e) => setEmail(e.target.value)}
+                            // disabled={!!boundEmail && !authCodeSent} 
+                          />
+                          <Button type="primary" onClick={handleSendAuthCode} disabled={timer > 0 || loadingEmail}>
+                            {timer > 0 ? `${timer}s` : t("settings.sendCode")}
+                          </Button>
+                        </Space.Compact>
+                        {authCodeSent && (
+                           <Space.Compact style={{ width: '100%' }}>
+                             <Input 
+                               placeholder={t("settings.codePlaceholder")} 
+                               value={emailCode} 
+                               onChange={(e) => setEmailCode(e.target.value)} 
+                             />
+                             <Button type="primary" onClick={handleBindEmail} loading={loadingEmail}>
+                               {t("settings.bindEmail")}
+                             </Button>
+                           </Space.Compact>
+                        )}
+                        {boundEmail && <Tag color="success">{t("settings.emailBound")}: {boundEmail}</Tag>}
+                      </Space>
+                   </Card>
+
                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
                         <Space>
                             <BellOutlined style={{ fontSize: 20, color: '#1890ff' }} />
                             <Text strong>{t("settings.emailNotif")}</Text>
                         </Space>
-                        <Switch checked={!!notifPrefs.email} onChange={(v) => saveNotifications({ email: v })} disabled={!user?.email} />
+                        <Switch checked={!!notifPrefs.email} onChange={(v) => saveNotifications({ email: v })} disabled={!boundEmail} />
                    </div>
                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                        <Card hoverable onClick={() => setReminderDaysModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
@@ -397,10 +511,18 @@ function SettingsPage({ appearance, onChange, user }) {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
                       <Space>
                           <SafetyCertificateOutlined style={{ fontSize: 20, color: '#52c41a' }} />
-                          <Text strong>{t("settings.twoFactor")}</Text>
+                          <div>
+                            <Text strong style={{ display: 'block' }}>{t("settings.twoFactor")}</Text>
+                            <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.twoFactorDesc")}</Text>
+                          </div>
                       </Space>
-                      <Switch checked={!!securityPrefs.twoFactorEnabled} onChange={(v) => saveSecurity({ twoFactorEnabled: v })} />
+                      <Switch 
+                        checked={!!securityPrefs.twoFactorEnabled} 
+                        onChange={handleToggle2FA} 
+                        disabled={!boundEmail} 
+                      />
                   </div>
+                  {!boundEmail && <Text type="danger" style={{ display: 'block', marginTop: -8, marginBottom: 8 }}>{t("settings.bindEmailFirst")}</Text>}
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                     <Card
                       hoverable

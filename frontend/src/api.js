@@ -104,6 +104,28 @@ export const changePassword = (token, currentPassword, newPassword) =>
     { headers: { Authorization: `Bearer ${token}` } }
   );
 
+// ✅ 发送邮箱验证码
+export const sendAuthCode = (token, email) =>
+  API.post("/users/send-auth-code", { email }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+// ✅ 绑定邮箱
+export const bindEmail = (token, email, code) =>
+  API.post("/users/bind-email", { email, code }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+// ✅ 切换双重认证
+export const toggle2FA = (token, enabled) =>
+  API.post("/users/toggle-2fa", { enabled }, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+// ✅ 2FA 登录验证
+export const login2FA = (userId, code) =>
+  API.post("/users/login/2fa", { userId, code });
+
 export const getSessions = (token) =>
   API.get("/users/sessions", { headers: { Authorization: `Bearer ${token}` } });
 

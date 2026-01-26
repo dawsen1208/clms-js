@@ -9,6 +9,28 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true }, // 加密密码
   role: { type: String, enum: ["Reader", "Administrator"], default: "Reader" }, // 用户角色
   avatar: { type: String, default: "" }, // 头像URL
+  
+  // 🔐 安全设置
+  twoFactorEnabled: { type: Boolean, default: false }, // 是否开启双重认证
+  authCode: { type: String, default: "" }, // 静态授权码（绑定邮箱时生成）
+  tempAuthCode: { type: String, default: "" }, // 临时验证码
+  tempAuthCodeExpires: { type: Date }, // 临时验证码过期时间
+  
+  // ⚙️ 用户偏好设置
+  preferences: {
+    notifications: {
+      inApp: { type: Boolean, default: true },
+      email: { type: Boolean, default: false },
+      reminderDays: { type: Number, default: 3 }
+    },
+    // 其他偏好可扩展
+    operation: { type: Object, default: {} },
+    recommendation: { type: Object, default: {} },
+    adminApproval: { type: Object, default: {} },
+    adminPermissions: { type: Object, default: {} },
+    security: { type: Object, default: {} }
+  },
+
   sessions: [{
     id: { type: String, required: true }, // Session ID
     device: { type: String, default: "Unknown" }, // Device Info

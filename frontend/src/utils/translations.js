@@ -85,7 +85,12 @@ export const translations = {
       errorEmpty: "Please enter User ID and password",
       errorToken: "Login failed: server did not return a valid token",
       errorInvalid: "Login failed, please check your User ID or password",
-      prefillInfo: "Your registration ID has been prefilled: {id}"
+      prefillInfo: "Your registration ID has been prefilled: {id}",
+      twoFactorAuth: "Two-Factor Authentication",
+      authCodePlaceholder: "Enter verification code",
+      verify: "Verify",
+      enterCode: "Please enter verification code",
+      invalidCode: "Invalid verification code"
     },
     register: {
       readerDesc: "Register as a reader to start borrowing books.",
@@ -396,7 +401,26 @@ export const translations = {
       savePermissions: "Save Permissions",
       permissionsSaved: "Permissions saved",
       adminIdRequired: "Admin identifier required",
-      adminIdPlaceholder: "userId or email"
+      adminIdPlaceholder: "userId or email",
+      emailConfig: "Email Configuration",
+      emailDesc: "Bind an email to receive notifications and enable 2FA.",
+      emailPlaceholder: "Enter your email",
+      sendCode: "Send Code",
+      codePlaceholder: "Enter auth code",
+      bindEmail: "Bind Email",
+      emailBound: "Email Bound",
+      enterEmail: "Please enter an email address",
+      codeSent: "Verification code sent!",
+      sendFailed: "Failed to send code",
+      bindEmailFirst: "Please bind an email first",
+      "2faEnabled": "Two-Factor Authentication Enabled",
+      "2faDisabled": "Two-Factor Authentication Disabled",
+      operationFailed: "Operation failed",
+      enable2FA: "Enable Two-Factor Authentication",
+      enterCode: "Please enter verification code",
+      bindSuccess: "Email bound successfully",
+      bindFailed: "Failed to bind email",
+      twoFactorDesc: "Enable two-factor authentication for enhanced security"
     },
     bookDetail: {
       author: "Author",
@@ -862,7 +886,12 @@ export const translations = {
       errorEmpty: "请输入用户ID和密码",
       errorToken: "登录失败：服务器未返回有效令牌",
       errorInvalid: "登录失败，请检查您的用户ID或密码",
-      prefillInfo: "您的注册ID已预填：{id}"
+      prefillInfo: "您的注册ID已预填：{id}",
+      twoFactorAuth: "双重认证",
+      authCodePlaceholder: "请输入验证码",
+      verify: "验证",
+      enterCode: "请输入验证码",
+      invalidCode: "验证码无效"
     },
     register: {
       readerDesc: "注册读者账号以开始借阅图书。",
@@ -1170,7 +1199,26 @@ export const translations = {
       savePermissions: "保存权限",
       permissionsSaved: "权限已保存",
       adminIdRequired: "必须填写管理员标识",
-      adminIdPlaceholder: "用户ID 或 邮箱"
+      adminIdPlaceholder: "用户ID 或 邮箱",
+      emailConfig: "邮箱配置",
+      emailDesc: "绑定邮箱以接收通知并启用双重认证。",
+      emailPlaceholder: "请输入您的邮箱",
+      sendCode: "发送验证码",
+      codePlaceholder: "请输入验证码",
+      bindEmail: "绑定邮箱",
+      emailBound: "邮箱已绑定",
+      enterEmail: "请输入邮箱地址",
+      codeSent: "验证码已发送！",
+      sendFailed: "发送验证码失败",
+      bindEmailFirst: "请先绑定邮箱",
+      "2faEnabled": "双重认证已启用",
+      "2faDisabled": "双重认证已禁用",
+      operationFailed: "操作失败",
+      enable2FA: "启用双重认证",
+      enterCode: "请输入验证码",
+      bindSuccess: "邮箱绑定成功",
+      bindFailed: "邮箱绑定失败",
+      twoFactorDesc: "启用双重认证以增强账户安全"
     },
     bookDetail: {
       author: "作者",

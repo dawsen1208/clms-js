@@ -43,6 +43,172 @@ const genUserId = async (role = "Reader") => {
 };
 
 /* =========================================================
+   📧 邮箱与双重认证 (2FA) 相关接口
+   ========================================================= */
+
+// 模拟发送邮件函数
+const sendEmailMock = (to, subject, text) => {
+  console.log(`\n📨 [MOCK EMAIL] To: ${to}`);
+  console.log(`Subject: ${subject}`);
+  console.log(`Body: ${text}\n`);
+  return true;
+};
+
+// 1. 发送验证码 (用于绑定邮箱)
+router.post("/send-auth-code", authMiddleware, async (req, res) => {
+  try {
+    const { email } = req.body;
+    const userId = req.user.userId;
+
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ message: "请输入有效的邮箱地址" });
+    }
+
+    const user = await User.findOne({ userId });
+    if (!user) return res.status(404).json({ message: "用户不存在" });
+
+    // 生成6位数字验证码
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // 保存临时验证码 (10分钟有效)
+    user.tempAuthCode = code;
+    user.tempAuthCodeExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    // 发送邮件 (Mock)
+    sendEmailMock(
+      email,
+      "【CLMS】邮箱绑定验证码",
+      `您的验证码/授权码是：${code}。\n请在页面输入此代码以完成绑定。\n此代码也将作为您开启双重认证后的登录授权码，请妥善保管。`
+    );
+
+    res.json({ message: "验证码已发送至您的邮箱，请查收（开发环境请查看控制台）" });
+  } catch (err) {
+    console.error("❌ 发送验证码失败:", err);
+    res.status(500).json({ message: "发送验证码失败" });
+  }
+});
+
+// 2. 确认绑定邮箱 (同时设置 authCode)
+router.post("/bind-email", authMiddleware, async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    const userId = req.user.userId;
+
+    if (!code) return res.status(400).json({ message: "请输入验证码" });
+
+    const user = await User.findOne({ userId });
+    if (!user) return res.status(404).json({ message: "用户不存在" });
+
+    // 验证代码
+    if (
+      !user.tempAuthCode || 
+      user.tempAuthCode !== code || 
+      !user.tempAuthCodeExpires || 
+      user.tempAuthCodeExpires < new Date()
+    ) {
+      return res.status(400).json({ message: "验证码无效或已过期" });
+    }
+
+    // 绑定成功
+    user.email = email;
+    user.authCode = code; // 将验证码固定为授权码
+    user.tempAuthCode = ""; // 清除临时码
+    user.tempAuthCodeExpires = null;
+    
+    // 默认开启邮件通知 (根据需求: "邮件通知功能默认处于关闭状态...用户需主动填写...配置完成后...功能才可启用")
+    // 实际上用户还需要手动开启开关，这里只绑定邮箱
+    // Update: 需求说 "邮件通知功能默认处于关闭状态...仅在用户完成个人邮箱配置后才可启用"
+    
+    await user.save();
+
+    res.json({ message: "邮箱绑定成功，授权码已保存", email: user.email });
+  } catch (err) {
+    console.error("❌ 绑定邮箱失败:", err);
+    res.status(500).json({ message: "绑定邮箱失败" });
+  }
+});
+
+// 3. 切换双重认证状态
+router.post("/toggle-2fa", authMiddleware, async (req, res) => {
+  try {
+    const { enabled } = req.body;
+    const userId = req.user.userId;
+
+    const user = await User.findOne({ userId });
+    if (!user) return res.status(404).json({ message: "用户不存在" });
+
+    if (enabled && !user.authCode) {
+      return res.status(400).json({ message: "请先绑定邮箱并获取授权码" });
+    }
+
+    user.twoFactorEnabled = enabled;
+    await user.save();
+
+    res.json({ message: `双重认证已${enabled ? "开启" : "关闭"}`, twoFactorEnabled: user.twoFactorEnabled });
+  } catch (err) {
+    res.status(500).json({ message: "设置失败" });
+  }
+});
+
+// 4. 二次验证登录 (2FA)
+router.post("/login/2fa", async (req, res) => {
+  try {
+    const { userId, code } = req.body;
+    
+    if (!userId || !code) return res.status(400).json({ message: "参数缺失" });
+
+    const user = await User.findOne({ userId });
+    if (!user) return res.status(404).json({ message: "用户不存在" });
+
+    // 验证授权码
+    if (user.authCode !== code) {
+      return res.status(401).json({ message: "授权码错误" });
+    }
+
+    // 登录成功，颁发 Token
+    const sessionId = crypto.randomUUID();
+    user.sessions.push({
+      id: sessionId,
+      device: req.headers["user-agent"] || "Unknown Device",
+      ip: req.ip || req.connection.remoteAddress || "0.0.0.0",
+      loginTime: new Date(),
+      lastUsedAt: new Date(),
+    });
+    // Limit sessions
+    if (user.sessions.length > 10) {
+       user.sessions.sort((a, b) => new Date(b.lastUsedAt) - new Date(a.lastUsedAt));
+       user.sessions = user.sessions.slice(0, 10);
+    }
+    await user.save();
+
+    const token = jwt.sign(
+      { id: user._id, userId: user.userId, name: user.name, role: user.role, sessionId },
+      process.env.JWT_SECRET || "mysecretkey",
+      { expiresIn: "7d" }
+    );
+
+    res.json({
+      message: "登录成功",
+      token,
+      user: {
+        id: user._id,
+        userId: user.userId,
+        name: user.name,
+        role: user.role,
+        avatar: user.avatar || "",
+        email: user.email,
+        preferences: user.preferences
+      },
+    });
+
+  } catch (err) {
+    console.error("❌ 2FA登录失败:", err);
+    res.status(500).json({ message: "验证失败" });
+  }
+});
+
+/* =========================================================
    🧾 用户注册
    ========================================================= */
 router.post("/register", async (req, res) => {
@@ -107,8 +273,18 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ userId });
     if (!user) return res.status(404).json({ message: "用户不存在" });
 
+    // 验证当前密码
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "密码错误" });
+
+    // 🔐 检查双重认证 (2FA)
+    if (user.twoFactorEnabled) {
+      return res.json({
+        require2FA: true,
+        userId: user.userId,
+        message: "请输入双重认证授权码"
+      });
+    }
 
     // ✅ Record Session
     const sessionId = crypto.randomUUID();

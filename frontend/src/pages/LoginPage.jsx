@@ -5,7 +5,7 @@ import { QrcodeOutlined, ScanOutlined } from "@ant-design/icons";
 import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { login as apiLogin } from "../api.js";
+import { login as apiLogin, login2FA } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 
 /**
@@ -19,6 +19,9 @@ function LoginPage() {
   const [loginError, setLoginError] = useState("");
   const [remember, setRemember] = useState(false); // ✅ “记住我”开关
   const [isFlipped, setIsFlipped] = useState(false); // 🔄 Card flip state
+  const [is2FAModalOpen, setIs2FAModalOpen] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [tempUserId, setTempUserId] = useState("");
   const navigate = useNavigate();
 
   // API 基础地址由全局 api.js 管理，避免 https 页面访问 http 导致的 CSP/Mixed-Content
@@ -36,41 +39,67 @@ function LoginPage() {
 
       const res = await apiLogin(userId, password);
 
-      const { token, user } = res.data;
-
-      /* =========================================================
-         ✨ 登录数据保存：根治 token 丢失 / jwt malformed
-         ========================================================= */
-      if (!token || typeof token !== "string") {
-        message.error(t("login.errorToken"));
+      if (res.data.require2FA) {
+        setTempUserId(userId);
+        setIs2FAModalOpen(true);
+        setLoading(false);
         return;
       }
 
-      // ✅ 永远保存一份到 localStorage（供 axios 读取）
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      const { token, user } = res.data;
+      finalizeLogin(token, user);
 
-      // ✅ 同步一份到 sessionStorage
-      sessionStorage.setItem("token", token);
-      sessionStorage.setItem("user", JSON.stringify(user));
-
-      // ✅ 如果未勾选“记住我”，只使用 sessionStorage（关闭浏览器后自动失效）
-      if (!remember) {
-        console.log("ℹ️ 临时登录：关闭浏览器后自动登出");
-      }
-
-      message.success(t("login.welcomeBackUser", { name: user.name }));
-
-      // ✅ 跳转到不同主页
-      if (user.role === "Administrator") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/home");
-      }
     } catch (err) {
       console.error("❌ Login failed:", err);
       setLoginError(t("login.errorInvalid"));
-    } finally {
+      setLoading(false);
+    }
+  };
+
+  const finalizeLogin = (token, user) => {
+    if (!token || typeof token !== "string") {
+      message.error(t("login.errorToken"));
+      return;
+    }
+
+    // ✅ 永远保存一份到 localStorage（供 axios 读取）
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+
+    // ✅ 同步一份到 sessionStorage
+    sessionStorage.setItem("token", token);
+    sessionStorage.setItem("user", JSON.stringify(user));
+
+    // ✅ 如果未勾选“记住我”，只使用 sessionStorage（关闭浏览器后自动失效）
+    if (!remember) {
+      console.log("ℹ️ 临时登录：关闭浏览器后自动登出");
+    }
+
+    message.success(t("login.welcomeBackUser", { name: user.name }));
+
+    // ✅ 跳转到不同主页
+    if (user.role === "Administrator") {
+      navigate("/admin/dashboard");
+    } else {
+      navigate("/home");
+    }
+    setLoading(false);
+  };
+
+  const handle2FASubmit = async () => {
+    if (!twoFactorCode || twoFactorCode.length !== 6) {
+      message.error(t("login.enterCode"));
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await login2FA(tempUserId, twoFactorCode);
+      const { token, user } = res.data;
+      setIs2FAModalOpen(false);
+      finalizeLogin(token, user);
+    } catch (err) {
+      console.error("❌ 2FA failed:", err);
+      message.error(t("login.invalidCode"));
       setLoading(false);
     }
   };
@@ -279,6 +308,26 @@ function LoginPage() {
           </div>
         </div>
       </div>
+      {/* ✅ 2FA Modal */}
+      <Modal
+        title={t("login.twoFactorAuth")}
+        open={is2FAModalOpen}
+        onOk={handle2FASubmit}
+        onCancel={() => setIs2FAModalOpen(false)}
+        confirmLoading={loading}
+        okText={t("login.verify")}
+        cancelText={t("common.cancel")}
+      >
+        <p>{t("login.enterCode")}</p>
+        <Input 
+          placeholder={t("login.authCodePlaceholder")} 
+          value={twoFactorCode} 
+          onChange={(e) => setTwoFactorCode(e.target.value)} 
+          maxLength={6}
+          style={{ textAlign: 'center', letterSpacing: '4px', fontSize: '18px' }}
+        />
+      </Modal>
+
     </div>
   );
 }
