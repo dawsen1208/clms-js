@@ -8,25 +8,46 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # --- Frontend Build ---
+      - name: Setup Node.js (Frontend)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      # --- Backend Preparation ---
+      - name: Setup Node.js (Backend)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install Backend Dependencies
+        working-directory: ./backend
         run: npm ci
 
+      - name: Copy Frontend Build to Backend Public Directory
+        run: |
+          mkdir -p backend/public
+          cp -r frontend/dist/* backend/public/
+
       - name: Fix startup script permissions and line endings
+        working-directory: ./backend
         run: |
           chmod +x startup.sh
           sed -i 's/\r$//' startup.sh

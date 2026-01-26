@@ -22,7 +22,13 @@ const app = express();
 // 解析当前文件路径，计算前端构建目录（frontend/dist）
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const frontendDistPath = path.resolve(__dirname, "../frontend/dist");
+
+// 优先检查当前目录下的 public 文件夹（生产环境部署）
+let frontendDistPath = path.join(__dirname, "public");
+if (!fs.existsSync(frontendDistPath)) {
+  // 回退到上级兄弟目录（本地开发环境）
+  frontendDistPath = path.resolve(__dirname, "../frontend/dist");
+}
 console.log("🗂️ frontendDistPath:", frontendDistPath, "exists:", fs.existsSync(frontendDistPath));
 
 /* =========================================================
