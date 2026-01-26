@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { AutoComplete, Input, Typography, Button, Tooltip, Tag } from "antd";
 import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 import { theme } from "../../styles/theme";
+import { useLanguage } from "../../contexts/LanguageContext";
 import "./EnhancedSearchBar.css";
 
 const { Search } = Input;
@@ -19,6 +20,7 @@ function EnhancedSearchBar({
   books = [],
   loading = false 
 }) {
+  const { t } = useLanguage();
   const [searchValue, setSearchValue] = useState("");
   const [options, setOptions] = useState([]);
   const [error, setError] = useState(null);
@@ -78,7 +80,7 @@ function EnhancedSearchBar({
                   dangerouslySetInnerHTML={{ __html: highlightedText }} 
                 />
                 <div className="suggestion-meta">
-                  {(book.title || 'Unknown Title')} · {(book.author || 'Unknown Author')} · Available: {(book.copies || 0)}
+                  {(book.title || t("common.unknown"))} · {(book.author || t("common.unknown"))} · {t("search.available", { count: book.copies || 0 })}
                 </div>
                 <div className="suggestion-actions">
                   <Button
@@ -87,7 +89,7 @@ function EnhancedSearchBar({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={(e) => { e.stopPropagation(); onBorrow && onBorrow(book._id || book.id, book.title, book.copies); }}
                   >
-                    Borrow
+                    {t("search.borrowBtn")}
                   </Button>
                   <Button
                     size="small"
@@ -101,7 +103,7 @@ function EnhancedSearchBar({
                       } catch {}
                     })(); }}
                   >
-                    Add to Compare
+                    {t("search.addToCompare")}
                   </Button>
                 </div>
               </div>
@@ -122,7 +124,7 @@ function EnhancedSearchBar({
       setError(error);
       return [];
     }
-  }, [searchValue, searchType, books]);
+  }, [searchValue, searchType, books, t]);
 
   // Update autocomplete options
   useEffect(() => {
@@ -163,20 +165,28 @@ function EnhancedSearchBar({
 
   // Search type options
   const searchTypeOptions = [
-    { value: "title", label: "Title" },
-    { value: "author", label: "Author" },
-    { value: "category", label: "Category" },
+    { value: "title", label: t("search.typeTitle") },
+    { value: "author", label: t("search.typeAuthor") },
+    { value: "category", label: t("search.typeCategory") },
   ];
+
+  // Helper for placeholder
+  const getPlaceholder = () => {
+    if (searchType === "title") return t("search.enterTitle");
+    if (searchType === "author") return t("search.enterAuthor");
+    if (searchType === "category") return t("search.enterCategory");
+    return t("search.placeholder");
+  };
 
   // Error boundary display
   if (error) {
     return (
       <div className="enhanced-search-bar error-state">
         <div className="error-message">
-          <Text type="danger">Search component error, please refresh the page</Text>
+          <Text type="danger">{t("search.searchError")}</Text>
         </div>
         <Input
-          placeholder="Search books..."
+          placeholder={t("search.placeholder")}
           onPressEnter={(e) => onSearch && onSearch(e.target.value, searchType)}
           style={{ width: '100%' }}
         />
@@ -194,15 +204,15 @@ function EnhancedSearchBar({
           onSelect={handleSelect}
           value={searchValue}
           onChange={setSearchValue}
-          placeholder={`Enter ${searchTypeOptions.find(opt => opt.value === searchType)?.label.toLowerCase()} to search...`}
+          placeholder={getPlaceholder()}
           loading={loading}
           allowClear
           style={{ width: '100%' }}
-          notFoundContent={searchValue && searchValue.length >= 2 ? "No matching results" : "Enter at least 2 characters"}
+          notFoundContent={searchValue && searchValue.length >= 2 ? t("search.noMatching") : t("search.enterTwoChars")}
         >
           <Search
             prefix={<SearchOutlined style={{ color: theme.colors.neutral.darkGray }} />}
-            enterButton="Search"
+            enterButton={t("common.search")}
             size="large"
             loading={loading}
             onSearch={handleSearch}
@@ -240,7 +250,7 @@ function EnhancedSearchBar({
           ))}
         </div>
 
-        <Tooltip title="刷新">
+        <Tooltip title={t("common.refresh")}>
           <Button
             type="default"
             icon={<ReloadOutlined />}
@@ -271,7 +281,7 @@ function EnhancedSearchBar({
       {searchValue && (
         <div className="search-stats">
           <Text type="secondary">
-            Found {options.length} matching results
+            {t("search.foundResults", { count: options.length })}
           </Text>
         </div>
       )}

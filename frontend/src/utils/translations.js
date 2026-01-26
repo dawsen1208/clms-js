@@ -497,7 +497,19 @@ export const translations = {
       successTitle: "Borrowed Successfully",
       successMsg: "Your borrow request has been completed. Enjoy reading!",
       limitTitle: "Borrowing Limit Reached",
-      limitMsg: "You have reached the maximum number of borrowed books for the current period. Please return some books before borrowing new ones."
+      limitMsg: "You have reached the maximum number of borrowed books for the current period. Please return some books before borrowing new ones.",
+      typeTitle: "Title",
+      typeAuthor: "Author",
+      typeCategory: "Category",
+      enterTitle: "Enter title to search...",
+      enterAuthor: "Enter author to search...",
+      enterCategory: "Enter category to search...",
+      foundResults: "Found {count} matching results",
+      noMatching: "No matching results",
+      enterTwoChars: "Enter at least 2 characters",
+      searchError: "Search component error, please refresh the page",
+      addToCompare: "Add to Compare",
+      available: "Available: {count}"
     },
     error: {
       pageLoad: "Page load failed, please re-login."
@@ -1013,7 +1025,19 @@ export const translations = {
       limitMsg: "您已借阅该书的最大数量（2本）。",
       loadFailed: "加载书籍失败，请检查网络",
       uncategorized: "未分类",
-      returnSuccess: "归还申请已提交"
+      returnSuccess: "归还申请已提交",
+      typeTitle: "书名",
+      typeAuthor: "作者",
+      typeCategory: "分类",
+      enterTitle: "输入书名搜索...",
+      enterAuthor: "输入作者搜索...",
+      enterCategory: "输入分类搜索...",
+      foundResults: "找到 {count} 个匹配结果",
+      noMatching: "无匹配结果",
+      enterTwoChars: "请输入至少2个字符",
+      searchError: "搜索组件错误，请刷新页面",
+      addToCompare: "加入比对",
+      available: "库存: {count}"
     },
     settings: {
       security: "安全",
