@@ -668,15 +668,14 @@ router.post("/borrow/:id", authMiddleware, async (req, res) => {
     if (book.copies <= 0)
       return res.status(400).json({ message: "库存不足" });
 
-    const now = new Date();
-    const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    // 限制每个用户最多只能同时借5本书（按未归还计算）
     const borrowCount = await BorrowRecord.countDocuments({
       userId,
-      borrowedAt: { $gte: startDate },
+      returned: false,
     });
     if (borrowCount >= 5) {
       return res.status(400).json({
-        message: "30天内借阅上限5本，请归还部分书籍后再借阅 📚",
+        message: "您当前已借阅 5 本书，达到同时借阅上限。请先归还部分书籍 📚",
       });
     }
 
