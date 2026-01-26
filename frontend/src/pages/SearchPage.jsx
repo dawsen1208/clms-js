@@ -578,6 +578,8 @@ function SearchPage() {
         maskClosable
         getContainer={false}
         zIndex={10000}
+        okText={t("common.confirm")}
+        cancelText={t("common.cancel")}
       >
         <div>{t("search.borrowSuccess")}</div>
       </Modal>
