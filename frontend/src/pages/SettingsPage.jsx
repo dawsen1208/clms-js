@@ -1,12 +1,16 @@
 import React, { useMemo, useEffect, useState } from "react";
-import { Card, Typography, Radio, Space, Divider, Input, Switch, Form, Button, Table, Tag, message, Select, InputNumber, Checkbox, Tabs } from "antd";
+import { Card, Typography, Radio, Space, Divider, Input, Switch, Form, Button, Table, Tag, message, Select, InputNumber, Checkbox, Tabs, Grid } from "antd";
 import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks } from "../api";
 import { useLanguage } from "../contexts/LanguageContext"; // ✅ Import Hook
 
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid;
 
 function SettingsPage({ appearance, onChange, user }) {
   const { language, setLanguage, t } = useLanguage(); // ✅ Use Language Hook
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
   const token = useMemo(() => {
     return sessionStorage.getItem("token") || localStorage.getItem("token");
   }, []);
@@ -181,11 +185,11 @@ function SettingsPage({ appearance, onChange, user }) {
   };
 
   return (
-    <div className="settings-page" style={{ padding: "24px", maxWidth: 1000, margin: "0 auto" }}>
-      <Title level={2} className="page-modern-title" style={{ marginBottom: 24 }}>{t("settings.settings")}</Title>
+    <div className="settings-page" style={{ padding: isMobile ? "16px" : "24px", maxWidth: 1000, margin: "0 auto" }}>
+      <Title level={2} className="page-modern-title" style={{ marginBottom: 24, fontSize: isMobile ? 24 : 30 }}>{t("settings.settings")}</Title>
       <Tabs
         defaultActiveKey="language"
-        tabPosition="left"
+        tabPosition={isMobile ? "top" : "left"}
         items={[
           {
             key: "language",
