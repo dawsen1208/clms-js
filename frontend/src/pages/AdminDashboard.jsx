@@ -102,7 +102,7 @@ const AdminDashboard = () => {
     }
   };
 
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => { refresh(); }, [t]);
   return (
     <div className="admin-dashboard" style={{ 
       padding: "2rem",
