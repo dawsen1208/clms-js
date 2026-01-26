@@ -15,6 +15,7 @@ const { useBreakpoint } = Grid;
 
 function SettingsPage({ appearance, onChange, user }) {
   const { language, setLanguage, t } = useLanguage(); // ✅ Use Language Hook
+  const [modal, contextHolder] = Modal.useModal();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
@@ -209,6 +210,7 @@ function SettingsPage({ appearance, onChange, user }) {
 
   return (
     <div className="settings-page" style={{ padding: isMobile ? "16px" : "24px", maxWidth: 1000, margin: "0 auto" }}>
+      {contextHolder}
       <Title level={2} className="page-modern-title" style={{ marginBottom: 24, fontSize: isMobile ? 24 : 30 }}>{t("settings.settings")}</Title>
       <Tabs
         defaultActiveKey="language"
@@ -426,9 +428,9 @@ function SettingsPage({ appearance, onChange, user }) {
                       </Space>
                     </Card>
                      <Card hoverable onClick={() => { 
-                         Modal.confirm({
-                             title: t("settings.clearCache"),
-                             content: t("settings.clearCacheDesc"),
+                        modal.confirm({
+                            title: t("settings.clearCache"),
+                            content: t("settings.clearCacheDesc"),
                              onOk: () => {
                                  try { localStorage.clear(); } catch {} 
                                  message.success(t("settings.cacheCleared"));
@@ -462,20 +464,20 @@ function SettingsPage({ appearance, onChange, user }) {
                        onFinish={async (values) => {
                          console.log("Password change form submitted (user settings)", values);
                          const { currentPassword, newPassword, confirmPassword } = values;
-                         if (!newPassword || newPassword.length < 8) {
-                           Modal.error({
-                             title: t("settings.updatePassword"),
-                             content: t("settings.passwordLength"),
-                           });
-                           return;
-                         }
-                         if (newPassword !== confirmPassword) {
-                           Modal.error({
-                             title: t("settings.updatePassword"),
-                             content: t("settings.passwordMismatch"),
-                           });
-                           return;
-                         }
+                        if (!newPassword || newPassword.length < 8) {
+                          modal.error({
+                            title: t("settings.updatePassword"),
+                            content: t("settings.passwordLength"),
+                          });
+                          return;
+                        }
+                        if (newPassword !== confirmPassword) {
+                          modal.error({
+                            title: t("settings.updatePassword"),
+                            content: t("settings.passwordMismatch"),
+                          });
+                          return;
+                        }
                          
                          try { 
                            console.log("Starting password change request (user settings)...");
@@ -486,19 +488,19 @@ function SettingsPage({ appearance, onChange, user }) {
                            message.success(t("settings.passwordUpdated")); 
                            setPasswordModalOpen(false); 
                          } catch (e) { 
-                           console.error("Change password failed (user settings):", e);
-                           if (e?.response?.status === 401 || e?.response?.status === 400) {
-                             Modal.error({
-                               title: t("settings.updatePassword"),
-                               content: t("settings.wrongCurrentPassword"),
-                             });
-                           } else {
-                             Modal.error({
-                               title: t("settings.updatePassword"),
-                               content: e?.response?.data?.message || e?.message || t("settings.changePasswordFailed"),
-                             });
-                           }
-                         } finally {
+                            console.error("Change password failed (user settings):", e);
+                            if (e?.response?.status === 401 || e?.response?.status === 400) {
+                              modal.error({
+                                title: t("settings.updatePassword"),
+                                content: t("settings.wrongCurrentPassword"),
+                              });
+                            } else {
+                              modal.error({
+                                title: t("settings.updatePassword"),
+                                content: e?.response?.data?.message || e?.message || t("settings.changePasswordFailed"),
+                              });
+                            }
+                          } finally {
                            setPasswordLoading(false);
                          }
                        }}
