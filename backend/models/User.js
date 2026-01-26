@@ -9,6 +9,13 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true }, // 加密密码
   role: { type: String, enum: ["Reader", "Administrator"], default: "Reader" }, // 用户角色
   avatar: { type: String, default: "" }, // 头像URL
+  sessions: [{
+    id: { type: String, required: true }, // Session ID
+    device: { type: String, default: "Unknown" }, // Device Info
+    ip: { type: String, default: "" }, // IP Address
+    loginTime: { type: Date, default: Date.now }, // Login Time
+    lastUsedAt: { type: Date, default: Date.now } // Last Activity
+  }],
   createdAt: { type: Date, default: Date.now }, // 创建时间
   updatedAt: { type: Date, default: Date.now }, // 更新时间
 });

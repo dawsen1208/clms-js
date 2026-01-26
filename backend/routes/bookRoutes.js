@@ -673,7 +673,6 @@ router.post("/borrow/:id", authMiddleware, async (req, res) => {
     const borrowCount = await BorrowRecord.countDocuments({
       userId,
       borrowedAt: { $gte: startDate },
-      returned: false,
     });
     if (borrowCount >= 5) {
       return res.status(400).json({

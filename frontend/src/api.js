@@ -111,7 +111,7 @@ export const revokeSession = (token, sessionId) =>
   API.delete(`/users/sessions/${sessionId}`, { headers: { Authorization: `Bearer ${token}` } });
 
 export const revokeAllSessions = (token) =>
-  API.post("/users/sessions/revoke-all", {}, { headers: { Authorization: `Bearer ${token}` } });
+  API.delete("/users/sessions", { headers: { Authorization: `Bearer ${token}` } });
 
 /* =========================================================
    📚 图书与借阅相关接口

@@ -2,6 +2,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import multer from "multer";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -109,12 +110,30 @@ router.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "密码错误" });
 
+    // ✅ Record Session
+    const sessionId = crypto.randomUUID();
+    user.sessions = user.sessions || [];
+    user.sessions.push({
+      id: sessionId,
+      device: req.headers["user-agent"] || "Unknown Device",
+      ip: req.ip || req.connection.remoteAddress || "0.0.0.0",
+      loginTime: new Date(),
+      lastUsedAt: new Date(),
+    });
+    // Limit sessions to 10
+    if (user.sessions.length > 10) {
+       user.sessions.sort((a, b) => new Date(b.lastUsedAt) - new Date(a.lastUsedAt));
+       user.sessions = user.sessions.slice(0, 10);
+    }
+    await user.save();
+
     const token = jwt.sign(
       {
         id: user._id,
         userId: user.userId,
         name: user.name,
         role: user.role,
+        sessionId // ✅ Include sessionId
       },
       process.env.JWT_SECRET || "mysecretkey",
       { expiresIn: "7d" }
@@ -357,6 +376,88 @@ router.get("/analytics/categories", authMiddleware, requireAdmin, async (req, re
   } catch (err) {
     console.error("❌ 阅读偏好统计失败:", err);
     res.status(500).json({ message: "统计失败", error: err.message });
+  }
+});
+
+/* =========================================================
+   🔐 修改密码
+   ========================================================= */
+router.put("/password", authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.userId;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "请提供当前密码和新密码" });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: "新密码长度至少为8位" });
+    }
+
+    const user = await User.findOne({ userId });
+    if (!user) return res.status(404).json({ message: "用户不存在" });
+
+    // 验证当前密码
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(400).json({ message: "当前密码错误" });
+
+    // 更新密码 (User model pre-save hook will hash it)
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: "密码修改成功" });
+  } catch (err) {
+    console.error("❌ 修改密码失败:", err);
+    res.status(500).json({ message: "修改密码失败" });
+  }
+});
+
+/* =========================================================
+   📱 会话管理 (设备管理)
+   ========================================================= */
+router.get("/sessions", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId }).select("sessions");
+    if (!user) return res.status(404).json({ message: "用户不存在" });
+    res.json(user.sessions || []);
+  } catch (err) {
+    res.status(500).json({ message: "获取会话列表失败" });
+  }
+});
+
+router.delete("/sessions/:sessionId", authMiddleware, async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const user = await User.findOne({ userId: req.user.userId });
+    if (!user) return res.status(404).json({ message: "用户不存在" });
+
+    user.sessions = (user.sessions || []).filter(s => s.id !== sessionId);
+    await user.save();
+
+    res.json({ message: "会话已移除" });
+  } catch (err) {
+    res.status(500).json({ message: "移除会话失败" });
+  }
+});
+
+router.delete("/sessions", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findOne({ userId: req.user.userId });
+    if (!user) return res.status(404).json({ message: "用户不存在" });
+
+    // 保留当前会话
+    const currentSessionId = req.user.sessionId;
+    if (currentSessionId) {
+      user.sessions = (user.sessions || []).filter(s => s.id === currentSessionId);
+    } else {
+       user.sessions = [];
+    }
+    await user.save();
+
+    res.json({ message: "已退出其他所有设备" });
+  } catch (err) {
+    res.status(500).json({ message: "操作失败" });
   }
 });
 

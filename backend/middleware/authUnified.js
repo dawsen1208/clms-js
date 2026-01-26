@@ -32,7 +32,8 @@ export const authMiddleware = (req, res, next) => {
       id: decoded.id || decoded.userId,        // MongoDB ObjectId
       userId: decoded.userId,                    // 用户自定义ID (如 r000001)
       name: decoded.name || "",                 // 用户姓名
-      role: decoded.role                       // 用户角色 (Reader/Administrator)
+      role: decoded.role,                       // 用户角色 (Reader/Administrator)
+      sessionId: decoded.sessionId || null      // 会话ID
     };
 
     // 验证必要字段

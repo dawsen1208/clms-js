@@ -326,7 +326,15 @@ function SettingsPage({ appearance, onChange, user }) {
                  </Modal>
                  <Modal title={t("settings.customBackground")} open={bgModalOpen} onCancel={() => setBgModalOpen(false)} footer={null}>
                     <Space direction="vertical" style={{ width: '100%' }}>
-                       <ColorPicker value={appearance?.backgroundColor || '#ffffff'} onChange={(c) => handleUpdate({ backgroundColor: c.toHexString() })} showText style={{ width: '100%' }} />
+                       <ColorPicker 
+                         value={appearance?.backgroundColor || '#ffffff'} 
+                         onChange={(c) => {
+                           const colorHex = typeof c === 'string' ? c : c.toHexString();
+                           handleUpdate({ backgroundColor: colorHex });
+                         }} 
+                         showText 
+                         style={{ width: '100%' }} 
+                       />
                        <Button onClick={() => handleUpdate({ backgroundColor: "" })}>{t("common.reset")}</Button>
                     </Space>
                  </Modal>

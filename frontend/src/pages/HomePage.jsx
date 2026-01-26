@@ -128,7 +128,7 @@ function HomePage() {
                 size="large" 
                 block 
                 icon={<SearchOutlined />}
-                onClick={() => setCurrentPage('search')}
+                onClick={() => navigate('/search')}
                 style={{ height: '48px', borderRadius: '12px', background: '#3b82f6', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}
               >
                 {t("common.searchBooks")}
@@ -140,7 +140,7 @@ function HomePage() {
                 size="large" 
                 block 
                 icon={<BookOutlined />}
-                onClick={() => setCurrentPage('profile')}
+                onClick={() => navigate('/borrow')}
                 style={{ height: '48px', borderRadius: '12px', borderColor: '#cbd5e1', color: '#475569' }}
               >
                 {t("titles.myBorrowings")}
