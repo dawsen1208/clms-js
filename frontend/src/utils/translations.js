@@ -163,7 +163,10 @@ export const translations = {
       avatarFail: "Failed to upload avatar",
       emailEmpty: "Email cannot be empty",
       emailUpdated: "Email updated successfully!",
-      emailFail: "Failed to update email"
+      emailFail: "Failed to update email",
+      nameEmpty: "Name cannot be empty",
+      nameUpdated: "Name updated successfully!",
+      nameUpdateFailed: "Failed to update name"
     },
     bookDetail: {
       author: "Author",
@@ -260,6 +263,7 @@ export const translations = {
       customBackground: "Custom Background (except Home)",
       language: "Language",
       title: "Settings",
+      settings: "Settings", // Added for compatibility
       themeMode: "Theme Mode",
       themeColor: "Theme Color",
       fontSize: "Font Size",
@@ -283,6 +287,9 @@ export const translations = {
       defaultSort: "Default Sort",
       defaultView: "Default View",
       showAdvanced: "Show Advanced Filters",
+      recommendationSettings: "Personalized Recommendation Settings", // Added for compatibility
+      preferredCategories: "Preferred Categories", // Added for compatibility
+      excludedCategories: "Excluded Categories", // Added for compatibility
       recommendSettings: "Personalized Recommendation Settings",
       preferredCats: "Preferred Categories",
       excludedCats: "Excluded Categories",
@@ -848,7 +855,10 @@ export const translations = {
       avatarFail: "上传头像失败",
       emailEmpty: "邮箱不能为空",
       emailUpdated: "邮箱更新成功！",
-      emailFail: "更新邮箱失败"
+      emailFail: "更新邮箱失败",
+      nameEmpty: "姓名不能为空",
+      nameUpdated: "姓名更新成功！",
+      nameUpdateFailed: "更新姓名失败"
     },
     search: {
       title: "探索藏书",
@@ -904,6 +914,7 @@ export const translations = {
       customBackground: "自定义背景（除首页外）",
       language: "语言",
       title: "设置",
+      settings: "设置", // Added
       themeMode: "主题模式",
       themeColor: "主题色",
       fontSize: "字体大小",
@@ -927,6 +938,9 @@ export const translations = {
       defaultSort: "默认排序方式",
       defaultView: "默认视图",
       showAdvanced: "显示高级筛选",
+      recommendationSettings: "个性化推荐设置", // Added
+      preferredCategories: "偏好分类", // Added
+      excludedCategories: "排除分类", // Added
       recommendSettings: "个性化推荐设置",
       preferredCats: "偏好分类",
       excludedCats: "排除分类",

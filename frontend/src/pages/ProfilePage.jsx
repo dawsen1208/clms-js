@@ -35,6 +35,7 @@ function ProfilePage() {
   const [email, setEmail] = useState("");
   const [emailEditing, setEmailEditing] = useState(false);
   const [name, setName] = useState("");
+  const [nameEditing, setNameEditing] = useState(false); // ✅ Added state for name editing
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 3;
   const [historyModalVisible, setHistoryModalVisible] = useState(false);
@@ -374,7 +375,17 @@ function ProfilePage() {
             icon={<UserOutlined />} 
             style={{ marginBottom: "12px", border: "2px solid #fff", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }} 
           />
-          <div style={{ fontSize: "20px", fontWeight: "bold", color: "#1e293b" }}>{name || t("profile.unnamedUser")}</div>
+          {nameEditing ? (
+            <div style={{ display: "flex", gap: "8px", justifyContent: "center", marginBottom: "8px" }}>
+              <Input value={name} onChange={e => setName(e.target.value)} style={{ width: "160px", textAlign: "center" }} />
+              <Button type="primary" onClick={handleSaveName} size="small" icon={<SaveOutlined />} />
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <div style={{ fontSize: "20px", fontWeight: "bold", color: "#1e293b" }}>{name || t("profile.unnamedUser")}</div>
+              <Button type="text" icon={<UserOutlined />} onClick={() => setNameEditing(true)} style={{ color: "#3b82f6" }} size="small" />
+            </div>
+          )}
           <Tag color="blue" style={{ marginTop: "8px" }}>{userLS.role === "admin" ? t("role.libraryAdmin") : t("role.libraryReader")}</Tag>
           
           <div style={{ marginTop: "20px" }}>
@@ -541,9 +552,40 @@ function ProfilePage() {
                 border: `3px solid ${theme.colors.neutral.white}`
               }}
             />
-            <h2 style={{ margin: 0, color: theme.colors.neutral.black, fontSize: theme.typography.fontSize.xxxl, fontWeight: theme.typography.fontWeight.bold, fontFamily: theme.typography.fontFamily.primary }}>
-              {name || "Unnamed user"}
-            </h2>
+            {nameEditing ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", marginBottom: "10px" }}>
+                <Input 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  style={{ 
+                    width: "200px", 
+                    fontSize: "1.2rem", 
+                    textAlign: "center",
+                    borderRadius: theme.borderRadius.md
+                  }} 
+                />
+                <Button 
+                  type="primary" 
+                  icon={<SaveOutlined />} 
+                  onClick={handleSaveName}
+                  style={{ ...themeUtils.getPrimaryButtonStyle() }}
+                >
+                  {t("admin.save")}
+                </Button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+                <h2 style={{ margin: 0, color: theme.colors.neutral.black, fontSize: theme.typography.fontSize.xxxl, fontWeight: theme.typography.fontWeight.bold, fontFamily: theme.typography.fontFamily.primary }}>
+                  {name || "Unnamed user"}
+                </h2>
+                <Button 
+                  type="text" 
+                  icon={<UserOutlined />} 
+                  onClick={() => setNameEditing(true)}
+                  style={{ color: theme.colors.primary.main, fontSize: "1.2rem" }}
+                />
+              </div>
+            )}
             <Text type="secondary" style={{ fontSize: theme.typography.fontSize.md, color: theme.colors.neutral.darkGray, marginTop: "4px", marginBottom: theme.spacing.lg, display: "block", fontFamily: theme.typography.fontFamily.primary }}>
               {userLS.role || "Reader"}
             </Text>
