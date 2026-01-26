@@ -64,17 +64,18 @@ function ProfilePage() {
 
   const stats = useMemo(() => {
     const totalHistory = history.length;
-    const returned = history.filter((h) => h.returned.includes("Yes")).length;
-    const renewed = history.filter((h) => h.renewed.includes("Yes")).length;
+    const returned = history.filter((h) => h.returned.includes(t("profile.yes"))).length;
+    const renewed = history.filter((h) => h.renewed.includes(t("profile.yes"))).length;
     const pending = requests.filter((r) => r.status === "pending").length;
-    return { totalHistory, returned, renewed, pending };
-  }, [history, requests]);
+    const approved = requests.filter((r) => r.status === "approved").length;
+    return { totalHistory, returned, renewed, pending, approved };
+  }, [history, requests, t]);
 
   const handleLogout = () => {
     sessionStorage.clear();
     localStorage.clear();
     localStorage.setItem("logout_event", Date.now());
-    message.success(t("common.logoutSuccess") || "Logged out successfully");
+    message.success(t("common.logoutSuccess"));
     navigate("/login");
   };
 
@@ -139,13 +140,13 @@ function ProfilePage() {
           const diff = due.diff(now, "day");
           if (diff >= 10) {
             color = "green";
-            status = `Remaining ${diff} days`;
+            status = t("profile.remainingDays", { days: diff });
           } else if (diff >= 1) {
             color = "orange";
-            status = `Remaining ${diff} days`;
+            status = t("profile.remainingDays", { days: diff });
           } else {
             color = "red";
-            status = `Overdue ${Math.abs(diff)} days`;
+            status = t("profile.overdueDays", { days: Math.abs(diff) });
           }
         }
 
@@ -154,7 +155,7 @@ function ProfilePage() {
 
         return {
           key: index,
-          title: item.title || "Unknown book",
+          title: item.title || t("profile.unknownBook"),
           borrowDate: item.borrowDate ? dayjs(item.borrowDate).format("YYYY-MM-DD") : "—",
           dueDate: item.dueDate ? (
             <span>
@@ -167,9 +168,9 @@ function ProfilePage() {
           ),
           // 若已续借，显示更新后的到期日
           renewDate: isRenewed && item.dueDate ? dayjs(item.dueDate).format("YYYY-MM-DD") : "—",
-          renewed: isRenewed ? "✅ Yes" : "❌ No",
+          renewed: isRenewed ? `✅ ${t("profile.yes")}` : `❌ ${t("profile.no")}`,
           returnDate: item.returnDate ? dayjs(item.returnDate).format("YYYY-MM-DD") : "—",
-          returned: isReturned ? "✅ Yes" : "❌ No",
+          returned: isReturned ? `✅ ${t("profile.yes")}` : `❌ ${t("profile.no")}`,
         };
       });
 
@@ -838,8 +839,8 @@ function ProfilePage() {
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px", color: "#666" }}>
                         <div><span style={{ color: "#999" }}>{t("admin.borrowDate")}:</span> <br/>{item.borrowDate}</div>
                         <div><span style={{ color: "#999" }}>{t("borrow.dueDate")}:</span> <br/>{item.dueDate}</div>
-                        <div><span style={{ color: "#999" }}>{t("admin.returnDate")}:</span> <br/>{item.returnDate}</div>
-                        <div><span style={{ color: "#999" }}>{t("admin.status")}:</span> <br/>{item.returned === "✅ Yes" ? <Tag color="green">{t("profile.returnedStats")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag>}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("admin.returnDate")}:</span> <br/>{item.returnDate}</div>
+                        <div><span style={{ color: "#94a3b8" }}>{t("admin.status")}:</span> <br/>{item.returned === `✅ ${t("profile.yes")}` ? <Tag color="green">{t("profile.returnedStats")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag>}</div>
                       </div>
                     </Card>
                   )) : <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>{t("borrow.noBorrowRecords")}</div>}
