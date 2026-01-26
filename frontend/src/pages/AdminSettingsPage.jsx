@@ -333,24 +333,32 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                     maskClosable={!passwordLoading}
                     closable={!passwordLoading}
                   >
-                     <Form layout="vertical" onFinish={async (values) => {
-                       const { currentPassword, newPassword, confirmPassword } = values;
-                       if (!newPassword || newPassword.length < 8) { message.error(t("settings.passwordLength")); return; }
-                       if (newPassword !== confirmPassword) { message.error(t("settings.passwordMismatch")); return; }
-                       
-                       try {
-                         setPasswordLoading(true);
-                         if (!token) { throw new Error(t("settings.notLoggedIn")); }
-                         await changePassword(token, currentPassword, newPassword);
-                         message.success(t("settings.passwordUpdated"));
-                         setPasswordModalOpen(false);
-                       } catch (e) {
-                         console.error("Change password failed:", e);
-                         message.error(e?.response?.data?.message || e?.message || t("settings.changePasswordFailed"));
-                       } finally {
-                         setPasswordLoading(false);
-                       }
-                     }}>
+                     <Form layout="vertical" 
+                       onFinish={async (values) => {
+                         console.log('Password change form submitted', values);
+                         const { currentPassword, newPassword, confirmPassword } = values;
+                         if (!newPassword || newPassword.length < 8) { message.error(t("settings.passwordLength")); return; }
+                         if (newPassword !== confirmPassword) { message.error(t("settings.passwordMismatch")); return; }
+                         
+                         try {
+                           console.log('Starting password change request...');
+                           setPasswordLoading(true);
+                           if (!token) { throw new Error(t("settings.notLoggedIn")); }
+                           const result = await changePassword(token, currentPassword, newPassword);
+                           console.log('Password change success', result);
+                           message.success(t("settings.passwordUpdated"));
+                           setPasswordModalOpen(false);
+                         } catch (e) {
+                           console.error("Change password failed:", e);
+                           message.error(e?.response?.data?.message || e?.message || t("settings.changePasswordFailed"));
+                         } finally {
+                           setPasswordLoading(false);
+                         }
+                       }}
+                       onFinishFailed={(errorInfo) => {
+                         console.log('Password form validation failed:', errorInfo);
+                       }}
+                     >
                        <Form.Item name="currentPassword" label={t("settings.currentPassword")} rules={[{ required: true }] }>
                          <Input.Password autoComplete="current-password" disabled={passwordLoading} />
                        </Form.Item>
@@ -361,8 +369,11 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                          <Input.Password autoComplete="new-password" disabled={passwordLoading} />
                        </Form.Item>
                        <div style={{ textAlign: 'right' }}>
-                          <Button onClick={() => setPasswordModalOpen(false)} style={{ marginRight: 8 }} disabled={passwordLoading}>{t("common.cancel")}</Button>
-                          <Button type="primary" htmlType="submit" loading={passwordLoading}>{t("settings.updatePassword")}</Button>
+                          <Button onClick={() => {
+                              console.log('Cancel password change clicked');
+                              setPasswordModalOpen(false);
+                          }} style={{ marginRight: 8 }} disabled={passwordLoading}>{t("common.cancel")}</Button>
+                          <Button type="primary" htmlType="submit" loading={passwordLoading} onClick={() => console.log('Update password button clicked')}>{t("settings.updatePassword")}</Button>
                        </div>
                      </Form>
                   </Modal>
