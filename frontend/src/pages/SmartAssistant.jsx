@@ -460,7 +460,7 @@ function SmartAssistant() {
       <Card
         title={
           <div className="page-header">
-            <Typography.Title level={4} style={{ margin: 0 }}>{t("assistant.title")}</Typography.Title>
+            <Typography.Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("assistant.title")}</Typography.Title>
             <Typography.Text type="secondary">{t("assistant.subTitle")}</Typography.Text>
             <div className="stats-grid">
               <Statistic title={t("assistant.recommended")} value={headerStats.recommended} />
