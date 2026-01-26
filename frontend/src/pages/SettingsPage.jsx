@@ -478,6 +478,13 @@ function SettingsPage({ appearance, onChange, user }) {
                           });
                           return;
                         }
+                        if (newPassword === currentPassword) {
+                          modal.error({
+                            title: t("settings.updatePassword"),
+                            content: t("settings.samePasswordError"),
+                          });
+                          return;
+                        }
                          
                          try { 
                            console.log("Starting password change request (user settings)...");
@@ -508,13 +515,13 @@ function SettingsPage({ appearance, onChange, user }) {
                          console.log("Password form validation failed (user settings):", errorInfo);
                        }}
                      >
-                       <Form.Item name="currentPassword" label={t("settings.currentPassword")} rules={[{ required: true }] }>
+                       <Form.Item name="currentPassword" label={t("settings.currentPassword")} rules={[{ required: true, message: t("settings.enterCurrentPassword") }] }>
                          <Input.Password autoComplete="current-password" />
                        </Form.Item>
-                       <Form.Item name="newPassword" label={t("settings.newPassword")} rules={[{ required: true }] }>
+                       <Form.Item name="newPassword" label={t("settings.newPassword")} rules={[{ required: true, message: t("settings.enterNewPassword") }] }>
                          <Input.Password autoComplete="new-password" />
                        </Form.Item>
-                       <Form.Item name="confirmPassword" label={t("settings.confirmPassword")} rules={[{ required: true }] }>
+                       <Form.Item name="confirmPassword" label={t("settings.confirmPassword")} rules={[{ required: true, message: t("settings.enterConfirmPassword") }] }>
                          <Input.Password autoComplete="new-password" />
                        </Form.Item>
                        <div style={{ textAlign: 'right' }}>
