@@ -213,7 +213,7 @@ function LoginPage() {
               onMouseLeave={(e) => e.currentTarget.style.color = "#3b82f6"}
               onClick={() => navigate("/register")}
             >
-              👉 Register as Reader
+              👉 {t("login.registerReader")}
             </Button>
             <Button
               type="link"
@@ -228,7 +228,7 @@ function LoginPage() {
               onMouseLeave={(e) => e.currentTarget.style.color = "#8b5cf6"}
               onClick={() => navigate("/register-admin")}
             >
-              🧑‍💼 Register as Administrator
+              🧑‍💼 {t("login.registerAdmin")}
             </Button>
             
           </div>
