@@ -70,8 +70,32 @@ function SettingsPage({ appearance, onChange, user }) {
     }
     try {
       setLoadingEmail(true);
-      await sendAuthCode(token, email);
+      const res = await sendAuthCode(token, email);
       message.success(t("settings.codeSent"));
+      
+      // ✅ 模拟模式：弹窗显示验证码
+      if (res.code) {
+        Modal.info({
+          title: "模拟邮件验证码",
+          content: (
+            <div style={{ textAlign: "center", padding: "20px 0" }}>
+              <p>您的验证码是：</p>
+              <Typography.Title level={2} style={{ margin: 0, letterSpacing: 4, color: "#1677ff" }}>
+                {res.code}
+              </Typography.Title>
+              <p style={{ marginTop: 10, color: "#999" }}>（此弹窗仅在模拟模式下显示）</p>
+            </div>
+          ),
+          okText: "复制并关闭",
+          onOk: () => {
+             navigator.clipboard.writeText(res.code).then(() => {
+                message.success("验证码已复制到剪贴板");
+             }).catch(() => {});
+             setEmailCode(res.code); // 自动填入
+          }
+        });
+      }
+
       setAuthCodeSent(true);
       setTimer(60);
     } catch (err) {

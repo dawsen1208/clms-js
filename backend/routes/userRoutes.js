@@ -82,7 +82,7 @@ router.post("/send-auth-code", authMiddleware, async (req, res) => {
       `您的验证码/授权码是：${code}。\n请在页面输入此代码以完成绑定。\n此代码也将作为您开启双重认证后的登录授权码，请妥善保管。`
     );
 
-    res.json({ message: "验证码已发送至您的邮箱，请查收（开发环境请查看控制台）" });
+    res.json({ message: "验证码已生成 (模拟模式)", code });
   } catch (err) {
     console.error("❌ 发送验证码失败:", err);
     res.status(500).json({ message: "发送验证码失败" });
