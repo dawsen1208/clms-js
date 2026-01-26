@@ -337,8 +337,20 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                        onFinish={async (values) => {
                          console.log('Password change form submitted', values);
                          const { currentPassword, newPassword, confirmPassword } = values;
-                         if (!newPassword || newPassword.length < 8) { message.error(t("settings.passwordLength")); return; }
-                         if (newPassword !== confirmPassword) { message.error(t("settings.passwordMismatch")); return; }
+                         if (!newPassword || newPassword.length < 8) {
+                           Modal.error({
+                             title: t("settings.updatePassword"),
+                             content: t("settings.passwordLength"),
+                           });
+                           return;
+                         }
+                         if (newPassword !== confirmPassword) {
+                           Modal.error({
+                             title: t("settings.updatePassword"),
+                             content: t("settings.passwordMismatch"),
+                           });
+                           return;
+                         }
                          
                          try {
                            console.log('Starting password change request...');
