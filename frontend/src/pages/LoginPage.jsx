@@ -11,7 +11,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 /**
  * 🔐 登录页面（支持 sessionStorage 隔离 + 局域网兼容）
  */
-function LoginPage() {
+function LoginPage({ onLogin }) {
   const { t } = useLanguage();
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
@@ -73,6 +73,17 @@ function LoginPage() {
     // ✅ 如果未勾选“记住我”，只使用 sessionStorage（关闭浏览器后自动失效）
     if (!remember) {
       console.log("ℹ️ 临时登录：关闭浏览器后自动登出");
+    }
+    
+    // ✅ 更新全局状态
+    if (onLogin) {
+      onLogin(token, user);
+      // onLogin 内部已经处理了 navigate，所以这里不需要再 navigate
+      // 但为了保险起见，如果 onLogin 没有处理跳转（虽然 App.jsx 里处理了），我们可以保留
+      // 不过 App.jsx 里的 handleLogin 确实调用了 navigate。
+      // 为避免双重跳转，我们应该移除这里的 navigate，或者只在 onLogin 不存在时 navigate。
+      // 现在的 App.jsx: handleLogin 确实调用了 navigate。
+      return; 
     }
 
     message.success(t("login.welcomeBackUser", { name: user.name }));

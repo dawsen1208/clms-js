@@ -251,6 +251,15 @@ function SettingsPage({ appearance, onChange, user }) {
   };
 
   const [securityPrefs, setSecurityPrefs] = useState(() => {
+    // Priority: User prop > LocalStorage > Default
+    if (user?.preferences?.security) {
+      return user.preferences.security;
+    }
+    // Fallback for flat structure if backend returns it there
+    if (user && typeof user.is_2fa_enabled !== 'undefined') {
+      return { twoFactorEnabled: user.is_2fa_enabled };
+    }
+
     try {
       const raw = localStorage.getItem("security_prefs");
       return raw ? JSON.parse(raw) : { twoFactorEnabled: false };
@@ -258,6 +267,15 @@ function SettingsPage({ appearance, onChange, user }) {
       return { twoFactorEnabled: false };
     }
   });
+
+  // ✅ Sync security prefs when user prop updates
+  useEffect(() => {
+    if (user?.preferences?.security) {
+      setSecurityPrefs(prev => ({ ...prev, ...user.preferences.security }));
+    } else if (user && typeof user.is_2fa_enabled !== 'undefined') {
+       setSecurityPrefs(prev => ({ ...prev, twoFactorEnabled: user.is_2fa_enabled }));
+    }
+  }, [user]);
 
   const saveSecurity = async (patch) => {
     const next = { ...securityPrefs, ...patch };
@@ -422,23 +440,28 @@ function SettingsPage({ appearance, onChange, user }) {
                     </Radio.Group>
                     {appearance?.themeColor === 'custom' && (
                        <div style={{ marginTop: 16 }}>
-                          <ColorPicker
-                            value={appearance?.customColor || '#1677FF'}
-                            onChange={(c) => {
-                              const colorHex = typeof c === 'string' ? c : c.toHexString();
-                              handleUpdate({ customColor: colorHex || '#1677FF' });
-                            }}
-                            showText
-                            disabledAlpha
-                            presets={[
-                              {
-                                label: 'Recommended',
-                                colors: [
-                                  '#1677FF', '#722ED1', '#13c2c2', '#52c41a', '#eb2f96', '#f5222d', '#fa8c16', '#fadb14'
-                                ],
-                              },
-                            ]}
-                            style={{ width: '100%' }}
+                          <Text type="secondary" style={{ marginBottom: 8, display: 'block' }}>{t("settings.selectColor") || "Recommended Colors"}</Text>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+                            {['#1677FF', '#722ED1', '#13c2c2', '#52c41a', '#eb2f96', '#f5222d', '#fa8c16', '#fadb14'].map(color => (
+                               <div
+                                 key={color}
+                                 onClick={() => handleUpdate({ customColor: color })}
+                                 style={{
+                                   width: 32, height: 32, borderRadius: '50%', background: color, cursor: 'pointer',
+                                   border: appearance?.customColor?.toLowerCase() === color.toLowerCase() ? '2px solid #fff' : '1px solid transparent',
+                                   boxShadow: appearance?.customColor?.toLowerCase() === color.toLowerCase() ? `0 0 0 2px ${color}` : '0 2px 4px rgba(0,0,0,0.1)',
+                                   transition: 'all 0.2s'
+                                 }}
+                               />
+                            ))}
+                          </div>
+                          <Text type="secondary" style={{ marginBottom: 8, display: 'block' }}>Hex Code</Text>
+                          <Input 
+                             value={appearance?.customColor} 
+                             onChange={(e) => handleUpdate({ customColor: e.target.value })} 
+                             placeholder="#1677FF"
+                             maxLength={9}
+                             style={{ width: '100%' }}
                           />
                        </div>
                     )}
@@ -462,24 +485,31 @@ function SettingsPage({ appearance, onChange, user }) {
                  </Modal>
                  <Modal title={t("settings.customBackground")} open={bgModalOpen} onCancel={() => setBgModalOpen(false)} footer={null}>
                     <Space direction="vertical" style={{ width: '100%' }}>
-                       <ColorPicker 
-                         value={appearance?.backgroundColor || '#ffffff'} 
-                         onChange={(c) => {
-                           const colorHex = typeof c === 'string' ? c : c.toHexString();
-                           handleUpdate({ backgroundColor: colorHex || '#ffffff' });
-                         }} 
-                         showText 
-                         presets={[
-                              {
-                                label: 'Recommended',
-                                colors: [
-                                  '#ffffff', '#f0f2f5', '#fafafa', '#f5f5f5', '#e6f7ff', '#f9f0ff', '#f6ffed'
-                                ],
-                              },
-                         ]}
-                         style={{ width: '100%' }} 
+                       <Text type="secondary">{t("settings.selectColor") || "Recommended Colors"}</Text>
+                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+                          {['#ffffff', '#f0f2f5', '#fafafa', '#f5f5f5', '#e6f7ff', '#f9f0ff', '#f6ffed'].map(color => (
+                             <div
+                               key={color}
+                               onClick={() => handleUpdate({ backgroundColor: color })}
+                               style={{
+                                 width: 32, height: 32, borderRadius: '50%', background: color, cursor: 'pointer',
+                                 border: (appearance?.backgroundColor || '#ffffff').toLowerCase() === color.toLowerCase() ? '2px solid #1677FF' : '1px solid #d9d9d9',
+                                 boxShadow: (appearance?.backgroundColor || '#ffffff').toLowerCase() === color.toLowerCase() ? `0 0 0 2px rgba(22, 119, 255, 0.2)` : 'none',
+                                 transition: 'all 0.2s'
+                               }}
+                             />
+                          ))}
+                       </div>
+                       
+                       <Text type="secondary" style={{ marginTop: 8 }}>Hex Code</Text>
+                       <Input 
+                          value={appearance?.backgroundColor} 
+                          onChange={(e) => handleUpdate({ backgroundColor: e.target.value })} 
+                          placeholder="#ffffff"
+                          maxLength={9}
                        />
-                       <Button onClick={() => handleUpdate({ backgroundColor: "" })}>{t("common.reset")}</Button>
+                       
+                       <Button block onClick={() => handleUpdate({ backgroundColor: "" })}>{t("common.reset")}</Button>
                     </Space>
                  </Modal>
               </Card>

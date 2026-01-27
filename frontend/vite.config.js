@@ -14,7 +14,7 @@ const buildTime = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai'
 const buildVersion = process.env.npm_package_version || '1.3.1';
 
 export default defineConfig({
-  base: '/', // ✅ 确保绝对路径，避免嵌套路由（如 /books/:id）刷新后资源 404
+  base: '/clms-js/', // ✅ GitHub Pages repository name
   plugins: [
     react(),
   ],
