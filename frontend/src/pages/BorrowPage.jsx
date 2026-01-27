@@ -218,6 +218,7 @@ function BorrowPage() {
     try {
       await requestReturnLibrary(
         {
+          type: "return",
           bookId,
           bookTitle: record.title || record.bookTitle,
         },

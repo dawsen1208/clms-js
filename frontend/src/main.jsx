@@ -93,17 +93,51 @@ function App() {
   );
 
   const [appearance, setAppearance] = useState(() => {
-    try {
-      const saved = localStorage.getItem("appearance_prefs");
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return {
+    const fallback = {
       mode: "light",
       themeColor: "blue",
       customColor: "#1677FF",
       fontSize: "normal",
       highContrast: false,
     };
+
+    try {
+      const saved = localStorage.getItem("appearance_prefs");
+      if (!saved) return fallback;
+
+      const parsed = JSON.parse(saved) || {};
+      const normalized = { ...fallback, ...parsed };
+
+      if (typeof normalized.customColor !== "string") {
+        normalized.customColor = fallback.customColor;
+      }
+
+      if (
+        normalized.backgroundColor &&
+        typeof normalized.backgroundColor !== "string"
+      ) {
+        normalized.backgroundColor = "";
+      }
+
+      const validModes = ["light", "dark"];
+      if (!validModes.includes(normalized.mode)) {
+        normalized.mode = fallback.mode;
+      }
+
+      const validThemeColors = ["blue", "purple", "green", "custom"];
+      if (!validThemeColors.includes(normalized.themeColor)) {
+        normalized.themeColor = fallback.themeColor;
+      }
+
+      const validFontSizes = ["normal", "large"];
+      if (!validFontSizes.includes(normalized.fontSize)) {
+        normalized.fontSize = fallback.fontSize;
+      }
+
+      return normalized;
+    } catch {
+      return fallback;
+    }
   });
   const navigate = useNavigate();
   const location = useLocation();

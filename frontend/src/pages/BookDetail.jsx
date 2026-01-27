@@ -128,7 +128,10 @@ function BookDetail() {
     try {
       setActionLoading(true);
       // Request return
-      await requestReturnLibrary({ bookId: id, bookTitle: book.title }, token);
+      await requestReturnLibrary(
+        { type: "return", bookId: id, bookTitle: book.title },
+        token
+      );
       message.success(t("borrow.returnSubmitted"));
       setPendingType('return');
     } catch (e) {

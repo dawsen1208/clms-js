@@ -410,22 +410,30 @@ function SettingsPage({ appearance, onChange, user }) {
                           <Radio value="dark" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.dark")}</Radio>
                        </Space>
                      </Radio.Group>
-                 </Modal>
-                 <Modal title={t("settings.themeColor")} open={themeColorModalOpen} onCancel={() => setThemeColorModalOpen(false)} footer={null}>
-                     <Radio.Group value={appearance?.themeColor || 'blue'} onChange={(e) => handleUpdate({ themeColor: e.target.value })} style={{ width: '100%' }}>
-                       <Space direction="vertical" style={{ width: '100%' }}>
-                          <Radio value="blue" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.blue")}</Radio>
-                          <Radio value="purple" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.purple")}</Radio>
-                          <Radio value="green" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.green")}</Radio>
-                          <Radio value="custom" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.custom")}</Radio>
-                       </Space>
-                     </Radio.Group>
-                     {appearance?.themeColor === 'custom' && (
-                        <div style={{ marginTop: 16 }}>
-                           <ColorPicker value={appearance?.customColor || '#1677FF'} onChange={(c) => handleUpdate({ customColor: c.toHexString() })} showText />
-                        </div>
-                     )}
-                 </Modal>
+                </Modal>
+                <Modal title={t("settings.themeColor")} open={themeColorModalOpen} onCancel={() => setThemeColorModalOpen(false)} footer={null}>
+                    <Radio.Group value={appearance?.themeColor || 'blue'} onChange={(e) => handleUpdate({ themeColor: e.target.value })} style={{ width: '100%' }}>
+                      <Space direction="vertical" style={{ width: '100%' }}>
+                         <Radio value="blue" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.blue")}</Radio>
+                         <Radio value="purple" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.purple")}</Radio>
+                         <Radio value="green" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.green")}</Radio>
+                         <Radio value="custom" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.custom")}</Radio>
+                      </Space>
+                    </Radio.Group>
+                    {appearance?.themeColor === 'custom' && (
+                       <div style={{ marginTop: 16 }}>
+                          <ColorPicker
+                            value={appearance?.customColor || '#1677FF'}
+                            onChange={(c) => {
+                              const colorHex = typeof c === 'string' ? c : c.toHexString();
+                              handleUpdate({ customColor: colorHex || '#1677FF' });
+                            }}
+                            showText
+                            style={{ width: '100%' }}
+                          />
+                       </div>
+                    )}
+                </Modal>
                  <Modal title={t("settings.fontSize")} open={fontSizeModalOpen} onCancel={() => setFontSizeModalOpen(false)} footer={null}>
                      <Radio.Group value={appearance?.fontSize || 'normal'} onChange={(e) => handleUpdate({ fontSize: e.target.value })} style={{ width: '100%' }}>
                        <Space direction="vertical" style={{ width: '100%' }}>
@@ -440,7 +448,7 @@ function SettingsPage({ appearance, onChange, user }) {
                          value={appearance?.backgroundColor || '#ffffff'} 
                          onChange={(c) => {
                            const colorHex = typeof c === 'string' ? c : c.toHexString();
-                           handleUpdate({ backgroundColor: colorHex });
+                           handleUpdate({ backgroundColor: colorHex || '#ffffff' });
                          }} 
                          showText 
                          style={{ width: '100%' }} 
