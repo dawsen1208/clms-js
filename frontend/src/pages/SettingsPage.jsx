@@ -478,42 +478,53 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                        </Space>
                      </Radio.Group>
                 </Modal>
-                <Modal title={t("settings.themeColor")} open={themeColorModalOpen} onCancel={() => setThemeColorModalOpen(false)} footer={null}>
-                    <Radio.Group value={appearance?.themeColor || 'blue'} onChange={(e) => handleUpdate({ themeColor: e.target.value })} style={{ width: '100%' }}>
-                      <Space direction="vertical" style={{ width: '100%' }}>
-                         <Radio value="blue" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.blue")}</Radio>
-                         <Radio value="purple" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.purple")}</Radio>
-                         <Radio value="green" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.green")}</Radio>
-                         <Radio value="custom" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.custom")}</Radio>
-                      </Space>
-                    </Radio.Group>
-                    {appearance?.themeColor === 'custom' && (
-                       <div style={{ marginTop: 16 }}>
-                          <Text type="secondary" style={{ marginBottom: 8, display: 'block' }}>{t("settings.selectColor") || "Recommended Colors"}</Text>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
-                            {['#1677FF', '#722ED1', '#13c2c2', '#52c41a', '#eb2f96', '#f5222d', '#fa8c16', '#fadb14'].map(color => (
-                               <div
-                                 key={color}
-                                 onClick={() => handleUpdate({ customColor: color })}
-                                 style={{
-                                   width: 32, height: 32, borderRadius: '50%', background: color, cursor: 'pointer',
-                                   border: appearance?.customColor?.toLowerCase() === color.toLowerCase() ? '2px solid #fff' : '1px solid transparent',
-                                   boxShadow: appearance?.customColor?.toLowerCase() === color.toLowerCase() ? `0 0 0 2px ${color}` : '0 2px 4px rgba(0,0,0,0.1)',
-                                   transition: 'all 0.2s'
-                                 }}
-                               />
-                            ))}
-                          </div>
-                          <Text type="secondary" style={{ marginBottom: 8, display: 'block' }}>Hex Code</Text>
-                          <Input 
-                             value={appearance?.customColor} 
-                             onChange={(e) => handleUpdate({ customColor: e.target.value })} 
-                             placeholder="#1677FF"
-                             maxLength={9}
-                             style={{ width: '100%' }}
-                          />
-                       </div>
-                    )}
+                <Modal 
+                    title={t("settings.themeColor")} 
+                    open={themeColorModalOpen} 
+                    onCancel={() => setThemeColorModalOpen(false)} 
+                    footer={[
+                        <Button key="cancel" onClick={() => setThemeColorModalOpen(false)}>{t("common.cancel") || "Cancel"}</Button>,
+                        <Button key="submit" type="primary" onClick={confirmThemeColor}>{t("common.confirm") || "Confirm"}</Button>
+                    ]}
+                >
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                        <Radio.Group value={tempThemeColor || 'blue'} onChange={(e) => setTempThemeColor(e.target.value)} style={{ width: '100%' }}>
+                          <Space direction="vertical" style={{ width: '100%' }}>
+                             <Radio value="blue" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.blue")}</Radio>
+                             <Radio value="purple" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.purple")}</Radio>
+                             <Radio value="green" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.green")}</Radio>
+                             <Radio value="custom" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.custom")}</Radio>
+                          </Space>
+                        </Radio.Group>
+                        {tempThemeColor === 'custom' && (
+                           <div style={{ marginTop: 16 }}>
+                              <Text type="secondary" style={{ marginBottom: 8, display: 'block' }}>{t("settings.selectColor") || "Recommended Colors"}</Text>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+                                {['#1677FF', '#722ED1', '#13c2c2', '#52c41a', '#eb2f96', '#f5222d', '#fa8c16', '#fadb14'].map(color => (
+                                   <div
+                                     key={color}
+                                     onClick={() => setTempCustomColor(color)}
+                                     style={{
+                                       width: 32, height: 32, borderRadius: '50%', background: color, cursor: 'pointer',
+                                       border: (tempCustomColor || '').toLowerCase() === color.toLowerCase() ? '2px solid #fff' : '1px solid transparent',
+                                       boxShadow: (tempCustomColor || '').toLowerCase() === color.toLowerCase() ? `0 0 0 2px ${color}` : '0 2px 4px rgba(0,0,0,0.1)',
+                                       transition: 'all 0.2s'
+                                     }}
+                                   />
+                                ))}
+                              </div>
+                              <Text type="secondary" style={{ marginBottom: 8, display: 'block' }}>Hex Code</Text>
+                              <Input 
+                                 value={tempCustomColor} 
+                                 onChange={(e) => setTempCustomColor(e.target.value)} 
+                                 placeholder="#1677FF"
+                                 maxLength={9}
+                                 style={{ width: '100%' }}
+                              />
+                           </div>
+                        )}
+                        <Button block onClick={() => { setTempThemeColor('blue'); setTempCustomColor('#1677FF'); }}>{t("common.reset")}</Button>
+                    </Space>
                 </Modal>
                  <Modal title={t("settings.fontSize")} open={fontSizeModalOpen} onCancel={() => setFontSizeModalOpen(false)} footer={null}>
                      <div style={{ padding: '16px 8px' }}>
