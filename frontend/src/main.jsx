@@ -129,9 +129,12 @@ function App() {
         normalized.themeColor = fallback.themeColor;
       }
 
-      const validFontSizes = ["normal", "large"];
-      if (!validFontSizes.includes(normalized.fontSize)) {
-        normalized.fontSize = fallback.fontSize;
+      // Allow number for custom font size, or fallback to legacy string validation
+      if (typeof normalized.fontSize !== 'number') {
+         const validFontSizes = ["normal", "large"];
+         if (!validFontSizes.includes(normalized.fontSize)) {
+           normalized.fontSize = fallback.fontSize;
+         }
       }
 
       return normalized;
@@ -160,7 +163,15 @@ function App() {
   };
 
   const isDark = appearance.mode === "dark";
-  const baseFontSize = appearance.fontSize === "large" ? (isMobile ? 15 : 16) : (isMobile ? 13 : 14);
+  
+  // 📏 Font Size Logic: Support numeric or legacy string
+  let baseFontSize;
+  if (typeof appearance.fontSize === 'number') {
+    baseFontSize = appearance.fontSize;
+  } else {
+    baseFontSize = appearance.fontSize === "large" ? (isMobile ? 15 : 16) : (isMobile ? 13 : 14);
+  }
+
   const algorithm = isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
 
   // 🎨 Dynamic Background Logic
@@ -187,7 +198,7 @@ function App() {
     paddingMD: isMobile ? 14 : 16,
     paddingLG: isMobile ? 18 : 20,
     fontSize: baseFontSize,
-    lineHeight: appearance.fontSize === 'large' ? (isMobile ? 1.6 : 1.7) : (isMobile ? 1.5 : 1.6),
+    lineHeight: typeof appearance.fontSize === 'number' ? 1.5 : (appearance.fontSize === 'large' ? (isMobile ? 1.6 : 1.7) : (isMobile ? 1.5 : 1.6)),
     fontFamily: "'Segoe UI', 'Inter', sans-serif",
   };
 

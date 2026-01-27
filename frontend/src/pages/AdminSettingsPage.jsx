@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from "react";
-import { Card, Typography, Radio, Space, Input, Switch, Form, Button, Table, message, Select, InputNumber, Checkbox, Tabs, Grid, Modal, ColorPicker } from "antd";
+import { Card, Typography, Radio, Space, Input, Switch, Form, Button, Table, message, Select, InputNumber, Checkbox, Tabs, Grid, Modal, ColorPicker, Slider } from "antd";
 import { 
   LockOutlined, DesktopOutlined, DeleteOutlined, SafetyCertificateOutlined,
   GlobalOutlined, BgColorsOutlined, FormatPainterOutlined, FontSizeOutlined, 
@@ -243,17 +243,34 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                      </Radio.Group>
                      {appearance?.themeColor === 'custom' && (
                         <div style={{ marginTop: 16 }}>
-                           <ColorPicker value={appearance?.customColor || '#1677FF'} onChange={(c) => handleUpdate({ customColor: typeof c === 'string' ? c : c.toHexString() })} showText />
+                           <ColorPicker 
+                             value={appearance?.customColor || '#1677FF'} 
+                             onChange={(c) => handleUpdate({ customColor: typeof c === 'string' ? c : c.toHexString() })} 
+                             showText 
+                             disabledAlpha
+                             presets={[
+                               {
+                                 label: 'Recommended',
+                                 colors: [
+                                   '#1677FF', '#722ED1', '#13c2c2', '#52c41a', '#eb2f96', '#f5222d', '#fa8c16', '#fadb14'
+                                 ],
+                               },
+                             ]}
+                           />
                         </div>
                      )}
                  </Modal>
                  <Modal title={t("settings.fontSize")} open={fontSizeModalOpen} onCancel={() => setFontSizeModalOpen(false)} footer={null}>
-                     <Radio.Group value={appearance?.fontSize || 'normal'} onChange={(e) => handleUpdate({ fontSize: e.target.value })} style={{ width: '100%' }}>
-                       <Space direction="vertical" style={{ width: '100%' }}>
-                          <Radio value="normal" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.normal")}</Radio>
-                          <Radio value="large" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.large")}</Radio>
-                       </Space>
-                     </Radio.Group>
+                     <div style={{ padding: '16px 8px' }}>
+                       <Text type="secondary" style={{ marginBottom: 24, display: 'block' }}>{t("settings.fontSizeDesc")}</Text>
+                       <Slider
+                          min={12}
+                          max={30}
+                          value={typeof appearance?.fontSize === 'number' ? appearance.fontSize : (appearance?.fontSize === 'large' ? 16 : 14)}
+                          onChange={(v) => handleUpdate({ fontSize: v })}
+                          marks={{ 12: '12', 14: '14', 16: '16', 20: '20', 24: '24', 30: '30' }}
+                       />
+                     </div>
                  </Modal>
                  <Modal title={t("settings.customBackground")} open={bgModalOpen} onCancel={() => setBgModalOpen(false)} footer={null}>
                     <Space direction="vertical" style={{ width: '100%' }}>
@@ -264,6 +281,14 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                            handleUpdate({ backgroundColor: colorHex });
                          }} 
                          showText 
+                         presets={[
+                              {
+                                label: 'Recommended',
+                                colors: [
+                                  '#ffffff', '#f0f2f5', '#fafafa', '#f5f5f5', '#e6f7ff', '#f9f0ff', '#f6ffed'
+                                ],
+                              },
+                         ]}
                          style={{ width: '100%' }} 
                        />
                        <Button onClick={() => handleUpdate({ backgroundColor: "" })}>{t("common.reset")}</Button>
