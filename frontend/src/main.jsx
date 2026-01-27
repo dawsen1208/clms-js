@@ -225,6 +225,14 @@ function App() {
     sessionStorage.clear();
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    // ✅ Clear user preferences to prevent cross-user pollution
+    localStorage.removeItem("appearance_prefs");
+    localStorage.removeItem("security_prefs");
+    localStorage.removeItem("notification_prefs");
+    localStorage.removeItem("operation_prefs");
+    localStorage.removeItem("recommend_prefs");
+    localStorage.removeItem("admin_approval_prefs");
+    localStorage.removeItem("admin_permissions");
 
     setToken(null);
     setUser(null);
@@ -264,7 +272,7 @@ function App() {
           <Route path="/return" element={<UserLayoutWrapper><ReturnPage /></UserLayoutWrapper>} />
           <Route path="/profile" element={<UserLayoutWrapper><ProfilePage user={user} /></UserLayoutWrapper>} />
           <Route path="/assistant" element={<UserLayoutWrapper><SmartAssistant /></UserLayoutWrapper>} />
-          <Route path="/settings" element={<UserLayoutWrapper><SettingsPage appearance={appearance} onChange={setAppearance} user={user} /></UserLayoutWrapper>} />
+          <Route path="/settings" element={<UserLayoutWrapper><SettingsPage appearance={appearance} onChange={setAppearance} user={user} onUserUpdate={setUser} /></UserLayoutWrapper>} />
           <Route path="/book/:id" element={<UserLayoutWrapper><BookDetail /></UserLayoutWrapper>} />
 
           {/* ✅ Admin Routes */}

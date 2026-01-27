@@ -14,7 +14,7 @@ const buildTime = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai'
 const buildVersion = process.env.npm_package_version || '1.3.1';
 
 export default defineConfig({
-  base: '/clms-js/', // ✅ GitHub Pages repository name
+  base: '/clms-js/', // ✅ Updated for GitHub Pages deployment
   plugins: [
     react(),
   ],

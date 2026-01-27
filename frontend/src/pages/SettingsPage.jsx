@@ -121,6 +121,11 @@ function SettingsPage({ appearance, onChange, user }) {
       sessionStorage.setItem("user", JSON.stringify(storedUser));
       localStorage.setItem("user", JSON.stringify(storedUser));
       
+      // ✅ Update global user state
+      if (onUserUpdate) {
+        onUserUpdate(storedUser);
+      }
+      
       setBoundEmail(email);
 
       setAuthCodeSent(false);
@@ -144,6 +149,21 @@ function SettingsPage({ appearance, onChange, user }) {
       await toggle2FA(token, checked);
       saveSecurity({ twoFactorEnabled: checked });
       message.success(checked ? t("settings.2faEnabled") : t("settings.2faDisabled"));
+      
+      // ✅ Update global user state for persistence
+      const storedUser = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
+      storedUser.is_2fa_enabled = checked;
+      // Also update nested preferences if they exist
+      if (!storedUser.preferences) storedUser.preferences = {};
+      if (!storedUser.preferences.security) storedUser.preferences.security = {};
+      storedUser.preferences.security.twoFactorEnabled = checked;
+      
+      sessionStorage.setItem("user", JSON.stringify(storedUser));
+      localStorage.setItem("user", JSON.stringify(storedUser));
+      
+      if (onUserUpdate) {
+        onUserUpdate(storedUser);
+      }
     } catch (err) {
       message.error(t("settings.operationFailed"));
     }
@@ -296,8 +316,36 @@ function SettingsPage({ appearance, onChange, user }) {
   const [languageModalOpen, setLanguageModalOpen] = useState(false);
   const [themeModeModalOpen, setThemeModeModalOpen] = useState(false);
   const [themeColorModalOpen, setThemeColorModalOpen] = useState(false);
-  const [fontSizeModalOpen, setFontSizeModalOpen] = useState(false);
+  const [tempThemeColor, setTempThemeColor] = useState('');
+  const [tempCustomColor, setTempCustomColor] = useState('');
+
   const [bgModalOpen, setBgModalOpen] = useState(false);
+  const [tempBgColor, setTempBgColor] = useState('');
+
+  const openThemeColorModal = () => {
+    setTempThemeColor(appearance?.themeColor || 'blue');
+    setTempCustomColor(appearance?.customColor || '#1677FF');
+    setThemeColorModalOpen(true);
+  };
+
+  const confirmThemeColor = () => {
+    handleUpdate({ 
+        themeColor: tempThemeColor, 
+        customColor: tempThemeColor === 'custom' ? tempCustomColor : (appearance?.customColor || '#1677FF')
+    });
+    setThemeColorModalOpen(false);
+  };
+
+  const openBgModal = () => {
+    setTempBgColor(appearance?.backgroundColor || '#ffffff');
+    setBgModalOpen(true);
+  };
+
+  const confirmBgColor = () => {
+    handleUpdate({ backgroundColor: tempBgColor });
+    setBgModalOpen(false);
+  };
+
   const [reminderDaysModalOpen, setReminderDaysModalOpen] = useState(false);
   const [searchPrefModalOpen, setSearchPrefModalOpen] = useState(false);
   const [sortPrefModalOpen, setSortPrefModalOpen] = useState(false);
@@ -483,18 +531,26 @@ function SettingsPage({ appearance, onChange, user }) {
                        </div>
                      </div>
                  </Modal>
-                 <Modal title={t("settings.customBackground")} open={bgModalOpen} onCancel={() => setBgModalOpen(false)} footer={null}>
+                 <Modal 
+                    title={t("settings.customBackground")} 
+                    open={bgModalOpen} 
+                    onCancel={() => setBgModalOpen(false)} 
+                    footer={[
+                        <Button key="cancel" onClick={() => setBgModalOpen(false)}>{t("common.cancel") || "Cancel"}</Button>,
+                        <Button key="submit" type="primary" onClick={confirmBgColor}>{t("common.confirm") || "Confirm"}</Button>
+                    ]}
+                 >
                     <Space direction="vertical" style={{ width: '100%' }}>
                        <Text type="secondary">{t("settings.selectColor") || "Recommended Colors"}</Text>
                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
                           {['#ffffff', '#f0f2f5', '#fafafa', '#f5f5f5', '#e6f7ff', '#f9f0ff', '#f6ffed'].map(color => (
                              <div
                                key={color}
-                               onClick={() => handleUpdate({ backgroundColor: color })}
+                               onClick={() => setTempBgColor(color)}
                                style={{
                                  width: 32, height: 32, borderRadius: '50%', background: color, cursor: 'pointer',
-                                 border: (appearance?.backgroundColor || '#ffffff').toLowerCase() === color.toLowerCase() ? '2px solid #1677FF' : '1px solid #d9d9d9',
-                                 boxShadow: (appearance?.backgroundColor || '#ffffff').toLowerCase() === color.toLowerCase() ? `0 0 0 2px rgba(22, 119, 255, 0.2)` : 'none',
+                                 border: (tempBgColor || '#ffffff').toLowerCase() === color.toLowerCase() ? '2px solid #1677FF' : '1px solid #d9d9d9',
+                                 boxShadow: (tempBgColor || '#ffffff').toLowerCase() === color.toLowerCase() ? `0 0 0 2px rgba(22, 119, 255, 0.2)` : 'none',
                                  transition: 'all 0.2s'
                                }}
                              />
@@ -503,13 +559,13 @@ function SettingsPage({ appearance, onChange, user }) {
                        
                        <Text type="secondary" style={{ marginTop: 8 }}>Hex Code</Text>
                        <Input 
-                          value={appearance?.backgroundColor} 
-                          onChange={(e) => handleUpdate({ backgroundColor: e.target.value })} 
+                          value={tempBgColor} 
+                          onChange={(e) => setTempBgColor(e.target.value)} 
                           placeholder="#ffffff"
                           maxLength={9}
                        />
                        
-                       <Button block onClick={() => handleUpdate({ backgroundColor: "" })}>{t("common.reset")}</Button>
+                       <Button block onClick={() => setTempBgColor("")}>{t("common.reset")}</Button>
                     </Space>
                  </Modal>
               </Card>
