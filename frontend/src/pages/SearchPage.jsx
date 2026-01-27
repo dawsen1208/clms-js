@@ -242,13 +242,13 @@ function SearchPage() {
     }
   };
 
-  const handleReturn = async (bookId) => {
+  const handleReturn = async (bookId, bookTitle) => {
     if (!token) return message.warning(t("search.loginToReturn"));
     try {
       setLocalPendingSet(prev => {
         const next = new Set(prev); next.add(String(bookId)); return next;
       });
-      const payload = { type: "return", bookId };
+      const payload = { type: "return", bookId, bookTitle };
       await requestReturnLibrary(payload, token);
       message.success(t("search.returnSuccess"));
       fetchBooks();

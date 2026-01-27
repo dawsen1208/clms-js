@@ -101,7 +101,7 @@ function BookCard({ book, onBorrow, onRenew, onReturn, loading, userBorrowedBook
                   danger
                   type="primary"
                   disabled={isPending}
-                  onClick={(e) => { e.stopPropagation(); onReturn?.(bookId); }}
+                  onClick={(e) => { e.stopPropagation(); onReturn?.(bookId, title); }}
                   size="small"
                   style={{ borderRadius: '8px' }}
                 >
