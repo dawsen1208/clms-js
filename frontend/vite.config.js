@@ -14,7 +14,7 @@ const buildTime = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai'
 const buildVersion = process.env.npm_package_version || '1.3.1';
 
 export default defineConfig({
-  base: '/clms-js/', // ✅ Updated for GitHub Pages deployment
+  base: '/', // ✅ Reverted to root for Azure Static Web Apps
   plugins: [
     react(),
   ],

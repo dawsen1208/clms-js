@@ -13,7 +13,7 @@ import { useLanguage } from "../contexts/LanguageContext"; // ✅ Import Hook
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
 
-function SettingsPage({ appearance, onChange, user }) {
+function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const { language, setLanguage, t } = useLanguage(); // ✅ Use Language Hook
   const [modal, contextHolder] = Modal.useModal();
   const screens = useBreakpoint();
