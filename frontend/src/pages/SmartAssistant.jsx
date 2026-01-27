@@ -70,6 +70,7 @@ function SmartAssistant() {
     tStr = tStr.replace("基于您偏借类别", t("assistant.basedOnPreferred"));
     tStr = tStr.replace("基于您常借类别", t("assistant.basedOnPreferred"));
     tStr = tStr.replace("未借阅用户推荐：", t("assistant.forNewUsers"));
+    tStr = tStr.replace("全馆最热TOP3", t("assistant.top3LibraryHot"));
     // Strip decorative emoji/symbols first
     tStr = tStr.replace(/[📚📖⭐️✨🌟📈]/g, "");
     tStr = tStr.replace(/\*+/g, "");

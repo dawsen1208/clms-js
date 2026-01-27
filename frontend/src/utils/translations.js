@@ -328,6 +328,7 @@ export const translations = {
       sortPrefsDesc: "Customize default sorting",
       viewPrefsDesc: "Choose default view mode",
       recommendationSettings: "Personalized Recommendation Settings", // Added for compatibility
+      recommendation: "Personalized Recommendation Settings",
       categoryPrefs: "Category Preferences",
       categoryPrefsDesc: "Manage preferred and excluded categories",
       autoRules: "Automation Rules",
@@ -485,6 +486,7 @@ export const translations = {
       add: "Add",
       borrow: "Borrow",
       borrowFailed: "Borrow failed, please try again later",
+      top3LibraryHot: "Top 3 Most Popular in Library",
       gotIt: "Got it",
       borrowUnavailable: "Stock not sufficient — currently unavailable.",
       borrowSuccessMsg: "Borrow request completed. Happy reading!",
