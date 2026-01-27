@@ -313,6 +313,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [devicesModalOpen, setDevicesModalOpen] = useState(false);
+  const [fontSizeModalOpen, setFontSizeModalOpen] = useState(false);
   const [languageModalOpen, setLanguageModalOpen] = useState(false);
   const [themeModeModalOpen, setThemeModeModalOpen] = useState(false);
   const [themeColorModalOpen, setThemeColorModalOpen] = useState(false);
