@@ -10,6 +10,7 @@ import {
   LogoutOutlined,
   RobotOutlined,
   ReloadOutlined,
+  MessageOutlined
 } from "@ant-design/icons";
 import { SettingOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
