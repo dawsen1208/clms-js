@@ -83,6 +83,7 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
         case "return": navigate("/return"); break;
         case "profile": navigate("/profile"); break;
         case "assistant": navigate("/assistant"); break;
+        case "feedback": navigate("/feedback"); break;
         case "settings": navigate("/settings"); break;
         default: navigate("/home");
       }
@@ -97,6 +98,7 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
     if (path.includes("/return")) return "return";
     if (path.includes("/profile")) return "profile";
     if (path.includes("/assistant")) return "assistant";
+    if (path.includes("/feedback")) return "feedback";
     if (path.includes("/settings")) return "settings";
     return "home";
   };
@@ -198,6 +200,7 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
             items={[
               { key: "home", icon: <HomeOutlined />, label: t("common.home") },
               { key: "assistant", icon: <RobotOutlined />, label: t("common.smartRec") }, 
+              { key: "feedback", icon: <MessageOutlined />, label: t("feedback.title") },
               { key: "search", icon: <SearchOutlined />, label: t("common.search") },
               { key: "borrow", icon: <BookOutlined />, label: t("common.borrowManage") },
               { key: "return", icon: <RollbackOutlined />, label: t("common.returnSystem") },

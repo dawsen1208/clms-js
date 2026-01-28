@@ -17,7 +17,9 @@ import {
   Divider,
   Space,
   Grid,
-  List
+  List,
+  Tabs,
+  Badge
 } from "antd";
 import {
   ReloadOutlined,
@@ -25,7 +27,7 @@ import {
   UserOutlined,
   BookOutlined,
 } from "@ant-design/icons";
-import { getUserAnalytics } from "../api";
+import { getUserAnalytics, toggleBlacklist, approveUser } from "../api";
 import {
   PieChart,
   Pie,
@@ -51,6 +53,7 @@ const AdminUserManagePage = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPersona, setSelectedPersona] = useState(null);
   const [distOpen, setDistOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("1");
 
   let token = localStorage.getItem("token") || sessionStorage.getItem("token");
   if (token?.startsWith('"')) {
@@ -84,6 +87,18 @@ const AdminUserManagePage = () => {
   useEffect(() => {
     setTableData(users);
   }, [users]);
+
+  const pendingUsers = useMemo(() => users.filter(u => u.status === 'PENDING'), [users]);
+
+  const handleApprove = async (userId, status) => {
+    try {
+        await approveUser(userId, status, token);
+        message.success(status === 'APPROVED' ? (t("admin.userApproved") || "用户已通过审核") : (t("admin.userRejected") || "用户已拒绝"));
+        fetchUsers();
+    } catch (err) {
+        message.error(t("admin.operationFailed") || "操作失败");
+    }
+  };
 
   // 🔤 Helpers: translate common Chinese labels to English for display
   const toEnglishCategory = (text) => (text === "未知" ? t("admin.unknown") : text);
@@ -121,6 +136,51 @@ const AdminUserManagePage = () => {
   };
 
   /* =========================================================
+     🚫 Handle Blacklist Toggle
+     ========================================================= */
+  const handleBlacklistClick = (user) => {
+    if (user.isBlacklisted) {
+      Modal.confirm({
+        title: t("admin.confirmUnban") || "确认解除黑名单",
+        content: t("admin.unbanMessage") || `确定要将用户 ${user.name} 移出黑名单吗？`,
+        onOk: async () => {
+          try {
+            await toggleBlacklist(user.userId, false, "", token);
+            message.success(t("admin.successUnban") || "已解除黑名单");
+            fetchUsers();
+          } catch (e) {
+            message.error(t("admin.operationFailed") || "操作失败");
+          }
+        }
+      });
+    } else {
+      let reason = "";
+      Modal.confirm({
+        title: t("admin.confirmBan") || "确认拉黑用户",
+        content: (
+           <div>
+             <p>{t("admin.banMessage") || `确定要将用户 ${user.name} 加入黑名单吗？`}</p>
+             <Input 
+               placeholder={t("admin.banReasonPlaceholder") || "请输入拉黑原因 (可选)"} 
+               onChange={(e) => reason = e.target.value} 
+               style={{ marginTop: 10 }}
+             />
+           </div>
+        ),
+        onOk: async () => {
+           try {
+             await toggleBlacklist(user.userId, true, reason, token);
+             message.success(t("admin.successBan") || "已加入黑名单");
+             fetchUsers();
+           } catch (e) {
+             message.error(t("admin.operationFailed") || "操作失败");
+           }
+        }
+      });
+    }
+  };
+
+  /* =========================================================
      📊 Generate pie chart data (by persona)
      ========================================================= */
   const chartData = Object.entries(
@@ -151,6 +211,34 @@ const AdminUserManagePage = () => {
       key: "overdueCount",
       render: (v) => <Tag color={v > 0 ? "red" : "green"}>{v}</Tag>,
       width: 100,
+    },
+    {
+      title: t("admin.status") || "状态",
+      key: "status",
+      width: 100,
+      render: (_, record) => (
+        record.isBlacklisted 
+          ? <Tooltip title={record.blacklistReason}><Tag color="red">{t("admin.blacklisted")}</Tag></Tooltip> 
+          : <Tag color="green">{t("admin.normal")}</Tag>
+      )
+    },
+    {
+      title: t("admin.action") || "操作",
+      key: "action",
+      width: 120,
+      render: (_, record) => {
+        if (record.role === "Administrator") return null;
+        return (
+          <Button 
+            danger={!record.isBlacklisted}
+            type={record.isBlacklisted ? "default" : "primary"}
+            size="small"
+            onClick={() => handleBlacklistClick(record)}
+          >
+            {record.isBlacklisted ? (t("admin.unban") || "解封") : (t("admin.ban") || "拉黑")}
+          </Button>
+        );
+      }
     },
     {
       title: t("admin.onTimeRate"),
@@ -203,6 +291,28 @@ const AdminUserManagePage = () => {
     return { total, admins, overdueUsers, avgOnTime, personaKinds };
   }, [users]);
 
+  const pendingColumns = [
+    { title: t("admin.username"), dataIndex: "name", key: "name", width: 140 },
+    { title: t("admin.email"), dataIndex: "email", key: "email", width: 200 },
+    { title: t("admin.role"), dataIndex: "role", key: "role", width: 100 },
+    { title: t("admin.registerTime") || "注册时间", dataIndex: "createdAt", key: "createdAt", width: 180, render: (t) => t ? new Date(t).toLocaleString() : '-' },
+    {
+        title: t("admin.action"),
+        key: "action",
+        width: 180,
+        render: (_, record) => (
+            <Space>
+                <Button type="primary" size="small" onClick={() => handleApprove(record.userId, 'APPROVED')}>
+                    {t("admin.approve") || "通过"}
+                </Button>
+                <Button danger size="small" onClick={() => handleApprove(record.userId, 'REJECTED')}>
+                    {t("admin.reject") || "拒绝"}
+                </Button>
+            </Space>
+        )
+    }
+  ];
+
   return (
     <div className="admin-user-page" style={{ padding: "1.5rem", minHeight: "100vh" }}>
       <Card
@@ -235,94 +345,120 @@ const AdminUserManagePage = () => {
             style={{ display: "block", margin: "3rem auto" }}
           />
         ) : (
-          <>
-            <Input.Search
-              placeholder={t("admin.searchUserPlaceholder")}
-              allowClear
-              onSearch={(kw) => {
-                const keyword = String(kw || "").trim().toLowerCase();
-                const data = keyword
-                  ? users.filter((u) => (u.name || "").toLowerCase().includes(keyword))
-                  : users;
-                setTableData([...data]);
-              }}
-              style={{ maxWidth: 280, marginBottom: 12 }}
-            />
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            type="card"
+            items={[
+              {
+                key: "1",
+                label: t("admin.allUsers"),
+                children: (
+                  <>
+                    <Input.Search
+                      placeholder={t("admin.searchUserPlaceholder")}
+                      allowClear
+                      onSearch={(kw) => {
+                        const keyword = String(kw || "").trim().toLowerCase();
+                        const data = keyword
+                          ? users.filter((u) => (u.name || "").toLowerCase().includes(keyword))
+                          : users;
+                        setTableData([...data]);
+                      }}
+                      style={{ maxWidth: 280, marginBottom: 12 }}
+                    />
 
-            {isMobile ? (
-              <List
-                dataSource={tableData}
-                loading={loading}
-                pagination={{ pageSize: 7 }}
-                renderItem={(item) => (
-                  <List.Item style={{ padding: 0, marginBottom: 16 }}>
-                    <Card
-                      hoverable
-                      style={{ width: '100%', borderRadius: 12 }}
-                      actions={[
-                        <Button 
-                          type="link" 
-                          onClick={() => handlePersonaClick(item.persona, item.personaDescription)}
-                        >
-                          {t("admin.viewPersona")}
-                        </Button>
-                      ]}
-                    >
-                      <Card.Meta
-                        avatar={<UserOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
-                        title={<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                            <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{item.name}</span>
-                            <Tag color={item.role === 'Administrator' ? 'purple' : 'blue'}>{item.role}</Tag>
-                        </div>}
-                        description={
-                          <div style={{ marginTop: 8 }}>
-                            <div style={{ marginBottom: 4 }}>ID: {item.userId}</div>
-                            <div style={{ marginBottom: 4 }}>
-                              {t("admin.topCategory")}: {toEnglishCategory(item.topCategory)}
-                            </div>
-                            <div style={{ marginBottom: 4 }}>
-                              {t("admin.totalBorrows")}: <span style={{ fontWeight: 'bold' }}>{item.totalBorrows}</span>
-                            </div>
-                            <div style={{ marginBottom: 4 }}>
-                               {t("admin.notReturned")}: <Tag color={item.overdueCount > 0 ? "red" : "green"}>{item.overdueCount}</Tag>
-                            </div>
-                            <div style={{ marginBottom: 4 }}>
-                              {t("admin.onTimeRate")}: <Progress percent={item.onTimeRate} size="small" steps={5} strokeColor={item.onTimeRate >= 80 ? '#52c41a' : '#ff4d4f'} />
-                            </div>
-                            <div>
-                              {t("admin.persona")}: <Tag color="blue">{toEnglishPersona(item.persona)}</Tag>
-                            </div>
-                          </div>
-                        }
+                    {isMobile ? (
+                      <List
+                        dataSource={tableData}
+                        loading={loading}
+                        pagination={{ pageSize: 7 }}
+                        renderItem={(item) => (
+                          <List.Item style={{ padding: 0, marginBottom: 16 }}>
+                            <Card
+                              hoverable
+                              style={{ width: '100%', borderRadius: 12 }}
+                              actions={[
+                                <Button 
+                                  type="link" 
+                                  onClick={() => handlePersonaClick(item.persona, item.personaDescription)}
+                                >
+                                  {t("admin.viewPersona")}
+                                </Button>
+                              ]}
+                            >
+                              <Card.Meta
+                                avatar={<UserOutlined style={{ fontSize: 24, color: '#1890ff' }} />}
+                                title={<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                    <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{item.name}</span>
+                                    <Tag color={item.role === 'Administrator' ? 'purple' : 'blue'}>{item.role}</Tag>
+                                </div>}
+                                description={
+                                  <div style={{ marginTop: 8 }}>
+                                    <div style={{ marginBottom: 4 }}>ID: {item.userId}</div>
+                                    <div style={{ marginBottom: 4 }}>
+                                      {t("admin.topCategory")}: {toEnglishCategory(item.topCategory)}
+                                    </div>
+                                    <div style={{ marginBottom: 4 }}>
+                                      {t("admin.totalBorrows")}: <span style={{ fontWeight: 'bold' }}>{item.totalBorrows}</span>
+                                    </div>
+                                    <div style={{ marginBottom: 4 }}>
+                                       {t("admin.notReturned")}: <Tag color={item.overdueCount > 0 ? "red" : "green"}>{item.overdueCount}</Tag>
+                                    </div>
+                                    <div style={{ marginBottom: 4 }}>
+                                      {t("admin.onTimeRate")}: <Progress percent={item.onTimeRate} size="small" steps={5} strokeColor={item.onTimeRate >= 80 ? '#52c41a' : '#ff4d4f'} />
+                                    </div>
+                                    <div>
+                                      {t("admin.persona")}: <Tag color="blue">{toEnglishPersona(item.persona)}</Tag>
+                                    </div>
+                                  </div>
+                                }
+                              />
+                            </Card>
+                          </List.Item>
+                        )}
                       />
-                    </Card>
-                  </List.Item>
-                )}
-              />
-            ) : (
-              <Table
-                dataSource={tableData}
-                columns={columns}
-                rowKey="userId"
-                pagination={{
-                  pageSize: 7,
-                  showSizeChanger: false,
-                  position: ["bottomCenter"],
-                }}
-                scroll={{ x: 950 }}
-                bordered
-                locale={{
-                  emptyText: t("admin.noUserData"),
-                }}
-                style={{
-                  minHeight: "540px",
-                  borderRadius: "10px",
-                }}
-              />
-            )}
-
-            
-          </>
+                    ) : (
+                      <Table
+                        dataSource={tableData}
+                        columns={columns}
+                        rowKey="userId"
+                        pagination={{
+                          pageSize: 7,
+                          showSizeChanger: false,
+                          position: ["bottomCenter"],
+                        }}
+                        scroll={{ x: 950 }}
+                        bordered
+                        locale={{
+                          emptyText: t("admin.noUserData"),
+                        }}
+                        style={{
+                          minHeight: "540px",
+                          borderRadius: "10px",
+                        }}
+                      />
+                    )}
+                  </>
+                )
+              },
+              {
+                key: "2",
+                label: <Badge count={pendingUsers.length} offset={[10, 0]}>{t("admin.pendingApprovals") || "待审核"}</Badge>,
+                children: (
+                  <Table
+                      dataSource={pendingUsers}
+                      columns={pendingColumns}
+                      rowKey="userId"
+                      pagination={{ pageSize: 7 }}
+                      scroll={{ x: 800 }}
+                      bordered
+                      locale={{ emptyText: t("admin.noPendingUsers") || "无待审核用户" }}
+                  />
+                )
+              }
+            ]}
+          />
         )}
       </Card>
 

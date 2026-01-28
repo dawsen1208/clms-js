@@ -5,7 +5,7 @@ import {
   GlobalOutlined, BgColorsOutlined, FormatPainterOutlined, FontSizeOutlined, 
   CalendarOutlined, SearchOutlined, SortAscendingOutlined, AppstoreOutlined, 
   TagsOutlined, ReloadOutlined, RobotOutlined, BuildOutlined, TeamOutlined,
-  BellOutlined, SettingOutlined, PictureOutlined
+  BellOutlined, SettingOutlined, PictureOutlined, SoundOutlined
 } from "@ant-design/icons";
 import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks, sendAuthCode, bindEmail, toggle2FA } from "../api";
 import { useLanguage } from "../contexts/LanguageContext"; // ✅ Import Hook
@@ -308,6 +308,26 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     } catch {}
   };
 
+  const [accessibilityPrefs, setAccessibilityPrefs] = useState(() => {
+    try {
+      const raw = localStorage.getItem("accessibility_prefs");
+      return raw ? JSON.parse(raw) : { accessibilityMode: false, ttsEnabled: false };
+    } catch {
+      return { accessibilityMode: false, ttsEnabled: false };
+    }
+  });
+
+  const saveAccessibility = async (patch) => {
+    const next = { ...accessibilityPrefs, ...patch };
+    setAccessibilityPrefs(next);
+    try { localStorage.setItem("accessibility_prefs", JSON.stringify(next)); } catch {}
+    try {
+      if (token) {
+        await updateProfile(token, { preferences: { accessibility: next } });
+      }
+    } catch {}
+  };
+
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
@@ -414,6 +434,36 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                       </Space>
                    </Radio.Group>
                 </Modal>
+              </Card>
+            ),
+          },
+          {
+            key: "accessibility",
+            label: t("settings.accessibility") || "Accessibility",
+            children: (
+              <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.accessibility") || "Accessibility"}</Title>}>
+                <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                    <Space>
+                       <SoundOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                       <div>
+                         <Text strong style={{ display: 'block' }}>{t("settings.tts") || "Text-to-Speech"}</Text>
+                         <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.ttsDesc") || "Enable text-to-speech for buttons and content"}</Text>
+                       </div>
+                    </Space>
+                    <Switch checked={ttsEnabled} onChange={(v) => updatePrefs({ ttsEnabled: v })} />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                    <Space>
+                       <RobotOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+                       <div>
+                         <Text strong style={{ display: 'block' }}>{t("settings.accessibilityMode") || "Accessibility Mode"}</Text>
+                         <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.accessibilityModeDesc") || "Simplified interface with larger elements"}</Text>
+                       </div>
+                    </Space>
+                    <Switch checked={accessibilityMode} onChange={(v) => updatePrefs({ accessibilityMode: v })} />
+                  </div>
+                </Space>
               </Card>
             ),
           },
@@ -580,6 +630,36 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                        <Button block onClick={() => setTempBgColor("")}>{t("common.reset")}</Button>
                     </Space>
                  </Modal>
+              </Card>
+            ),
+          },
+          {
+            key: "accessibility",
+            label: t("settings.accessibility"),
+            children: (
+              <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.accessibility")}</Title>}>
+                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                        <Space>
+                            <BgColorsOutlined style={{ fontSize: 20, color: '#faad14' }} />
+                            <div>
+                              <Text strong style={{ display: 'block' }}>{t("settings.accessibilityMode")}</Text>
+                              <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.accessibilityModeDesc")}</Text>
+                            </div>
+                        </Space>
+                        <Switch checked={accessibilityMode} onChange={(v) => saveAccessibility({ accessibilityMode: v })} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                        <Space>
+                            <SoundOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+                            <div>
+                              <Text strong style={{ display: 'block' }}>{t("settings.tts")}</Text>
+                              <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.ttsDesc")}</Text>
+                            </div>
+                        </Space>
+                        <Switch checked={ttsEnabled} onChange={(v) => saveAccessibility({ ttsEnabled: v })} />
+                    </div>
+                 </Space>
               </Card>
             ),
           },

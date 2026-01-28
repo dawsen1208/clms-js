@@ -8,7 +8,13 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: false, default: "" }, // 邮箱（可选）
   password: { type: String, required: true }, // 加密密码
   role: { type: String, enum: ["Reader", "Administrator"], default: "Reader" }, // 用户角色
+  status: { type: String, enum: ["PENDING", "APPROVED", "REJECTED"], default: "PENDING" }, // 账号状态
   avatar: { type: String, default: "" }, // 头像URL
+
+  // 🚫 黑名单功能
+  isBlacklisted: { type: Boolean, default: false }, // 是否在黑名单
+  blacklistReason: { type: String, default: "" }, // 拉黑原因
+  overdueCount: { type: Number, default: 0 }, // 累计逾期次数 (用于自动拉黑)
   
   // 🔐 安全设置
   twoFactorEnabled: { type: Boolean, default: false }, // 是否开启双重认证

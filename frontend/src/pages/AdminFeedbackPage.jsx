@@ -1,0 +1,262 @@
+import { useState, useEffect } from "react";
+import {
+  Card,
+  Table,
+  Tag,
+  Button,
+  Modal,
+  Input,
+  Space,
+  Typography,
+  message,
+  Tabs,
+  Tooltip
+} from "antd";
+import {
+  CheckCircleOutlined,
+  SyncOutlined,
+  MessageOutlined,
+  BugOutlined,
+  BulbOutlined,
+  QuestionCircleOutlined,
+  EditOutlined
+} from "@ant-design/icons";
+import dayjs from "dayjs";
+import { useLanguage } from "../contexts/LanguageContext";
+import { getAllFeedback, replyFeedback } from "../api";
+
+const { Title, Text, Paragraph } = Typography;
+const { TextArea } = Input;
+
+function AdminFeedbackPage() {
+  const { t } = useLanguage();
+  const [loading, setLoading] = useState(false);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [replyModalVisible, setReplyModalVisible] = useState(false);
+  const [currentFeedback, setCurrentFeedback] = useState(null);
+  const [replyContent, setReplyContent] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
+
+  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+
+  const fetchFeedbacks = async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const res = await getAllFeedback(token);
+      setFeedbacks(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch all feedback:", err);
+      message.error(t("common.failedToLoad"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFeedbacks();
+  }, []);
+
+  const handleReplyClick = (record) => {
+    setCurrentFeedback(record);
+    setReplyContent(record.reply || "");
+    setReplyModalVisible(true);
+  };
+
+  const handleReplySubmit = async () => {
+    if (!replyContent.trim()) {
+      message.warning(t("feedback.placeholder"));
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await replyFeedback(currentFeedback._id, replyContent, token);
+      message.success("Reply submitted successfully");
+      setReplyModalVisible(false);
+      fetchFeedbacks(); // Refresh list
+    } catch (err) {
+      console.error("Reply feedback failed:", err);
+      message.error("Failed to submit reply");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const getTypeIcon = (type) => {
+    switch (type) {
+      case "bug": return <BugOutlined style={{ color: "#ff4d4f" }} />;
+      case "suggestion": return <BulbOutlined style={{ color: "#faad14" }} />;
+      default: return <QuestionCircleOutlined style={{ color: "#1890ff" }} />;
+    }
+  };
+
+  const getTypeText = (type) => {
+    switch (type) {
+      case "bug": return t("feedback.bug");
+      case "suggestion": return t("feedback.suggestion");
+      default: return t("feedback.other");
+    }
+  };
+
+  const columns = [
+    {
+      title: t("feedback.type"),
+      dataIndex: "type",
+      key: "type",
+      width: 120,
+      render: (type) => (
+        <Space>
+          {getTypeIcon(type)}
+          {getTypeText(type)}
+        </Space>
+      ),
+    },
+    {
+      title: t("feedback.content"),
+      dataIndex: "content",
+      key: "content",
+      ellipsis: {
+        showTitle: false,
+      },
+      render: (content) => (
+        <Tooltip placement="topLeft" title={content}>
+          {content}
+        </Tooltip>
+      ),
+    },
+    {
+      title: "User",
+      dataIndex: "userName",
+      key: "userName",
+      width: 150,
+      render: (text, record) => (
+        <Space direction="vertical" size={0}>
+          <Text strong>{text || "Unknown"}</Text>
+          <Text type="secondary" style={{ fontSize: 12 }}>{record.email}</Text>
+        </Space>
+      )
+    },
+    {
+      title: t("feedback.status"),
+      dataIndex: "status",
+      key: "status",
+      width: 120,
+      render: (status) => (
+        <Tag color={status === "Replied" ? "green" : "orange"} icon={status === "Replied" ? <CheckCircleOutlined /> : <SyncOutlined spin />}>
+          {status === "Replied" ? t("feedback.closed") : t("feedback.open")}
+        </Tag>
+      ),
+    },
+    {
+      title: "Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      width: 160,
+      render: (date) => dayjs(date).format("YYYY-MM-DD HH:mm"),
+      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      defaultSortOrder: 'descend',
+    },
+    {
+      title: "Action",
+      key: "action",
+      width: 100,
+      render: (_, record) => (
+        <Button
+          type={record.status === "Unreplied" ? "primary" : "default"}
+          icon={<EditOutlined />}
+          size="small"
+          onClick={() => handleReplyClick(record)}
+        >
+          {record.status === "Unreplied" ? "Reply" : "Edit"}
+        </Button>
+      ),
+    },
+  ];
+
+  const filteredFeedbacks = feedbacks.filter(f => {
+    if (activeTab === "all") return true;
+    if (activeTab === "pending") return f.status === "Unreplied";
+    if (activeTab === "replied") return f.status === "Replied";
+    return true;
+  });
+
+  return (
+    <div className="admin-feedback-page" style={{ padding: 24 }}>
+      <Card bordered={false} style={{ borderRadius: 8 }}>
+        <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Title level={3} style={{ margin: 0 }}>
+            <MessageOutlined style={{ marginRight: 12 }} />
+            {t("feedback.title")} Management
+          </Title>
+          <Button icon={<SyncOutlined />} onClick={fetchFeedbacks}>
+            {t("common.refresh")}
+          </Button>
+        </div>
+
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={[
+            { key: "all", label: `All (${feedbacks.length})` },
+            { key: "pending", label: `Pending (${feedbacks.filter(f => f.status === "Unreplied").length})` },
+            { key: "replied", label: `Replied (${feedbacks.filter(f => f.status === "Replied").length})` },
+          ]}
+        />
+
+        <Table
+          columns={columns}
+          dataSource={filteredFeedbacks}
+          rowKey="_id"
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+        />
+      </Card>
+
+      <Modal
+        title={
+          <Space>
+            <MessageOutlined />
+            Reply to Feedback
+          </Space>
+        }
+        open={replyModalVisible}
+        onCancel={() => setReplyModalVisible(false)}
+        onOk={handleReplySubmit}
+        confirmLoading={submitting}
+        okText="Send Reply"
+      >
+        {currentFeedback && (
+          <Space direction="vertical" style={{ width: "100%" }} size="middle">
+            <Card size="small" style={{ background: "#f5f5f5" }}>
+              <Space align="start">
+                {getTypeIcon(currentFeedback.type)}
+                <div>
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    {dayjs(currentFeedback.createdAt).format("YYYY-MM-DD HH:mm")} - {currentFeedback.user?.name}
+                  </Text>
+                  <Paragraph style={{ margin: "4px 0 0 0" }}>
+                    {currentFeedback.content}
+                  </Paragraph>
+                </div>
+              </Space>
+            </Card>
+
+            <div>
+              <Text strong style={{ display: "block", marginBottom: 8 }}>Your Reply:</Text>
+              <TextArea
+                rows={6}
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                placeholder="Type your reply here..."
+              />
+            </div>
+          </Space>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+export default AdminFeedbackPage;

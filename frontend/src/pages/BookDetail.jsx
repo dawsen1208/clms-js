@@ -264,6 +264,19 @@ function BookDetail() {
             )}
         </div>
 
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Title level={4}>{t("bookDetail.description")}</Title>
+          {ttsEnabled && (
+             <Button 
+               type="text" 
+               icon={<SoundOutlined />} 
+               onClick={() => speak(book.description)}
+               title="Read Description"
+             >
+               Read
+             </Button>
+          )}
+        </div>
         <Paragraph style={{ whiteSpace: "pre-wrap" }}>{book.description || t("bookDetail.noDescription")}</Paragraph>
 
         <Divider>{t("bookDetail.userReviews")}</Divider>

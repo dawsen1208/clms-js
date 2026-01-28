@@ -236,6 +236,9 @@ function RegisterAdmin() {
               }}
             />
           </p>
+          <p style={{ color: "#faad14", marginTop: 10 }}>
+            {t("register.pendingApproval") || "Your account is pending approval. Please wait for an administrator to approve your registration."}
+          </p>
           <p>{t("register.idCopiedMsg")}</p>
         </div>
       </Modal>

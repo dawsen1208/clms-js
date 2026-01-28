@@ -39,6 +39,19 @@ function LoginPage({ onLogin }) {
 
       const res = await apiLogin(userId, password);
 
+      // Check for pending status
+      if (res.data.status === 'pending') {
+         message.warning(t("login.accountPending") || "Your account is pending approval.");
+         setLoading(false);
+         return;
+      }
+
+      if (res.data.status === 'rejected') {
+         message.error(t("login.accountRejected") || "Your account has been rejected.");
+         setLoading(false);
+         return;
+      }
+
       if (res.data.require2FA) {
         setTempUserId(userId);
         setIs2FAModalOpen(true);

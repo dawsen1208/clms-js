@@ -19,6 +19,7 @@ function HomePage() {
   const { useBreakpoint } = Grid; // ✅ Moved here
   const [recommended, setRecommended] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false); // ✅ Flip state
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
   const metrics = { rec: recommended.length };
   const screens = useBreakpoint();
@@ -112,11 +113,42 @@ function HomePage() {
   if (isMobile) {
     return (
       <div className="home-page-mobile" style={{ padding: '16px', maxWidth: '100vw', overflowX: 'hidden' }}>
-        {/* ✅ 1. Compact Welcome Banner */}
-        <div style={{ marginBottom: '24px' }}>
-          <Title level={2} className="page-modern-title" style={{ margin: "0 0 16px 0", ...titleStyle }}>
-            👋 {t("common.welcome")}
-          </Title>
+        {/* ✅ 1. Welcome Flip Card (Mobile) */}
+        <div className={`flip-card-container ${isFlipped ? "flipped" : ""}`} onClick={() => setIsFlipped(!isFlipped)}>
+          <div className="flip-card-inner">
+            {/* Front Side */}
+            <div className="flip-card-front">
+              <Card className="welcome-card" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <Title level={2} className="page-modern-title" style={{ textAlign: "center", width: "100%", fontSize: "1.5rem" }}>
+                  👋 {t("common.welcome")}
+                </Title>
+                <Paragraph className="home-paragraph" style={{ fontSize: "0.9rem" }}>
+                  {t("common.welcomeDesc")}
+                </Paragraph>
+                <div className="flip-hint">
+                  <span role="img" aria-label="touch">👆</span> {t("common.clickToViewGuide")}
+                </div>
+              </Card>
+            </div>
+
+            {/* Back Side */}
+            <div className="flip-card-back">
+              <Card className="welcome-card" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <Title level={4} style={{ textAlign: "center", marginBottom: "16px", color: "#3b82f6" }}>
+                  📖 {t("common.operationGuide")}
+                </Title>
+                <ul className="system-overview-list" style={{ fontSize: "0.85rem", textAlign: "left", paddingLeft: "10px" }}>
+                  <li style={{marginBottom: '6px'}}>🔍 <b>{t("common.bookSearch")}</b></li>
+                  <li style={{marginBottom: '6px'}}>📚 <b>{t("common.borrowManage")}</b></li>
+                  <li style={{marginBottom: '6px'}}>↩️ <b>{t("common.returnSystem")}</b></li>
+                  <li style={{marginBottom: '6px'}}>🤖 <b>{t("common.smartRec")}</b></li>
+                </ul>
+                <div className="flip-hint">
+                  <span role="img" aria-label="back">↩️</span> {t("common.clickToBack")}
+                </div>
+              </Card>
+            </div>
+          </div>
         </div>
 
         {/* ✅ 2. Quick Actions */}
@@ -267,16 +299,43 @@ function HomePage() {
         <PopularBanner books={recommended} />
       )}
 
-      {/* ✅ Welcome card */}
-      <Card className="welcome-card">
-        <Title level={2} className="page-modern-title" style={{ textAlign: "center", width: "100%" }}>
-          {t("common.welcomeFull")}
-        </Title>
+      {/* ✅ Welcome Flip Card */}
+      <div className={`flip-card-container ${isFlipped ? "flipped" : ""}`} onClick={() => setIsFlipped(!isFlipped)}>
+        <div className="flip-card-inner">
+          {/* Front Side */}
+          <div className="flip-card-front">
+            <Card className="welcome-card" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <Title level={2} className="page-modern-title" style={{ textAlign: "center", width: "100%" }}>
+                {t("common.welcomeFull")}
+              </Title>
+              <Paragraph className="home-paragraph">
+                {t("common.welcomeDesc")}
+              </Paragraph>
+              <div className="flip-hint">
+                <span role="img" aria-label="touch">👆</span> {t("common.clickToViewGuide")}
+              </div>
+            </Card>
+          </div>
 
-        <Paragraph className="home-paragraph">
-          {t("common.welcomeDesc")}
-        </Paragraph>
-      </Card>
+          {/* Back Side */}
+          <div className="flip-card-back">
+            <Card className="welcome-card" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <Title level={4} style={{ textAlign: "center", marginBottom: "16px", color: "#3b82f6" }}>
+                📖 {t("common.operationGuide")}
+              </Title>
+              <ul className="system-overview-list" style={{ fontSize: "0.95rem", textAlign: "left", paddingLeft: "20px" }}>
+                <li style={{marginBottom: '8px'}}>🔍 <b>{t("common.bookSearch")}</b></li>
+                <li style={{marginBottom: '8px'}}>📚 <b>{t("common.borrowManage")}</b></li>
+                <li style={{marginBottom: '8px'}}>↩️ <b>{t("common.returnSystem")}</b></li>
+                <li style={{marginBottom: '8px'}}>🤖 <b>{t("common.smartRec")}</b></li>
+              </ul>
+              <div className="flip-hint">
+                <span role="img" aria-label="back">↩️</span> {t("common.clickToBack")}
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
 
       {/* ✅ System overview */}
       <Card className="overview-card">

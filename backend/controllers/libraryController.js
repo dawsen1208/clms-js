@@ -3,6 +3,7 @@ import BorrowRequest from "../models/BorrowRequest.js";
 import BorrowRecord from "../models/BorrowRecord.js";
 import BorrowHistory from "../models/BorrowHistory.js";
 import Book from "../models/Book.js";
+import User from "../models/User.js";
 import mongoose from "mongoose";
 
 /* =========================================================
@@ -83,8 +84,33 @@ export const approveRequestLibrary = async (req, res) => {
     } else if (request.type === "return") {
       await record.returnBook(); // 使用模型的returnBook方法
       
-      // 📚 更新库存（使用格式化的bookId）
-      await Book.findByIdAndUpdate(BookId, { $inc: { copies: 1 } });
+      // 📚 更新库存（使用 record.bookId 确保是书籍ID，而非可能的记录ID）
+      const updateBookId = record.bookId?._id || record.bookId;
+      await Book.findByIdAndUpdate(updateBookId, { $inc: { copies: 1 } });
+
+      // 🚫 检查逾期并处理自动拉黑
+      const now = new Date();
+      const dueDate = new Date(record.dueDate);
+      if (now > dueDate) {
+        try {
+          // 注意：request.userId 通常是字符串ID (如 "r10001")
+          const user = await User.findOne({ userId: request.userId });
+          if (user) {
+            user.overdueCount = (user.overdueCount || 0) + 1;
+            console.log(`⚠️ 用户 ${user.userId} 逾期还书，当前逾期次数: ${user.overdueCount}`);
+            
+            // 阈值设为 3 次
+            if (user.overdueCount > 3 && !user.isBlacklisted) {
+              user.isBlacklisted = true;
+              user.blacklistReason = "系统自动拉黑：经常逾期还书 (逾期超过3次)";
+              console.log(`🚫 用户 ${user.userId} 因频繁逾期已被自动拉黑`);
+            }
+            await user.save();
+          }
+        } catch (e) {
+          console.error("❌ 更新用户逾期状态失败:", e);
+        }
+      }
       
       // 📝 创建归还历史记录
       await BorrowHistory.create({
@@ -141,4 +167,100 @@ export const rejectRequestLibrary = async (req, res) => {
     console.error("❌ 拒绝失败:", err);
     res.status(500).json({ message: "拒绝失败", error: err.message });
   }
+};
+
+/* =========================================================
+   📚 管理员直接归还（无需申请）
+   ========================================================= */
+export const markBookReturned = async (req, res) => {
+  try {
+    const { borrowRecordId, userId, bookId } = req.body;
+
+    let record;
+    if (borrowRecordId) {
+      record = await BorrowRecord.findById(borrowRecordId);
+    } else if (userId && bookId) {
+      const UserId = BorrowRecord.formatId(userId);
+      const BookId = BorrowRecord.formatId(bookId);
+      record = await BorrowRecord.findOne({ _id: BookId, userId: UserId, returned: false });
+      if (!record) {
+        record = await BorrowRecord.findActiveByUserAndBook(UserId, BookId);
+      }
+    }
+
+    if (!record) {
+      return res.status(404).json({ message: "未找到活跃的借阅记录" });
+    }
+
+    if (record.returned) {
+      return res.status(400).json({ message: "该书籍已归还" });
+    }
+
+    // 1. 更新借阅记录
+    record.returned = true;
+    record.returnedAt = new Date();
+    await record.save();
+
+    // 2. 更新库存
+    // 注意：record.bookId 可能是字符串也可能是 ObjectId，这里建议统一处理
+    // 但 Mongoose findById 通常能处理字符串 ID
+    const bookUpdateId = mongoose.Types.ObjectId.isValid(record.bookId) ? record.bookId : record.bookId;
+    
+    await Book.findByIdAndUpdate(bookUpdateId, { $inc: { copies: 1 } });
+
+    // 3. 检查逾期并更新用户信用
+    const now = new Date();
+    const dueDate = new Date(record.dueDate);
+    let isOverdue = now > dueDate;
+    
+    if (isOverdue) {
+        try {
+            const user = await User.findOne({ userId: record.userId });
+            if (user) {
+                user.overdueCount = (user.overdueCount || 0) + 1;
+                if (user.overdueCount > 3 && !user.isBlacklisted) {
+                    user.isBlacklisted = true;
+                    user.blacklistReason = "系统自动拉黑：经常逾期还书 (逾期超过3次)";
+                }
+                await user.save();
+            }
+        } catch (e) {
+            console.error("❌ 更新用户逾期状态失败:", e);
+        }
+    }
+
+    // 4. 创建历史记录
+    await BorrowHistory.create({
+        userId: record.userId,
+        bookId: record.bookId,
+        bookTitle: record.bookTitle,
+        bookAuthor: record.bookAuthor,
+        action: "return",
+        borrowDate: record.borrowedAt,
+        dueDate: record.dueDate,
+        returnDate: now,
+        isRenewed: record.renewed,
+        userName: record.userName,
+        renewCount: record.renewCount
+    });
+
+    res.json({ message: "归还成功", record });
+
+  } catch (err) {
+    console.error("❌ 归还失败:", err);
+    res.status(500).json({ message: "归还失败", error: err.message });
+  }
+};
+
+/* =========================================================
+   📋 获取所有活跃借阅记录（管理员用）
+   ========================================================= */
+export const getActiveBorrowRecords = async (req, res) => {
+    try {
+        const records = await BorrowRecord.find({ returned: false }).sort({ dueDate: 1 });
+        res.json(records);
+    } catch (err) {
+        console.error("❌ 获取借阅记录失败:", err);
+        res.status(500).json({ message: "获取借阅记录失败" });
+    }
 };

@@ -11,6 +11,7 @@ import {
   LogoutOutlined,
   DashboardOutlined,
   SettingOutlined,
+  MessageOutlined
 } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom"; // ✅ Added router hooks
 
@@ -35,9 +36,11 @@ function AdminMenu({ onLogout, children }) {
     const path = location.pathname;
     if (path.includes("/admin/dashboard")) return "home";
     if (path.includes("/admin/books")) return "book";
+    if (path.includes("/admin/requests")) return "requests";
     if (path.includes("/admin/borrow")) return "borrow";
     if (path.includes("/admin/history")) return "history";
     if (path.includes("/admin/users")) return "users";
+    if (path.includes("/admin/feedback")) return "feedback";
     if (path.includes("/admin/profile")) return "profile";
     if (path.includes("/admin/settings")) return "settings";
     return "home";
@@ -100,9 +103,11 @@ function AdminMenu({ onLogout, children }) {
       switch (e.key) {
         case "home": navigate("/admin/dashboard"); break;
         case "book": navigate("/admin/books"); break;
+        case "requests": navigate("/admin/requests"); break;
         case "borrow": navigate("/admin/borrow"); break;
         case "history": navigate("/admin/history"); break;
         case "users": navigate("/admin/users"); break;
+        case "feedback": navigate("/admin/feedback"); break;
         case "profile": navigate("/admin/profile"); break;
         case "settings": navigate("/admin/settings"); break;
         default: navigate("/admin/dashboard");
@@ -115,8 +120,10 @@ function AdminMenu({ onLogout, children }) {
     const navItems = [
       { key: "home", icon: <DashboardOutlined />, label: t("admin.dashboard") },
       { key: "book", icon: <BookOutlined />, label: t("admin.bookManage") },
-      { key: "borrow", icon: <DatabaseOutlined />, label: t("admin.borrowManage") },
+      { key: "requests", icon: <DatabaseOutlined />, label: t("admin.applicationManagement") || "App Mgmt" },
+      { key: "borrow", icon: <DatabaseOutlined />, label: t("admin.borrowManagement") || "Borrow Mgmt" },
       { key: "users", icon: <TeamOutlined />, label: t("admin.userManage") },
+      { key: "feedback", icon: <MessageOutlined />, label: t("feedback.title") },
       { key: "profile", icon: <UserOutlined />, label: t("common.profile") },
       { key: "settings", icon: <SettingOutlined />, label: t("common.settings") },
     ];
@@ -210,9 +217,14 @@ function AdminMenu({ onLogout, children }) {
               label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.bookManage")}</span>
             },
             { 
+              key: "requests", 
+              icon: <DatabaseOutlined style={{ fontSize: '18px' }} />, 
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.applicationManagement") || "Application Mgmt"}</span>
+            },
+            { 
               key: "borrow", 
               icon: <DatabaseOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.borrowManage")}</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.borrowManagement") || "Borrow Mgmt"}</span>
             },
             { 
               key: "history", 
@@ -223,6 +235,11 @@ function AdminMenu({ onLogout, children }) {
               key: "users", 
               icon: <TeamOutlined style={{ fontSize: '18px' }} />, 
               label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.userManage")}</span>
+            },
+            { 
+              key: "feedback", 
+              icon: <MessageOutlined style={{ fontSize: '18px' }} />, 
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("feedback.title")}</span>
             },
             { 
               key: "profile", 
@@ -246,9 +263,14 @@ function AdminMenu({ onLogout, children }) {
               label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.bookManage")}</span>
             },
             { 
+              key: "requests", 
+              icon: <DatabaseOutlined style={{ fontSize: '18px' }} />, 
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.applicationManagement") || "Application Mgmt"}</span>
+            },
+            { 
               key: "borrow", 
               icon: <DatabaseOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.borrowManage")}</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.borrowManagement") || "Borrow Mgmt"}</span>
             },
             { 
               key: "history", 
@@ -259,6 +281,11 @@ function AdminMenu({ onLogout, children }) {
               key: "users", 
               icon: <TeamOutlined style={{ fontSize: '18px' }} />, 
               label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("admin.userManage")}</span>
+            },
+            { 
+              key: "feedback", 
+              icon: <MessageOutlined style={{ fontSize: '18px' }} />, 
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("feedback.title")}</span>
             },
             { 
               key: "profile", 

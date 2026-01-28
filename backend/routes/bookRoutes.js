@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import mongoose from "mongoose";
 import { authMiddleware, requireAdmin } from "../middleware/authUnified.js"; // ✅ 使用统一认证中间件
+import { markBookReturned, getActiveBorrowRecords } from "../controllers/libraryController.js";
 
 console.log("📁 当前运行的 bookRoutes 文件路径:", import.meta.url);
 
@@ -68,6 +69,15 @@ router.get("/stats", authMiddleware, requireAdmin, async (req, res) => {
     res.status(500).json({ message: "获取统计失败", error: err.message });
   }
 });
+
+/* =========================================================
+   📚 管理员归还管理
+   ========================================================= */
+// 获取活跃借阅记录
+router.get("/active-borrows", authMiddleware, requireAdmin, getActiveBorrowRecords);
+
+// 直接归还
+router.post("/return", authMiddleware, requireAdmin, markBookReturned);
 
 // ✅ 为避免与 /books/:id 路由冲突，提前注册 /books/compare
 router.get("/books/compare", async (req, res) => {
@@ -663,11 +673,6 @@ router.post("/borrow/:id", authMiddleware, async (req, res) => {
     const userId = req.user.userId;
     const userName = req.user.name || "未知用户";
 
-    const book = await Book.findById(req.params.id);
-    if (!book) return res.status(404).json({ message: "未找到该书籍" });
-    if (book.copies <= 0)
-      return res.status(400).json({ message: "库存不足" });
-
     // 限制每个用户最多只能同时借5本书（按未归还计算）
     const borrowCount = await BorrowRecord.countDocuments({
       userId,
@@ -679,9 +684,18 @@ router.post("/borrow/:id", authMiddleware, async (req, res) => {
       });
     }
 
-    book.copies -= 1;
-    book.borrowCount = (book.borrowCount || 0) + 1;
-    await book.save();
+    // ✅ 并发控制：原子操作扣减库存
+    const book = await Book.findOneAndUpdate(
+      { _id: req.params.id, copies: { $gt: 0 } },
+      { $inc: { copies: -1, borrowCount: 1 } },
+      { new: true }
+    );
+
+    if (!book) {
+       const exists = await Book.findById(req.params.id);
+       if (!exists) return res.status(404).json({ message: "未找到该书籍" });
+       return res.status(400).json({ message: "库存不足" });
+    }
 
   const record = await BorrowRecord.create({
       userId,

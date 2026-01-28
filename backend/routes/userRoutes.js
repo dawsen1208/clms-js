@@ -161,6 +161,13 @@ router.post("/login/2fa", async (req, res) => {
     const user = await User.findOne({ userId });
     if (!user) return res.status(404).json({ message: "用户不存在" });
 
+    // 🚫 检查黑名单
+    if (user.isBlacklisted) {
+      return res.status(403).json({ 
+        message: "您的账号已被列入黑名单，禁止登录。原因: " + (user.blacklistReason || "无") 
+      });
+    }
+
     // 验证授权码
     if (user.authCode !== code) {
       return res.status(401).json({ message: "授权码错误" });
@@ -218,9 +225,13 @@ router.post("/register", async (req, res) => {
     if (!name || !password)
       return res.status(400).json({ message: "请填写姓名和密码" });
 
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters." });
+    }
+
     const nameStr = String(name).trim();
-    const valid = /^(?!\d+$)[A-Za-z][A-Za-z0-9_]*$/.test(nameStr);
-    if (!valid) return res.status(400).json({ message: "用户名不合法：需以字母开头，仅允许字母、数字、下划线，且不能为纯数字" });
+    const valid = /^(?!\d+$)[A-Za-z][A-Za-z0-9_ ]*$/.test(nameStr);
+    if (!valid) return res.status(400).json({ message: "用户名不合法：需以字母开头，仅允许字母、数字、下划线、空格，且不能为纯数字" });
     const exists = await User.findOne({ name: nameStr }).lean();
     if (exists) return res.status(400).json({ message: "用户名已存在，请更换" });
 
@@ -276,6 +287,21 @@ router.post("/login", async (req, res) => {
     // 验证当前密码
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: "密码错误" });
+
+    // 🚫 检查黑名单
+    if (user.isBlacklisted) {
+      return res.status(403).json({ 
+        message: "您的账号已被列入黑名单，禁止登录。原因: " + (user.blacklistReason || "无") 
+      });
+    }
+
+    // ⏳ 检查审核状态
+    if (user.status === "PENDING") {
+      return res.status(403).json({ message: "账号审核中，请耐心等待管理员批准" });
+    }
+    if (user.status === "REJECTED") {
+      return res.status(403).json({ message: "账号审核未通过，请联系管理员" });
+    }
 
     // 🔐 检查双重认证 (2FA)
     if (user.twoFactorEnabled) {
@@ -443,6 +469,68 @@ router.post("/avatar", authMiddleware, upload.single("avatar"), async (req, res)
 });
 
 /* =========================================================
+   ✅ 管理员审核用户 (批准/拒绝)
+   ========================================================= */
+router.put("/approve/:targetUserId", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { targetUserId } = req.params;
+    const { status } = req.body;
+
+    if (!["APPROVED", "REJECTED", "PENDING"].includes(status)) {
+      return res.status(400).json({ message: "无效的状态" });
+    }
+
+    const user = await User.findOne({ userId: targetUserId });
+    if (!user) return res.status(404).json({ message: "用户不存在" });
+
+    if (user.role === "Administrator") {
+      return res.status(400).json({ message: "管理员账号无需审核" });
+    }
+
+    user.status = status;
+    await user.save();
+
+    res.json({ 
+      message: `用户状态已更新为 ${status}`,
+      user: { userId: user.userId, status: user.status }
+    });
+  } catch (err) {
+    console.error("❌ 审核操作失败:", err);
+    res.status(500).json({ message: "操作失败" });
+  }
+});
+
+/* =========================================================
+   🚫 管理员设置黑名单接口
+   ========================================================= */
+router.put("/blacklist/:targetUserId", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { targetUserId } = req.params;
+    const { isBlacklisted, reason } = req.body;
+
+    const user = await User.findOne({ userId: targetUserId });
+    if (!user) return res.status(404).json({ message: "用户不存在" });
+
+    if (user.role === "Administrator") {
+      return res.status(400).json({ message: "无法拉黑管理员账号" });
+    }
+
+    user.isBlacklisted = isBlacklisted;
+    user.blacklistReason = reason || "";
+    
+    await user.save();
+
+    res.json({ 
+      message: isBlacklisted ? "已将用户加入黑名单" : "已解除用户黑名单",
+      user: { userId: user.userId, isBlacklisted, blacklistReason: user.blacklistReason }
+    });
+  } catch (err) {
+    console.error("❌ 黑名单操作失败:", err);
+    res.status(500).json({ message: "操作失败" });
+  }
+});
+
+/* =========================================================
    📊 管理员用户借阅画像分析接口（兼容 ObjectId 与字符串 userId）
    ========================================================= */
 router.get("/manage", authMiddleware, requireAdmin, async (req, res) => {
@@ -450,7 +538,7 @@ router.get("/manage", authMiddleware, requireAdmin, async (req, res) => {
     console.log("📢 管理员分析接口被访问");
     console.log("当前用户身份:", req.user);
 
-    const users = await User.find().select("userId name email role").lean();
+    const users = await User.find().select("userId name email role status isBlacklisted blacklistReason createdAt").lean();
 
     // ✅ 获取所有借阅记录并包含 userId 和书籍分类
     const records = await BorrowRecord.find()
@@ -638,6 +726,72 @@ router.delete("/sessions", authMiddleware, async (req, res) => {
     res.json({ message: "已退出其他所有设备" });
   } catch (err) {
     res.status(500).json({ message: "操作失败" });
+  }
+});
+
+/* =========================================================
+   🚫 管理员设置黑名单接口
+   ========================================================= */
+router.put("/blacklist/:targetUserId", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { targetUserId } = req.params;
+    const { isBlacklisted, reason } = req.body;
+
+    const user = await User.findOne({ userId: targetUserId });
+    if (!user) return res.status(404).json({ message: "用户不存在" });
+
+    // 不允许拉黑管理员自己或其它管理员
+    if (user.role === "Administrator") {
+      return res.status(400).json({ message: "无法拉黑管理员账号" });
+    }
+
+    user.isBlacklisted = isBlacklisted;
+    user.blacklistReason = reason || "";
+    await user.save();
+
+    res.json({ 
+      message: isBlacklisted ? "已将用户加入黑名单" : "已解除用户黑名单",
+      user: { userId: user.userId, isBlacklisted, blacklistReason: user.blacklistReason }
+    });
+  } catch (err) {
+    console.error("❌ 黑名单操作失败:", err);
+    res.status(500).json({ message: "操作失败" });
+  }
+});
+
+/* =========================================================
+   ✅ 管理员审批用户
+   ========================================================= */
+router.put("/approve/:userId", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { status } = req.body; // APPROVED or REJECTED
+    if (!["APPROVED", "REJECTED"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const user = await User.findOne({ userId: req.params.userId });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.status = status;
+    await user.save();
+
+    // Send Notification
+    try {
+        const Notification = (await import("../models/Notification.js")).default;
+        await Notification.create({
+            userId: user.userId,
+            type: "system",
+            title: "Account Status Update",
+            message: status === "APPROVED" ? "Your account has been approved." : "Your account has been rejected."
+        });
+    } catch (e) {
+        console.error("Failed to create notification:", e);
+    }
+
+    res.json({ message: `User status updated to ${status}`, user });
+  } catch (err) {
+    console.error("❌ Approval failed:", err);
+    res.status(500).json({ message: "Approval failed" });
   }
 });
 

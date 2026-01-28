@@ -237,6 +237,18 @@ export const deleteBook = (id, token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+// ✅ 管理员直接归还
+export const markBookReturned = (data, token) =>
+  API.post("/library/return", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+// ✅ 获取所有活跃借阅记录（管理员）
+export const getActiveBorrowRecords = (token) =>
+  API.get("/library/active-borrows", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
 export default API;
 /* =========================================================
    📦 统一导出（兼容原 src/api/index.js 调用）
@@ -272,6 +284,22 @@ export const getPendingRequestsLibrary = (token) =>
 // Admin analytics and stats
 export const getUserAnalytics = (token) =>
   API.get("/users/manage", { headers: { Authorization: `Bearer ${token}` } });
+export const toggleBlacklist = (userId, isBlacklisted, reason, token) =>
+  API.put(
+    `/users/blacklist/${userId}`,
+    { isBlacklisted, reason },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+// ✅ 管理员审批用户
+export const approveUser = (userId, status, token) =>
+  API.put(
+    `/users/approve/${userId}`,
+    { status },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+
 export const getCategoryStats = (token) =>
   API.get("/users/analytics/categories", { headers: { Authorization: `Bearer ${token}` } });
 export const getBorrowHistoryAllLibrary = (token) =>
@@ -297,3 +325,34 @@ export const getBookComparison = async (ids = [], windowDays = 30) => {
   }
   throw (lastErr || new Error("Failed to fetch book comparison; all paths attempted"));
 };
+
+/* =========================================================
+   📢 反馈与通知相关接口
+   ========================================================= */
+
+// Feedback
+export const submitFeedback = (content, type, token) =>
+  API.post("/feedback", { content, type }, { headers: { Authorization: `Bearer ${token}` } });
+
+export const getMyFeedback = (token) =>
+  API.get("/feedback/my", { headers: { Authorization: `Bearer ${token}` } });
+
+export const getAllFeedback = (token) =>
+  API.get("/feedback", { headers: { Authorization: `Bearer ${token}` } });
+
+export const replyFeedback = (id, reply, token) =>
+  API.put(`/feedback/${id}/reply`, { reply }, { headers: { Authorization: `Bearer ${token}` } });
+
+// Notifications
+export const getNotifications = (token) =>
+  API.get("/notifications", { headers: { Authorization: `Bearer ${token}` } });
+
+export const markNotificationRead = (id, token) =>
+  API.put(`/notifications/${id}/read`, {}, { headers: { Authorization: `Bearer ${token}` } });
+
+export const markAllNotificationsRead = (token) =>
+  API.put("/notifications/read-all", {}, { headers: { Authorization: `Bearer ${token}` } });
+
+export const deleteNotification = (id, token) =>
+  API.delete(`/notifications/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+

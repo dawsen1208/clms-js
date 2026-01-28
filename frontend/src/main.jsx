@@ -38,13 +38,17 @@ import ReturnPage from "./pages/ReturnPage";
 import ProfilePage from "./pages/ProfilePage";
 import SmartAssistant from "./pages/SmartAssistant";
 import BookDetail from "./pages/BookDetail";
+import FeedbackPage from "./pages/FeedbackPage";
+import NotificationPage from "./pages/NotificationPage";
 
 // ✅ Admin Pages
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminBookPage from "./pages/AdminBookPage";
 import AdminBorrowPage from "./pages/AdminBorrowPage";
+import AdminRequestPage from "./pages/AdminRequestPage";
 import AdminBorrowHistory from "./pages/AdminBorrowHistory";
 import AdminUserManagePage from "./pages/AdminUserManagePage";
+import AdminFeedbackPage from "./pages/AdminFeedbackPage";
 import AdminProfilePage from "./pages/AdminProfilePage";
 import AdminSettingsPage from "./pages/AdminSettingsPage";
 
@@ -274,13 +278,17 @@ function App() {
           <Route path="/assistant" element={<UserLayoutWrapper><SmartAssistant /></UserLayoutWrapper>} />
           <Route path="/settings" element={<UserLayoutWrapper><SettingsPage appearance={appearance} onChange={setAppearance} user={user} onUserUpdate={setUser} /></UserLayoutWrapper>} />
           <Route path="/book/:id" element={<UserLayoutWrapper><BookDetail /></UserLayoutWrapper>} />
+          <Route path="/feedback" element={<UserLayoutWrapper><FeedbackPage /></UserLayoutWrapper>} />
+          <Route path="/notifications" element={<UserLayoutWrapper><NotificationPage /></UserLayoutWrapper>} />
 
           {/* ✅ Admin Routes */}
           <Route path="/admin/dashboard" element={<AdminLayoutWrapper><AdminDashboard /></AdminLayoutWrapper>} />
           <Route path="/admin/books" element={<AdminLayoutWrapper><AdminBookPage /></AdminLayoutWrapper>} />
           <Route path="/admin/borrow" element={<AdminLayoutWrapper><AdminBorrowPage /></AdminLayoutWrapper>} />
+          <Route path="/admin/requests" element={<AdminLayoutWrapper><AdminRequestPage /></AdminLayoutWrapper>} />
           <Route path="/admin/history" element={<AdminLayoutWrapper><AdminBorrowHistory /></AdminLayoutWrapper>} />
           <Route path="/admin/users" element={<AdminLayoutWrapper><AdminUserManagePage /></AdminLayoutWrapper>} />
+          <Route path="/admin/feedback" element={<AdminLayoutWrapper><AdminFeedbackPage /></AdminLayoutWrapper>} />
           <Route path="/admin/profile" element={<AdminLayoutWrapper><AdminProfilePage /></AdminLayoutWrapper>} />
           <Route path="/admin/settings" element={<AdminLayoutWrapper><AdminSettingsPage appearance={appearance} onChange={setAppearance} user={user} /></AdminLayoutWrapper>} />
 
@@ -340,9 +348,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <GlobalErrorBoundary>
       <LanguageProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <AccessibilityProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </AccessibilityProvider>
       </LanguageProvider>
     </GlobalErrorBoundary>
   </React.StrictMode>

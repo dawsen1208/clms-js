@@ -41,7 +41,6 @@ function RegisterReader() {
         message.warning(t("register.copyFail"));
       }
 
-      // ✅ Open success modal
       setAssignedId(id);
       setModalVisible(true);
     } catch (err) {
@@ -217,6 +216,9 @@ function RegisterReader() {
                 else message.warning(t("register.manualCopyFail"));
               }}
             />
+          </p>
+          <p style={{ color: "#faad14", marginTop: 10 }}>
+            {t("register.pendingApproval") || "Your account is pending approval. Please wait for an administrator to approve your registration."}
           </p>
           <p>{t("register.idCopiedMsg")}</p>
         </div>
