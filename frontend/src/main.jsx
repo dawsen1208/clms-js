@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { createRoot } from 'react-dom/client';
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
+import { AccessibilityProvider } from "./contexts/AccessibilityContext";
 
 import ReactDOM from "react-dom/client";
 import "antd/dist/reset.css";
