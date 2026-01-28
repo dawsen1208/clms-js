@@ -64,7 +64,11 @@ function LoginPage({ onLogin }) {
 
     } catch (err) {
       console.error("❌ Login failed:", err);
-      setLoginError(t("login.errorInvalid"));
+      if (err.response && err.response.data && err.response.data.message) {
+        setLoginError(err.response.data.message);
+      } else {
+        setLoginError(t("login.errorInvalid"));
+      }
       setLoading(false);
     }
   };

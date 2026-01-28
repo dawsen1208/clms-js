@@ -253,6 +253,7 @@ router.post("/register", async (req, res) => {
       email: email || "",
       password,
       role: finalRole,
+      status: "APPROVED", // ✅ 默认自动通过审核，无需管理员手动批准
     });
 
     await newUser.save();
