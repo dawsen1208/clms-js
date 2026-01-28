@@ -9,12 +9,14 @@ import {
 } from "@ant-design/icons";
 import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks, sendAuthCode, bindEmail, toggle2FA } from "../api";
 import { useLanguage } from "../contexts/LanguageContext"; // ✅ Import Hook
+import { useAccessibility } from "../contexts/AccessibilityContext";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
 
 function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const { language, setLanguage, t } = useLanguage(); // ✅ Use Language Hook
+  const { ttsEnabled, accessibilityMode, updatePrefs } = useAccessibility();
   const [modal, contextHolder] = Modal.useModal();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
@@ -309,6 +311,11 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   };
 
   const [accessibilityPrefs, setAccessibilityPrefs] = useState(() => {
+    // Priority: User prop > LocalStorage > Default
+    if (user?.preferences?.accessibility) {
+      return user.preferences.accessibility;
+    }
+    
     try {
       const raw = localStorage.getItem("accessibility_prefs");
       return raw ? JSON.parse(raw) : { accessibilityMode: false, ttsEnabled: false };
@@ -320,6 +327,11 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const saveAccessibility = async (patch) => {
     const next = { ...accessibilityPrefs, ...patch };
     setAccessibilityPrefs(next);
+    // Also sync with global context
+    if (updatePrefs) {
+      updatePrefs(next);
+    }
+    
     try { localStorage.setItem("accessibility_prefs", JSON.stringify(next)); } catch {}
     try {
       if (token) {
@@ -451,7 +463,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                          <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.ttsDesc") || "Enable text-to-speech for buttons and content"}</Text>
                        </div>
                     </Space>
-                    <Switch checked={ttsEnabled} onChange={(v) => updatePrefs({ ttsEnabled: v })} />
+                    <Switch checked={!!accessibilityPrefs.ttsEnabled} onChange={(v) => saveAccessibility({ ttsEnabled: v })} />
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
                     <Space>
@@ -461,7 +473,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                          <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.accessibilityModeDesc") || "Simplified interface with larger elements"}</Text>
                        </div>
                     </Space>
-                    <Switch checked={accessibilityMode} onChange={(v) => updatePrefs({ accessibilityMode: v })} />
+                    <Switch checked={!!accessibilityPrefs.accessibilityMode} onChange={(v) => saveAccessibility({ accessibilityMode: v })} />
                   </div>
                 </Space>
               </Card>
