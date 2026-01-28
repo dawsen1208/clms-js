@@ -645,36 +645,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
               </Card>
             ),
           },
-          {
-            key: "accessibility",
-            label: t("settings.accessibility"),
-            children: (
-              <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.accessibility")}</Title>}>
-                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
-                        <Space>
-                            <BgColorsOutlined style={{ fontSize: 20, color: '#faad14' }} />
-                            <div>
-                              <Text strong style={{ display: 'block' }}>{t("settings.accessibilityMode")}</Text>
-                              <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.accessibilityModeDesc")}</Text>
-                            </div>
-                        </Space>
-                        <Switch checked={accessibilityMode} onChange={(v) => saveAccessibility({ accessibilityMode: v })} />
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
-                        <Space>
-                            <SoundOutlined style={{ fontSize: 20, color: '#52c41a' }} />
-                            <div>
-                              <Text strong style={{ display: 'block' }}>{t("settings.tts")}</Text>
-                              <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.ttsDesc")}</Text>
-                            </div>
-                        </Space>
-                        <Switch checked={ttsEnabled} onChange={(v) => saveAccessibility({ ttsEnabled: v })} />
-                    </div>
-                 </Space>
-              </Card>
-            ),
-          },
+
           {
             key: "notifications",
             label: t("settings.notifications"),
