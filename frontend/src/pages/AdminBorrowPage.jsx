@@ -185,41 +185,63 @@ function AdminBorrowPage() {
   }, []);
 
   return (
-    <div className="admin-borrow-page fade-in">
+    <div className="admin-borrow-page fade-in" style={{ padding: "1.5rem" }}>
       {contextHolder}
-      <Card bordered={false} className="glass-card" style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-          <div>
-            <Title level={2} style={{ margin: 0 }}>
-              {t("admin.borrowManagement") || "Borrow Management"}
-            </Title>
-            <Text type="secondary">{t("admin.manageActiveBorrows") || "Manage active loans and process returns"}</Text>
-          </div>
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={fetchRecords}
-            loading={loading}
-          >
-            {t("admin.refresh")}
-          </Button>
+      
+      {/* 🔹 页面标题 */}
+      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
+            {t("admin.borrowManagement") || "Borrow Management"}
+          </Title>
+          <Text type="secondary">{t("admin.manageActiveBorrows") || "Manage active loans and process returns"}</Text>
         </div>
+        <Button
+          icon={<ReloadOutlined />}
+          onClick={fetchRecords}
+          loading={loading}
+        >
+          {t("admin.refresh")}
+        </Button>
+      </div>
 
-        <Divider style={{ margin: "24px 0" }} />
+      {/* 📊 统计卡片 (Row/Col Layout) */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{
+            borderRadius: 16,
+            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+            border: "none",
+            boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
+            color: "white"
+          }}>
+            <Statistic 
+              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeBorrows") || "Active Borrows"}</span>} 
+              value={records.length} 
+              prefix={<BookOutlined style={{ color: "white" }} />} 
+              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{
+            borderRadius: 16,
+            background: "linear-gradient(135deg, #ef4444, #b91c1c)",
+            border: "none",
+            boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
+            color: "white"
+          }}>
+            <Statistic 
+              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks") || "Overdue Books"}</span>} 
+              value={records.filter(r => dayjs(r.dueDate).isBefore(dayjs())).length} 
+              prefix={<ExclamationCircleOutlined style={{ color: "white" }} />} 
+              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+            />
+          </Card>
+        </Col>
+      </Row>
 
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 24 }}>
-           <Card.Grid style={{ width: isMobile ? '100%' : '33%', textAlign: 'center' }}>
-             <Statistic title={t("admin.activeBorrows") || "Active Borrows"} value={records.length} prefix={<BookOutlined />} />
-           </Card.Grid>
-           <Card.Grid style={{ width: isMobile ? '100%' : '33%', textAlign: 'center' }}>
-             <Statistic 
-               title={t("admin.overdueBooks") || "Overdue Books"} 
-               value={records.filter(r => dayjs(r.dueDate).isBefore(dayjs())).length} 
-               valueStyle={{ color: '#cf1322' }}
-               prefix={<ExclamationCircleOutlined />} 
-             />
-           </Card.Grid>
-        </div>
-
+      <Card bordered={false} className="glass-card" style={{ marginBottom: 24, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
         <div style={{ marginBottom: 24 }}>
           <Input
             prefix={<SearchOutlined />}

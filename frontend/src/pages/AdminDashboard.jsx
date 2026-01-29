@@ -113,13 +113,10 @@ const AdminDashboard = () => {
         title={
           <div className="dash-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-                {t("admin.dashboard")}
-              </Title>
-              <Text type="secondary" style={{ fontSize: "14px", color: "#64748b" }}>
-                {t("admin.overview")}
-              </Text>
-            </div>
+            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
+              {t("admin.dashboard")}
+            </Title>
+          </div>
           </div>
         }
         extra={

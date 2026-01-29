@@ -156,6 +156,16 @@ function AdminBookPage() {
 
   return (
     <div style={{ padding: "1.5rem" }}>
+      {/* 🔹 页面标题 */}
+      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
+          {t("admin.bookManage")}
+        </Title>
+        <Button icon={<ReloadOutlined />} onClick={fetchBooks}>
+          {t("admin.refresh")}
+        </Button>
+      </div>
+
       {/* 📊 统计卡片 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={8} lg={6}>
@@ -225,12 +235,6 @@ function AdminBookPage() {
       </Row>
 
       <Card
-        title={<Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("admin.bookManage")}</Title>}
-        extra={
-          <Button icon={<ReloadOutlined />} onClick={fetchBooks}>
-            {t("admin.refresh")}
-          </Button>
-        }
         style={{
           borderRadius: "12px",
           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
