@@ -90,15 +90,18 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || "")
   .map((o) => o.trim())
   .filter(Boolean);
 
+// Explicitly add the Azure Static Website URL
+const staticWebsiteUrl = "https://clmsf5164136.z1.web.core.windows.net";
+if (!allowedOrigins.includes(staticWebsiteUrl)) {
+  allowedOrigins.push(staticWebsiteUrl);
+}
+
 // 如果没有配置CLIENT_ORIGIN，则允许所有来源（开发模式）
 if (allowedOrigins.length === 0) {
   console.log("⚠️ 未配置 CLIENT_ORIGIN，允许所有来源");
 } else {
   console.log("✅ 已配置允许的来源:", allowedOrigins);
 }
-
-// 临时：允许所有来源用于测试
-// const uniqueOrigins = [...new Set(allowedOrigins), "https://clmsf5164136.z1.web.core.windows.net"];
 
 app.use(
   cors({
@@ -107,7 +110,7 @@ app.use(
       if (!origin) return callback(null, true);
 
       // 显式允许配置的来源
-      if (uniqueOrigins.includes(origin)) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
 
       // 允许所有 Blob 域名（Azure 静态网站）
       try {
