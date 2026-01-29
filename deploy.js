@@ -46,7 +46,7 @@ async function main() {
         console.log('==========================================');
 
         // 1. Build Frontend
-        console.log('\n[1/3] Building frontend project...');
+        console.log('\n[1/2] Building frontend project...');
         const frontendPath = path.join(__dirname, 'frontend');
         
         // Check if frontend directory exists

@@ -46,12 +46,6 @@ jobs:
           mkdir -p backend/public
           cp -r frontend/dist/* backend/public/
 
-      - name: Fix startup script permissions and line endings
-        working-directory: ./backend
-        run: |
-          chmod +x startup.sh
-          sed -i 's/\r$//' startup.sh
-
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
