@@ -98,28 +98,37 @@ if (allowedOrigins.length === 0) {
 }
 
 // 临时：允许所有来源用于测试
-const uniqueOrigins = [...new Set(allowedOrigins), "https://clmsf5164136.z1.web.core.windows.net"];
+const uniqueOrigins = [
+  ...new Set(allowedOrigins), 
+  "https://clmsf5164136.z1.web.core.windows.net",
+  "https://clms-backend-h7hqejd9bzfshwgu.norwayeast-01.azurewebsites.net"
+];
 
 app.use(
   cors({
     origin: (origin, callback) => {
+      console.log("🔍 CORS Check Origin:", origin);
       // 同源或未提供 Origin 的请求直接允许
       if (!origin) return callback(null, true);
 
       // 显式允许配置的来源
       if (uniqueOrigins.includes(origin)) return callback(null, true);
 
-      // 允许所有 Blob 域名（Azure 静态网站）
+      // 允许所有 Blob 域名（Azure 静态网站）和 Azure Web App
       try {
         const url = new URL(origin);
         const host = url.hostname || "";
-        if (host.endsWith(".blob.core.windows.net") || host.endsWith(".web.core.windows.net")) {
+        if (
+          host.endsWith(".blob.core.windows.net") || 
+          host.endsWith(".web.core.windows.net") ||
+          host.endsWith(".azurewebsites.net")
+        ) {
           return callback(null, true);
         }
       } catch (_) {}
 
       console.warn("🚫 拒绝访问来源:", origin);
-      return callback(new Error("CORS not allowed from this origin"), false);
+      return callback(new Error(`CORS not allowed from this origin: ${origin}`), false);
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
