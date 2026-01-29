@@ -164,7 +164,7 @@ const corsOptions = {
   };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // 显式处理 OPTIONS 请求
+// app.options("*", cors(corsOptions)); // ⚠️ 已移除：Express 5 不支持 "*" 作为通配符，且 cors 中间件已处理 OPTIONS
 
 /* =========================================================
    📁 静态资源目录（头像上传）
