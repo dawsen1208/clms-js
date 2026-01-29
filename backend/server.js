@@ -103,6 +103,9 @@ if (allowedOrigins.length === 0) {
   console.log("✅ 已配置允许的来源:", allowedOrigins);
 }
 
+// ✅ Enable pre-flight across-the-board
+app.options("*", cors());
+
 app.use(
   cors({
     origin: (origin, callback) => {
