@@ -235,7 +235,7 @@ function FeedbackPage() {
       >
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <Title level={2} style={{ marginBottom: 8 }}>{t("feedback.title")}</Title>
-          <Text type="secondary">We value your suggestions and feedback</Text>
+          <Text type="secondary">{t("feedback.subtitle")}</Text>
         </div>
 
         <Tabs

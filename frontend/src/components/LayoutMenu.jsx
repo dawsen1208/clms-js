@@ -200,13 +200,13 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
             onClick={handleMenuClick}
             items={[
               { key: "home", icon: <HomeOutlined />, label: t("common.home") },
-              { key: "assistant", icon: <RobotOutlined />, label: t("common.smartRec") }, 
-              { key: "feedback", icon: <MessageOutlined />, label: t("feedback.title") },
+              { key: "assistant", icon: <RobotOutlined />, label: t("common.smartRec") },
               { key: "search", icon: <SearchOutlined />, label: t("common.search") },
               { key: "borrow", icon: <BookOutlined />, label: t("common.borrowManage") },
               { key: "return", icon: <RollbackOutlined />, label: t("common.returnSystem") },
               { key: "profile", icon: <UserOutlined />, label: t("common.profile") },
               { key: "settings", icon: <SettingOutlined />, label: t("common.settings") },
+              { key: "feedback", icon: <MessageOutlined />, label: t("feedback.title") },
             ]}
             style={{ flexGrow: 1 }}
             className="user-menu-items"

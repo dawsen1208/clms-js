@@ -310,6 +310,7 @@ export const translations = {
     },
     feedback: {
       title: "Feedback Center",
+      subtitle: "We value your suggestions and feedback",
       submit: "Submit Feedback",
       myFeedback: "My Feedback History",
       content: "Content",
@@ -1156,6 +1157,7 @@ export const translations = {
     },
     feedback: {
       title: "反馈中心",
+      subtitle: "我们重视您的建议和反馈",
       submit: "提交反馈",
       myFeedback: "我的反馈历史",
       content: "反馈内容",
