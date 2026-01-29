@@ -1506,6 +1506,20 @@ export const translations = {
      settings: "设置",
      borrowManage: "借阅管理",
      bookManage: "图书管理",
+      applicationManagement: "申请管理",
+      manageBorrowReturnRequests: "管理借阅与归还申请",
+      returnBook: "归还书籍",
+      renewCount: "续借次数",
+      noPermission: "您没有权限访问此模块",
+      failedToLoadBorrows: "加载借阅记录失败",
+      confirmReturnTitle: "确认归还",
+      confirmReturn: "归还",
+      returnSuccess: "书籍归还成功",
+      returnFailed: "归还失败",
+      borrowManagement: "借阅管理",
+      manageActiveBorrows: "管理当前借阅并处理归还",
+      activeBorrows: "当前借阅",
+      items: "项",
      userManage: "用户管理",
      dashboard: "仪表盘",
      history: "借阅历史",
@@ -1683,7 +1697,20 @@ export const translations = {
       title: "书名",
       category: "分类",
       renewDate: "续借日期",
-      chartTitle: "用户画像分布"
+      chartTitle: "用户画像分布",
+      action: "操作"
+    },
+    feedback: {
+      title: "反馈",
+      placeholder: "请描述您的反馈...",
+      bug: "Bug",
+      suggestion: "建议",
+      other: "其他",
+      type: "类型",
+      content: "内容",
+      status: "状态",
+      closed: "已回复",
+      open: "待处理"
     }
   }
 };
