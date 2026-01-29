@@ -4,7 +4,8 @@ import axios from "axios";
 /* =========================================================
    🌍 API 前缀（支持环境变量）
    ========================================================= */
-const API_URL = import.meta.env.VITE_API_BASE || "/api";
+// 确保 API_URL 始终以 /api 结尾 (例如 https://host/api 或 /api)
+const API_URL = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "") + "/api";
 
 // 添加网络连接检测函数
 export const checkConnection = async () => {

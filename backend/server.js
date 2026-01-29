@@ -41,46 +41,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(morgan("dev"));
 
-// 优先级最高：拦截根路径并返回前端入口，避免旧根路由覆盖
-app.get("/", (req, res) => {
-  const indexPath = path.join(frontendDistPath, "index.html");
-  console.log("🧩 serving / ->", indexPath, "exists:", fs.existsSync(indexPath));
-  res.sendFile(indexPath);
-});
-
-// 显式支持 /index.html，确保即使静态中间件未命中也能返回入口
-app.get("/index.html", (req, res) => {
-  const indexPath = path.join(frontendDistPath, "index.html");
-  console.log("🧩 serving /index.html ->", indexPath, "exists:", fs.existsSync(indexPath));
-  res.sendFile(indexPath);
-});
-
-// 早期挂载前端静态文件，确保 /index.html 可访问
-app.use(
-  express.static(frontendDistPath, {
-    index: "index.html",
-    maxAge: 0,
-    setHeaders: (res) => {
-      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-      res.setHeader("Pragma", "no-cache");
-      res.setHeader("Expires", "0");
-    },
-  })
-);
-
-// 兼容备用入口：/app 显式返回前端并映射静态资源
-app.use(
-  "/assets",
-  express.static(path.join(frontendDistPath, "assets"), {
-    maxAge: 0,
-  })
-);
-app.get(/^\/app(?!\/api).*/, (req, res) => {
-  const indexPath = path.join(frontendDistPath, "index.html");
-  console.log("🧭 /app fallback ->", indexPath, "exists:", fs.existsSync(indexPath));
-  res.sendFile(indexPath);
-});
-
 /* =========================================================
    🌐 CORS 设置（允许所有来源用于开发）
    ========================================================= */
@@ -138,6 +98,48 @@ app.use(
     optionsSuccessStatus: 200 // 解决部分旧浏览器/代理的 204 问题
   })
 );
+
+// 优先级最高：拦截根路径并返回前端入口，避免旧根路由覆盖
+app.get("/", (req, res) => {
+  const indexPath = path.join(frontendDistPath, "index.html");
+  console.log("🧩 serving / ->", indexPath, "exists:", fs.existsSync(indexPath));
+  res.sendFile(indexPath);
+});
+
+// 显式支持 /index.html，确保即使静态中间件未命中也能返回入口
+app.get("/index.html", (req, res) => {
+  const indexPath = path.join(frontendDistPath, "index.html");
+  console.log("🧩 serving /index.html ->", indexPath, "exists:", fs.existsSync(indexPath));
+  res.sendFile(indexPath);
+});
+
+// 早期挂载前端静态文件，确保 /index.html 可访问
+app.use(
+  express.static(frontendDistPath, {
+    index: "index.html",
+    maxAge: 0,
+    setHeaders: (res) => {
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+    },
+  })
+);
+
+// 兼容备用入口：/app 显式返回前端并映射静态资源
+app.use(
+  "/assets",
+  express.static(path.join(frontendDistPath, "assets"), {
+    maxAge: 0,
+  })
+);
+app.get(/^\/app(?!\/api).*/, (req, res) => {
+  const indexPath = path.join(frontendDistPath, "index.html");
+  console.log("🧭 /app fallback ->", indexPath, "exists:", fs.existsSync(indexPath));
+  res.sendFile(indexPath);
+});
+
+
 
 /* =========================================================
    📁 静态资源目录（头像上传）
