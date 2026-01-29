@@ -98,7 +98,7 @@ if (allowedOrigins.length === 0) {
 }
 
 // 临时：允许所有来源用于测试
-const uniqueOrigins = [...new Set(allowedOrigins), "https://clmsf5164136.z1.web.core.windows.net"];
+// const uniqueOrigins = [...new Set(allowedOrigins), "https://clmsf5164136.z1.web.core.windows.net"];
 
 app.use(
   cors({
