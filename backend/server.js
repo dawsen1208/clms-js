@@ -26,10 +26,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 优先检查当前目录下的 public 文件夹（生产环境部署）
-const frontendDistPath = path.join(__dirname, "public");
+let frontendDistPath = path.join(__dirname, "public");
 if (!fs.existsSync(frontendDistPath)) {
-  console.log("⚠️ public folder not found in current dir, checking sibling frontend/dist...");
+  // 回退到上级兄弟目录（本地开发环境）
+  frontendDistPath = path.resolve(__dirname, "../frontend/dist");
 }
+console.log("🗂️ frontendDistPath:", frontendDistPath, "exists:", fs.existsSync(frontendDistPath));
 
 /* =========================================================
    🧩 基础中间件
@@ -38,6 +40,46 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(morgan("dev"));
+
+// 优先级最高：拦截根路径并返回前端入口，避免旧根路由覆盖
+app.get("/", (req, res) => {
+  const indexPath = path.join(frontendDistPath, "index.html");
+  console.log("🧩 serving / ->", indexPath, "exists:", fs.existsSync(indexPath));
+  res.sendFile(indexPath);
+});
+
+// 显式支持 /index.html，确保即使静态中间件未命中也能返回入口
+app.get("/index.html", (req, res) => {
+  const indexPath = path.join(frontendDistPath, "index.html");
+  console.log("🧩 serving /index.html ->", indexPath, "exists:", fs.existsSync(indexPath));
+  res.sendFile(indexPath);
+});
+
+// 早期挂载前端静态文件，确保 /index.html 可访问
+app.use(
+  express.static(frontendDistPath, {
+    index: "index.html",
+    maxAge: 0,
+    setHeaders: (res) => {
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+    },
+  })
+);
+
+// 兼容备用入口：/app 显式返回前端并映射静态资源
+app.use(
+  "/assets",
+  express.static(path.join(frontendDistPath, "assets"), {
+    maxAge: 0,
+  })
+);
+app.get(/^\/app(?!\/api).*/, (req, res) => {
+  const indexPath = path.join(frontendDistPath, "index.html");
+  console.log("🧭 /app fallback ->", indexPath, "exists:", fs.existsSync(indexPath));
+  res.sendFile(indexPath);
+});
 
 /* =========================================================
    🌐 CORS 设置（允许所有来源用于开发）
@@ -48,12 +90,6 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || "")
   .map((o) => o.trim())
   .filter(Boolean);
 
-// Explicitly add the Azure Static Website URL
-const staticWebsiteUrl = "https://clmsf5164136.z1.web.core.windows.net";
-if (!allowedOrigins.includes(staticWebsiteUrl)) {
-  allowedOrigins.push(staticWebsiteUrl);
-}
-
 // 如果没有配置CLIENT_ORIGIN，则允许所有来源（开发模式）
 if (allowedOrigins.length === 0) {
   console.log("⚠️ 未配置 CLIENT_ORIGIN，允许所有来源");
@@ -61,8 +97,8 @@ if (allowedOrigins.length === 0) {
   console.log("✅ 已配置允许的来源:", allowedOrigins);
 }
 
-// ✅ Enable pre-flight across-the-board
-app.options("*", cors());
+// 临时：允许所有来源用于测试
+const uniqueOrigins = [...new Set(allowedOrigins), "https://clmsf5164136.z1.web.core.windows.net"];
 
 app.use(
   cors({
@@ -71,7 +107,7 @@ app.use(
       if (!origin) return callback(null, true);
 
       // 显式允许配置的来源
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (uniqueOrigins.includes(origin)) return callback(null, true);
 
       // 允许所有 Blob 域名（Azure 静态网站）
       try {
@@ -82,18 +118,12 @@ app.use(
         }
       } catch (_) {}
 
-      // 🔍 临时允许所有 Azure 相关的来源（调试用）
-      if (origin.includes("azurewebsites.net") || origin.includes("web.core.windows.net")) {
-        return callback(null, true);
-      }
-
       console.warn("🚫 拒绝访问来源:", origin);
       return callback(new Error("CORS not allowed from this origin"), false);
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-    optionsSuccessStatus: 200 // 解决部分旧浏览器/代理的 204 问题
   })
 );
 
@@ -202,8 +232,8 @@ app.get(/^\/(?!api).*/, (req, res) => {
    ⚙️ 启动服务器（允许局域网访问）
    ========================================================= */
 const PORT = Number(process.env.PORT) || 5000;
-// 默认绑定到 0.0.0.0 以支持 Azure/Docker 环境
-const HOST = process.env.HOST || "0.0.0.0";
+// 默认绑定到 localhost，如需局域网访问可在 .env 设置 HOST=0.0.0.0
+const HOST = process.env.HOST || "127.0.0.1";
 
 console.log("🧩 MONGO_URI from .env:", process.env.MONGO_URI);
 
@@ -286,16 +316,20 @@ const shutdown = async (signal) => {
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
-// 启动流程：立即启动 HTTP 服务，异步连接数据库
-// 注意：Azure App Service 要求应用启动后立即监听端口，不能等待 DB 连接
-app.listen(PORT, HOST, () => {
-  console.log(`🚀 Server running at http://${HOST}:${PORT}`);
-  console.log("🌐 Allowed Origins:");
-  allowedOrigins.forEach((o) => console.log("   -", o));
-  console.log("🔓 服务器已对局域网开放（HOST=", HOST, ")");
-  
-  // 启动后尝试连接数据库
-  connectWithRetry().catch(err => {
-    console.error("❌ Fatal DB Connection Error:", err);
+// 启动流程：先连接数据库，成功后再启动 HTTP 服务
+(async () => {
+  const ok = await connectWithRetry();
+  if (!ok) {
+    console.warn(
+      "⚠️ 首次连接 MongoDB 失败，HTTP 服务暂不启动；请确保 mongod 正在运行。"
+    );
+    return; // 避免无数据库情况下启动后产生大量运行期错误
+  }
+
+  app.listen(PORT, HOST, () => {
+    console.log(`🚀 Server running at http://${HOST}:${PORT}`);
+    console.log("🌐 Allowed Origins:");
+    uniqueOrigins.forEach((o) => console.log("   -", o));
+    console.log("🔓 服务器已对局域网开放（HOST=", HOST, ")");
   });
-});
+})();

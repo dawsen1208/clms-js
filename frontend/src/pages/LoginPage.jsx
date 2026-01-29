@@ -66,8 +66,6 @@ function LoginPage({ onLogin }) {
       console.error("❌ Login failed:", err);
       if (err.response && err.response.data && err.response.data.message) {
         setLoginError(err.response.data.message);
-      } else if (err.message === "Network Error") {
-        setLoginError(t("login.errorNetwork") || "Network error. Please check your connection.");
       } else {
         setLoginError(t("login.errorInvalid"));
       }
