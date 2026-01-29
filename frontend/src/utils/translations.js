@@ -83,7 +83,10 @@ export const translations = {
       errorEmpty: "Please enter User ID and password",
       errorToken: "Login failed: server did not return a valid token",
       errorInvalid: "Login failed, please check your User ID or password",
-      prefillInfo: "Your registration ID has been prefilled: {id}"
+      errorNetwork: "Network error. Please check your connection.",
+      prefillInfo: "Your registration ID has been prefilled: {id}",
+      accountPending: "Your account is pending approval.",
+      accountRejected: "Your account has been rejected."
     },
     register: {
       readerDesc: "Register as a reader to start borrowing books.",
@@ -749,10 +752,28 @@ export const translations = {
     },
     login: {
       welcomeBack: "欢迎回来",
+      welcomeBackUser: "欢迎回来, {name}!",
       signInToContinue: "请登录以继续",
       instruction: "请使用系统分配的用户 ID 和密码登录。",
       rememberMe: "记住我",
-      loginBtn: "登录"
+      loginBtn: "登录",
+      enterUserId: "请输入用户ID",
+      enterPassword: "请输入密码",
+      userIdPlaceholder: "例如 r10001 / a10001",
+      passwordPlaceholder: "请输入密码",
+      registerReader: "读者注册",
+      registerAdmin: "管理员注册",
+      scanMobile: "点击扫描移动端二维码",
+      scanToOpen: "扫码在手机打开",
+      userIdLabel: "用户ID",
+      passwordLabel: "密码",
+      errorEmpty: "请输入用户ID和密码",
+      errorToken: "登录失败：服务器未返回有效令牌",
+      errorInvalid: "登录失败，请检查您的用户ID或密码",
+      errorNetwork: "网络连接失败，请检查网络或联系管理员",
+      prefillInfo: "您的注册ID已预填：{id}",
+      accountPending: "您的账号正在审核中",
+      accountRejected: "您的账号已被拒绝"
     },
     register: {
       readerDesc: "注册读者账号以开始借阅图书。",
