@@ -191,7 +191,17 @@ function AdminFeedbackPage() {
 
   return (
     <div className="admin-feedback-page" style={{ padding: 24 }}>
-      {/* 📊 统计卡片 */}
+      {/* 🔹 Page Header */}
+      <div style={{ marginBottom: 24 }}>
+        <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
+          {t("feedback.management") || "Feedback Management"}
+        </Title>
+        <Text type="secondary">
+          {t("feedback.subtitle") || "View and reply to user feedback and inquiries"}
+        </Text>
+      </div>
+
+      {/* 📊 Statistic Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={8} lg={6}>
           <Card style={{

@@ -175,7 +175,7 @@ function AdminBorrowHistory() {
           </Title>
           <Text type="secondary">{t("admin.historyOverview")}</Text>
         </div>
-        <Button icon={<ReloadOutlined />} onClick={fetchRecords}>
+        <Button icon={<ReloadOutlined />} onClick={fetchRecords} loading={loading}>
           {t("admin.refresh")}
         </Button>
       </div>
