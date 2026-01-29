@@ -121,12 +121,18 @@ app.use(
         }
       } catch (_) {}
 
+      // 🔍 临时允许所有 Azure 相关的来源（调试用）
+      if (origin.includes("azurewebsites.net") || origin.includes("web.core.windows.net")) {
+        return callback(null, true);
+      }
+
       console.warn("🚫 拒绝访问来源:", origin);
       return callback(new Error("CORS not allowed from this origin"), false);
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
     credentials: true,
+    optionsSuccessStatus: 200 // 解决部分旧浏览器/代理的 204 问题
   })
 );
 
@@ -332,7 +338,7 @@ process.on("SIGTERM", shutdown);
   app.listen(PORT, HOST, () => {
     console.log(`🚀 Server running at http://${HOST}:${PORT}`);
     console.log("🌐 Allowed Origins:");
-    uniqueOrigins.forEach((o) => console.log("   -", o));
+    allowedOrigins.forEach((o) => console.log("   -", o));
     console.log("🔓 服务器已对局域网开放（HOST=", HOST, ")");
   });
 })();
