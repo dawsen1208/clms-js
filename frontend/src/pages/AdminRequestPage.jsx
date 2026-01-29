@@ -17,7 +17,9 @@ import {
   Divider,
   Empty,
   Grid,
-  List
+  List,
+  Row,
+  Col
 } from "antd";
 import "./AdminBorrowPage.css"; // Reuse CSS
 import { theme, themeUtils } from "../styles/theme";
@@ -428,20 +430,72 @@ function AdminRequestPage() {
         <Divider style={{ margin: "24px 0" }} />
 
         {/* 📊 Statistics Cards */}
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 24 }}>
-          <Card.Grid style={{ width: isMobile ? '100%' : '25%', textAlign: 'center' }}>
-            <Statistic title={t("admin.totalRequests")} value={stats.total} prefix={<BookOutlined />} />
-          </Card.Grid>
-          <Card.Grid style={{ width: isMobile ? '100%' : '25%', textAlign: 'center' }}>
-            <Statistic title={t("admin.pending")} value={stats.pending} valueStyle={{ color: '#faad14' }} prefix={<ClockCircleOutlined />} />
-          </Card.Grid>
-          <Card.Grid style={{ width: isMobile ? '100%' : '25%', textAlign: 'center' }}>
-            <Statistic title={t("admin.approved")} value={stats.approved} valueStyle={{ color: '#52c41a' }} prefix={<CheckCircleOutlined />} />
-          </Card.Grid>
-          <Card.Grid style={{ width: isMobile ? '100%' : '25%', textAlign: 'center' }}>
-            <Statistic title={t("admin.rejected")} value={stats.rejected} valueStyle={{ color: '#ff4d4f' }} prefix={<CloseCircleOutlined />} />
-          </Card.Grid>
-        </div>
+        <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Card style={{
+              borderRadius: 16,
+              background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+              border: "none",
+              boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
+              color: "white"
+            }}>
+              <Statistic 
+                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalRequests")}</span>} 
+                value={stats.total} 
+                prefix={<BookOutlined style={{ color: "white" }} />} 
+                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Card style={{
+              borderRadius: 16,
+              background: "linear-gradient(135deg, #faad14, #d48806)",
+              border: "none",
+              boxShadow: "0 8px 25px rgba(250, 173, 20, 0.3)",
+              color: "white"
+            }}>
+              <Statistic 
+                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.pending")}</span>} 
+                value={stats.pending} 
+                prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
+                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Card style={{
+              borderRadius: 16,
+              background: "linear-gradient(135deg, #10b981, #059669)",
+              border: "none",
+              boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
+              color: "white"
+            }}>
+              <Statistic 
+                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.approved")}</span>} 
+                value={stats.approved} 
+                prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
+                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Card style={{
+              borderRadius: 16,
+              background: "linear-gradient(135deg, #ef4444, #dc2626)",
+              border: "none",
+              boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
+              color: "white"
+            }}>
+              <Statistic 
+                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.rejected")}</span>} 
+                value={stats.rejected} 
+                prefix={<CloseCircleOutlined style={{ color: "white" }} />} 
+                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+              />
+            </Card>
+          </Col>
+        </Row>
 
         {/* 🔍 Search & Filter */}
         <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>

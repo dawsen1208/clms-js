@@ -12,7 +12,9 @@ import {
   Tabs,
   Tooltip,
   Statistic,
-  Grid
+  Grid,
+  Row,
+  Col
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -189,6 +191,58 @@ function AdminFeedbackPage() {
 
   return (
     <div className="admin-feedback-page" style={{ padding: 24 }}>
+      {/* 📊 统计卡片 */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{
+            borderRadius: 16,
+            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+            border: "none",
+            boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
+            color: "white"
+          }}>
+            <Statistic 
+              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabAll")}</span>} 
+              value={feedbacks.length} 
+              prefix={<MessageOutlined style={{ color: "white" }} />} 
+              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{
+            borderRadius: 16,
+            background: "linear-gradient(135deg, #f59e0b, #d97706)",
+            border: "none",
+            boxShadow: "0 8px 25px rgba(245, 158, 11, 0.3)",
+            color: "white"
+          }}>
+            <Statistic 
+              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabPending")}</span>} 
+              value={feedbacks.filter(f => f.status === "Unreplied").length} 
+              prefix={<SyncOutlined spin style={{ color: "white" }} />} 
+              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{
+            borderRadius: 16,
+            background: "linear-gradient(135deg, #10b981, #059669)",
+            border: "none",
+            boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
+            color: "white"
+          }}>
+            <Statistic 
+              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabReplied")}</span>} 
+              value={feedbacks.filter(f => f.status === "Replied").length} 
+              prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
+              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
       <Card bordered={false} style={{ borderRadius: 8 }}>
         <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Title level={3} style={{ margin: 0 }}>
@@ -200,31 +254,7 @@ function AdminFeedbackPage() {
           </Button>
         </div>
 
-        <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 24 }}>
-          <Card.Grid style={{ width: isMobile ? '100%' : '33%', textAlign: 'center' }} hoverable={false}>
-            <Statistic 
-              title={t("feedback.tabAll")} 
-              value={feedbacks.length} 
-              prefix={<MessageOutlined />} 
-            />
-          </Card.Grid>
-          <Card.Grid style={{ width: isMobile ? '100%' : '33%', textAlign: 'center' }} hoverable={false}>
-            <Statistic 
-              title={t("feedback.tabPending")} 
-              value={feedbacks.filter(f => f.status === "Unreplied").length} 
-              valueStyle={{ color: '#faad14' }} 
-              prefix={<SyncOutlined spin />} 
-            />
-          </Card.Grid>
-          <Card.Grid style={{ width: isMobile ? '100%' : '33%', textAlign: 'center' }} hoverable={false}>
-            <Statistic 
-              title={t("feedback.tabReplied")} 
-              value={feedbacks.filter(f => f.status === "Replied").length} 
-              valueStyle={{ color: '#52c41a' }} 
-              prefix={<CheckCircleOutlined />} 
-            />
-          </Card.Grid>
-        </div>
+
 
         <Tabs
           activeKey={activeTab}

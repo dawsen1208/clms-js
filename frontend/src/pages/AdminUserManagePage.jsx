@@ -26,6 +26,11 @@ import {
   SearchOutlined,
   UserOutlined,
   BookOutlined,
+  SafetyCertificateOutlined,
+  AlertOutlined,
+  CheckCircleOutlined,
+  TagsOutlined,
+  PieChartOutlined
 } from "@ant-design/icons";
 import { getUserAnalytics, toggleBlacklist, approveUser } from "../api";
 import {
@@ -320,17 +325,107 @@ const AdminUserManagePage = () => {
           <div className="page-header">
             <Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("admin.userManage")}</Title>
             <Text type="secondary">{t("admin.persona")}</Text>
-            <Row gutter={[12, 12]} align="middle">
-              <Col xs={12} md={8} lg={8}><Statistic title={t("admin.totalUsers")} value={stats.total} /></Col>
-              <Col xs={12} md={8} lg={8}><Statistic title={t("admin.admins")} value={stats.admins} /></Col>
-              <Col xs={12} md={8} lg={8}><Statistic title={t("admin.overdueUsers")} value={stats.overdueUsers} valueStyle={{ color: "#ff4d4f" }} /></Col>
-            </Row>
-            <Row gutter={[12, 12]} align="middle" style={{ marginTop: 8 }}>
-              <Col xs={12} md={8} lg={8}><Statistic title={t("admin.avgOnTime")} value={stats.avgOnTime} suffix="%" valueStyle={{ color: stats.avgOnTime >= 80 ? "#52c41a" : "#faad14" }} /></Col>
-              <Col xs={12} md={8} lg={8}><Statistic title={t("admin.personaTypes")} value={stats.personaKinds} /></Col>
-              <Col xs={12} md={8} lg={8}>
-                <Card hoverable size="small" title={t("admin.personaDistribution")} onClick={() => setDistOpen(true)} style={{ borderRadius: 12 }}>
-                  <Text type="secondary">{t("admin.clickToViewPie")}</Text>
+            <Row gutter={[16, 16]} style={{ marginTop: 16, marginBottom: 16 }}>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalUsers")}</span>} 
+                    value={stats.total} 
+                    prefix={<UserOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(139, 92, 246, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.admins")}</span>} 
+                    value={stats.admins} 
+                    prefix={<SafetyCertificateOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueUsers")}</span>} 
+                    value={stats.overdueUsers} 
+                    prefix={<AlertOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #10b981, #059669)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.avgOnTime")}</span>} 
+                    value={stats.avgOnTime} 
+                    suffix="%"
+                    prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(245, 158, 11, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.personaTypes")}</span>} 
+                    value={stats.personaKinds} 
+                    prefix={<TagsOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card 
+                  hoverable 
+                  onClick={() => setDistOpen(true)}
+                  style={{
+                    borderRadius: 16,
+                    background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                    border: "none",
+                    boxShadow: "0 8px 25px rgba(99, 102, 241, 0.3)",
+                    color: "white",
+                    cursor: "pointer"
+                  }}
+                >
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.personaDistribution")}</span>} 
+                    value="View"
+                    prefix={<PieChartOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
                 </Card>
               </Col>
             </Row>

@@ -15,9 +15,19 @@ import {
   Empty,
   Segmented,
   Grid,
-  List
+  List,
+  Row,
+  Col
 } from "antd";
-import { SearchOutlined, ReloadOutlined, UserOutlined, BookOutlined } from "@ant-design/icons";
+import { 
+  SearchOutlined, 
+  ReloadOutlined, 
+  UserOutlined, 
+  BookOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  SyncOutlined
+} from "@ant-design/icons";
 import { getBorrowHistoryAllLibrary } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import dayjs from "dayjs";
@@ -157,17 +167,79 @@ function AdminBorrowHistory() {
 
   return (
     <div className="admin-history-page" style={{ padding: "1.5rem" }}>
+      {/* 📊 统计卡片 */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{
+            borderRadius: 16,
+            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+            border: "none",
+            boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
+            color: "white"
+          }}>
+            <Statistic 
+              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.total")}</span>} 
+              value={stats.total} 
+              prefix={<BookOutlined style={{ color: "white" }} />} 
+              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{
+            borderRadius: 16,
+            background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+            border: "none",
+            boxShadow: "0 8px 25px rgba(139, 92, 246, 0.3)",
+            color: "white"
+          }}>
+            <Statistic 
+              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.renewed")}</span>} 
+              value={stats.renewedYes} 
+              prefix={<SyncOutlined spin style={{ color: "white" }} />} 
+              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{
+            borderRadius: 16,
+            background: "linear-gradient(135deg, #10b981, #059669)",
+            border: "none",
+            boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
+            color: "white"
+          }}>
+            <Statistic 
+              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.returned")}</span>} 
+              value={stats.returnedYes} 
+              prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
+              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <Card style={{
+            borderRadius: 16,
+            background: "linear-gradient(135deg, #ef4444, #b91c1c)",
+            border: "none",
+            boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
+            color: "white"
+          }}>
+            <Statistic 
+              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.notReturned")}</span>} 
+              value={stats.notReturned} 
+              prefix={<CloseCircleOutlined style={{ color: "white" }} />} 
+              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
       <Card
         title={
           <div className="page-header">
             <Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("admin.history")}</Title>
             <Text type="secondary">{t("admin.historyOverview")}</Text>
-            <div className="stats-grid">
-              <Statistic title={t("admin.total")} value={stats.total} />
-              <Statistic title={t("admin.renewed")} value={stats.renewedYes} />
-              <Statistic title={t("admin.returned")} value={stats.returnedYes} valueStyle={{ color: "#52c41a" }} />
-              <Statistic title={t("admin.notReturned")} value={stats.notReturned} valueStyle={{ color: "#ff4d4f" }} />
-            </div>
           </div>
         }
         extra={
