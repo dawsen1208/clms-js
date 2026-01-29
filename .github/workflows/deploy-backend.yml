@@ -52,3 +52,4 @@ jobs:
           app-name: clms-backend
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./backend
+          startup-command: 'npm start'
