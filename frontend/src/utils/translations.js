@@ -310,7 +310,6 @@ export const translations = {
     },
     feedback: {
       title: "Feedback Center",
-      subtitle: "We value your suggestions and feedback",
       submit: "Submit Feedback",
       myFeedback: "My Feedback History",
       content: "Content",
@@ -326,7 +325,8 @@ export const translations = {
       submitFailed: "Failed to submit feedback.",
       noFeedback: "No feedback records found.",
       placeholder: "Please describe your issue or suggestion in detail...",
-      selectType: "Select Type"
+      selectType: "Select Type",
+      description: "We value your suggestions and feedback"
     },
     settings: {
       english: "English",
@@ -1157,7 +1157,6 @@ export const translations = {
     },
     feedback: {
       title: "反馈中心",
-      subtitle: "我们重视您的建议和反馈",
       submit: "提交反馈",
       myFeedback: "我的反馈历史",
       content: "反馈内容",
@@ -1173,7 +1172,8 @@ export const translations = {
       submitFailed: "提交失败，请重试。",
       noFeedback: "暂无反馈记录。",
       placeholder: "请详细描述您遇到的问题或建议...",
-      selectType: "选择类型"
+      selectType: "选择类型",
+      description: "我们重视您的建议和反馈"
     },
     settings: {
       security: "安全",
@@ -1503,16 +1503,7 @@ export const translations = {
        book: "书籍"
      },
     admin: {
-      applicationManagement: "申请管理",
-      borrowManagement: "借阅管理",
-      feedbackManagement: "反馈管理",
-      reply: "回复",
-      feedback: "反馈内容",
-      markReplied: "标记为已回复",
-      action: "操作",
-      renewCount: "续借次数",
-      returnBook: "归还书籍",
-      settings: "设置",
+     settings: "设置",
      borrowManage: "借阅管理",
      bookManage: "图书管理",
      userManage: "用户管理",
