@@ -167,92 +167,92 @@ function AdminBorrowHistory() {
 
   return (
     <div className="admin-history-page" style={{ padding: "1.5rem" }}>
-      {/* 🔹 页面标题 */}
-      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-            {t("admin.history")}
-          </Title>
-          <Text type="secondary">{t("admin.historyOverview")}</Text>
-        </div>
-        <Button icon={<ReloadOutlined />} onClick={fetchRecords} loading={loading}>
-          {t("admin.refresh")}
-        </Button>
-      </div>
-
-      {/* 📊 统计卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.total")}</span>} 
-              value={stats.total} 
-              prefix={<BookOutlined style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(139, 92, 246, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.renewed")}</span>} 
-              value={stats.renewedYes} 
-              prefix={<SyncOutlined spin style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #10b981, #059669)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.returned")}</span>} 
-              value={stats.returnedYes} 
-              prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #ef4444, #b91c1c)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.notReturned")}</span>} 
-              value={stats.notReturned} 
-              prefix={<CloseCircleOutlined style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
       <Card
-        style={{
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        }}
+        title={
+          <div className="page-header">
+            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
+              {t("admin.history")}
+            </Title>
+            <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+              {t("admin.historyOverview")}
+            </Text>
+
+            {/* 📊 统计卡片 */}
+            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.total")}</span>} 
+                    value={stats.total} 
+                    prefix={<BookOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(139, 92, 246, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.renewed")}</span>} 
+                    value={stats.renewedYes} 
+                    prefix={<SyncOutlined spin style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #10b981, #059669)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.returned")}</span>} 
+                    value={stats.returnedYes} 
+                    prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #ef4444, #b91c1c)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.notReturned")}</span>} 
+                    value={stats.notReturned} 
+                    prefix={<CloseCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        }
+        extra={
+          <Button icon={<ReloadOutlined />} onClick={fetchRecords} loading={loading}>
+            {t("admin.refresh")}
+          </Button>
+        }
+        style={{ borderRadius: 16 }}
+        bodyStyle={{ padding: "1.5rem" }}
       >
         <Space
           direction="vertical"

@@ -399,17 +399,88 @@ function AdminRequestPage() {
      🧱 页面渲染
      ========================================================= */
   return (
-    <div className="admin-borrow-page fade-in">
+    <div className="admin-request-page" style={{ padding: "1.5rem" }}>
       {contextHolder}
-      <Card bordered={false} className="glass-card" style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-          <div>
-            <Title level={2} style={{ margin: 0 }}>
-               {/* Rename Title to Application Management */}
+      <Card
+        title={
+          <div className="page-header">
+            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
               {t("admin.applicationManagement") || "Application Management"}
             </Title>
-            <Text type="secondary">{t("admin.manageBorrowReturnRequests")}</Text>
+            <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+              {t("admin.manageBorrowReturnRequests")}
+            </Text>
+            
+            {/* 📊 Statistics Cards */}
+            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalRequests")}</span>} 
+                    value={stats.total} 
+                    prefix={<BookOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #faad14, #d48806)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(250, 173, 20, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.pending")}</span>} 
+                    value={stats.pending} 
+                    prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #10b981, #059669)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.approved")}</span>} 
+                    value={stats.approved} 
+                    prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.rejected")}</span>} 
+                    value={stats.rejected} 
+                    prefix={<CloseCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+            </Row>
           </div>
+        }
+        extra={
           <Space>
             <Button
               icon={<ReloadOutlined />}
@@ -425,78 +496,10 @@ function AdminRequestPage() {
               {t("admin.bulkProcess")}
             </Button>
           </Space>
-        </div>
-
-        <Divider style={{ margin: "24px 0" }} />
-
-        {/* 📊 Statistics Cards */}
-        <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Card style={{
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-              border: "none",
-              boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-              color: "white"
-            }}>
-              <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalRequests")}</span>} 
-                value={stats.total} 
-                prefix={<BookOutlined style={{ color: "white" }} />} 
-                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Card style={{
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #faad14, #d48806)",
-              border: "none",
-              boxShadow: "0 8px 25px rgba(250, 173, 20, 0.3)",
-              color: "white"
-            }}>
-              <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.pending")}</span>} 
-                value={stats.pending} 
-                prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
-                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Card style={{
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #10b981, #059669)",
-              border: "none",
-              boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
-              color: "white"
-            }}>
-              <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.approved")}</span>} 
-                value={stats.approved} 
-                prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
-                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Card style={{
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #ef4444, #dc2626)",
-              border: "none",
-              boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
-              color: "white"
-            }}>
-              <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.rejected")}</span>} 
-                value={stats.rejected} 
-                prefix={<CloseCircleOutlined style={{ color: "white" }} />} 
-                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-              />
-            </Card>
-          </Col>
-        </Row>
-
+        }
+        style={{ borderRadius: 16 }}
+        bodyStyle={{ padding: "1.5rem" }}
+      >
         {/* 🔍 Search & Filter */}
         <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
           <Input

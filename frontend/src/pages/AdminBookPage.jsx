@@ -156,92 +156,92 @@ function AdminBookPage() {
 
   return (
     <div style={{ padding: "1.5rem" }}>
-      {/* 🔹 页面标题 */}
-      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-            {t("admin.bookManage")}
-          </Title>
-          <Text type="secondary">{t("admin.bookManageSubtitle") || "Manage library collection and inventory"}</Text>
-        </div>
-        <Button icon={<ReloadOutlined />} onClick={fetchBooks}>
-          {t("admin.refresh")}
-        </Button>
-      </div>
-
-      {/* 📊 统计卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBooks")}</span>} 
-              value={stats.total} 
-              prefix={<BookOutlined style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #10b981, #059669)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.inStock")}</span>} 
-              value={stats.inStock} 
-              prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #ef4444, #b91c1c)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.outOfStock")}</span>} 
-              value={stats.outOfStock} 
-              prefix={<CloseCircleOutlined style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #f59e0b, #d97706)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(245, 158, 11, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.category")}</span>} 
-              value={stats.categories} 
-              prefix={<TagsOutlined style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
       <Card
-        style={{
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        }}
+        title={
+          <div className="page-header">
+            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
+              {t("admin.bookManage")}
+            </Title>
+            <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+              {t("admin.bookManageSubtitle") || "Manage library collection and inventory"}
+            </Text>
+            
+            {/* 📊 统计卡片 */}
+            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBooks")}</span>} 
+                    value={stats.total} 
+                    prefix={<BookOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #10b981, #059669)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.inStock")}</span>} 
+                    value={stats.inStock} 
+                    prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #ef4444, #b91c1c)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.outOfStock")}</span>} 
+                    value={stats.outOfStock} 
+                    prefix={<CloseCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(245, 158, 11, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.category")}</span>} 
+                    value={stats.categories} 
+                    prefix={<TagsOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        }
+        extra={
+          <Button icon={<ReloadOutlined />} onClick={fetchBooks}>
+            {t("admin.refresh")}
+          </Button>
+        }
+        style={{ borderRadius: 16 }}
+        bodyStyle={{ padding: "1.5rem" }}
       >
         {/* 🔍 搜索 & 筛选 */}
         <Row gutter={[16, 16]} style={{ marginBottom: "1.5rem" }}>

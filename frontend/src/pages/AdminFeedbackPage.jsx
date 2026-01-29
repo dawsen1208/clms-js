@@ -190,70 +190,73 @@ function AdminFeedbackPage() {
   });
 
   return (
-    <div className="admin-feedback-page" style={{ padding: 24 }}>
-      {/* 🔹 Page Header */}
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-          {t("feedback.management") || "Feedback Management"}
-        </Title>
-        <Text type="secondary">
-          {t("feedback.subtitle") || "View and reply to user feedback and inquiries"}
-        </Text>
-      </div>
-
-      {/* 📊 Statistic Cards */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabAll")}</span>} 
-              value={feedbacks.length} 
-              prefix={<MessageOutlined style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #f59e0b, #d97706)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(245, 158, 11, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabPending")}</span>} 
-              value={feedbacks.filter(f => f.status === "Unreplied").length} 
-              prefix={<SyncOutlined spin style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #10b981, #059669)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabReplied")}</span>} 
-              value={feedbacks.filter(f => f.status === "Replied").length} 
-              prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <Card bordered={false} style={{ borderRadius: 8 }}>
+    <div className="admin-feedback-page" style={{ padding: "1.5rem" }}>
+      <Card
+        title={
+          <div className="page-header">
+            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
+              {t("feedback.management") || "Feedback Management"}
+            </Title>
+            <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+              {t("feedback.subtitle") || "View and reply to user feedback and inquiries"}
+            </Text>
+            
+            {/* 📊 Statistic Cards */}
+            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabAll")}</span>} 
+                    value={feedbacks.length} 
+                    prefix={<MessageOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(245, 158, 11, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabPending")}</span>} 
+                    value={feedbacks.filter(f => f.status === "Unreplied").length} 
+                    prefix={<SyncOutlined spin style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #10b981, #059669)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabReplied")}</span>} 
+                    value={feedbacks.filter(f => f.status === "Replied").length} 
+                    prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        }
+        style={{ borderRadius: 16 }}
+        bodyStyle={{ padding: "1.5rem" }}
+      >
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}

@@ -190,60 +190,65 @@ function AdminBorrowPage() {
     <div className="admin-borrow-page fade-in" style={{ padding: "1.5rem" }}>
       {contextHolder}
       
-      {/* 🔹 页面标题 */}
-      <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div>
-          <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-            {t("admin.borrowManagement") || "Borrow Management"}
-          </Title>
-          <Text type="secondary">{t("admin.manageActiveBorrows") || "Manage active loans and process returns"}</Text>
-        </div>
-        <Button
-          icon={<ReloadOutlined />}
-          onClick={fetchRecords}
-          loading={loading}
-        >
-          {t("admin.refresh")}
-        </Button>
-      </div>
-
-      {/* 📊 统计卡片 (Row/Col Layout) */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeBorrows") || "Active Borrows"}</span>} 
-              value={records.length} 
-              prefix={<BookOutlined style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} md={8} lg={6}>
-          <Card style={{
-            borderRadius: 16,
-            background: "linear-gradient(135deg, #ef4444, #b91c1c)",
-            border: "none",
-            boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
-            color: "white"
-          }}>
-            <Statistic 
-              title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks") || "Overdue Books"}</span>} 
-              value={records.filter(r => dayjs(r.dueDate).isBefore(dayjs())).length} 
-              prefix={<ExclamationCircleOutlined style={{ color: "white" }} />} 
-              valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <Card bordered={false} className="glass-card" style={{ marginBottom: 24, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+      <Card
+        title={
+          <div className="page-header">
+            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
+              {t("admin.borrowManagement") || "Borrow Management"}
+            </Title>
+            <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+              {t("admin.manageActiveBorrows") || "Manage active loans and process returns"}
+            </Text>
+            
+            {/* 📊 Statistic Cards */}
+            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeBorrows") || "Active Borrows"}</span>} 
+                    value={records.length} 
+                    prefix={<BookOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #ef4444, #b91c1c)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks") || "Overdue Books"}</span>} 
+                    value={records.filter(r => dayjs(r.dueDate).isBefore(dayjs())).length} 
+                    prefix={<ExclamationCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+            </Row>
+          </div>
+        }
+        extra={
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={fetchRecords}
+            loading={loading}
+          >
+            {t("admin.refresh")}
+          </Button>
+        }
+        style={{ borderRadius: 16 }}
+        bodyStyle={{ padding: "1.5rem" }}
+      >
         <div style={{ marginBottom: 24 }}>
           <Input
             prefix={<SearchOutlined />}
