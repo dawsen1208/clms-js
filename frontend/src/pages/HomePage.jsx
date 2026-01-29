@@ -1,7 +1,17 @@
 // ✅ client/src/pages/HomePage.jsx
 import { useEffect, useState } from "react";
-import { Card, Typography, Spin, message, Statistic, Row, Col, Button, Grid } from "antd";
-import { SearchOutlined, BookOutlined, HistoryOutlined, FireOutlined } from "@ant-design/icons";
+import { Card, Typography, Spin, message, Statistic, Row, Col, Button, Grid, Modal, Space } from "antd";
+import { 
+  SearchOutlined, 
+  BookOutlined, 
+  HistoryOutlined, 
+  FireOutlined, 
+  SettingOutlined, 
+  MessageOutlined, 
+  BulbOutlined, 
+  ScanOutlined,
+  AppstoreOutlined 
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom"; // ✅ Added
 import PopularBanner from "../components/PopularBanner";
 import { getRecommendations } from "../api"; // ✅ unified API source
@@ -20,10 +30,109 @@ function HomePage() {
   const [recommended, setRecommended] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false); // ✅ Flip state
+  const [guideModal, setGuideModal] = useState({ open: false, title: "", content: null }); // ✅ Guide Modal State
+
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
   const metrics = { rec: recommended.length };
   const screens = useBreakpoint();
   const isMobile = !screens.md;
+
+  const guideItems = [
+    {
+      key: 'search',
+      icon: <SearchOutlined style={{ fontSize: 24, color: '#1890ff' }} />,
+      title: t("common.bookSearch") || "图书搜索",
+      content: (
+        <div>
+          <Paragraph>使用搜索栏查找您感兴趣的图书。</Paragraph>
+          <Paragraph>
+            <ul>
+              <li>支持按书名、作者、ISBN 搜索</li>
+              <li>可使用筛选功能精确查找</li>
+              <li>点击图书封面查看详细信息</li>
+            </ul>
+          </Paragraph>
+          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/search'); }}>去搜索</Button>
+        </div>
+      )
+    },
+    {
+      key: 'borrow',
+      icon: <BookOutlined style={{ fontSize: 24, color: '#52c41a' }} />,
+      title: t("common.borrowManage") || "借阅管理",
+      content: (
+        <div>
+          <Paragraph>查看和管理您当前的借阅状态。</Paragraph>
+          <Paragraph>
+            <ul>
+              <li>查看当前借阅的图书及归还期限</li>
+              <li>支持在线续借操作</li>
+              <li>查询历史借阅记录</li>
+            </ul>
+          </Paragraph>
+          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/borrow'); }}>去管理</Button>
+        </div>
+      )
+    },
+    {
+      key: 'return',
+      icon: <ScanOutlined style={{ fontSize: 24, color: '#faad14' }} />,
+      title: t("common.returnSystem") || "归还系统",
+      content: (
+        <div>
+          <Paragraph>了解如何归还图书。</Paragraph>
+          <Paragraph>
+             请前往图书馆柜台或自助归还机进行还书操作。归还后系统会自动更新您的借阅状态。
+          </Paragraph>
+        </div>
+      )
+    },
+    {
+      key: 'smartRec',
+      icon: <BulbOutlined style={{ fontSize: 24, color: '#722ed1' }} />,
+      title: t("common.smartRec") || "智能推荐",
+      content: (
+        <div>
+          <Paragraph>基于您的阅读喜好为您推荐好书。</Paragraph>
+          <Paragraph>
+            系统会根据您的借阅历史和热门趋势，每日更新推荐书单。
+          </Paragraph>
+        </div>
+      )
+    },
+    {
+      key: 'feedback',
+      icon: <MessageOutlined style={{ fontSize: 24, color: '#eb2f96' }} />,
+      title: t("common.feedback") || "反馈中心",
+      content: (
+        <div>
+          <Paragraph>您的意见对我们很重要。</Paragraph>
+          <Paragraph>
+             如果您在使用过程中遇到问题或有任何建议，欢迎通过反馈中心告诉我们。
+          </Paragraph>
+          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/feedback'); }}>去反馈</Button>
+        </div>
+      )
+    },
+    {
+      key: 'settings',
+      icon: <SettingOutlined style={{ fontSize: 24, color: '#13c2c2' }} />,
+      title: t("settings.settings") || "设置",
+      content: (
+        <div>
+          <Paragraph>个性化您的应用体验。</Paragraph>
+          <Paragraph>
+            <ul>
+              <li>切换语言 (中文/English)</li>
+              <li>调整字体大小和主题颜色</li>
+              <li>开启无障碍功能 (TTS, 高对比度)</li>
+            </ul>
+          </Paragraph>
+          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/settings'); }}>去设置</Button>
+        </div>
+      )
+    }
+  ];
 
   const titleStyle = {
     background: "linear-gradient(90deg, #1d4ed8, #3b82f6)",
@@ -133,17 +242,41 @@ function HomePage() {
 
             {/* Back Side */}
             <div className="flip-card-back">
-              <Card className="welcome-card" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                <Title level={4} style={{ textAlign: "center", marginBottom: "16px", color: "#3b82f6" }}>
-                  📖 {t("common.operationGuide")}
-                </Title>
-                <ul className="system-overview-list" style={{ fontSize: "0.85rem", textAlign: "left", paddingLeft: "10px" }}>
-                  <li style={{marginBottom: '6px'}}>🔍 <b>{t("common.bookSearch")}</b></li>
-                  <li style={{marginBottom: '6px'}}>📚 <b>{t("common.borrowManage")}</b></li>
-                  <li style={{marginBottom: '6px'}}>↩️ <b>{t("common.returnSystem")}</b></li>
-                  <li style={{marginBottom: '6px'}}>🤖 <b>{t("common.smartRec")}</b></li>
-                </ul>
-                <div className="flip-hint">
+              <Card className="welcome-card" bodyStyle={{ padding: '12px' }} style={{ height: '100%', overflow: 'hidden' }}>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '1fr 1fr', 
+                  gap: '10px', 
+                  height: '100%', 
+                  alignContent: 'center' 
+                }}>
+                  {guideItems.map(item => (
+                    <div 
+                      key={item.key}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent flip
+                        setGuideModal({ open: true, title: item.title, content: item.content });
+                      }}
+                      style={{
+                        background: '#f8fafc',
+                        borderRadius: '10px',
+                        padding: '10px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        border: '1px solid #e2e8f0',
+                        textAlign: 'center',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{ marginBottom: '6px' }}>{item.icon}</div>
+                      <Typography.Text style={{ fontSize: '13px', fontWeight: '500', color: '#334155' }}>{item.title}</Typography.Text>
+                    </div>
+                  ))}
+                </div>
+                <div className="flip-hint" style={{ bottom: '8px', right: '12px' }}>
                   <span role="img" aria-label="back">↩️</span> {t("common.clickToBack")}
                 </div>
               </Card>
@@ -284,6 +417,16 @@ function HomePage() {
              </div>
            )}
         </div>
+        <Modal
+          title={guideModal.title}
+          open={guideModal.open}
+          onCancel={() => setGuideModal({ ...guideModal, open: false })}
+          footer={null}
+          centered
+          destroyOnClose
+        >
+          {guideModal.content}
+        </Modal>
       </div>
     );
   }
@@ -319,17 +462,44 @@ function HomePage() {
 
           {/* Back Side */}
           <div className="flip-card-back">
-            <Card className="welcome-card" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <Title level={4} style={{ textAlign: "center", marginBottom: "16px", color: "#3b82f6" }}>
-                📖 {t("common.operationGuide")}
-              </Title>
-              <ul className="system-overview-list" style={{ fontSize: "0.95rem", textAlign: "left", paddingLeft: "20px" }}>
-                <li style={{marginBottom: '8px'}}>🔍 <b>{t("common.bookSearch")}</b></li>
-                <li style={{marginBottom: '8px'}}>📚 <b>{t("common.borrowManage")}</b></li>
-                <li style={{marginBottom: '8px'}}>↩️ <b>{t("common.returnSystem")}</b></li>
-                <li style={{marginBottom: '8px'}}>🤖 <b>{t("common.smartRec")}</b></li>
-              </ul>
-              <div className="flip-hint">
+            <Card className="welcome-card" bodyStyle={{ padding: '20px' }} style={{ height: '100%', overflow: 'hidden' }}>
+               <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(3, 1fr)', 
+                  gap: '16px', 
+                  height: '100%', 
+                  alignContent: 'center' 
+                }}>
+                  {guideItems.map(item => (
+                    <div 
+                      key={item.key}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent flip
+                        setGuideModal({ open: true, title: item.title, content: item.content });
+                      }}
+                      style={{
+                        background: '#f8fafc',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        border: '1px solid #e2e8f0',
+                        textAlign: 'center',
+                        transition: 'all 0.2s',
+                        height: '100%'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#eef2ff'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
+                    >
+                      <div style={{ marginBottom: '8px' }}>{item.icon}</div>
+                      <Typography.Text style={{ fontSize: '14px', fontWeight: '500', color: '#334155' }}>{item.title}</Typography.Text>
+                    </div>
+                  ))}
+                </div>
+              <div className="flip-hint" style={{ bottom: '12px', right: '20px' }}>
                 <span role="img" aria-label="back">↩️</span> {t("common.clickToBack")}
               </div>
             </Card>
@@ -376,6 +546,18 @@ function HomePage() {
       <div style={{ textAlign: "center", marginTop: "40px", color: "#94a3b8", paddingBottom: "20px" }}>
         © 2024 CLMS Library System | v1.3.0 (Fixed Mobile Borrow & UI)
       </div>
+
+      {/* ✅ Guide Modal */}
+      <Modal
+        title={guideModal.title}
+        open={guideModal.open}
+        onCancel={() => setGuideModal({ ...guideModal, open: false })}
+        footer={null}
+        centered
+        destroyOnClose
+      >
+        {guideModal.content}
+      </Modal>
     </div>
   );
 }

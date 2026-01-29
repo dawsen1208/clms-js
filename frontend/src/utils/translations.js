@@ -887,7 +887,8 @@ export const translations = {
       copyFailed: "复制失败，请手动复制",
       operationGuide: "操作指南",
       clickToViewGuide: "点击查看指南",
-      clickToBack: "点击返回"
+      clickToBack: "点击返回",
+      feedback: "反馈中心"
     },
     titles: {
       popularToday: "热门趋势",
