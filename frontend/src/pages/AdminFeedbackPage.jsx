@@ -10,7 +10,9 @@ import {
   Typography,
   message,
   Tabs,
-  Tooltip
+  Tooltip,
+  Statistic,
+  Grid
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -27,9 +29,12 @@ import { getAllFeedback, replyFeedback } from "../api";
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
+const { useBreakpoint } = Grid;
 
 function AdminFeedbackPage() {
   const { t } = useLanguage();
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [loading, setLoading] = useState(false);
   const [feedbacks, setFeedbacks] = useState([]);
   const [replyModalVisible, setReplyModalVisible] = useState(false);
@@ -188,11 +193,37 @@ function AdminFeedbackPage() {
         <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Title level={3} style={{ margin: 0 }}>
             <MessageOutlined style={{ marginRight: 12 }} />
-            {t("feedback.title")} {t("feedback.management")}
+            {t("feedback.title")}
           </Title>
           <Button icon={<SyncOutlined />} onClick={fetchFeedbacks}>
             {t("common.refresh")}
           </Button>
+        </div>
+
+        <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 24 }}>
+          <Card.Grid style={{ width: isMobile ? '100%' : '33%', textAlign: 'center' }} hoverable={false}>
+            <Statistic 
+              title={t("feedback.tabAll")} 
+              value={feedbacks.length} 
+              prefix={<MessageOutlined />} 
+            />
+          </Card.Grid>
+          <Card.Grid style={{ width: isMobile ? '100%' : '33%', textAlign: 'center' }} hoverable={false}>
+            <Statistic 
+              title={t("feedback.tabPending")} 
+              value={feedbacks.filter(f => f.status === "Unreplied").length} 
+              valueStyle={{ color: '#faad14' }} 
+              prefix={<SyncOutlined spin />} 
+            />
+          </Card.Grid>
+          <Card.Grid style={{ width: isMobile ? '100%' : '33%', textAlign: 'center' }} hoverable={false}>
+            <Statistic 
+              title={t("feedback.tabReplied")} 
+              value={feedbacks.filter(f => f.status === "Replied").length} 
+              valueStyle={{ color: '#52c41a' }} 
+              prefix={<CheckCircleOutlined />} 
+            />
+          </Card.Grid>
         </div>
 
         <Tabs

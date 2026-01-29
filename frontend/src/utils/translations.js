@@ -309,7 +309,7 @@ export const translations = {
       viewAll: "View All Notifications"
     },
     feedback: {
-      title: "Feedback Center",
+      title: "Feedback Management",
       management: "Management",
       tabAll: "All",
       tabPending: "Pending",
@@ -1750,7 +1750,7 @@ export const translations = {
       adminInfoMissing: "管理员信息缺失"
     },
     feedback: {
-      title: "反馈",
+      title: "反馈管理",
       management: "管理",
       tabAll: "全部",
       tabPending: "待处理",
