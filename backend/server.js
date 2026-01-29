@@ -104,8 +104,7 @@ const uniqueOrigins = [
   "https://clms-backend-h7hqejd9bzfshwgu.norwayeast-01.azurewebsites.net"
 ];
 
-app.use(
-  cors({
+const corsOptions = {
     origin: (origin, callback) => {
       console.log("🔍 CORS Check Origin:", origin);
       // 同源或未提供 Origin 的请求直接允许
@@ -133,8 +132,11 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  })
-);
+    optionsSuccessStatus: 204 // 处理 OPTIONS 返回 204
+  };
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // 显式处理 OPTIONS 请求
 
 /* =========================================================
    📁 静态资源目录（头像上传）
