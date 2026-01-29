@@ -598,6 +598,7 @@ export const translations = {
     admin: {
       settings: "Settings",
       borrowManage: "Borrow Management",
+      borrowManagement: "Borrow Management",
       bookManage: "Book Management",
       userManage: "User Management",
       dashboard: "Dashboard",
@@ -1500,8 +1501,9 @@ export const translations = {
       currentSelection: "当前选择 (简要)",
        unknownAuthor: "未知作者",
        uncategorized: "未分类",
-       book: "书籍"
-     },
+       book: "书籍",
+      libraryAdmin: "图书馆管理员"
+    },
     admin: {
      settings: "设置",
      borrowManage: "借阅管理",
@@ -1698,7 +1700,8 @@ export const translations = {
       category: "分类",
       renewDate: "续借日期",
       chartTitle: "用户画像分布",
-      action: "操作"
+      action: "操作",
+      adminInfoMissing: "管理员信息缺失"
     },
     feedback: {
       title: "反馈",
