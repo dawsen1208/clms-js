@@ -26,12 +26,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 优先检查当前目录下的 public 文件夹（生产环境部署）
-let frontendDistPath = path.join(__dirname, "public");
+const frontendDistPath = path.join(__dirname, "public");
 if (!fs.existsSync(frontendDistPath)) {
-  // 回退到上级兄弟目录（本地开发环境）
-  frontendDistPath = path.resolve(__dirname, "../frontend/dist");
+  console.log("⚠️ public folder not found in current dir, checking sibling frontend/dist...");
 }
-console.log("🗂️ frontendDistPath:", frontendDistPath, "exists:", fs.existsSync(frontendDistPath));
 
 /* =========================================================
    🧩 基础中间件
@@ -98,48 +96,6 @@ app.use(
     optionsSuccessStatus: 200 // 解决部分旧浏览器/代理的 204 问题
   })
 );
-
-// 优先级最高：拦截根路径并返回前端入口，避免旧根路由覆盖
-app.get("/", (req, res) => {
-  const indexPath = path.join(frontendDistPath, "index.html");
-  console.log("🧩 serving / ->", indexPath, "exists:", fs.existsSync(indexPath));
-  res.sendFile(indexPath);
-});
-
-// 显式支持 /index.html，确保即使静态中间件未命中也能返回入口
-app.get("/index.html", (req, res) => {
-  const indexPath = path.join(frontendDistPath, "index.html");
-  console.log("🧩 serving /index.html ->", indexPath, "exists:", fs.existsSync(indexPath));
-  res.sendFile(indexPath);
-});
-
-// 早期挂载前端静态文件，确保 /index.html 可访问
-app.use(
-  express.static(frontendDistPath, {
-    index: "index.html",
-    maxAge: 0,
-    setHeaders: (res) => {
-      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-      res.setHeader("Pragma", "no-cache");
-      res.setHeader("Expires", "0");
-    },
-  })
-);
-
-// 兼容备用入口：/app 显式返回前端并映射静态资源
-app.use(
-  "/assets",
-  express.static(path.join(frontendDistPath, "assets"), {
-    maxAge: 0,
-  })
-);
-app.get(/^\/app(?!\/api).*/, (req, res) => {
-  const indexPath = path.join(frontendDistPath, "index.html");
-  console.log("🧭 /app fallback ->", indexPath, "exists:", fs.existsSync(indexPath));
-  res.sendFile(indexPath);
-});
-
-
 
 /* =========================================================
    📁 静态资源目录（头像上传）
