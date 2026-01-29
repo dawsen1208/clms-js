@@ -1503,7 +1503,16 @@ export const translations = {
        book: "书籍"
      },
     admin: {
-     settings: "设置",
+      applicationManagement: "申请管理",
+      borrowManagement: "借阅管理",
+      feedbackManagement: "反馈管理",
+      reply: "回复",
+      feedback: "反馈内容",
+      markReplied: "标记为已回复",
+      action: "操作",
+      renewCount: "续借次数",
+      returnBook: "归还书籍",
+      settings: "设置",
      borrowManage: "借阅管理",
      bookManage: "图书管理",
      userManage: "用户管理",
