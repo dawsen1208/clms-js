@@ -73,12 +73,12 @@ function AdminFeedbackPage() {
     try {
       setSubmitting(true);
       await replyFeedback(currentFeedback._id, replyContent, token);
-      message.success("Reply submitted successfully");
+      message.success(t("feedback.replySuccess"));
       setReplyModalVisible(false);
       fetchFeedbacks(); // Refresh list
     } catch (err) {
       console.error("Reply feedback failed:", err);
-      message.error("Failed to submit reply");
+      message.error(t("feedback.replyFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -127,7 +127,7 @@ function AdminFeedbackPage() {
       ),
     },
     {
-      title: "User",
+      title: t("admin.userLabel"),
       dataIndex: "userName",
       key: "userName",
       width: 150,
@@ -150,7 +150,7 @@ function AdminFeedbackPage() {
       ),
     },
     {
-      title: "Date",
+      title: t("feedback.date"),
       dataIndex: "createdAt",
       key: "createdAt",
       width: 160,
@@ -159,7 +159,7 @@ function AdminFeedbackPage() {
       defaultSortOrder: 'descend',
     },
     {
-      title: "Action",
+      title: t("feedback.action"),
       key: "action",
       width: 100,
       render: (_, record) => (
@@ -169,7 +169,7 @@ function AdminFeedbackPage() {
           size="small"
           onClick={() => handleReplyClick(record)}
         >
-          {record.status === "Unreplied" ? "Reply" : "Edit"}
+          {record.status === "Unreplied" ? t("feedback.reply") : t("feedback.edit")}
         </Button>
       ),
     },
@@ -188,7 +188,7 @@ function AdminFeedbackPage() {
         <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Title level={3} style={{ margin: 0 }}>
             <MessageOutlined style={{ marginRight: 12 }} />
-            {t("feedback.title")} Management
+            {t("feedback.title")} {t("feedback.management")}
           </Title>
           <Button icon={<SyncOutlined />} onClick={fetchFeedbacks}>
             {t("common.refresh")}
@@ -199,9 +199,9 @@ function AdminFeedbackPage() {
           activeKey={activeTab}
           onChange={setActiveTab}
           items={[
-            { key: "all", label: `All (${feedbacks.length})` },
-            { key: "pending", label: `Pending (${feedbacks.filter(f => f.status === "Unreplied").length})` },
-            { key: "replied", label: `Replied (${feedbacks.filter(f => f.status === "Replied").length})` },
+            { key: "all", label: `${t("feedback.tabAll")} (${feedbacks.length})` },
+            { key: "pending", label: `${t("feedback.tabPending")} (${feedbacks.filter(f => f.status === "Unreplied").length})` },
+            { key: "replied", label: `${t("feedback.tabReplied")} (${feedbacks.filter(f => f.status === "Replied").length})` },
           ]}
         />
 
@@ -211,6 +211,7 @@ function AdminFeedbackPage() {
           rowKey="_id"
           loading={loading}
           pagination={{ pageSize: 10 }}
+          locale={{ emptyText: t("feedback.noData") }}
         />
       </Card>
 
@@ -218,14 +219,14 @@ function AdminFeedbackPage() {
         title={
           <Space>
             <MessageOutlined />
-            Reply to Feedback
+            {t("feedback.replyModalTitle")}
           </Space>
         }
         open={replyModalVisible}
         onCancel={() => setReplyModalVisible(false)}
         onOk={handleReplySubmit}
         confirmLoading={submitting}
-        okText="Send Reply"
+        okText={t("feedback.sendReply")}
       >
         {currentFeedback && (
           <Space direction="vertical" style={{ width: "100%" }} size="middle">
@@ -244,12 +245,12 @@ function AdminFeedbackPage() {
             </Card>
 
             <div>
-              <Text strong style={{ display: "block", marginBottom: 8 }}>Your Reply:</Text>
+              <Text strong style={{ display: "block", marginBottom: 8 }}>{t("feedback.yourReply")}:</Text>
               <TextArea
                 rows={6}
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Type your reply here..."
+                placeholder={t("feedback.replyPlaceholder")}
               />
             </div>
           </Space>
