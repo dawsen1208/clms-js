@@ -246,8 +246,8 @@ app.get(/^\/(?!api).*/, (req, res) => {
    ⚙️ 启动服务器（允许局域网访问）
    ========================================================= */
 const PORT = Number(process.env.PORT) || 5000;
-// 默认绑定到 localhost，如需局域网访问可在 .env 设置 HOST=0.0.0.0
-const HOST = process.env.HOST || "127.0.0.1";
+// 默认绑定到 0.0.0.0 以支持 Azure/Docker 环境
+const HOST = process.env.HOST || "0.0.0.0";
 
 console.log("🧩 MONGO_URI from .env:", process.env.MONGO_URI);
 
@@ -330,20 +330,16 @@ const shutdown = async (signal) => {
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
 
-// 启动流程：先连接数据库，成功后再启动 HTTP 服务
-(async () => {
-  const ok = await connectWithRetry();
-  if (!ok) {
-    console.warn(
-      "⚠️ 首次连接 MongoDB 失败，HTTP 服务暂不启动；请确保 mongod 正在运行。"
-    );
-    return; // 避免无数据库情况下启动后产生大量运行期错误
-  }
-
-  app.listen(PORT, HOST, () => {
-    console.log(`🚀 Server running at http://${HOST}:${PORT}`);
-    console.log("🌐 Allowed Origins:");
-    allowedOrigins.forEach((o) => console.log("   -", o));
-    console.log("🔓 服务器已对局域网开放（HOST=", HOST, ")");
+// 启动流程：立即启动 HTTP 服务，异步连接数据库
+// 注意：Azure App Service 要求应用启动后立即监听端口，不能等待 DB 连接
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running at http://${HOST}:${PORT}`);
+  console.log("🌐 Allowed Origins:");
+  allowedOrigins.forEach((o) => console.log("   -", o));
+  console.log("🔓 服务器已对局域网开放（HOST=", HOST, ")");
+  
+  // 启动后尝试连接数据库
+  connectWithRetry().catch(err => {
+    console.error("❌ Fatal DB Connection Error:", err);
   });
-})();
+});
