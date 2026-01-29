@@ -13,7 +13,9 @@ import {
   Tooltip,
   Statistic,
   Divider,
-  Grid
+  Grid,
+  Row,
+  Col
 } from "antd";
 import "./AdminBorrowPage.css";
 import {
