@@ -437,12 +437,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.language")}</Title>}>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                  <Card hoverable onClick={() => setLanguageModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                  <Card hoverable onClick={() => setLanguageModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                     <Space align="start">
-                        <GlobalOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                        <GlobalOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#1890ff' }} />
                         <div>
-                            <Text strong style={{ display: 'block' }}>{t("settings.language")}</Text>
-                            <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.languageDesc")}</Text>
+                            <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.language")}</Text>
+                            <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.languageDesc")}</Text>
                         </div>
                     </Space>
                   </Card>
@@ -464,22 +464,22 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.accessibility") || "Accessibility"}</Title>}>
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? '#fff' : token.colorBorder) }}>
                     <Space>
-                       <SoundOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+                       <SoundOutlined style={{ fontSize: 20, color: appearance?.highContrast ? '#fff' : '#1890ff' }} />
                        <div>
-                         <Text strong style={{ display: 'block' }}>{t("settings.tts") || "Text-to-Speech"}</Text>
-                         <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.ttsDesc") || "Enable text-to-speech for buttons and content"}</Text>
+                         <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.tts") || "Text-to-Speech"}</Text>
+                         <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.ttsDesc") || "Enable text-to-speech for buttons and content"}</Text>
                        </div>
                     </Space>
                     <Switch checked={!!accessibilityPrefs.ttsEnabled} onChange={(v) => saveAccessibility({ ttsEnabled: v })} />
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? '#fff' : token.colorBorder) }}>
                     <Space>
-                       <RobotOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+                       <RobotOutlined style={{ fontSize: 20, color: appearance?.highContrast ? '#fff' : '#52c41a' }} />
                        <div>
-                         <Text strong style={{ display: 'block' }}>{t("settings.accessibilityMode") || "Accessibility Mode"}</Text>
-                         <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.accessibilityModeDesc") || "Simplified interface with larger elements"}</Text>
+                         <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.accessibilityMode") || "Accessibility Mode"}</Text>
+                         <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.accessibilityModeDesc") || "Simplified interface with larger elements"}</Text>
                        </div>
                     </Space>
                     <Switch checked={!!accessibilityPrefs.accessibilityMode} onChange={(v) => {
@@ -505,48 +505,48 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.appearance")}</Title>}>
                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? '#fff' : token.colorBorder) }}>
                         <Space>
-                            <BgColorsOutlined style={{ fontSize: 20, color: '#faad14' }} />
-                            <Text strong>{t("settings.highContrast")}</Text>
+                            <BgColorsOutlined style={{ fontSize: 20, color: appearance?.highContrast ? '#fff' : '#faad14' }} />
+                            <Text strong style={{ color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.highContrast")}</Text>
                         </Space>
                         <Switch checked={!!appearance?.highContrast} onChange={(v) => handleUpdate({ highContrast: v })} />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setThemeModeModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                       <Card hoverable onClick={() => setThemeModeModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                           <Space align="start">
-                              <BgColorsOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
+                              <BgColorsOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#13c2c2' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.themeMode")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.themeModeDesc")}</Text>
+                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.themeMode")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.themeModeDesc")}</Text>
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setThemeColorModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                       <Card hoverable onClick={() => setThemeColorModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                           <Space align="start">
-                              <FormatPainterOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                              <FormatPainterOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#722ed1' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.themeColor")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.themeColorDesc")}</Text>
+                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.themeColor")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.themeColorDesc")}</Text>
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setFontSizeModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                       <Card hoverable onClick={() => setFontSizeModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                           <Space align="start">
-                              <FontSizeOutlined style={{ fontSize: 24, color: '#52c41a' }} />
+                              <FontSizeOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#52c41a' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.fontSize")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.fontSizeDesc")}</Text>
+                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.fontSize")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.fontSizeDesc")}</Text>
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setBgModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                       <Card hoverable onClick={() => setBgModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                           <Space align="start">
-                              <PictureOutlined style={{ fontSize: 24, color: '#eb2f96' }} />
+                              <PictureOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#eb2f96' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.customBackground")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.customBackgroundDesc")}</Text>
+                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.customBackground")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.customBackgroundDesc")}</Text>
                               </div>
                           </Space>
                        </Card>
@@ -672,18 +672,18 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.notifications")}</Title>}>
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
+                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? '#fff' : token.colorBorder) }}>
                         <Space>
-                            <BellOutlined style={{ fontSize: 20, color: '#faad14' }} />
-                            <Text strong>{t("settings.inAppNotif")}</Text>
+                            <BellOutlined style={{ fontSize: 20, color: appearance?.highContrast ? '#fff' : '#faad14' }} />
+                            <Text strong style={{ color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.inAppNotif")}</Text>
                         </Space>
                         <Switch checked={!!notifPrefs.inApp} onChange={(v) => saveNotifications({ inApp: v })} />
                    </div>
 
                    {/* Email Binding Section */}
-                   <Card type="inner" title={t("settings.emailConfig")} size="small" style={{ borderColor: token.colorBorder }}>
+                   <Card type="inner" title={<span style={{ color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.emailConfig")}</span>} size="small" style={{ borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                       <Space direction="vertical" style={{ width: '100%' }}>
-                        <Text type="secondary">{t("settings.emailDesc")}</Text>
+                        <Text type="secondary" style={{ color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.emailDesc")}</Text>
                         <Space.Compact style={{ width: '100%' }}>
                           <Input 
                             placeholder={t("settings.emailPlaceholder")} 
@@ -719,12 +719,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                         <Switch checked={!!notifPrefs.email} onChange={(v) => saveNotifications({ email: v })} disabled={!boundEmail} />
                    </div>
                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setReminderDaysModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                       <Card hoverable onClick={() => setReminderDaysModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                           <Space align="start">
-                              <CalendarOutlined style={{ fontSize: 24, color: '#f5222d' }} />
+                              <CalendarOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#f5222d' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.reminderDays")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.reminderDaysDesc")}</Text>
+                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.reminderDays")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.reminderDaysDesc")}</Text>
                               </div>
                           </Space>
                        </Card>
@@ -770,22 +770,22 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                         console.log("Open password modal clicked (user settings)");
                         setPasswordModalOpen(true);
                       }}
-                      style={{ cursor: 'pointer', borderColor: token.colorBorder }}
+                      style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}
                     >
                       <Space align="start">
-                          <LockOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                          <LockOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#1890ff' }} />
                           <div>
-                              <Text strong style={{ display: 'block' }}>{t("settings.updatePassword")}</Text>
-                              <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.updatePasswordDesc")}</Text>
+                              <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.updatePassword")}</Text>
+                              <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.updatePasswordDesc")}</Text>
                           </div>
                       </Space>
                     </Card>
-                    <Card hoverable onClick={() => { setDevicesModalOpen(true); fetchSessions(); }} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                    <Card hoverable onClick={() => { setDevicesModalOpen(true); fetchSessions(); }} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                       <Space align="start">
-                          <DesktopOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                          <DesktopOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#722ed1' }} />
                           <div>
-                              <Text strong style={{ display: 'block' }}>{t("settings.deviceManagement")}</Text>
-                              <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.deviceManagementDesc")}</Text>
+                              <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.deviceManagement")}</Text>
+                              <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.deviceManagementDesc")}</Text>
                           </div>
                       </Space>
                     </Card>
@@ -798,12 +798,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                                  message.success(t("settings.cacheCleared"));
                              }
                          });
-                     }} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                     }} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                        <Space align="start">
-                           <DeleteOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
+                           <DeleteOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#ff4d4f' }} />
                            <div>
-                               <Text strong type="danger" style={{ display: 'block' }}>{t("settings.clearCache")}</Text>
-                               <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.clearCacheDesc")}</Text>
+                               <Text strong type="danger" style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.clearCache")}</Text>
+                               <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.clearCacheDesc")}</Text>
                            </div>
                        </Space>
                      </Card>
@@ -944,38 +944,38 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.operationPrefs")}</Title>}>
                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgContainer, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgContainer, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? '#fff' : token.colorBorder) }}>
                         <Space>
-                            <SettingOutlined style={{ fontSize: 20, color: token.colorInfo }} />
-                            <Text strong>{t("settings.showAdvanced")}</Text>
+                            <SettingOutlined style={{ fontSize: 20, color: appearance?.highContrast ? '#fff' : token.colorInfo }} />
+                            <Text strong style={{ color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.showAdvanced")}</Text>
                         </Space>
                         <Switch checked={!!operationPrefs.showAdvanced} onChange={(v) => saveOperation({ showAdvanced: v })} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setSearchPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                       <Card hoverable onClick={() => setSearchPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                           <Space align="start">
-                              <SearchOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
+                              <SearchOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#13c2c2' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.defaultSearch")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.searchPrefsDesc")}</Text>
+                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.defaultSearch")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.searchPrefsDesc")}</Text>
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setSortPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                       <Card hoverable onClick={() => setSortPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                           <Space align="start">
-                              <SortAscendingOutlined style={{ fontSize: 24, color: '#eb2f96' }} />
+                              <SortAscendingOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#eb2f96' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.defaultSort")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.sortPrefsDesc")}</Text>
+                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.defaultSort")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.sortPrefsDesc")}</Text>
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setViewPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                       <Card hoverable onClick={() => setViewPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                           <Space align="start">
-                              <AppstoreOutlined style={{ fontSize: 24, color: '#fa8c16' }} />
+                              <AppstoreOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#fa8c16' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.defaultView")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.viewPrefsDesc")}</Text>
+                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.defaultView")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.viewPrefsDesc")}</Text>
                               </div>
                           </Space>
                        </Card>
@@ -1024,21 +1024,21 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                         <Switch checked={!!recommendPrefs.autoLearn} onChange={(v) => saveRecommend({ autoLearn: v })} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setCategoryPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                       <Card hoverable onClick={() => setCategoryPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                           <Space align="start">
-                              <TagsOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                              <TagsOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#722ed1' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.categoryPrefs")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.categoryPrefsDesc")}</Text>
+                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.categoryPrefs")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.categoryPrefsDesc")}</Text>
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => { try { localStorage.removeItem('recommend_behavior'); localStorage.removeItem('compare_ids'); message.success(t("settings.dataReset")); } catch {} }} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                       <Card hoverable onClick={() => { try { localStorage.removeItem('recommend_behavior'); localStorage.removeItem('compare_ids'); message.success(t("settings.dataReset")); } catch {} }} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                           <Space align="start">
-                              <ReloadOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
+                              <ReloadOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#ff4d4f' }} />
                               <div>
-                                  <Text strong type="danger" style={{ display: 'block' }}>{t("settings.resetData")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.resetData")}</Text>
+                                  <Text strong type="danger" style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.resetData")}</Text>
+                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.resetData")}</Text>
                               </div>
                           </Space>
                        </Card>
@@ -1074,21 +1074,21 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                           <Switch checked={!!adminApprovalPrefs.soundEnabled} onChange={(v) => saveAdminApproval({ soundEnabled: v })} />
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                         <Card hoverable onClick={() => setAutoRulesModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                         <Card hoverable onClick={() => setAutoRulesModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                             <Space align="start">
-                                <RobotOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                                <RobotOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#1890ff' }} />
                                 <div>
-                                    <Text strong style={{ display: 'block' }}>{t("settings.autoRules")}</Text>
-                                    <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.autoRulesDesc")}</Text>
+                                    <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.autoRules")}</Text>
+                                    <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.autoRulesDesc")}</Text>
                                 </div>
                             </Space>
                          </Card>
-                         <Card hoverable onClick={() => setBulkActionModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                         <Card hoverable onClick={() => setBulkActionModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                             <Space align="start">
-                                <BuildOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                                <BuildOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#722ed1' }} />
                                 <div>
-                                    <Text strong style={{ display: 'block' }}>{t("settings.defaultBulkAction")}</Text>
-                                    <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.bulkActionDesc")}</Text>
+                                    <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.defaultBulkAction")}</Text>
+                                    <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.bulkActionDesc")}</Text>
                                 </div>
                             </Space>
                          </Card>
@@ -1129,12 +1129,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                 <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.adminRolesTitle")}</Title>}>
                   <Space direction="vertical" size={16} style={{ width: '100%' }}>
                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                         <Card hoverable onClick={() => setRolesModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                         <Card hoverable onClick={() => setRolesModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? '#fff' : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
                             <Space align="start">
-                                <TeamOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
+                                <TeamOutlined style={{ fontSize: 24, color: appearance?.highContrast ? '#fff' : '#13c2c2' }} />
                                 <div>
-                                    <Text strong style={{ display: 'block' }}>{t("settings.manageRoles")}</Text>
-                                    <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.manageRolesDesc")}</Text>
+                                    <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.manageRoles")}</Text>
+                                    <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.manageRolesDesc")}</Text>
                                 </div>
                             </Space>
                          </Card>
