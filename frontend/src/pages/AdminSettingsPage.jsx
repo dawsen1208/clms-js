@@ -8,7 +8,7 @@ import {
 import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 
-const { Title, Text } = Typography;
+const { Title, Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
 
 function AdminSettingsPage({ appearance, onChange, user }) {
@@ -154,8 +154,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                     <Space align="start">
                         <GlobalOutlined style={{ fontSize: 24, color: '#1890ff' }} />
                         <div>
-                            <Text strong style={{ display: 'block' }}>{t("settings.language")}</Text>
-                            <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.languageDesc")}</Text>
+                            <AntText strong style={{ display: 'block' }}>{t("settings.language")}</AntText>
+                            <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.languageDesc")}</AntText>
                         </div>
                     </Space>
                   </Card>
@@ -180,7 +180,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
                         <Space>
                             <BgColorsOutlined style={{ fontSize: 20, color: '#faad14' }} />
-                            <Text strong>{t("settings.highContrast")}</Text>
+                            <AntText strong>{t("settings.highContrast")}</AntText>
                         </Space>
                         <Switch checked={!!appearance?.highContrast} onChange={(v) => handleUpdate({ highContrast: v })} />
                     </div>
@@ -190,8 +190,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                           <Space align="start">
                               <BgColorsOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.themeMode")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.themeModeDesc")}</Text>
+                                  <AntText strong style={{ display: 'block' }}>{t("settings.themeMode")}</AntText>
+                                  <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.themeModeDesc")}</AntText>
                               </div>
                           </Space>
                        </Card>
@@ -199,8 +199,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                           <Space align="start">
                               <FormatPainterOutlined style={{ fontSize: 24, color: '#722ed1' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.themeColor")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.themeColorDesc")}</Text>
+                                  <AntText strong style={{ display: 'block' }}>{t("settings.themeColor")}</AntText>
+                                  <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.themeColorDesc")}</AntText>
                               </div>
                           </Space>
                        </Card>
@@ -208,8 +208,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                           <Space align="start">
                               <FontSizeOutlined style={{ fontSize: 24, color: '#52c41a' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.fontSize")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.fontSizeDesc")}</Text>
+                                  <AntText strong style={{ display: 'block' }}>{t("settings.fontSize")}</AntText>
+                                  <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.fontSizeDesc")}</AntText>
                               </div>
                           </Space>
                        </Card>
@@ -217,8 +217,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                           <Space align="start">
                               <PictureOutlined style={{ fontSize: 24, color: '#eb2f96' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.customBackground")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.customBackgroundDesc")}</Text>
+                                  <AntText strong style={{ display: 'block' }}>{t("settings.customBackground")}</AntText>
+                                  <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.customBackgroundDesc")}</AntText>
                               </div>
                           </Space>
                        </Card>
@@ -262,7 +262,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                  </Modal>
                  <Modal title={t("settings.fontSize")} open={fontSizeModalOpen} onCancel={() => setFontSizeModalOpen(false)} footer={null}>
                      <div style={{ padding: '16px 8px' }}>
-                       <Text type="secondary" style={{ marginBottom: 24, display: 'block' }}>{t("settings.fontSizeDesc")}</Text>
+                       <AntText type="secondary" style={{ marginBottom: 24, display: 'block' }}>{t("settings.fontSizeDesc")}</AntText>
                        <Slider
                           min={12}
                           max={30}
@@ -306,7 +306,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
                        <Space>
                            <SafetyCertificateOutlined style={{ fontSize: 20, color: '#faad14' }} />
-                           <Text strong>{t("settings.twoFactor")}</Text>
+                           <AntText strong>{t("settings.twoFactor")}</AntText>
                        </Space>
                        <Switch checked={!!securityPrefs.twoFactorEnabled} onChange={(v) => saveSecurity({ twoFactorEnabled: v })} />
                    </div>
@@ -315,8 +315,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                         <Space align="start">
                             <LockOutlined style={{ fontSize: 24, color: '#1890ff' }} />
                             <div>
-                                <Text strong style={{ display: 'block' }}>{t("settings.updatePassword")}</Text>
-                                <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.updatePasswordDesc")}</Text>
+                                <AntText strong style={{ display: 'block' }}>{t("settings.updatePassword")}</AntText>
+                                <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.updatePasswordDesc")}</AntText>
                             </div>
                         </Space>
                       </Card>
@@ -324,8 +324,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                         <Space align="start">
                             <DesktopOutlined style={{ fontSize: 24, color: '#722ed1' }} />
                             <div>
-                                <Text strong style={{ display: 'block' }}>{t("settings.deviceManagement")}</Text>
-                                <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.deviceManagementDesc")}</Text>
+                                <AntText strong style={{ display: 'block' }}>{t("settings.deviceManagement")}</AntText>
+                                <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.deviceManagementDesc")}</AntText>
                             </div>
                         </Space>
                       </Card>
@@ -342,8 +342,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                          <Space align="start">
                              <DeleteOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
                              <div>
-                                 <Text strong type="danger" style={{ display: 'block' }}>{t("settings.clearCache")}</Text>
-                                 <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.clearCacheDesc")}</Text>
+                                 <AntText strong type="danger" style={{ display: 'block' }}>{t("settings.clearCache")}</AntText>
+                                 <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.clearCacheDesc")}</AntText>
                              </div>
                          </Space>
                        </Card>
@@ -432,7 +432,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                     width={800}
                   >
                      <Space style={{ marginBottom: 16, width: '100%', justifyContent: 'space-between' }}>
-                        <Text type="secondary">{t("settings.deviceManagementDesc")}</Text>
+                        <AntText type="secondary">{t("settings.deviceManagementDesc")}</AntText>
                         <Space>
                           <Button onClick={fetchSessions}>{t("settings.refreshDevices")}</Button>
                           <Button danger onClick={async () => { try { if (!token) { message.error(t("settings.notLoggedIn")); return; } await revokeAllSessions(token); message.success(t("settings.signedOutAll")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutAllFailed")); } }}>{t("settings.signOutAll")}</Button>
@@ -459,7 +459,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
                         <Space>
                             <BellOutlined style={{ fontSize: 20, color: '#52c41a' }} />
-                            <Text strong>{t("settings.approvalSound")}</Text>
+                            <AntText strong>{t("settings.approvalSound")}</AntText>
                         </Space>
                         <Switch checked={!!adminApprovalPrefs.soundEnabled} onChange={(v) => saveAdminApproval({ soundEnabled: v })} />
                     </div>
@@ -468,8 +468,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                           <Space align="start">
                               <RobotOutlined style={{ fontSize: 24, color: '#1890ff' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.autoRules")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.autoRulesDesc")}</Text>
+                                  <AntText strong style={{ display: 'block' }}>{t("settings.autoRules")}</AntText>
+                                  <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.autoRulesDesc")}</AntText>
                               </div>
                           </Space>
                        </Card>
@@ -477,8 +477,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                           <Space align="start">
                               <BuildOutlined style={{ fontSize: 24, color: '#722ed1' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.defaultBulkAction")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.bulkActionDesc")}</Text>
+                                  <AntText strong style={{ display: 'block' }}>{t("settings.defaultBulkAction")}</AntText>
+                                  <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.bulkActionDesc")}</AntText>
                               </div>
                           </Space>
                        </Card>
@@ -487,14 +487,14 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                  <Modal title={t("settings.autoRules")} open={autoRulesModalOpen} onCancel={() => setAutoRulesModalOpen(false)} footer={null}>
                     <Space direction="vertical" size={16} style={{ width: '100%' }}>
                       <div>
-                        <Text style={{ fontWeight: 600 }}>{t("settings.autoApproveStock")}</Text>
+                        <AntText style={{ fontWeight: 600 }}>{t("settings.autoApproveStock")}</AntText>
                         <div style={{ marginTop: 8 }}>
                           <InputNumber min={0} max={99} value={adminApprovalPrefs.autoApproveWhenStockGt} onChange={(v) => saveAdminApproval({ autoApproveWhenStockGt: Number(v || 0) })} style={{ width: '100%' }} />
                         </div>
-                        <Text type="secondary">{t("settings.appliesToRenew")}</Text>
+                        <AntText type="secondary">{t("settings.appliesToRenew")}</AntText>
                       </div>
                       <div>
-                        <Text style={{ fontWeight: 600 }}>{t("settings.autoRejectOverdue")}</Text>
+                        <AntText style={{ fontWeight: 600 }}>{t("settings.autoRejectOverdue")}</AntText>
                         <div style={{ marginTop: 8 }}>
                           <InputNumber min={0} max={99} value={adminApprovalPrefs.autoRejectWhenOverdueGt} onChange={(v) => saveAdminApproval({ autoRejectWhenOverdueGt: Number(v || 0) })} style={{ width: '100%' }} />
                         </div>
@@ -523,8 +523,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                           <Space align="start">
                               <TeamOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
                               <div>
-                                  <Text strong style={{ display: 'block' }}>{t("settings.manageRoles")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.manageRolesDesc")}</Text>
+                                  <AntText strong style={{ display: 'block' }}>{t("settings.manageRoles")}</AntText>
+                                  <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.manageRolesDesc")}</AntText>
                               </div>
                           </Space>
                        </Card>

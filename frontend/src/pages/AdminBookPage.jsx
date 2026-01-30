@@ -19,7 +19,7 @@ import {
   Tag
 } from "antd";
 
-const { Title } = Typography;
+const { Title, Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
 import {
   PlusOutlined,
@@ -162,9 +162,9 @@ function AdminBookPage() {
             <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
               {t("admin.bookManage")}
             </Title>
-            <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
               {t("admin.bookManageSubtitle") || "Manage library collection and inventory"}
-            </Text>
+            </AntText>
             
             {/* 📊 统计卡片 */}
             <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>

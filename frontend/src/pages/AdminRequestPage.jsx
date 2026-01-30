@@ -40,7 +40,7 @@ import {
 import { useLanguage } from "../contexts/LanguageContext";
 
 const { Option } = Select;
-const { Title, Text } = Typography;
+const { Title, Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
 
 const STATUS_INFO = {
@@ -407,9 +407,9 @@ function AdminRequestPage() {
             <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
               {t("admin.applicationManagement") || "Application Management"}
             </Title>
-            <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
               {t("admin.manageBorrowReturnRequests")}
-            </Text>
+            </AntText>
             
             {/* 📊 Statistics Cards */}
             <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>

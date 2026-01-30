@@ -34,7 +34,7 @@ import dayjs from "dayjs";
 import "./AdminBorrowHistory.css";
 
 const { RangePicker } = DatePicker;
-const { Title, Text } = Typography;
+const { Title, Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
 
 function AdminBorrowHistory() {
@@ -173,9 +173,9 @@ function AdminBorrowHistory() {
             <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
               {t("admin.history")}
             </Title>
-            <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
               {t("admin.historyOverview")}
-            </Text>
+            </AntText>
 
             {/* 📊 统计卡片 */}
             <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>

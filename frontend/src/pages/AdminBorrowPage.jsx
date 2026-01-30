@@ -32,7 +32,7 @@ import {
 } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 
-const { Title, Text } = Typography;
+const { Title, Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
 
 function AdminBorrowPage() {
@@ -92,11 +92,11 @@ function AdminBorrowPage() {
       icon: <ExclamationCircleOutlined />,
       content: (
         <div>
-          {t("admin.userLabel")}: <b>{record.userName}</b>
+          <AntText strong>{t("admin.userLabel")}: </AntText>{record.userName}
           <br />
-          {t("admin.bookLabel")}: <b>{record.bookTitle}</b>
+          <AntText strong>{t("admin.bookLabel")}: </AntText>{record.bookTitle}
           <br />
-          {t("admin.borrowDate")}: {dayjs(record.borrowedAt).format("YYYY-MM-DD")}
+          <AntText strong>{t("admin.borrowDate")}: </AntText>{dayjs(record.borrowedAt).format("YYYY-MM-DD")}
         </div>
       ),
       okText: t("admin.confirmReturn") || "Return",
@@ -124,7 +124,7 @@ function AdminBorrowPage() {
       render: (text, record) => (
         <div>
            <div>{text || "—"}</div>
-           <Text type="secondary" style={{ fontSize: 12 }}>ID: {record.userId}</Text>
+           <AntText type="secondary" style={{ fontSize: 12 }}>ID: {record.userId}</AntText>
         </div>
       ),
     },
@@ -196,9 +196,9 @@ function AdminBorrowPage() {
             <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
               {t("admin.borrowManagement") || "Borrow Management"}
             </Title>
-            <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
               {t("admin.manageActiveBorrows") || "Manage active loans and process returns"}
-            </Text>
+            </AntText>
             
             {/* 📊 Statistic Cards */}
             <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>

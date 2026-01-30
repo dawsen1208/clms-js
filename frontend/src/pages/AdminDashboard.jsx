@@ -6,7 +6,7 @@ import "./AdminDashboard.css";
 import { getBooksLibrary, getAllRequestsLibrary, getUserAnalytics, getBorrowedBooksLibrary, getBorrowHistoryLibrary, getBorrowHistoryAllLibrary, getBooks, getLibraryStats } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 
-const { Title, Text } = Typography;
+const { Title, Text: AntText } = Typography;
 
 const AdminDashboard = () => {
   const { t } = useLanguage();
@@ -88,13 +88,17 @@ const AdminDashboard = () => {
 
       // Build charts data
       const catAgg = aggregateCategories(books, t);
+      const trend30d = buildBorrowTrend30d(history);
+      const userGrowth = buildUserGrowth(history);
       setChartData({
-        trend30d: buildBorrowTrend30d(history),
+        trend30d,
         categoryPie: catAgg.items,
-        userGrowth: buildUserGrowth(history),
+        userGrowth,
       });
       setCategoryDetails(catAgg.details);
       setTotalTitles(catAgg.totalTitles);
+      setTrendDetails(buildTrendDetails(history));
+      setGrowthDetails(buildGrowthDetails(history));
     } catch (e) {
       // silent fail, keep previous metrics
     } finally {
@@ -111,12 +115,113 @@ const AdminDashboard = () => {
     }}>
       <Card
         title={
-          <div className="dash-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
+          <div className="page-header">
             <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
               {t("admin.dashboard")}
             </Title>
-          </div>
+            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
+              {t("admin.dashboardOverview") || "System overview and statistics"}
+            </AntText>
+
+            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card className="metric-card" style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBooks")}</span>} 
+                    value={metrics.books}
+                    prefix={<BookOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card className="metric-card" style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #10b981, #059669)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeReaders")}</span>} 
+                    value={metrics.activeReaders} 
+                    prefix={<TeamOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card className="metric-card" style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(245, 158, 11, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBorrowed")}</span>} 
+                    value={metrics.totalBorrowed} 
+                    prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card className="metric-card" style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #ef4444, #dc2626)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks")}</span>} 
+                    value={metrics.overdueBooks} 
+                    prefix={<AlertOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card className="metric-card" style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #faad14, #d48806)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(250, 173, 20, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.pendingRequests")}</span>} 
+                    value={metrics.pendingRequests} 
+                    prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Card className="metric-card" style={{
+                  borderRadius: 16,
+                  background: "linear-gradient(135deg, #52C41A, #3f9f14)",
+                  border: "none",
+                  boxShadow: "0 8px 25px rgba(82, 196, 26, 0.3)",
+                  color: "white"
+                }}>
+                  <Statistic 
+                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.onTimeRate")}</span>} 
+                    value={metrics.onTimeRate} 
+                    suffix="%"
+                    prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
+                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                  />
+                </Card>
+              </Col>
+            </Row>
           </div>
         }
         extra={
@@ -148,108 +253,7 @@ const AdminDashboard = () => {
           backdropFilter: "blur(10px)",
           border: "1px solid rgba(255, 255, 255, 0.2)"
         }}>
-        {loading && <Spin style={{ display: 'block', margin: '12px auto' }} />}    
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Card className="metric-card" style={{
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-              border: "none",
-              boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-              color: "white"
-            }}>
-              <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBooks")}</span>} 
-                value={metrics.books}
-                prefix={<BookOutlined style={{ color: "white" }} />} 
-                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Card className="metric-card" style={{
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #10b981, #059669)",
-              border: "none",
-              boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
-              color: "white"
-            }}>
-              <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeReaders")}</span>} 
-                value={metrics.activeReaders} 
-                prefix={<TeamOutlined style={{ color: "white" }} />} 
-                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Card className="metric-card" style={{
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #f59e0b, #d97706)",
-              border: "none",
-              boxShadow: "0 8px 25px rgba(245, 158, 11, 0.3)",
-              color: "white"
-            }}>
-              <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBorrowed")}</span>} 
-                value={metrics.totalBorrowed} 
-                prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
-                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Card className="metric-card" style={{
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #ef4444, #dc2626)",
-              border: "none",
-              boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
-              color: "white"
-            }}>
-              <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks")}</span>} 
-                value={metrics.overdueBooks} 
-                prefix={<AlertOutlined style={{ color: "white" }} />} 
-                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Card className="metric-card" style={{
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #faad14, #d48806)",
-              border: "none",
-              boxShadow: "0 8px 25px rgba(250, 173, 20, 0.3)",
-              color: "white"
-            }}>
-              <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.pendingRequests")}</span>} 
-                value={metrics.pendingRequests} 
-                prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
-                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Card className="metric-card" style={{
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #52C41A, #3f9f14)",
-              border: "none",
-              boxShadow: "0 8px 25px rgba(82, 196, 26, 0.3)",
-              color: "white"
-            }}>
-              <Statistic 
-                title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.onTimeRate")}</span>} 
-                value={metrics.onTimeRate} 
-                suffix="%"
-                prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
-                valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-              />
-            </Card>
-          </Col>
-        </Row>
-
-        <Divider />
+        {loading && <Spin style={{ display: 'block', margin: '12px auto' }} />}
 
         <Row gutter={[16, 16]}>
           <Col xs={24} md={12}>

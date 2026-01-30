@@ -29,7 +29,7 @@ import dayjs from "dayjs";
 import { useLanguage } from "../contexts/LanguageContext";
 import { getAllFeedback, replyFeedback } from "../api";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text: AntText, Paragraph } = Typography;
 const { TextArea } = Input;
 const { useBreakpoint } = Grid;
 
@@ -140,8 +140,8 @@ function AdminFeedbackPage() {
       width: 150,
       render: (text, record) => (
         <Space direction="vertical" size={0}>
-          <Text strong>{text || "Unknown"}</Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>{record.email}</Text>
+          <AntText strong>{text || "Unknown"}</AntText>
+          <AntText type="secondary" style={{ fontSize: 12 }}>{record.email}</AntText>
         </Space>
       )
     },
@@ -197,9 +197,9 @@ function AdminFeedbackPage() {
             <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
               {t("feedback.management") || "Feedback Management"}
             </Title>
-            <Text type="secondary" style={{ display: "block", marginTop: 8 }}>
+            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
               {t("feedback.subtitle") || "View and reply to user feedback and inquiries"}
-            </Text>
+            </AntText>
             
             {/* 📊 Statistic Cards */}
             <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
@@ -296,9 +296,9 @@ function AdminFeedbackPage() {
               <Space align="start">
                 {getTypeIcon(currentFeedback.type)}
                 <div>
-                  <Text type="secondary" style={{ fontSize: 12 }}>
+                  <AntText type="secondary" style={{ fontSize: 12 }}>
                     {dayjs(currentFeedback.createdAt).format("YYYY-MM-DD HH:mm")} - {currentFeedback.user?.name}
-                  </Text>
+                  </AntText>
                   <Paragraph style={{ margin: "4px 0 0 0" }}>
                     {currentFeedback.content}
                   </Paragraph>
@@ -307,7 +307,7 @@ function AdminFeedbackPage() {
             </Card>
 
             <div>
-              <Text strong style={{ display: "block", marginBottom: 8 }}>{t("feedback.yourReply")}:</Text>
+              <AntText strong style={{ display: "block", marginBottom: 8 }}>{t("feedback.yourReply")}:</AntText>
               <TextArea
                 rows={6}
                 value={replyContent}

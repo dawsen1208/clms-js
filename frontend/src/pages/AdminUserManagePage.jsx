@@ -44,7 +44,7 @@ import {
 import "./AdminUserManagePage.css"; // ✅ animation styles
 import { useLanguage } from "../contexts/LanguageContext";
 
-const { Paragraph, Title, Text } = Typography;
+const { Paragraph, Title, Text: AntText } = Typography;
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8854d0"];
 const { useBreakpoint } = Grid;
 
@@ -324,7 +324,7 @@ const AdminUserManagePage = () => {
         title={
           <div className="page-header">
             <Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("admin.userManage")}</Title>
-            <Text type="secondary">{t("admin.persona")}</Text>
+            <AntText type="secondary">{t("admin.persona")}</AntText>
             <Row gutter={[16, 16]} style={{ marginTop: 16, marginBottom: 16 }}>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card style={{
