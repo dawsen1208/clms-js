@@ -123,7 +123,7 @@ function AdminMenu({ onLogout, children }) {
       { key: "requests", icon: <DatabaseOutlined />, label: t("admin.applicationManagement") || "App Mgmt" },
       { key: "borrow", icon: <DatabaseOutlined />, label: t("admin.borrowManagement") || "Borrow Mgmt" },
       { key: "users", icon: <TeamOutlined />, label: t("admin.userManage") },
-      { key: "feedback", icon: <MessageOutlined />, label: t("feedback.title") },
+      { key: "feedback", icon: <MessageOutlined />, label: t("feedback.adminTitle") },
       { key: "profile", icon: <UserOutlined />, label: t("common.profile") },
       { key: "settings", icon: <SettingOutlined />, label: t("common.settings") },
     ];
@@ -239,7 +239,7 @@ function AdminMenu({ onLogout, children }) {
             { 
               key: "feedback", 
               icon: <MessageOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("feedback.title")}</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("feedback.adminTitle")}</span>
             },
             { 
               key: "profile", 
@@ -285,7 +285,7 @@ function AdminMenu({ onLogout, children }) {
             { 
               key: "feedback", 
               icon: <MessageOutlined style={{ fontSize: '18px' }} />, 
-              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("feedback.title")}</span>
+              label: <span style={{ fontSize: '14px', fontWeight: 500 }}>{t("feedback.adminTitle")}</span>
             },
             { 
               key: "profile", 

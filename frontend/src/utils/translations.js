@@ -312,7 +312,8 @@ export const translations = {
       viewAll: "View All Notifications"
     },
     feedback: {
-      title: "Feedback Management",
+      title: "Feedback",
+      adminTitle: "Feedback Management",
       subtitle: "View and reply to user feedback and inquiries",
       management: "Management",
       tabAll: "All",
@@ -1224,7 +1225,8 @@ export const translations = {
       viewAll: "查看所有通知"
     },
     feedback: {
-      title: "反馈管理",
+      title: "反馈",
+      adminTitle: "反馈管理",
       subtitle: "查看并回复用户反馈与咨询",
       management: "管理",
       tabAll: "全部",
