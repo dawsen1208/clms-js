@@ -289,6 +289,7 @@ function AdminFeedbackPage() {
         onOk={handleReplySubmit}
         confirmLoading={submitting}
         okText={t("feedback.sendReply")}
+        cancelText={t("common.cancel")}
       >
         {currentFeedback && (
           <Space direction="vertical" style={{ width: "100%" }} size="middle">
