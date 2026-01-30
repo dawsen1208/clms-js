@@ -175,6 +175,7 @@ export const rejectRequestLibrary = async (req, res) => {
 export const markBookReturned = async (req, res) => {
   try {
     const { borrowRecordId, userId, bookId } = req.body;
+    console.log("📥 归还请求:", { borrowRecordId, userId, bookId });
 
     let record;
     if (borrowRecordId) {
@@ -201,12 +202,17 @@ export const markBookReturned = async (req, res) => {
     record.returnedAt = new Date();
     await record.save();
 
-    // 2. 更新库存
-    // 注意：record.bookId 可能是字符串也可能是 ObjectId，这里建议统一处理
-    // 但 Mongoose findById 通常能处理字符串 ID
-    const bookUpdateId = mongoose.Types.ObjectId.isValid(record.bookId) ? record.bookId : record.bookId;
-    
-    await Book.findByIdAndUpdate(bookUpdateId, { $inc: { copies: 1 } });
+    // 2. 更新库存 (防御性编程)
+    if (record.bookId) {
+        try {
+            const bookUpdateId = mongoose.Types.ObjectId.isValid(record.bookId) ? record.bookId : record.bookId;
+            await Book.findByIdAndUpdate(bookUpdateId, { $inc: { copies: 1 } });
+        } catch (bookErr) {
+            console.error("⚠️ 更新库存失败 (非致命):", bookErr);
+        }
+    } else {
+        console.warn("⚠️ 借阅记录无 bookId, 跳过库存更新:", record._id);
+    }
 
     // 3. 检查逾期并更新用户信用
     const now = new Date();
@@ -230,19 +236,23 @@ export const markBookReturned = async (req, res) => {
     }
 
     // 4. 创建历史记录
-    await BorrowHistory.create({
-        userId: record.userId,
-        bookId: record.bookId,
-        bookTitle: record.bookTitle,
-        bookAuthor: record.bookAuthor,
-        action: "return",
-        borrowDate: record.borrowedAt,
-        dueDate: record.dueDate,
-        returnDate: now,
-        isRenewed: record.renewed,
-        userName: record.userName,
-        renewCount: record.renewCount
-    });
+    try {
+        await BorrowHistory.create({
+            userId: record.userId,
+            bookId: record.bookId,
+            bookTitle: record.bookTitle,
+            bookAuthor: record.bookAuthor,
+            action: "return",
+            borrowDate: record.borrowedAt,
+            dueDate: record.dueDate,
+            returnDate: now,
+            isRenewed: record.renewed,
+            userName: record.userName,
+            renewCount: record.renewCount
+        });
+    } catch (histErr) {
+        console.error("❌ 创建历史记录失败 (非致命):", histErr);
+    }
 
     res.json({ message: "归还成功", record });
 

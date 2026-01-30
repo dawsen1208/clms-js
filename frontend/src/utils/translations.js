@@ -1481,6 +1481,7 @@ export const translations = {
       libraryAdmin: "图书馆管理员"
     },
     admin: {
+      confirm: "确认", // Added
      settings: "设置",
      totalRequests: "总申请数",
      borrowManage: "借阅管理",
