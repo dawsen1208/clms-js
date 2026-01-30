@@ -177,7 +177,9 @@ function App() {
     baseFontSize = appearance.fontSize === "large" ? (isMobile ? 15 : 16) : (isMobile ? 13 : 14);
   }
 
-  const algorithm = isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
+  // 🎨 Determine Algorithm
+  // If High Contrast is enabled, ALWAYS use Dark Algorithm to ensure proper contrast with the forced black background
+  const algorithm = (appearance.highContrast || isDark) ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
 
   // 🎨 Dynamic Background Logic
   const isHome = location.pathname === '/home' || location.pathname === '/';
@@ -199,16 +201,20 @@ function App() {
   }, [baseFontSize, appearance.highContrast]);
 
   const themeTokens = {
-    colorPrimary: appearance.highContrast ? (isDark ? '#FFFF00' : '#0000CD') : resolvePrimary(),
-    colorInfo: appearance.highContrast ? (isDark ? '#FFFF00' : '#0000CD') : resolvePrimary(),
+    // ♿ High Contrast: Force Black BG + Yellow/White Text regardless of Light/Dark mode
+    colorPrimary: appearance.highContrast ? '#FFFF00' : resolvePrimary(),
+    colorInfo: appearance.highContrast ? '#FFFF00' : resolvePrimary(),
     colorSuccess: appearance.highContrast ? '#00FF00' : '#52C41A',
     colorWarning: appearance.highContrast ? '#FFA500' : '#FAAD14',
     colorError: appearance.highContrast ? '#FF0000' : '#FF4D4F',
-    colorText: appearance.highContrast ? (isDark ? '#FFFFFF' : '#000000') : (isDark ? '#E6E6E6' : '#1F2937'),
-    colorTextSecondary: appearance.highContrast ? (isDark ? '#FFFFFF' : '#000000') : (isDark ? '#CFCFCF' : '#6B7280'),
-    colorBgContainer: appearance.highContrast ? (isDark ? '#000000' : '#FFFFFF') : (isDark ? '#141414' : '#FFFFFF'),
-    colorBgLayout: appearance.highContrast ? (isDark ? '#000000' : '#FFFFFF') : (customBg || (isDark ? '#0b0b0b' : '#F5F7FA')),
-    colorBorder: appearance.highContrast ? (isDark ? '#FFFFFF' : '#000000') : '#E5EAF2',
+    
+    // Force Dark High Contrast Colors
+    colorText: appearance.highContrast ? '#FFFFFF' : (isDark ? '#E6E6E6' : '#1F2937'),
+    colorTextSecondary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#CFCFCF' : '#6B7280'),
+    colorBgContainer: appearance.highContrast ? '#000000' : (isDark ? '#141414' : '#FFFFFF'),
+    colorBgLayout: appearance.highContrast ? '#000000' : (customBg || (isDark ? '#0b0b0b' : '#F5F7FA')),
+    colorBorder: appearance.highContrast ? '#FFFFFF' : '#E5EAF2',
+    
     borderRadius: appearance.highContrast ? 0 : 12, // Remove radius for HC
     boxShadow: appearance.highContrast ? 'none' : '0 4px 12px rgba(0,0,0,0.08)',
     controlHeight: isMobile ? 32 : 36,

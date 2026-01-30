@@ -20,31 +20,14 @@
 }
 
 /* ♿ High Contrast Mode Overrides */
+/* Note: Colors are mainly handled by Ant Design Tokens in main.jsx now */
 body.high-contrast {
   background-color: #000000 !important;
-  color: #ffffff !important;
+  color: #ffffff; /* Default text color, but allow components to override */
 }
 
 body.high-contrast .ant-layout {
   background-color: #000000 !important;
-}
-
-body.high-contrast h1, 
-body.high-contrast h2, 
-body.high-contrast h3, 
-body.high-contrast h4, 
-body.high-contrast h5, 
-body.high-contrast h6,
-body.high-contrast span,
-body.high-contrast div,
-body.high-contrast p {
-  color: #ffffff !important;
-}
-
-/* Ensure links are visible */
-body.high-contrast a {
-  color: #ffff00 !important;
-  text-decoration: underline;
 }
 
 /* Make buttons pop */
@@ -54,8 +37,8 @@ body.high-contrast .ant-btn-primary {
   border: 2px solid #ffffff !important;
 }
 
+/* Card borders for visibility */
 body.high-contrast .ant-card {
-  background-color: #141414 !important;
   border: 1px solid #ffffff !important;
 }
 
