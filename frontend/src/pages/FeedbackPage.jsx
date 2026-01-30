@@ -195,8 +195,8 @@ function FeedbackPage() {
                     {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
                   </Text>
                 </Space>
-                <Tag color={item.status === "closed" ? "green" : "orange"} icon={item.status === "closed" ? <CheckCircleOutlined /> : <SyncOutlined spin />}>
-                  {item.status === "closed" ? t("feedback.closed") : t("feedback.open")}
+                <Tag color={item.status === "Replied" ? "green" : "orange"} icon={item.status === "Replied" ? <CheckCircleOutlined /> : <SyncOutlined spin />}>
+                  {item.status === "Replied" ? t("feedback.closed") : t("feedback.open")}
                 </Tag>
               </div>
 
@@ -209,7 +209,7 @@ function FeedbackPage() {
                   <Space align="start">
                     <Avatar icon={<RobotOutlined />} style={{ backgroundColor: "#52c41a" }} size="small" />
                     <div>
-                      <Text strong style={{ color: "#389e0d" }}>{t("feedback.reply")}:</Text>
+                      <Text strong style={{ color: "#389e0d" }}>{t("feedback.adminReply")}:</Text>
                       <Paragraph style={{ margin: "4px 0 0 0", color: "#389e0d" }}>
                         {item.reply}
                       </Paragraph>
