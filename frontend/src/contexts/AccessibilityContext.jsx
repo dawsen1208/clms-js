@@ -37,28 +37,63 @@ export const AccessibilityProvider = ({ children }) => {
   useEffect(() => {
     if (!prefs.ttsEnabled) return;
 
-    const handleInteraction = (e) => {
-      const target = e.target;
-      if (!target || typeof target.getAttribute !== 'function') return;
+    let debounceTimer;
 
-      // Priority: aria-label > title > alt > innerText (if short)
-      const text = target.getAttribute("aria-label") || 
-                   target.getAttribute("title") || 
-                   target.getAttribute("alt") || 
-                   (target.innerText && target.innerText.length < 50 ? target.innerText : "");
+    const handleInteraction = (e) => {
+      let target = e.target;
       
+      // 1. Handle Text Nodes (Node.TEXT_NODE === 3)
+      if (target.nodeType === 3) {
+        target = target.parentElement;
+      }
+
+      if (!target) return;
+
+      // 2. Find meaningful text (Traverse up slightly to find accessible labels)
+      let text = "";
+      let current = target;
+      let depth = 0;
+
+      while (current && depth < 3) {
+        if (current.getAttribute) { // Check if element has attributes
+          text = current.getAttribute("aria-label") || 
+                 current.getAttribute("title") || 
+                 current.getAttribute("alt");
+          if (text) break;
+        }
+        current = current.parentElement;
+        depth++;
+      }
+
+      // 3. Fallback to direct text content if no label found
+      if (!text && target.innerText && target.innerText.trim().length > 0 && target.innerText.length < 100) {
+        // Ignore container elements that might contain a lot of text
+        // Only read if it looks like a leaf node or simple container
+        if (!target.children.length || target.children.length < 3) {
+           text = target.innerText.trim();
+        }
+      }
+
       if (text) {
-        speak(text);
+        // 4. Debounce to prevent "choppy" audio when moving mouse quickly
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+           speak(text);
+        }, 300); 
       }
     };
 
     // Listen to focus and mouseover for exploration
     document.addEventListener('focusin', handleInteraction);
-    document.addEventListener('mouseenter', handleInteraction, true);
+    // Use mouseover (bubbling) instead of mouseenter (capture) for better target resolution
+    // But mouseover bubbles, so we might get many events. 
+    // Actually mouseover is better than mouseenter capture for traversing up.
+    document.addEventListener('mouseover', handleInteraction);
 
     return () => {
       document.removeEventListener('focusin', handleInteraction);
-      document.removeEventListener('mouseenter', handleInteraction, true);
+      document.removeEventListener('mouseover', handleInteraction);
+      clearTimeout(debounceTimer);
       window.speechSynthesis.cancel();
     };
   }, [prefs.ttsEnabled]);

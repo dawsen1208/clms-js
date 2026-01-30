@@ -23,6 +23,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
+  const handleUpdate = (updates) => {
+    if (onChange) {
+      onChange({ ...appearance, ...updates });
+    }
+  };
+
   const [email, setEmail] = useState("");
   const [boundEmail, setBoundEmail] = useState(user?.email || "");
   const [emailCode, setEmailCode] = useState("");
