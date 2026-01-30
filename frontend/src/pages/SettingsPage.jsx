@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState, useCallback } from "react";
 import { Card, Typography, Radio, Space, Divider, Input, Switch, Form, Button, Table, Tag, message, Select, InputNumber, Checkbox, Tabs, Grid, Modal, ColorPicker, Slider, Row, Col, theme } from "antd";
 import { 
   LockOutlined, DesktopOutlined, DeleteOutlined, SafetyCertificateOutlined,
@@ -23,11 +23,13 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
-  const handleUpdate = (updates) => {
+  // ✅ Fix: Use useCallback and ensure handleUpdate is available
+  const handleUpdate = useCallback((updates) => {
     if (onChange) {
-      onChange({ ...appearance, ...updates });
+      console.log('SettingsPage: handleUpdate called', updates);
+      onChange(prev => ({ ...prev, ...updates }));
     }
-  };
+  }, [onChange]);
 
   const [email, setEmail] = useState("");
   const [boundEmail, setBoundEmail] = useState(user?.email || "");
@@ -483,6 +485,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                       saveAccessibility({ accessibilityMode: v });
                       // Sync with Appearance settings for immediate visual feedback
                       if (onChange) {
+                        console.log('Syncing accessibility mode to appearance:', v);
                         onChange(prev => ({
                           ...prev,
                           highContrast: v,
