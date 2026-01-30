@@ -39,6 +39,8 @@ export const AccessibilityProvider = ({ children }) => {
 
     const handleInteraction = (e) => {
       const target = e.target;
+      if (!target || typeof target.getAttribute !== 'function') return;
+
       // Priority: aria-label > title > alt > innerText (if short)
       const text = target.getAttribute("aria-label") || 
                    target.getAttribute("title") || 
