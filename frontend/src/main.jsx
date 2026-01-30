@@ -211,10 +211,25 @@ function App() {
     // Force Dark High Contrast Colors
     colorText: appearance.highContrast ? '#FFFFFF' : (isDark ? '#E6E6E6' : '#1F2937'),
     colorTextSecondary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#CFCFCF' : '#6B7280'),
+    colorTextTertiary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#BFBFBF' : '#9CA3AF'),
+    colorTextQuaternary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#A6A6A6' : '#D1D5DB'),
+    colorTextPlaceholder: appearance.highContrast ? '#D1D5DB' : (isDark ? '#6B7280' : '#9CA3AF'),
+    
     colorBgContainer: appearance.highContrast ? '#000000' : (isDark ? '#141414' : '#FFFFFF'),
     colorBgLayout: appearance.highContrast ? '#000000' : (customBg || (isDark ? '#0b0b0b' : '#F5F7FA')),
-    colorBorder: appearance.highContrast ? '#FFFFFF' : '#E5EAF2',
+    colorBgElevated: appearance.highContrast ? '#000000' : (isDark ? '#1f1f1f' : '#FFFFFF'),
+    colorBgSpotlight: appearance.highContrast ? '#000000' : (isDark ? '#1f1f1f' : '#000000'),
     
+    colorBorder: appearance.highContrast ? '#FFFFFF' : '#E5EAF2',
+    colorBorderSecondary: appearance.highContrast ? '#FFFFFF' : '#F0F0F0',
+    colorSplit: appearance.highContrast ? '#FFFFFF' : 'rgba(5, 5, 5, 0.06)',
+    
+    controlItemBgActive: appearance.highContrast ? '#333333' : (isDark ? '#111b26' : '#e6f7ff'),
+    controlItemBgHover: appearance.highContrast ? '#1f1f1f' : (isDark ? '#303030' : '#f5f5f5'),
+    
+    colorIcon: appearance.highContrast ? '#FFFFFF' : (isDark ? '#E6E6E6' : '#1F2937'),
+    colorIconHover: appearance.highContrast ? '#FFFF00' : (isDark ? '#FFFFFF' : '#000000'),
+
     borderRadius: appearance.highContrast ? 0 : 12, // Remove radius for HC
     boxShadow: appearance.highContrast ? 'none' : '0 4px 12px rgba(0,0,0,0.08)',
     controlHeight: isMobile ? 32 : 36,
@@ -291,16 +306,16 @@ function App() {
           <Route path="/register-admin" element={<RegisterAdmin />} />
 
           {/* ✅ User Routes */}
-          <Route path="/home" element={<UserLayoutWrapper><HomePage /></UserLayoutWrapper>} />
-          <Route path="/search" element={<UserLayoutWrapper><SearchPage /></UserLayoutWrapper>} />
-          <Route path="/borrow" element={<UserLayoutWrapper><BorrowPage /></UserLayoutWrapper>} />
-          <Route path="/return" element={<UserLayoutWrapper><ReturnPage /></UserLayoutWrapper>} />
-          <Route path="/profile" element={<UserLayoutWrapper><ProfilePage user={user} /></UserLayoutWrapper>} />
-          <Route path="/assistant" element={<UserLayoutWrapper><SmartAssistant /></UserLayoutWrapper>} />
+          <Route path="/home" element={<UserLayoutWrapper><HomePage appearance={appearance} /></UserLayoutWrapper>} />
+          <Route path="/search" element={<UserLayoutWrapper><SearchPage appearance={appearance} /></UserLayoutWrapper>} />
+          <Route path="/borrow" element={<UserLayoutWrapper><BorrowPage appearance={appearance} /></UserLayoutWrapper>} />
+          <Route path="/return" element={<UserLayoutWrapper><ReturnPage appearance={appearance} /></UserLayoutWrapper>} />
+          <Route path="/profile" element={<UserLayoutWrapper><ProfilePage user={user} appearance={appearance} /></UserLayoutWrapper>} />
+          <Route path="/assistant" element={<UserLayoutWrapper><SmartAssistant appearance={appearance} /></UserLayoutWrapper>} />
           <Route path="/settings" element={<UserLayoutWrapper><SettingsPage appearance={appearance} onChange={setAppearance} user={user} onUserUpdate={setUser} /></UserLayoutWrapper>} />
-          <Route path="/book/:id" element={<UserLayoutWrapper><BookDetail /></UserLayoutWrapper>} />
-          <Route path="/feedback" element={<UserLayoutWrapper><FeedbackPage /></UserLayoutWrapper>} />
-          <Route path="/notifications" element={<UserLayoutWrapper><NotificationPage /></UserLayoutWrapper>} />
+          <Route path="/book/:id" element={<UserLayoutWrapper><BookDetail appearance={appearance} /></UserLayoutWrapper>} />
+          <Route path="/feedback" element={<UserLayoutWrapper><FeedbackPage appearance={appearance} /></UserLayoutWrapper>} />
+          <Route path="/notifications" element={<UserLayoutWrapper><NotificationPage appearance={appearance} /></UserLayoutWrapper>} />
 
           {/* ✅ Admin Routes */}
           <Route path="/admin/dashboard" element={<AdminLayoutWrapper><AdminDashboard /></AdminLayoutWrapper>} />

@@ -504,13 +504,13 @@ function SearchPage() {
                   <div className="text-clamp-2" style={{ fontSize: "18px", fontWeight: "700", color: "#1e293b", marginBottom: "8px", lineHeight: "1.4" }}>
                     {book.title}
                   </div>
-                  <div className="text-clamp-1" style={{ fontSize: "15px", color: "#64748b", marginBottom: "12px" }}>
+                  <div className="text-clamp-1" style={{ fontSize: "15px", color: appearance?.highContrast ? "#FFFFFF" : "#64748b", marginBottom: "12px" }}>
                     {book.author}
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                     <Tag style={{ margin: 0, border: 'none', background: '#f1f5f9', color: '#64748b' }}>{book.publishedYear}</Tag>
-                     <div style={{ fontSize: "13px", color: book.copies > 0 ? "#10b981" : "#ef4444", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
-                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: book.copies > 0 ? "#10b981" : "#ef4444" }}></div>
+                     <Tag style={{ margin: 0, border: appearance?.highContrast ? '1px solid #FFF' : 'none', background: appearance?.highContrast ? '#000' : '#f1f5f9', color: appearance?.highContrast ? '#FFF' : '#64748b' }}>{book.publishedYear}</Tag>
+                     <div style={{ fontSize: "13px", color: book.copies > 0 ? (appearance?.highContrast ? "#00FF00" : "#10b981") : "#ef4444", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: book.copies > 0 ? (appearance?.highContrast ? "#00FF00" : "#10b981") : "#ef4444" }}></div>
                         {book.copies > 0 ? `${book.copies} ${t("search.left")}` : t("search.out")}
                      </div>
                   </div>

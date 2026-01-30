@@ -555,8 +555,8 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                  <Modal title={t("settings.themeMode")} open={themeModeModalOpen} onCancel={() => setThemeModeModalOpen(false)} footer={null}>
                      <Radio.Group value={appearance?.mode || 'light'} onChange={(e) => handleUpdate({ mode: e.target.value })} style={{ width: '100%' }}>
                        <Space direction="vertical" style={{ width: '100%' }}>
-                          <Radio value="light" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.light")}</Radio>
-                          <Radio value="dark" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.dark")}</Radio>
+                             <Radio value="light" style={{ padding: 12, border: '1px solid ' + token.colorBorder, borderRadius: 8, width: '100%' }}>{t("settings.light")}</Radio>
+                             <Radio value="dark" style={{ padding: 12, border: '1px solid ' + token.colorBorder, borderRadius: 8, width: '100%' }}>{t("settings.dark")}</Radio>
                        </Space>
                      </Radio.Group>
                 </Modal>
@@ -572,10 +572,10 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                     <Space direction="vertical" style={{ width: '100%' }}>
                         <Radio.Group value={tempThemeColor || 'blue'} onChange={(e) => setTempThemeColor(e.target.value)} style={{ width: '100%' }}>
                           <Space direction="vertical" style={{ width: '100%' }}>
-                             <Radio value="blue" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.blue")}</Radio>
-                             <Radio value="purple" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.purple")}</Radio>
-                             <Radio value="green" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.green")}</Radio>
-                             <Radio value="custom" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.custom")}</Radio>
+                             <Radio value="blue" style={{ padding: 12, border: '1px solid ' + token.colorBorder, borderRadius: 8, width: '100%' }}>{t("settings.blue")}</Radio>
+                             <Radio value="purple" style={{ padding: 12, border: '1px solid ' + token.colorBorder, borderRadius: 8, width: '100%' }}>{t("settings.purple")}</Radio>
+                             <Radio value="green" style={{ padding: 12, border: '1px solid ' + token.colorBorder, borderRadius: 8, width: '100%' }}>{t("settings.green")}</Radio>
+                             <Radio value="custom" style={{ padding: 12, border: '1px solid ' + token.colorBorder, borderRadius: 8, width: '100%' }}>{t("settings.custom")}</Radio>
                           </Space>
                         </Radio.Group>
                         {tempThemeColor === 'custom' && (
@@ -944,9 +944,9 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.operationPrefs")}</Title>}>
                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgContainer, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
                         <Space>
-                            <SettingOutlined style={{ fontSize: 20, color: '#722ed1' }} />
+                            <SettingOutlined style={{ fontSize: 20, color: token.colorInfo }} />
                             <Text strong>{t("settings.showAdvanced")}</Text>
                         </Space>
                         <Switch checked={!!operationPrefs.showAdvanced} onChange={(v) => saveOperation({ showAdvanced: v })} />

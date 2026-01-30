@@ -39,7 +39,115 @@ body.high-contrast .ant-btn-primary {
 
 /* Card borders for visibility */
 body.high-contrast .ant-card {
+  background-color: #000000 !important;
   border: 1px solid #ffffff !important;
+}
+
+body.high-contrast .ant-card-head {
+  border-bottom: 1px solid #ffffff !important;
+  color: #ffffff !important;
+}
+
+body.high-contrast .ant-card-body {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* 🛑 Stop Gradients in High Contrast */
+body.high-contrast [style*="linear-gradient"] {
+  background: #000000 !important;
+  border: 1px solid #ffffff !important;
+  box-shadow: none !important;
+}
+
+/* 🛑 Stop Hardcoded Backgrounds */
+body.high-contrast [style*="background:"],
+body.high-contrast [style*="background-color:"] {
+  /* Use specificity to target divs that are likely containers */
+  /* This is risky if it targets too much, but needed for the "many backgrounds" issue */
+}
+
+/* Specific Component Overrides */
+
+/* Inputs & Selects */
+body.high-contrast .ant-input,
+body.high-contrast .ant-select-selector,
+body.high-contrast .ant-input-affix-wrapper,
+body.high-contrast .ant-picker,
+body.high-contrast .ant-input-number,
+body.high-contrast .ant-input-search {
+  background-color: #000000 !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+}
+
+body.high-contrast .ant-select-item {
+  color: #ffffff !important;
+}
+body.high-contrast .ant-select-item-option-selected {
+  background-color: #333333 !important;
+  color: #ffff00 !important;
+}
+
+/* Tags */
+body.high-contrast .ant-tag {
+  background-color: #000000 !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Modals & Dropdowns */
+body.high-contrast .ant-modal-content,
+body.high-contrast .ant-modal-header,
+body.high-contrast .ant-dropdown-menu,
+body.high-contrast .ant-popover-inner {
+  background-color: #000000 !important;
+  border: 1px solid #ffffff !important;
+  color: #ffffff !important;
+}
+
+/* Typography */
+body.high-contrast h1,
+body.high-contrast h2,
+body.high-contrast h3,
+body.high-contrast h4,
+body.high-contrast h5,
+body.high-contrast .ant-typography {
+  color: #ffffff !important;
+}
+
+body.high-contrast .ant-typography-secondary {
+  color: #ffffff !important;
+}
+
+/* Table */
+body.high-contrast .ant-table {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+body.high-contrast .ant-table-thead > tr > th {
+  background: #111111 !important;
+  color: #ffff00 !important;
+  border-bottom: 1px solid #ffffff !important;
+}
+body.high-contrast .ant-table-tbody > tr > td {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid #333 !important;
+}
+body.high-contrast .ant-table-row:hover > td {
+  background: #333333 !important;
+}
+
+/* Statistics & Icons */
+body.high-contrast .ant-statistic-title {
+  color: #ffffff !important;
+}
+body.high-contrast .ant-statistic-content {
+  color: #ffff00 !important;
+}
+body.high-contrast .anticon {
+  color: #ffff00 !important;
 }
 
 /* Fix modern title in HC mode */
