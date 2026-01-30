@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 
 const AccessibilityContext = createContext();
 
@@ -14,6 +14,13 @@ export const AccessibilityProvider = ({ children }) => {
     }
   });
 
+  // Use a ref to track enabled state to prevent stale closures in event listeners/timeouts
+  const ttsEnabledRef = useRef(prefs.ttsEnabled);
+
+  useEffect(() => {
+    ttsEnabledRef.current = prefs.ttsEnabled;
+  }, [prefs.ttsEnabled]);
+
   const updatePrefs = (newPrefs) => {
     const next = { ...prefs, ...newPrefs };
     setPrefs(next);
@@ -21,7 +28,9 @@ export const AccessibilityProvider = ({ children }) => {
   };
 
   const speak = (text) => {
-    if (!prefs.ttsEnabled || !text) return;
+    // strict check against ref to ensure we never speak if disabled
+    if (!ttsEnabledRef.current || !text) return;
+    
     // Cancel previous
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
@@ -35,11 +44,18 @@ export const AccessibilityProvider = ({ children }) => {
 
   // 🗣️ Global TTS Listener
   useEffect(() => {
-    if (!prefs.ttsEnabled) return;
+    // If disabled, ensure any ongoing speech is cancelled immediately
+    if (!prefs.ttsEnabled) {
+      window.speechSynthesis.cancel();
+      return;
+    }
 
     let debounceTimer;
 
     const handleInteraction = (e) => {
+      // Double check ref to be safe
+      if (!ttsEnabledRef.current) return;
+
       let target = e.target;
       
       // 1. Handle Text Nodes (Node.TEXT_NODE === 3)
@@ -76,10 +92,13 @@ export const AccessibilityProvider = ({ children }) => {
 
       if (text) {
         // 4. Debounce to prevent "choppy" audio when moving mouse quickly
+        // Reduced to 100ms for more timely feedback as requested
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
-           speak(text);
-        }, 300); 
+           if (ttsEnabledRef.current) {
+             speak(text);
+           }
+        }, 100); 
       }
     };
 
