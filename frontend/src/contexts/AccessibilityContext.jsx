@@ -33,6 +33,34 @@ export const AccessibilityProvider = ({ children }) => {
     window.speechSynthesis.cancel();
   };
 
+  // 🗣️ Global TTS Listener
+  useEffect(() => {
+    if (!prefs.ttsEnabled) return;
+
+    const handleInteraction = (e) => {
+      const target = e.target;
+      // Priority: aria-label > title > alt > innerText (if short)
+      const text = target.getAttribute("aria-label") || 
+                   target.getAttribute("title") || 
+                   target.getAttribute("alt") || 
+                   (target.innerText && target.innerText.length < 50 ? target.innerText : "");
+      
+      if (text) {
+        speak(text);
+      }
+    };
+
+    // Listen to focus and mouseover for exploration
+    document.addEventListener('focusin', handleInteraction);
+    document.addEventListener('mouseenter', handleInteraction, true);
+
+    return () => {
+      document.removeEventListener('focusin', handleInteraction);
+      document.removeEventListener('mouseenter', handleInteraction, true);
+      window.speechSynthesis.cancel();
+    };
+  }, [prefs.ttsEnabled]);
+
   // Sync with other tabs/windows
   useEffect(() => {
     const handleStorage = (e) => {

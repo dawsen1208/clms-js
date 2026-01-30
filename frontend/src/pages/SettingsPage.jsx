@@ -412,9 +412,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
 
   // avoid auto-calling session endpoint to prevent 404 in dev when backend not implemented
 
-  const handleUpdate = (patch) => {
-    onChange?.({ ...appearance, ...patch });
-  };
+
 
   return (
     <div className="settings-page" style={{ padding: isMobile ? "16px" : "24px", maxWidth: 1000, margin: "0 auto" }}>
