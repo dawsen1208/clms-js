@@ -12,7 +12,8 @@ import {
   Empty,
   Spin,
   Space,
-  Avatar
+  Avatar,
+  Modal
 } from "antd";
 import {
   MessageOutlined,
