@@ -235,6 +235,13 @@ function AdminBorrowPage() {
                 </Card>
               </Col>
             </Row>
+            
+            {/* Bulk Process Button Row */}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, marginTop: 16 }}>
+              <Button type="primary" onClick={handleBulkProcess}>
+                {t("admin.bulkProcess") || "Bulk Process"}
+              </Button>
+            </div>
           </div>
         }
         extra={
