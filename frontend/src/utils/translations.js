@@ -681,6 +681,7 @@ export const translations = {
       bulkProcess: "Bulk Process Pending",
       confirmReturnTitle: "Confirm Return",
       confirmReturn: "Return",
+      processed: "Processed",
       manageActiveBorrows: "Manage active borrows and returns",
       activeBorrows: "Active Borrows",
       failedToLoadBorrows: "Failed to load borrow records",

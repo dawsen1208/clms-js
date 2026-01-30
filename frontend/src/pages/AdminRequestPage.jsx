@@ -441,26 +441,33 @@ function AdminRequestPage() {
     {
       title: t("admin.actions"),
       key: "action",
-      render: (_, record) => (
-        <Space>
-          <Button
-            type="primary"
-            icon={<CheckCircleOutlined />}
-            onClick={() => handleApprove(record)}
-            disabled={record.status !== "pending"}
-          >
-            {t("admin.approve")}
-          </Button>
-          <Button
-            danger
-            icon={<CloseCircleOutlined />}
-            onClick={() => handleReject(record)}
-            disabled={record.status !== "pending"}
-          >
-            {t("admin.reject")}
-          </Button>
-        </Space>
-      ),
+      render: (_, record) => {
+        if (record.status !== "pending") {
+          return (
+            <Button disabled>
+              {t("admin.processed")}
+            </Button>
+          );
+        }
+        return (
+          <Space>
+            <Button
+              type="primary"
+              icon={<CheckCircleOutlined />}
+              onClick={() => handleApprove(record)}
+            >
+              {t("admin.approve")}
+            </Button>
+            <Button
+              danger
+              icon={<CloseCircleOutlined />}
+              onClick={() => handleReject(record)}
+            >
+              {t("admin.reject")}
+            </Button>
+          </Space>
+        );
+      },
     },
   ];
 
