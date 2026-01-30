@@ -1204,7 +1204,7 @@ export const translations = {
       viewAll: "查看所有通知"
     },
     feedback: {
-      title: "反馈中心",
+      title: "反馈管理",
       subtitle: "查看并回复用户反馈与咨询",
       submit: "提交反馈",
       myFeedback: "我的反馈历史",
@@ -1755,6 +1755,7 @@ export const translations = {
     },
     feedback: {
       title: "反馈管理",
+      subtitle: "查看并回复用户反馈与咨询",
       management: "管理",
       tabAll: "全部",
       tabPending: "待处理",

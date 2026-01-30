@@ -195,7 +195,7 @@ function AdminFeedbackPage() {
         title={
           <div className="page-header">
             <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-              {t("feedback.management") || "Feedback Management"}
+              {t("feedback.title") || "Feedback Management"}
             </Title>
             <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
               {t("feedback.subtitle") || "View and reply to user feedback and inquiries"}
