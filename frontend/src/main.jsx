@@ -279,7 +279,8 @@ function App() {
 
   return (
     <LanguageProvider>
-      <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={enUS} theme={{ token: themeTokens, algorithm }}>
+      <AccessibilityProvider>
+        <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={enUS} theme={{ token: themeTokens, algorithm }}>
         <Routes>
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/register" element={<RegisterReader />} />
