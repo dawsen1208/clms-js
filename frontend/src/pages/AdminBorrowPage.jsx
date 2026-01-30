@@ -41,6 +41,10 @@ function AdminBorrowPage() {
   const [records, setRecords] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [searchText, setSearchText] = useState("");
+  // 🆕 Batch Mode State
+  const [isBatchMode, setIsBatchMode] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
   
   const [modal, contextHolder] = Modal.useModal();
@@ -69,6 +73,12 @@ function AdminBorrowPage() {
      🔍 Search logic
      ========================================================= */
   useEffect(() => {
+    // 🔄 Auto-exit batch mode on filter/search change
+    if (isBatchMode) {
+      setIsBatchMode(false);
+      setSelectedRowKeys([]);
+    }
+
     let data = [...records];
     if (searchText.trim()) {
       const lower = searchText.toLowerCase();
@@ -116,9 +126,72 @@ function AdminBorrowPage() {
   /* =========================================================
      ⚙️ Bulk Process
      ========================================================= */
-  const handleBulkProcess = () => {
-    message.info(t("admin.featureComingSoon") || "Feature coming soon");
+  const enterBatchMode = () => {
+    setIsBatchMode(true);
+    setSelectedRowKeys([]);
   };
+
+  const exitBatchMode = () => {
+    setIsBatchMode(false);
+    setSelectedRowKeys([]);
+  };
+
+  const executeBulkProcess = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning(t("admin.selectAtLeastOne"));
+      return;
+    }
+
+    modal.confirm({
+      centered: true,
+      title: t("admin.bulkProcessTitle"),
+      content: t("admin.bulkProcessContent").replace("{count}", selectedRowKeys.length),
+      okText: t("admin.confirm"),
+      cancelText: t("admin.cancel"),
+      onOk: async () => {
+        const hide = message.loading(t("admin.processing"), 0);
+        let successCount = 0;
+        let failCount = 0;
+
+        try {
+          const promises = selectedRowKeys.map(async (id) => {
+             try {
+                await markBookReturned({ borrowRecordId: id }, token);
+                successCount++;
+             } catch (e) {
+                failCount++;
+             }
+          });
+
+          await Promise.all(promises);
+
+          if (failCount === 0) {
+            message.success(t("admin.bulkSuccess").replace("{count}", successCount));
+          } else {
+            message.warning(
+              t("admin.bulkPartialSuccess")
+                .replace("{success}", successCount)
+                .replace("{fail}", failCount)
+            );
+          }
+          
+          await fetchRecords();
+          exitBatchMode();
+        } catch (err) {
+          console.error("Bulk process error:", err);
+        } finally {
+          hide();
+        }
+      },
+    });
+  };
+
+  const rowSelection = isBatchMode
+    ? {
+        selectedRowKeys,
+        onChange: (keys) => setSelectedRowKeys(keys),
+      }
+    : undefined;
 
   /* =========================================================
      📋 Table columns
@@ -245,8 +318,15 @@ function AdminBorrowPage() {
             
             {/* Bulk Process Button Row */}
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, marginTop: 16 }}>
-              <Button type="primary" onClick={handleBulkProcess}>
-                {t("admin.bulkProcess") || "Bulk Process"}
+              {isBatchMode && (
+                <Button onClick={exitBatchMode}>
+                  {t("admin.cancelBulkMode")}
+                </Button>
+              )}
+              <Button type="primary" onClick={isBatchMode ? executeBulkProcess : enterBatchMode}>
+                {isBatchMode 
+                  ? `${t("admin.confirmBulkProcess")} (${selectedRowKeys.length})` 
+                  : t("admin.bulkProcess") || "Bulk Process"}
               </Button>
             </div>
           </div>
@@ -281,6 +361,10 @@ function AdminBorrowPage() {
           loading={loading}
           pagination={{ pageSize: 10, showTotal: (total) => `${t("admin.total")} ${total} ${t("admin.items")}` }}
           scroll={{ x: 800 }}
+          rowSelection={rowSelection}
+          onChange={(pagination, filters, sorter, extra) => {
+            if (isBatchMode) exitBatchMode();
+          }}
         />
       </Card>
     </div>

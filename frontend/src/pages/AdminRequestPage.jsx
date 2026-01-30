@@ -58,6 +58,10 @@ function AdminRequestPage() {
   const [searchText, setSearchText] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  // 🆕 Batch Mode State
+  const [isBatchMode, setIsBatchMode] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
   const approvalPrefs = (() => {
     try {
@@ -127,6 +131,12 @@ function AdminRequestPage() {
      🔍 Search / filter logic
      ========================================================= */
   useEffect(() => {
+    // 🔄 Auto-exit batch mode on filter/search change
+    if (isBatchMode) {
+      setIsBatchMode(false);
+      setSelectedRowKeys([]);
+    }
+
     let data = [...requests];
     if (searchText.trim()) {
       data = data.filter(
@@ -236,19 +246,72 @@ function AdminRequestPage() {
     await fetchRequests();
   };
 
-  const bulkProcessPending = async () => {
-    const pend = filtered.filter((r) => r.status === "pending");
-    for (const r of pend) {
-      try {
-        if (approvalPrefs.defaultBulkAction === "approve") {
-          await approveRequest(r._id, true, null, token);
-        } else {
-          await approveRequest(r._id, false, t("admin.bulkReject"), token);
-        }
-        beep();
-      } catch {}
+  /* =========================================================
+     ⚙️ Bulk Process Logic
+     ========================================================= */
+  const enterBatchMode = () => {
+    setIsBatchMode(true);
+    setSelectedRowKeys([]);
+  };
+
+  const exitBatchMode = () => {
+    setIsBatchMode(false);
+    setSelectedRowKeys([]);
+  };
+
+  const executeBulkProcess = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning(t("admin.selectAtLeastOne"));
+      return;
     }
-    await fetchRequests();
+
+    modal.confirm({
+      centered: true,
+      title: t("admin.bulkProcessTitle"),
+      content: t("admin.bulkProcessContent").replace("{count}", selectedRowKeys.length),
+      okText: t("admin.confirm"),
+      cancelText: t("admin.cancel"),
+      onOk: async () => {
+        const hide = message.loading(t("admin.processing"), 0);
+        let successCount = 0;
+        let failCount = 0;
+
+        try {
+          const promises = selectedRowKeys.map(async (id) => {
+             try {
+                if (approvalPrefs.defaultBulkAction === "approve") {
+                  await approveRequest(id, true, null, token);
+                } else {
+                  await approveRequest(id, false, t("admin.bulkReject"), token);
+                }
+                successCount++;
+             } catch (e) {
+                failCount++;
+             }
+          });
+
+          await Promise.all(promises);
+
+          if (failCount === 0) {
+            message.success(t("admin.bulkSuccess").replace("{count}", successCount));
+          } else {
+            message.warning(
+              t("admin.bulkPartialSuccess")
+                .replace("{success}", successCount)
+                .replace("{fail}", failCount)
+            );
+          }
+          
+          beep();
+          await fetchRequests();
+          exitBatchMode();
+        } catch (err) {
+          console.error("Bulk process error:", err);
+        } finally {
+          hide();
+        }
+      },
+    });
   };
 
   /* =========================================================
@@ -269,6 +332,19 @@ function AdminRequestPage() {
       </Tag>
     );
   };
+
+  /* =========================================================
+     ✅ Row Selection for Batch Mode
+     ========================================================= */
+  const rowSelection = isBatchMode
+    ? {
+        selectedRowKeys,
+        onChange: (keys) => setSelectedRowKeys(keys),
+        getCheckboxProps: (record) => ({
+          disabled: record.status !== "pending",
+        }),
+      }
+    : undefined;
 
   /* =========================================================
      📋 Table columns
@@ -481,11 +557,18 @@ function AdminRequestPage() {
 
             {/* Action Buttons Row */}
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, marginTop: 16 }}>
-              <Button onClick={autoProcessEligible}>
+              <Button onClick={autoProcessEligible} disabled={isBatchMode}>
                 {t("admin.autoProcess")}
               </Button>
-              <Button type="primary" onClick={bulkProcessPending}>
-                {t("admin.bulkProcess")}
+              {isBatchMode && (
+                <Button onClick={exitBatchMode}>
+                  {t("admin.cancelBulkMode")}
+                </Button>
+              )}
+              <Button type="primary" onClick={isBatchMode ? executeBulkProcess : enterBatchMode}>
+                {isBatchMode 
+                  ? `${t("admin.confirmBulkProcess")} (${selectedRowKeys.length})` 
+                  : t("admin.bulkProcess")}
               </Button>
             </div>
           </div>
@@ -541,6 +624,10 @@ function AdminRequestPage() {
           loading={loading}
           pagination={{ pageSize: 10, showTotal: (total) => `${t("admin.total")} ${total} ${t("admin.items")}` }}
           scroll={{ x: 800 }}
+          rowSelection={rowSelection}
+          onChange={(pagination, filters, sorter, extra) => {
+            if (isBatchMode) exitBatchMode();
+          }}
         />
       </Card>
     </div>
