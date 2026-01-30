@@ -16,6 +16,7 @@ const { useBreakpoint } = Grid;
 const { useToken } = theme;
 
 function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
+  console.log('SettingsPage Render:', { appearance, onChangeFn: !!onChange });
   const { language, setLanguage, t } = useLanguage(); // ✅ Use Language Hook
   const { ttsEnabled, accessibilityMode, updatePrefs } = useAccessibility();
   const { token } = useToken();

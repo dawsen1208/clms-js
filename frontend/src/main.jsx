@@ -53,7 +53,7 @@ import AdminFeedbackPage from "./pages/AdminFeedbackPage";
 import AdminProfilePage from "./pages/AdminProfilePage";
 import AdminSettingsPage from "./pages/AdminSettingsPage";
 
-console.log("✅ main.jsx loaded");
+console.log("✅ main.jsx loaded - Version: 2025-01-30 Fix Double Provider & HandleUpdate");
 
 // 🚫 强制注销 Service Worker 并清除缓存
 if ('serviceWorker' in navigator) {
@@ -278,11 +278,9 @@ function App() {
   );
 
   return (
-    <LanguageProvider>
-      <AccessibilityProvider>
-        <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={enUS} theme={{ token: themeTokens, algorithm }}>
-        <Routes>
-          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+    <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={enUS} theme={{ token: themeTokens, algorithm }}>
+      <Routes>
+        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/register" element={<RegisterReader />} />
           <Route path="/register-admin" element={<RegisterAdmin />} />
 
@@ -323,11 +321,9 @@ function App() {
                 <Navigate to="/login" replace />
               )
             }
-          />
-        </Routes>
-      </ConfigProvider>
-      </AccessibilityProvider>
-    </LanguageProvider>
+        />
+      </Routes>
+    </ConfigProvider>
   );
 }
 
