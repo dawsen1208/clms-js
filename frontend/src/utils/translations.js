@@ -310,6 +310,7 @@ export const translations = {
     },
     feedback: {
       title: "Feedback Management",
+      subtitle: "View and reply to user feedback and inquiries",
       management: "Management",
       tabAll: "All",
       tabPending: "Pending",
@@ -645,6 +646,7 @@ export const translations = {
       borrowManage: "Borrow Management",
       borrowManagement: "Borrow Management",
       bookManage: "Book Management",
+      bookManageSubtitle: "Manage library collection and inventory",
       userManage: "User Management",
       dashboard: "Dashboard",
       history: "Borrow History",
@@ -1203,6 +1205,7 @@ export const translations = {
     },
     feedback: {
       title: "反馈中心",
+      subtitle: "查看并回复用户反馈与咨询",
       submit: "提交反馈",
       myFeedback: "我的反馈历史",
       content: "反馈内容",
@@ -1408,6 +1411,7 @@ export const translations = {
       dashboard: "仪表盘",
       userManagement: "用户管理",
       bookManagement: "图书管理",
+      bookManageSubtitle: "管理馆藏书籍与库存信息",
       borrowHistory: "借阅历史",
       adminProfile: "管理员资料",
       registerAdmin: "注册管理员",
