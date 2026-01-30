@@ -1406,7 +1406,8 @@ export const translations = {
       ratingLabel: "评分 (0-5):",
       reviewLabel: "评论 (最多500字):",
       reviewPlaceholder: "写下您的阅读心得或建议...",
-      charsRemaining: "剩余 {count} 字符"
+      charsRemaining: "剩余 {count} 字符",
+      libraryAdmin: "图书馆管理员"
     },
     assistant: {
       title: "智能助手",
