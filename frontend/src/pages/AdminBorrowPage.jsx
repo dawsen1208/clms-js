@@ -114,6 +114,13 @@ function AdminBorrowPage() {
   };
 
   /* =========================================================
+     ⚙️ Bulk Process
+     ========================================================= */
+  const handleBulkProcess = () => {
+    message.info(t("admin.featureComingSoon") || "Feature coming soon");
+  };
+
+  /* =========================================================
      📋 Table columns
      ========================================================= */
   const columns = [
