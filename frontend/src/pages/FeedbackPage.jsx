@@ -42,6 +42,8 @@ function FeedbackPage() {
   // Form state
   const [type, setType] = useState("suggestion");
   const [content, setContent] = useState("");
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
 
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
 
@@ -184,7 +186,12 @@ function FeedbackPage() {
           dataSource={feedbacks}
           renderItem={(item) => (
             <Card
-              style={{ marginBottom: 16, borderRadius: 12, border: "1px solid #f0f0f0" }}
+              hoverable
+              onClick={() => {
+                setSelectedFeedback(item);
+                setDetailModalOpen(true);
+              }}
+              style={{ marginBottom: 16, borderRadius: 12, border: "1px solid #f0f0f0", cursor: "pointer" }}
               bodyStyle={{ padding: 20 }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -267,6 +274,66 @@ function FeedbackPage() {
           ]}
         />
       </Card>
+
+      {/* Detail Modal */}
+      <Modal
+        title={
+          <Space>
+            <MessageOutlined />
+            {t("feedback.detailTitle") || "Feedback Details"}
+          </Space>
+        }
+        open={detailModalOpen}
+        onCancel={() => setDetailModalOpen(false)}
+        footer={[
+          <Button key="close" onClick={() => setDetailModalOpen(false)}>
+            {t("common.close") || "Close"}
+          </Button>
+        ]}
+      >
+        {selectedFeedback && (
+          <div style={{ paddingTop: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16 }}>
+              <Space>
+                {getTypeIcon(selectedFeedback.type)}
+                <Text strong>{getTypeText(selectedFeedback.type)}</Text>
+              </Space>
+              <Tag color={selectedFeedback.status === "Replied" ? "green" : "orange"} icon={selectedFeedback.status === "Replied" ? <CheckCircleOutlined /> : <SyncOutlined spin />}>
+                {selectedFeedback.status === "Replied" ? t("feedback.closed") : t("feedback.open")}
+              </Tag>
+            </div>
+
+            <div style={{ marginBottom: 24 }}>
+              <Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 4 }}>{t("feedback.date")}: {dayjs(selectedFeedback.createdAt).format("YYYY-MM-DD HH:mm")}</Text>
+              <Text strong style={{ display: "block", marginBottom: 8 }}>{t("feedback.content")}:</Text>
+              <div style={{ background: "#f5f5f5", padding: 12, borderRadius: 8 }}>
+                <Paragraph style={{ marginBottom: 0 }}>{selectedFeedback.content}</Paragraph>
+              </div>
+            </div>
+
+            {selectedFeedback.reply && (
+              <div style={{ background: "#f6ffed", padding: 16, borderRadius: 8, border: "1px solid #b7eb8f" }}>
+                <Space align="start" style={{ width: '100%' }}>
+                  <Avatar icon={<RobotOutlined />} style={{ backgroundColor: "#52c41a" }} />
+                  <div style={{ flex: 1 }}>
+                    <Text strong style={{ color: "#389e0d", display: "block" }}>{t("feedback.adminReply")}:</Text>
+                    <Paragraph style={{ margin: "8px 0", color: "#389e0d" }}>
+                      {selectedFeedback.reply}
+                    </Paragraph>
+                    <Text type="secondary" style={{ fontSize: 11 }}>
+                      {dayjs(selectedFeedback.updatedAt).format("YYYY-MM-DD HH:mm")}
+                    </Text>
+                  </div>
+                </Space>
+              </div>
+            )}
+            
+            {!selectedFeedback.reply && (
+              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("feedback.noReplyYet") || "No reply yet"} />
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import BorrowRecord from "../models/BorrowRecord.js";
 import BorrowHistory from "../models/BorrowHistory.js";
 import Book from "../models/Book.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 import mongoose from "mongoose";
 
 /* =========================================================
@@ -126,6 +127,20 @@ export const approveRequestLibrary = async (req, res) => {
         userName: request.userName,
         renewCount: record.renewCount,
       });
+
+      // 🔔 创建归还成功通知
+      try {
+        await Notification.create({
+          userId: request.userId,
+          type: "system",
+          title: "Book Returned Successfully",
+          message: `Your book "${request.bookTitle}" has been successfully returned.`,
+          relatedId: request.bookId,
+          read: false
+        });
+      } catch (notifErr) {
+        console.error("❌ Failed to create return notification:", notifErr);
+      }
     }
 
     // ✅ 更新申请状态
@@ -252,6 +267,20 @@ export const markBookReturned = async (req, res) => {
         });
     } catch (histErr) {
         console.error("❌ 创建历史记录失败 (非致命):", histErr);
+    }
+
+    // 🔔 创建归还成功通知
+    try {
+      await Notification.create({
+        userId: record.userId,
+        type: "system",
+        title: "Book Returned Successfully",
+        message: `Your book "${record.bookTitle}" has been marked as returned by administrator.`,
+        relatedId: record.bookId,
+        read: false
+      });
+    } catch (notifErr) {
+      console.error("❌ Failed to create return notification:", notifErr);
     }
 
     res.json({ message: "归还成功", record });

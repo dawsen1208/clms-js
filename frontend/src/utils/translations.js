@@ -347,7 +347,9 @@ export const translations = {
       noFeedback: "No feedback records found.",
       placeholder: "Please describe your issue or suggestion in detail...",
       selectType: "Select Type",
-      description: "We value your suggestions and feedback"
+      description: "We value your suggestions and feedback",
+      detailTitle: "Feedback Details",
+      noReplyYet: "No reply yet"
     },
     settings: {
       english: "English",
@@ -1257,7 +1259,9 @@ export const translations = {
       noFeedback: "暂无反馈记录。",
       placeholder: "请详细描述您遇到的问题或建议...",
       selectType: "选择类型",
-      description: "我们重视您的建议和反馈"
+      description: "我们重视您的建议和反馈",
+      detailTitle: "反馈详情",
+      noReplyYet: "暂无回复"
     },
     settings: {
       security: "安全",
