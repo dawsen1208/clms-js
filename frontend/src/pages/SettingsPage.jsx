@@ -473,7 +473,17 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                          <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.accessibilityModeDesc") || "Simplified interface with larger elements"}</Text>
                        </div>
                     </Space>
-                    <Switch checked={!!accessibilityPrefs.accessibilityMode} onChange={(v) => saveAccessibility({ accessibilityMode: v })} />
+                    <Switch checked={!!accessibilityPrefs.accessibilityMode} onChange={(v) => {
+                      saveAccessibility({ accessibilityMode: v });
+                      // Sync with Appearance settings for immediate visual feedback
+                      if (onChange) {
+                        onChange(prev => ({
+                          ...prev,
+                          highContrast: v,
+                          fontSize: v ? 20 : 'normal'
+                        }));
+                      }
+                    }} />
                   </div>
                 </Space>
               </Card>
