@@ -325,6 +325,7 @@ function App() {
           />
         </Routes>
       </ConfigProvider>
+      </AccessibilityProvider>
     </LanguageProvider>
   );
 }

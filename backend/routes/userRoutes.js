@@ -380,15 +380,28 @@ router.get("/profile", authMiddleware, async (req, res) => {
    ========================================================= */
 router.put("/profile", authMiddleware, async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, preferences } = req.body;
     const userId = req.user.userId;
 
-    if (!name && email === undefined)
+    if (!name && email === undefined && !preferences)
       return res.status(400).json({ message: "没有需要更新的字段" });
+
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (email !== undefined) updateData.email = email;
+    
+    // ✅ Handle preferences update (merge deeply if possible, or replace)
+    // Here we use $set to update specific fields if provided, or replace the whole object if that's the strategy.
+    // Given the structure, simple assignment works for top-level keys if passed fully.
+    if (preferences) {
+      for (const key in preferences) {
+        updateData[`preferences.${key}`] = preferences[key];
+      }
+    }
 
     const updated = await User.findOneAndUpdate(
       { userId },
-      { name, email: email ?? "" },
+      { $set: updateData },
       { new: true, runValidators: true }
     ).select("-password");
 

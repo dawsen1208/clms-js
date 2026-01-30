@@ -34,7 +34,9 @@ const userSchema = new mongoose.Schema({
     recommendation: { type: Object, default: {} },
     adminApproval: { type: Object, default: {} },
     adminPermissions: { type: Object, default: {} },
-    security: { type: Object, default: {} }
+    security: { type: Object, default: {} },
+    accessibility: { type: Object, default: {} }, // ✅ Accessibility preferences
+    appearance: { type: Object, default: {} }     // ✅ Appearance preferences
   },
 
   sessions: [{
