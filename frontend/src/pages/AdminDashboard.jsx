@@ -259,10 +259,11 @@ const AdminDashboard = ({ appearance }) => {
         <Row gutter={[16, 16]}>
           <Col xs={24} md={12}>
             <Card title={t("admin.borrowTrend")} hoverable className="section-card" style={{
-              borderRadius: 16,
-              boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
-              background: "rgba(255, 255, 255, 0.9)",
-              border: "1px solid rgba(255, 255, 255, 0.2)"
+              borderRadius: isHighContrast ? 0 : 16,
+              boxShadow: isHighContrast ? "none" : "0 4px 15px rgba(0, 0, 0, 0.05)",
+              background: isHighContrast ? "#000" : "rgba(255, 255, 255, 0.9)",
+              border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.2)",
+              color: isHighContrast ? "#fff" : undefined
             }} onClick={() => setTrendOpen(true)}>
               <div style={{ height: 180 }}>
                 {renderSparkline(chartData.trend30d)}
@@ -271,10 +272,11 @@ const AdminDashboard = ({ appearance }) => {
           </Col>
           <Col xs={24} md={6}>
             <Card title={t("admin.categoryRatio")} hoverable className="section-card" style={{
-              borderRadius: 16,
-              boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
-              background: "rgba(255, 255, 255, 0.9)",
-              border: "1px solid rgba(255, 255, 255, 0.2)"
+              borderRadius: isHighContrast ? 0 : 16,
+              boxShadow: isHighContrast ? "none" : "0 4px 15px rgba(0, 0, 0, 0.05)",
+              background: isHighContrast ? "#000" : "rgba(255, 255, 255, 0.9)",
+              border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.2)",
+              color: isHighContrast ? "#fff" : undefined
             }} onClick={() => setDetailsOpen(true)}>
               <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {renderPie(chartData.categoryPie)}
@@ -283,10 +285,11 @@ const AdminDashboard = ({ appearance }) => {
           </Col>
           <Col xs={24} md={6}>
             <Card title={t("admin.userGrowth")} hoverable className="section-card" style={{
-              borderRadius: 16,
-              boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
-              background: "rgba(255, 255, 255, 0.9)",
-              border: "1px solid rgba(255, 255, 255, 0.2)"
+              borderRadius: isHighContrast ? 0 : 16,
+              boxShadow: isHighContrast ? "none" : "0 4px 15px rgba(0, 0, 0, 0.05)",
+              background: isHighContrast ? "#000" : "rgba(255, 255, 255, 0.9)",
+              border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.2)",
+              color: isHighContrast ? "#fff" : undefined
             }} onClick={() => setGrowthOpen(true)}>
               <div style={{ height: 180, padding: 8 }}>{renderBars(chartData.userGrowth)}</div>
             </Card>
@@ -298,16 +301,17 @@ const AdminDashboard = ({ appearance }) => {
         <Row gutter={[16, 16]}>
           <Col xs={24} md={24}>
             <Card title={t("admin.systemAnnouncements")} hoverable className="section-card" style={{
-              borderRadius: 16,
-              boxShadow: "0 4px 15px rgba(0, 0, 0, 0.05)",
-              background: "rgba(255, 255, 255, 0.9)",
-              border: "1px solid rgba(255, 255, 255, 0.2)"
+              borderRadius: isHighContrast ? 0 : 16,
+              boxShadow: isHighContrast ? "none" : "0 4px 15px rgba(0, 0, 0, 0.05)",
+              background: isHighContrast ? "#000" : "rgba(255, 255, 255, 0.9)",
+              border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.2)",
+              color: isHighContrast ? "#fff" : undefined
             }} onClick={() => setAnnOpen(true)}>
               {(announcements.slice(0, 3)).map((a) => (
                 <div key={a.id} className="announcement-item" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
                   <Tag color={a.color} style={{ borderRadius: 8, fontWeight: 500 }}>{a.tag}</Tag>
-                  <span style={{ color: "#475569", fontSize: "14px" }}>{a.title}</span>
-                  <span style={{ marginLeft: 'auto', color: '#94a3b8', fontSize: '12px' }}>{a.date}</span>
+                  <span style={{ color: isHighContrast ? "#fff" : "#475569", fontSize: "14px" }}>{a.title}</span>
+                  <span style={{ marginLeft: 'auto', color: isHighContrast ? "#ccc" : '#94a3b8', fontSize: '12px' }}>{a.date}</span>
                 </div>
               ))}
             </Card>

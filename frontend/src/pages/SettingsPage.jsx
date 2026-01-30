@@ -711,10 +711,10 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                       </Space>
                    </Card>
 
-                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? '#fff' : token.colorBorder) }}>
                         <Space>
-                            <BellOutlined style={{ fontSize: 20, color: '#1890ff' }} />
-                            <Text strong>{t("settings.emailNotif")}</Text>
+                            <BellOutlined style={{ fontSize: 20, color: appearance?.highContrast ? '#fff' : '#1890ff' }} />
+                            <Text strong style={{ color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.emailNotif")}</Text>
                         </Space>
                         <Switch checked={!!notifPrefs.email} onChange={(v) => saveNotifications({ email: v })} disabled={!boundEmail} />
                    </div>
@@ -748,12 +748,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.privacySecurity")}</Title>}>
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? '#fff' : token.colorBorder) }}>
                       <Space>
-                          <SafetyCertificateOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+                          <SafetyCertificateOutlined style={{ fontSize: 20, color: appearance?.highContrast ? '#fff' : '#52c41a' }} />
                           <div>
-                            <Text strong style={{ display: 'block' }}>{t("settings.twoFactor")}</Text>
-                            <Text type="secondary" style={{ fontSize: 12 }}>{t("settings.twoFactorDesc")}</Text>
+                            <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.twoFactor")}</Text>
+                            <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.twoFactorDesc")}</Text>
                           </div>
                       </Space>
                       <Switch 
@@ -1016,10 +1016,10 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.recommendationSettings")}</Title>}>
                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? '#fff' : token.colorBorder) }}>
                         <Space>
-                            <TagsOutlined style={{ fontSize: 20, color: '#faad14' }} />
-                            <Text strong>{t("settings.autoLearn")}</Text>
+                            <TagsOutlined style={{ fontSize: 20, color: appearance?.highContrast ? '#fff' : '#faad14' }} />
+                            <Text strong style={{ color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.autoLearn")}</Text>
                         </Space>
                         <Switch checked={!!recommendPrefs.autoLearn} onChange={(v) => saveRecommend({ autoLearn: v })} />
                     </div>
@@ -1066,10 +1066,10 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
               children: (
                 <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.adminApprovalSettings")}</Title>}>
                    <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? '#fff' : token.colorBorder) }}>
                           <Space>
-                              <BellOutlined style={{ fontSize: 20, color: '#52c41a' }} />
-                              <Text strong>{t("settings.approvalSound")}</Text>
+                              <BellOutlined style={{ fontSize: 20, color: appearance?.highContrast ? '#fff' : '#52c41a' }} />
+                              <Text strong style={{ color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.approvalSound")}</Text>
                           </Space>
                           <Switch checked={!!adminApprovalPrefs.soundEnabled} onChange={(v) => saveAdminApproval({ soundEnabled: v })} />
                       </div>
