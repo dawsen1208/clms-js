@@ -67,7 +67,7 @@ function AdminFeedbackPage() {
 
   const handleReplyClick = (record) => {
     setCurrentFeedback(record);
-    setReplyContent(record.reply || "");
+    setReplyContent(record.adminReply || "");
     setReplyModalVisible(true);
   };
 

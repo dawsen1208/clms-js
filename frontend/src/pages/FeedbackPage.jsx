@@ -212,14 +212,14 @@ function FeedbackPage() {
                 {item.content}
               </Paragraph>
 
-              {item.reply && (
+              {item.adminReply && (
                 <div style={{ background: "#f6ffed", padding: 16, borderRadius: 8, border: "1px solid #b7eb8f" }}>
                   <Space align="start">
                     <Avatar icon={<RobotOutlined />} style={{ backgroundColor: "#52c41a" }} size="small" />
                     <div>
                       <Text strong style={{ color: "#389e0d" }}>{t("feedback.adminReply")}:</Text>
                       <Paragraph style={{ margin: "4px 0 0 0", color: "#389e0d" }}>
-                        {item.reply}
+                        {item.adminReply}
                       </Paragraph>
                       <Text type="secondary" style={{ fontSize: 11 }}>
                         {dayjs(item.updatedAt).format("YYYY-MM-DD HH:mm")}
@@ -312,14 +312,14 @@ function FeedbackPage() {
               </div>
             </div>
 
-            {selectedFeedback.reply && (
+            {selectedFeedback.adminReply && (
               <div style={{ background: "#f6ffed", padding: 16, borderRadius: 8, border: "1px solid #b7eb8f" }}>
                 <Space align="start" style={{ width: '100%' }}>
                   <Avatar icon={<RobotOutlined />} style={{ backgroundColor: "#52c41a" }} />
                   <div style={{ flex: 1 }}>
                     <Text strong style={{ color: "#389e0d", display: "block" }}>{t("feedback.adminReply")}:</Text>
                     <Paragraph style={{ margin: "8px 0", color: "#389e0d" }}>
-                      {selectedFeedback.reply}
+                      {selectedFeedback.adminReply}
                     </Paragraph>
                     <Text type="secondary" style={{ fontSize: 11 }}>
                       {dayjs(selectedFeedback.updatedAt).format("YYYY-MM-DD HH:mm")}
@@ -329,7 +329,7 @@ function FeedbackPage() {
               </div>
             )}
             
-            {!selectedFeedback.reply && (
+            {!selectedFeedback.adminReply && (
               <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("feedback.noReplyYet") || "No reply yet"} />
             )}
           </div>
