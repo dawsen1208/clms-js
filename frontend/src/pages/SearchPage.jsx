@@ -654,10 +654,11 @@ function SearchPage() {
           // Fallback: simple search input
           <div style={{ marginBottom: "1rem" }}>
             <Input
-              prefix={<SearchOutlined />}
+              prefix={<SearchOutlined aria-hidden="true" />}
               placeholder={t("search.placeholder")}
               onPressEnter={(e) => handleSearch(e.target.value)}
               style={{ width: '100%' }}
+              aria-label={t("common.search")}
             />
           </div>
         )}

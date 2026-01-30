@@ -211,11 +211,12 @@ function EnhancedSearchBar({
           notFoundContent={searchValue && searchValue.length >= 2 ? t("search.noMatching") : t("search.enterTwoChars")}
         >
           <Search
-            prefix={<SearchOutlined style={{ color: theme.colors.neutral.darkGray }} />}
+            prefix={<SearchOutlined style={{ color: theme.colors.neutral.darkGray }} aria-hidden="true" />}
             enterButton={t("common.search")}
             size="large"
             loading={loading}
             onSearch={handleSearch}
+            aria-label={t("common.search")}
             style={{
               borderRadius: '8px',
               background: theme.colors.neutral.white,
