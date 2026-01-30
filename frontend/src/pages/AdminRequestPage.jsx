@@ -478,10 +478,19 @@ function AdminRequestPage() {
                 </Card>
               </Col>
             </Row>
+
+            {/* Action Buttons Row */}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, marginTop: 16 }}>
+              <Button onClick={autoProcessEligible}>
+                {t("admin.autoProcess")}
+              </Button>
+              <Button type="primary" onClick={bulkProcessPending}>
+                {t("admin.bulkProcess")}
+              </Button>
+            </div>
           </div>
         }
         extra={
-          <Space>
             <Button
               icon={<ReloadOutlined />}
               onClick={fetchRequests}
@@ -489,14 +498,7 @@ function AdminRequestPage() {
             >
               {t("admin.refresh")}
             </Button>
-            <Button onClick={autoProcessEligible}>
-              {t("admin.autoProcess")}
-            </Button>
-            <Button type="primary" onClick={bulkProcessPending}>
-              {t("admin.bulkProcess")}
-            </Button>
-          </Space>
-        }
+          }
         style={{ borderRadius: 16 }}
         bodyStyle={{ padding: "1.5rem" }}
       >
