@@ -1473,6 +1473,7 @@ export const translations = {
      totalRequests: "总申请数",
      borrowManage: "借阅管理",
      bookManage: "图书管理",
+     bookManageSubtitle: "管理馆藏书籍与库存信息",
       applicationManagement: "申请管理",
       manageBorrowReturnRequests: "管理借阅与归还申请",
       returnBook: "归还书籍",
