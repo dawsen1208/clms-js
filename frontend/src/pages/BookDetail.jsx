@@ -173,55 +173,58 @@ function BookDetail() {
       <Card className="book-card" style={{
         borderRadius: 20,
         boxShadow: "0 15px 35px rgba(0, 0, 0, 0.1)",
-        background: "rgba(255, 255, 255, 0.95)",
+        background: isHighContrast ? "#000" : "rgba(255, 255, 255, 0.95)",
         backdropFilter: "blur(10px)",
-        border: "1px solid rgba(255, 255, 255, 0.2)"
+        border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.2)"
       }}>
         <div className="page-header" style={{ marginBottom: "2rem" }}>
-          <Title level={2} className="page-modern-title" style={{ margin: "0 0 1rem 0", color: "#1e293b", fontWeight: 700 }}>📚 {book.title}</Title>
+          <Title level={2} className="page-modern-title" style={{ margin: "0 0 1rem 0", color: isHighContrast ? "#fff" : "#1e293b", fontWeight: 700 }}>📚 {book.title}</Title>
           <div className="meta-tags" style={{ marginBottom: "1.5rem" }}>
-            <Tag color="blue" style={{ borderRadius: 8, fontWeight: 500 }}>✍️ {t("bookDetail.author")}: {book.author}</Tag>
-            <Tag color="purple" style={{ borderRadius: 8, fontWeight: 500 }}>📂 {t("bookDetail.category")}: {book.category}</Tag>
+            <Tag color={isHighContrast ? "#fff" : "blue"} style={{ borderRadius: 8, fontWeight: 500, color: isHighContrast ? "#000" : undefined }}>✍️ {t("bookDetail.author")}: {book.author}</Tag>
+            <Tag color={isHighContrast ? "#fff" : "purple"} style={{ borderRadius: 8, fontWeight: 500, color: isHighContrast ? "#000" : undefined }}>📂 {t("bookDetail.category")}: {book.category}</Tag>
           </div>
           <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
             <div style={{ 
-              background: "linear-gradient(135deg, #52c41a, #73d13d)", 
+              background: isHighContrast ? "#000" : "linear-gradient(135deg, #52c41a, #73d13d)", 
               borderRadius: 16, 
               padding: "1rem", 
-              color: "white",
-              boxShadow: "0 4px 12px rgba(82, 196, 26, 0.3)"
+              color: isHighContrast ? "#fff" : "white",
+              boxShadow: isHighContrast ? "none" : "0 4px 12px rgba(82, 196, 26, 0.3)",
+              border: isHighContrast ? "1px solid #fff" : "none"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.inStock")}</span>} 
+                title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.inStock")}</span>} 
                 value={book.copies || 0} 
-                valueStyle={{ color: "white", fontSize: "24px", fontWeight: 700 }}
+                valueStyle={{ color: isHighContrast ? "#fff" : "white", fontSize: "24px", fontWeight: 700 }}
               />
             </div>
             <div style={{ 
-              background: "linear-gradient(135deg, #faad14, #ffc53d)", 
+              background: isHighContrast ? "#000" : "linear-gradient(135deg, #faad14, #ffc53d)", 
               borderRadius: 16, 
               padding: "1rem", 
-              color: "white",
-              boxShadow: "0 4px 12px rgba(250, 173, 20, 0.3)"
+              color: isHighContrast ? "#fff" : "white",
+              boxShadow: isHighContrast ? "none" : "0 4px 12px rgba(250, 173, 20, 0.3)",
+              border: isHighContrast ? "1px solid #fff" : "none"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.rating")}</span>} 
+                title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.rating")}</span>} 
                 value={book.rating || 0} 
-                valueStyle={{ color: "white", fontSize: "24px", fontWeight: 700 }}
+                valueStyle={{ color: isHighContrast ? "#fff" : "white", fontSize: "24px", fontWeight: 700 }}
                 suffix="/5"
               />
             </div>
             <div style={{ 
-              background: "linear-gradient(135deg, #1890ff, #36cfc9)", 
+              background: isHighContrast ? "#000" : "linear-gradient(135deg, #1890ff, #36cfc9)", 
               borderRadius: 16, 
               padding: "1rem", 
-              color: "white",
-              boxShadow: "0 4px 12px rgba(24, 144, 255, 0.3)"
+              color: isHighContrast ? "#fff" : "white",
+              boxShadow: isHighContrast ? "none" : "0 4px 12px rgba(24, 144, 255, 0.3)",
+              border: isHighContrast ? "1px solid #fff" : "none"
             }}>
               <Statistic 
-                title={<span style={{ color: "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.reviews")}</span>} 
+                title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.reviews")}</span>} 
                 value={book.reviewCount || (Array.isArray(book.reviews) ? book.reviews.length : 0)} 
-                valueStyle={{ color: "white", fontSize: "24px", fontWeight: 700 }}
+                valueStyle={{ color: isHighContrast ? "#fff" : "white", fontSize: "24px", fontWeight: 700 }}
               />
             </div>
           </div>
@@ -253,8 +256,8 @@ function BookDetail() {
                         height: '48px', 
                         fontSize: '16px', 
                         borderRadius: '12px',
-                        background: (book.copies <= 0 || pendingType === 'borrow') ? undefined : "linear-gradient(135deg, #3b82f6, #2563eb)",
-                        border: "none"
+                        background: (book.copies <= 0 || pendingType === 'borrow') ? undefined : (isHighContrast ? "#000" : "linear-gradient(135deg, #3b82f6, #2563eb)"),
+                        border: isHighContrast ? "1px solid #fff" : "none"
                     }}
                 >
                     {pendingType === 'borrow' 
@@ -265,7 +268,7 @@ function BookDetail() {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Title level={4}>{t("bookDetail.description")}</Title>
+          <Title level={4} style={{ color: isHighContrast ? "#fff" : undefined }}>{t("bookDetail.description")}</Title>
           {ttsEnabled && (
              <Button 
                type="text" 

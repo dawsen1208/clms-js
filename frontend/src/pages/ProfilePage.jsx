@@ -15,12 +15,8 @@ import {
   getBorrowHistoryLibrary,
   getUserRequestsLibrary,
 } from "../api.js";
-import ProfileHeader from "../components/Profile/ProfileHeader";
-import ProfileStats from "../components/Profile/ProfileStats";
-import ProfileInfo from "../components/Profile/ProfileInfo";
-import ProfileTabs from "../components/Profile/ProfileTabs";
 
-function ProfilePage() {
+function ProfilePage({ appearance }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { Title, Text } = Typography;
@@ -377,12 +373,19 @@ function ProfilePage() {
      🧱 渲染
      ========================================================= */
   if (isMobile) {
+    const isHighContrast = appearance?.highContrast;
+    const bgContainer = isHighContrast ? "#000000" : "#f8fafc";
+    const bgCard = isHighContrast ? "#000000" : "#fff";
+    const textColor = isHighContrast ? "#ffffff" : "#333";
+    const textSecondary = isHighContrast ? "#ffffff" : "#64748b";
+    const borderStyle = isHighContrast ? "1px solid #ffffff" : "none";
+
     return (
-      <div className="profile-page-mobile page-container" style={{ minHeight: "100vh", background: "#f8fafc" }}>
-        <Title level={4} style={{ marginBottom: "16px" }}>{t("profile.myProfile")}</Title>
+      <div className="profile-page-mobile page-container" style={{ minHeight: "100vh", background: bgContainer }}>
+        <Title level={4} style={{ marginBottom: "16px", color: textColor }}>{t("profile.myProfile")}</Title>
         
         {/* Avatar Section */}
-        <div style={{ background: "#fff", borderRadius: "12px", padding: "24px", textAlign: "center", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+        <div style={{ background: bgCard, borderRadius: "12px", padding: "24px", textAlign: "center", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: borderStyle }}>
           <Avatar 
             size={100} 
             src={avatarUrl} 
@@ -396,7 +399,7 @@ function ProfilePage() {
             </div>
           ) : (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-              <div style={{ fontSize: "20px", fontWeight: "bold", color: "#1e293b" }}>{name || t("profile.unnamedUser")}</div>
+              <div style={{ fontSize: "20px", fontWeight: "bold", color: isHighContrast ? "#ffffff" : "#1e293b" }}>{name || t("profile.unnamedUser")}</div>
               <Button type="text" icon={<UserOutlined />} onClick={() => setNameEditing(true)} style={{ color: "#3b82f6" }} size="small" />
             </div>
           )}
@@ -410,8 +413,8 @@ function ProfilePage() {
         </div>
 
         {/* Email Section */}
-        <div style={{ background: "#fff", borderRadius: "12px", padding: "16px", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-          <div style={{ fontSize: "14px", color: "#64748b", marginBottom: "8px" }}>{t("profile.emailAddress")}</div>
+        <div style={{ background: bgCard, borderRadius: "12px", padding: "16px", marginBottom: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: borderStyle }}>
+          <div style={{ fontSize: "14px", color: textSecondary, marginBottom: "8px" }}>{t("profile.emailAddress")}</div>
           {emailEditing ? (
               <div style={{ display: "flex", gap: "8px" }}>
                   <Input value={email} onChange={e => setEmail(e.target.value)} style={{ height: "40px", flex: 1 }} />
@@ -419,7 +422,7 @@ function ProfilePage() {
               </div>
           ) : (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "16px", color: "#333" }}>{email || t("profile.notSet")}</span>
+                  <span style={{ fontSize: "16px", color: textColor }}>{email || t("profile.notSet")}</span>
                   <Button type="text" onClick={() => setEmailEditing(true)} style={{ color: "#3b82f6" }}>{t("admin.edit")}</Button>
               </div>
           )}
@@ -427,29 +430,29 @@ function ProfilePage() {
 
         {/* Stats Grid */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
-          <div style={{ background: "#3b82f6", borderRadius: "12px", padding: "16px", color: "#fff", boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)" }}>
+          <div style={{ background: isHighContrast ? "#000" : "#3b82f6", borderRadius: "12px", padding: "16px", color: "#fff", boxShadow: "0 2px 8px rgba(59, 130, 246, 0.3)", border: isHighContrast ? "1px solid #fff" : "none" }}>
              <div style={{ fontSize: "12px", opacity: 0.9 }}>{t("profile.borrowed")}</div>
              <div style={{ fontSize: "24px", fontWeight: "bold" }}>{stats.totalHistory}</div>
           </div>
-          <div style={{ background: "#8b5cf6", borderRadius: "12px", padding: "16px", color: "#fff", boxShadow: "0 2px 8px rgba(139, 92, 246, 0.3)" }}>
+          <div style={{ background: isHighContrast ? "#000" : "#8b5cf6", borderRadius: "12px", padding: "16px", color: "#fff", boxShadow: "0 2px 8px rgba(139, 92, 246, 0.3)", border: isHighContrast ? "1px solid #fff" : "none" }}>
              <div style={{ fontSize: "12px", opacity: 0.9 }}>{t("profile.activeRequests")}</div>
              <div style={{ fontSize: "24px", fontWeight: "bold" }}>{stats.pending}</div>
           </div>
         </div>
 
         {/* Action List */}
-        <div style={{ background: "#fff", borderRadius: "12px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+        <div style={{ background: bgCard, borderRadius: "12px", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: borderStyle }}>
            <div onClick={() => setHistoryModalVisible(true)} style={{ padding: "16px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                  <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#3b82f6" }}>📚</div>
-                 <span style={{ fontSize: "16px", fontWeight: "500", color: "#333" }}>{t("admin.history")}</span>
+                 <span style={{ fontSize: "16px", fontWeight: "500", color: textColor }}>{t("admin.history")}</span>
               </div>
               <span style={{ color: "#cbd5e1" }}>&gt;</span>
            </div>
            <div onClick={() => setRequestsModalVisible(true)} style={{ padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                  <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#f5f3ff", display: "flex", alignItems: "center", justifyContent: "center", color: "#8b5cf6" }}>📨</div>
-                 <span style={{ fontSize: "16px", fontWeight: "500", color: "#333" }}>{t("profile.myRequests")}</span>
+                 <span style={{ fontSize: "16px", fontWeight: "500", color: textColor }}>{t("profile.myRequests")}</span>
               </div>
               <span style={{ color: "#cbd5e1" }}>&gt;</span>
            </div>
@@ -479,16 +482,16 @@ function ProfilePage() {
         >
              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {paginatedData.length > 0 ? paginatedData.map((item) => (
-                    <Card key={item.key} size="small" style={{ background: "#fff", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-                      <div style={{ fontWeight: "bold", marginBottom: "8px", fontSize: "16px", color: "#333" }}>{item.title || t("profile.unknownBook")}</div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px", color: "#666" }}>
-                        <div><span style={{ color: "#94a3b8" }}>{t("admin.borrowDate")}:</span> <br/>{item.borrowDate ? dayjs(item.borrowDate).format("YYYY-MM-DD") : "—"}</div>
-                        <div><span style={{ color: "#94a3b8" }}>{t("borrow.dueDate")}:</span> <br/>{item.dueDate ? dayjs(item.dueDate).format("YYYY-MM-DD") : "—"}</div>
-                        <div><span style={{ color: "#94a3b8" }}>{t("admin.returnDate")}:</span> <br/>{item.returnDate ? dayjs(item.returnDate).format("YYYY-MM-DD") : "—"}</div>
-                        <div><span style={{ color: "#94a3b8" }}>{t("admin.status")}:</span> <br/>{item.isReturned ? <Tag color="green">{t("admin.returned")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag>}</div>
+                    <Card key={item.key} size="small" style={{ background: bgCard, borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: borderStyle }}>
+                      <div style={{ fontWeight: "bold", marginBottom: "8px", fontSize: "16px", color: textColor }}>{item.title || t("profile.unknownBook")}</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px", color: textSecondary }}>
+                        <div><span style={{ color: textSecondary }}>{t("admin.borrowDate")}:</span> <br/>{item.borrowDate ? dayjs(item.borrowDate).format("YYYY-MM-DD") : "—"}</div>
+                        <div><span style={{ color: textSecondary }}>{t("borrow.dueDate")}:</span> <br/>{item.dueDate ? dayjs(item.dueDate).format("YYYY-MM-DD") : "—"}</div>
+                        <div><span style={{ color: textSecondary }}>{t("admin.returnDate")}:</span> <br/>{item.returnDate ? dayjs(item.returnDate).format("YYYY-MM-DD") : "—"}</div>
+                        <div><span style={{ color: textSecondary }}>{t("admin.status")}:</span> <br/>{item.isReturned ? <Tag color="green">{t("admin.returned")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag>}</div>
                       </div>
                     </Card>
-                  )) : <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>{t("borrow.noBorrowRecords")}</div>}
+                  )) : <div style={{ textAlign: "center", padding: "40px", color: textSecondary }}>{t("borrow.noBorrowRecords")}</div>}
              </div>
              {history.length > pageSize && (
                 <div style={{ textAlign: "center", marginTop: "20px", paddingBottom: "20px" }}>
@@ -515,33 +518,37 @@ function ProfilePage() {
         >
              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                   {requests.length > 0 ? requests.map((req) => (
-                    <Card key={req._id} size="small" style={{ background: "#fff", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+                    <Card key={req._id} size="small" style={{ background: bgCard, borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)", border: borderStyle }}>
                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", alignItems: "flex-start" }}>
-                          <div style={{ fontWeight: "bold", fontSize: "16px", color: "#333", flex: 1, marginRight: "8px" }} className="text-clamp-2">{req.bookTitle || t("admin.unknownBook")}</div>
+                          <div style={{ fontWeight: "bold", fontSize: "16px", color: textColor, flex: 1, marginRight: "8px" }} className="text-clamp-2">{req.bookTitle || t("admin.unknownBook")}</div>
                           {renderStatusTag(req.status)}
                        </div>
-                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", color: "#666" }}>
+                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", color: textSecondary }}>
                           <div>
                             {req.type === "renew" ? <Tag color="blue">{t("admin.renew")}</Tag> : <Tag color="purple">{t("admin.return")}</Tag>}
                           </div>
                           <div>{req.createdAt ? dayjs(req.createdAt).format("YYYY-MM-DD") : "-"}</div>
                        </div>
                     </Card>
-                  )) : <div style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}>{t("profile.noRequestRecords")}</div>}
+                  )) : <div style={{ textAlign: "center", padding: "40px", color: textSecondary }}>{t("profile.noRequestRecords")}</div>}
              </div>
         </Modal>
       </div>
     );
   }
 
+  const isHighContrast = appearance?.highContrast;
+
   return (
-    <div className="profile-page" style={themeUtils.getPageContainerStyle()}>
-      <Title level={2} className="page-modern-title" style={{ marginBottom: "20px" }}>{t("titles.profile")}</Title>
+    <div className="profile-page" style={{ ...themeUtils.getPageContainerStyle(), background: isHighContrast ? "#000" : undefined }}>
+      <Title level={2} className="page-modern-title" style={{ marginBottom: "20px", color: isHighContrast ? "#fff" : undefined }}>{t("titles.profile")}</Title>
       <Card
         style={{
           ...themeUtils.getGlassStyle(),
           borderRadius: theme.borderRadius.xxl,
-          boxShadow: theme.shadows.xl
+          boxShadow: theme.shadows.xl,
+          background: isHighContrast ? "#000" : undefined,
+          border: isHighContrast ? "1px solid #fff" : undefined
         }}
       >
         {/* =========================================================
@@ -549,21 +556,21 @@ function ProfilePage() {
            ========================================================= */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div style={{ 
-            background: theme.colors.background.card,
+            background: isHighContrast ? "#000" : theme.colors.background.card,
             borderRadius: theme.borderRadius.xxl, 
             padding: theme.spacing.xl, 
             marginBottom: theme.spacing.xl,
-            border: "1px solid rgba(255, 255, 255, 0.3)"
+            border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.3)"
           }}>
             <Avatar
               size={120}
               icon={<UserOutlined />}
               src={avatarUrl || undefined}
               style={{
-                background: theme.colors.primary.gradient,
+                background: isHighContrast ? "#000" : theme.colors.primary.gradient,
                 marginBottom: theme.spacing.md,
                 boxShadow: theme.shadows.lg,
-                border: `3px solid ${theme.colors.neutral.white}`
+                border: isHighContrast ? "1px solid #fff" : `3px solid ${theme.colors.neutral.white}`
               }}
             />
             {nameEditing ? (
@@ -582,25 +589,29 @@ function ProfilePage() {
                   type="primary" 
                   icon={<SaveOutlined />} 
                   onClick={handleSaveName}
-                  style={{ ...themeUtils.getPrimaryButtonStyle() }}
+                  style={{ 
+                    ...themeUtils.getPrimaryButtonStyle(),
+                    background: isHighContrast ? "#000" : undefined,
+                    border: isHighContrast ? "1px solid #fff" : undefined
+                  }}
                 >
                   {t("admin.save")}
                 </Button>
               </div>
             ) : (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-                <h2 style={{ margin: 0, color: theme.colors.neutral.black, fontSize: theme.typography.fontSize.xxxl, fontWeight: theme.typography.fontWeight.bold, fontFamily: theme.typography.fontFamily.primary }}>
+                <h2 style={{ margin: 0, color: isHighContrast ? "#fff" : theme.colors.neutral.black, fontSize: theme.typography.fontSize.xxxl, fontWeight: theme.typography.fontWeight.bold, fontFamily: theme.typography.fontFamily.primary }}>
                   {name || "Unnamed user"}
                 </h2>
                 <Button 
                   type="text" 
                   icon={<UserOutlined />} 
                   onClick={() => setNameEditing(true)}
-                  style={{ color: theme.colors.primary.main, fontSize: "1.2rem" }}
+                  style={{ color: isHighContrast ? "#fff" : theme.colors.primary.main, fontSize: "1.2rem" }}
                 />
               </div>
             )}
-            <Text type="secondary" style={{ fontSize: theme.typography.fontSize.md, color: theme.colors.neutral.darkGray, marginTop: "4px", marginBottom: theme.spacing.lg, display: "block", fontFamily: theme.typography.fontFamily.primary }}>
+            <Text type="secondary" style={{ fontSize: theme.typography.fontSize.md, color: isHighContrast ? "#fff" : theme.colors.neutral.darkGray, marginTop: "4px", marginBottom: theme.spacing.lg, display: "block", fontFamily: theme.typography.fontFamily.primary }}>
               {userLS.role || "Reader"}
             </Text>
             
@@ -616,7 +627,9 @@ function ProfilePage() {
                 loading={avatarUploading}
                 style={{ 
                   ...themeUtils.getPrimaryButtonStyle(),
-                  marginTop: theme.spacing.sm
+                  marginTop: theme.spacing.sm,
+                  background: isHighContrast ? "#000" : undefined,
+                  border: isHighContrast ? "1px solid #fff" : undefined
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-1px)";
@@ -634,7 +647,7 @@ function ProfilePage() {
 
           {/* Email and Role Information */}
           <Descriptions bordered column={1} style={{ marginBottom: theme.spacing.xl, borderRadius: theme.borderRadius.lg, overflow: "hidden", textAlign: "left" }}>
-            <Descriptions.Item label={<span style={{ fontWeight: 600, color: "#374151" }}>📧 {t("profile.emailAddress")}</span>}>
+            <Descriptions.Item label={<span style={{ fontWeight: 600, color: isHighContrast ? "#fff" : "#374151" }}>📧 {t("profile.emailAddress")}</span>}>
               {emailEditing ? (
                 <Space>
                   <Input
@@ -655,7 +668,8 @@ function ProfilePage() {
                     onClick={handleSaveEmail}
                     style={{
                       ...themeUtils.getPrimaryButtonStyle(),
-                      background: `linear-gradient(90deg, ${theme.colors.status.success}, #059669)`
+                      background: isHighContrast ? "#000" : `linear-gradient(90deg, ${theme.colors.status.success}, #059669)`,
+                      border: isHighContrast ? "1px solid #fff" : undefined
                     }}
                   >
                     💾 {t("admin.save")}
@@ -663,12 +677,14 @@ function ProfilePage() {
                 </Space>
               ) : (
                 <Space>
-                  <span style={{ color: theme.colors.neutral.darkGray, fontFamily: theme.typography.fontFamily.primary }}>{email || t("profile.notSet")}</span>
+                  <span style={{ color: isHighContrast ? "#fff" : theme.colors.neutral.darkGray, fontFamily: theme.typography.fontFamily.primary }}>{email || t("profile.notSet")}</span>
                   <Button 
                     size="small" 
                     onClick={() => setEmailEditing(true)}
                     style={{
-                      ...themeUtils.getPrimaryButtonStyle()
+                      ...themeUtils.getPrimaryButtonStyle(),
+                      background: isHighContrast ? "#000" : undefined,
+                      border: isHighContrast ? "1px solid #fff" : undefined
                     }}
                   >
                     ✏️ {t("admin.edit")}
@@ -676,8 +692,8 @@ function ProfilePage() {
                 </Space>
               )}
             </Descriptions.Item>
-            <Descriptions.Item label={<span style={{ fontWeight: theme.typography.fontWeight.semibold, color: theme.colors.neutral.darkerGray, fontFamily: theme.typography.fontFamily.primary }}>👤 {t("admin.role")}</span>}>
-              <Tag color={theme.colors.primary.main} style={{ borderRadius: theme.borderRadius.md, fontWeight: theme.typography.fontWeight.medium }}>
+            <Descriptions.Item label={<span style={{ fontWeight: theme.typography.fontWeight.semibold, color: isHighContrast ? "#fff" : theme.colors.neutral.darkerGray, fontFamily: theme.typography.fontFamily.primary }}>👤 {t("admin.role")}</span>}>
+              <Tag color={isHighContrast ? "#000" : theme.colors.primary.main} style={{ borderRadius: theme.borderRadius.md, fontWeight: theme.typography.fontWeight.medium, border: isHighContrast ? "1px solid #fff" : undefined }}>
                 {userLS.role || "Reader"}
               </Tag>
             </Descriptions.Item>
@@ -688,15 +704,16 @@ function ProfilePage() {
            🧑‍💼 用户画像部分 (MIDDLE)
            ========================================================= */}
         <div style={{ marginBottom: theme.spacing.xl }}>
-          <Title level={2} className="page-modern-title" style={{ margin: "0 0 1rem 0", fontFamily: theme.typography.fontFamily.primary }}>
+          <Title level={2} className="page-modern-title" style={{ margin: "0 0 1rem 0", fontFamily: theme.typography.fontFamily.primary, color: isHighContrast ? "#fff" : undefined }}>
             {t("titles.profile")}
           </Title>
           <div style={{ 
-            background: theme.colors.primary.gradient, 
+            background: isHighContrast ? "#000" : theme.colors.primary.gradient, 
             borderRadius: theme.borderRadius.lg, 
             padding: theme.spacing.lg, 
             color: theme.colors.neutral.white,
-            boxShadow: theme.shadows.lg
+            boxShadow: theme.shadows.lg,
+            border: isHighContrast ? "1px solid #fff" : undefined
           }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
               <div>
@@ -732,8 +749,8 @@ function ProfilePage() {
             <Card 
               style={{ 
                 borderRadius: theme.borderRadius.lg, 
-                background: theme.colors.primary.gradient, 
-                border: "none", 
+                background: isHighContrast ? "#000" : theme.colors.primary.gradient, 
+                border: isHighContrast ? "1px solid #fff" : "none", 
                 boxShadow: theme.shadows.lg,
                 color: theme.colors.neutral.white,
                 cursor: "pointer",
@@ -764,8 +781,8 @@ function ProfilePage() {
             <Card 
               style={{ 
                 borderRadius: theme.borderRadius.lg, 
-                background: theme.colors.secondary.gradient, 
-                border: "none", 
+                background: isHighContrast ? "#000" : theme.colors.secondary.gradient, 
+                border: isHighContrast ? "1px solid #fff" : "none", 
                 boxShadow: theme.shadows.lg,
                 color: theme.colors.neutral.white,
                 cursor: "pointer",
@@ -806,7 +823,7 @@ function ProfilePage() {
           style={{ top: 20 }}
           styles={{ 
             body: {
-              background: theme.colors.background.main,
+              background: isHighContrast ? "#000" : theme.colors.background.main,
               borderRadius: theme.borderRadius.lg,
               padding: theme.spacing.lg
             }
@@ -819,8 +836,8 @@ function ProfilePage() {
               style={{
                 borderRadius: theme.borderRadius.lg,
                 boxShadow: theme.shadows.md,
-                background: theme.colors.background.glass,
-                border: "1px solid rgba(255, 255, 255, 0.2)"
+                background: isHighContrast ? "#000" : theme.colors.background.glass,
+                border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.2)"
               }}
             >
               {isMobile ? (

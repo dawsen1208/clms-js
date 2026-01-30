@@ -31,8 +31,9 @@ import {
 } from "../api.js"; // ✅ 统一使用 /library 路由
 import { useLanguage } from "../contexts/LanguageContext"; // ✅ Import Hook
 
-function BorrowPage() {
+function BorrowPage({ appearance }) {
   const { t } = useLanguage(); // ✅ Use Hook
+  const isHighContrast = appearance?.highContrast;
   const { Title, Text } = Typography;
   const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
@@ -247,7 +248,7 @@ function BorrowPage() {
      ========================================================= */
   if (isMobile) {
     return (
-      <div className="borrow-page-mobile page-container" style={{ minHeight: "100vh", background: "#f8fafc" }}>
+      <div className="borrow-page-mobile page-container" style={{ minHeight: "100vh", background: isHighContrast ? "#000" : "#f8fafc" }}>
         <Title level={2} className="page-modern-title" style={{ marginBottom: "16px" }}>{t("titles.myBorrowings")}</Title>
         
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
@@ -279,14 +280,15 @@ function BorrowPage() {
 
                return (
                  <div key={record._id} style={{ 
-                    background: "#fff", 
+                    background: isHighContrast ? "#000" : "#fff", 
                     padding: "16px", 
                     borderRadius: "12px", 
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)"
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                    border: isHighContrast ? "1px solid #fff" : "none"
                  }}>
                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
                       <div style={{ flex: 1, marginRight: "12px" }}>
-                        <div className="text-clamp-2" style={{ fontSize: "16px", fontWeight: "600", color: "#1e293b", marginBottom: "4px", lineHeight: "1.4" }}>
+                        <div className="text-clamp-2" style={{ fontSize: "16px", fontWeight: "600", color: isHighContrast ? "#fff" : "#1e293b", marginBottom: "4px", lineHeight: "1.4" }}>
                            {bookIdForLink ? (
                               <Link to={`/book/${bookIdForLink}`} style={{ color: "inherit", textDecoration: "none" }}>
                                 {record.title || t("common.unknown")}
@@ -496,7 +498,7 @@ function BorrowPage() {
                               {record.title || t("common.unknown")}
                             </Link>
                           ) : (
-                            <span style={{ color: "#333", fontWeight: 600 }}>
+                            <span style={{ color: isHighContrast ? "#fff" : "#333", fontWeight: 600 }}>
                               {record.title || t("common.unknown")}
                             </span>
                           )}

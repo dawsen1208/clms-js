@@ -50,7 +50,7 @@ const STATUS_INFO = {
   pending: { color: "gold", icon: <ClockCircleOutlined /> },
 };
 
-function AdminRequestPage() {
+function AdminRequestPage({ appearance }) {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState([]);
@@ -58,6 +58,7 @@ function AdminRequestPage() {
   const [searchText, setSearchText] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const isHighContrast = appearance?.highContrast;
   // 🆕 Batch Mode State
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -500,65 +501,65 @@ function AdminRequestPage() {
             <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(59, 130, 246, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalRequests")}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalRequests")}</span>} 
                     value={stats.total} 
-                    prefix={<BookOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<BookOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #faad14, #d48806)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(250, 173, 20, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #faad14, #d48806)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(250, 173, 20, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.pending")}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.pending")}</span>} 
                     value={stats.pending} 
-                    prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<ClockCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #10b981, #059669)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #10b981, #059669)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(16, 185, 129, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.approved")}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.approved")}</span>} 
                     value={stats.approved} 
-                    prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<CheckCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #ef4444, #dc2626)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #ef4444, #dc2626)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(239, 68, 68, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.rejected")}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.rejected")}</span>} 
                     value={stats.rejected} 
-                    prefix={<CloseCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<CloseCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>
@@ -566,15 +567,26 @@ function AdminRequestPage() {
 
             {/* Action Buttons Row */}
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, marginTop: 16 }}>
-              <Button onClick={autoProcessEligible} disabled={isBatchMode}>
+              <Button onClick={autoProcessEligible} disabled={isBatchMode} style={{
+                border: isHighContrast ? "1px solid #fff" : undefined,
+                background: isHighContrast ? "#000" : undefined,
+                color: isHighContrast ? "#fff" : undefined
+              }}>
                 {t("admin.autoProcess")}
               </Button>
               {isBatchMode && (
-                <Button onClick={exitBatchMode}>
+                <Button onClick={exitBatchMode} style={{
+                  border: isHighContrast ? "1px solid #fff" : undefined,
+                  background: isHighContrast ? "#000" : undefined,
+                  color: isHighContrast ? "#fff" : undefined
+                }}>
                   {t("admin.cancelBulkMode")}
                 </Button>
               )}
-              <Button type="primary" onClick={isBatchMode ? executeBulkProcess : enterBatchMode}>
+              <Button type="primary" onClick={isBatchMode ? executeBulkProcess : enterBatchMode} style={{
+                border: isHighContrast ? "1px solid #fff" : undefined,
+                background: isHighContrast && !isBatchMode ? "#000" : undefined
+              }}>
                 {isBatchMode 
                   ? `${t("admin.confirmBulkProcess")} (${selectedRowKeys.length})` 
                   : t("admin.bulkProcess")}
@@ -587,6 +599,11 @@ function AdminRequestPage() {
               icon={<ReloadOutlined />}
               onClick={fetchRequests}
               loading={loading}
+              style={{
+                border: isHighContrast ? "1px solid #fff" : undefined,
+                background: isHighContrast ? "#000" : undefined,
+                color: isHighContrast ? "#fff" : undefined
+              }}
             >
               {t("admin.refresh")}
             </Button>

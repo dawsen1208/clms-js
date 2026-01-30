@@ -8,9 +8,10 @@ import { useLanguage } from "../contexts/LanguageContext";
 
 const { Title, Text: AntText } = Typography;
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ appearance }) => {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
+  const isHighContrast = appearance?.highContrast;
   const [metrics, setMetrics] = useState({
     books: 0,
     totalBorrowed: 0,
@@ -110,7 +111,7 @@ const AdminDashboard = () => {
   return (
     <div className="admin-dashboard" style={{ 
       padding: "2rem",
-      background: "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+      background: isHighContrast ? "#000" : "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
       minHeight: "calc(100vh - 64px)"
     }}>
       <Card
@@ -126,98 +127,98 @@ const AdminDashboard = () => {
             <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card className="metric-card" style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(59, 130, 246, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBooks")}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBooks")}</span>} 
                     value={metrics.books}
-                    prefix={<BookOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<BookOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card className="metric-card" style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #10b981, #059669)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #10b981, #059669)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(16, 185, 129, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeReaders")}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeReaders")}</span>} 
                     value={metrics.activeReaders} 
-                    prefix={<TeamOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<TeamOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card className="metric-card" style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(245, 158, 11, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #f59e0b, #d97706)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(245, 158, 11, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBorrowed")}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBorrowed")}</span>} 
                     value={metrics.totalBorrowed} 
-                    prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<ClockCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card className="metric-card" style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #ef4444, #dc2626)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #ef4444, #dc2626)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(239, 68, 68, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks")}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks")}</span>} 
                     value={metrics.overdueBooks} 
-                    prefix={<AlertOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<AlertOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card className="metric-card" style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #faad14, #d48806)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(250, 173, 20, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #faad14, #d48806)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(250, 173, 20, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.pendingRequests")}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.pendingRequests")}</span>} 
                     value={metrics.pendingRequests} 
-                    prefix={<ClockCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<ClockCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card className="metric-card" style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #52C41A, #3f9f14)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(82, 196, 26, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #52C41A, #3f9f14)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(82, 196, 26, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.onTimeRate")}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.onTimeRate")}</span>} 
                     value={metrics.onTimeRate} 
                     suffix="%"
-                    prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<CheckCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>

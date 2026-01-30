@@ -318,14 +318,14 @@ function App() {
           <Route path="/notifications" element={<UserLayoutWrapper><NotificationPage appearance={appearance} /></UserLayoutWrapper>} />
 
           {/* ✅ Admin Routes */}
-          <Route path="/admin/dashboard" element={<AdminLayoutWrapper><AdminDashboard /></AdminLayoutWrapper>} />
-          <Route path="/admin/books" element={<AdminLayoutWrapper><AdminBookPage /></AdminLayoutWrapper>} />
-          <Route path="/admin/borrow" element={<AdminLayoutWrapper><AdminBorrowPage /></AdminLayoutWrapper>} />
-          <Route path="/admin/requests" element={<AdminLayoutWrapper><AdminRequestPage /></AdminLayoutWrapper>} />
-          <Route path="/admin/history" element={<AdminLayoutWrapper><AdminBorrowHistory /></AdminLayoutWrapper>} />
-          <Route path="/admin/users" element={<AdminLayoutWrapper><AdminUserManagePage /></AdminLayoutWrapper>} />
-          <Route path="/admin/feedback" element={<AdminLayoutWrapper><AdminFeedbackPage /></AdminLayoutWrapper>} />
-          <Route path="/admin/profile" element={<AdminLayoutWrapper><AdminProfilePage /></AdminLayoutWrapper>} />
+          <Route path="/admin/dashboard" element={<AdminLayoutWrapper><AdminDashboard appearance={appearance} /></AdminLayoutWrapper>} />
+          <Route path="/admin/books" element={<AdminLayoutWrapper><AdminBookPage appearance={appearance} /></AdminLayoutWrapper>} />
+          <Route path="/admin/borrow" element={<AdminLayoutWrapper><AdminBorrowPage appearance={appearance} /></AdminLayoutWrapper>} />
+          <Route path="/admin/requests" element={<AdminLayoutWrapper><AdminRequestPage appearance={appearance} /></AdminLayoutWrapper>} />
+          <Route path="/admin/history" element={<AdminLayoutWrapper><AdminBorrowHistory appearance={appearance} /></AdminLayoutWrapper>} />
+          <Route path="/admin/users" element={<AdminLayoutWrapper><AdminUserManagePage appearance={appearance} /></AdminLayoutWrapper>} />
+          <Route path="/admin/feedback" element={<AdminLayoutWrapper><AdminFeedbackPage appearance={appearance} /></AdminLayoutWrapper>} />
+          <Route path="/admin/profile" element={<AdminLayoutWrapper><AdminProfilePage appearance={appearance} /></AdminLayoutWrapper>} />
           <Route path="/admin/settings" element={<AdminLayoutWrapper><AdminSettingsPage appearance={appearance} onChange={setAppearance} user={user} /></AdminLayoutWrapper>} />
 
           {/* ✅ Default Route */}

@@ -35,12 +35,13 @@ import { useLanguage } from "../contexts/LanguageContext";
 const { Title, Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
 
-function AdminBorrowPage() {
+function AdminBorrowPage({ appearance }) {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [records, setRecords] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [searchText, setSearchText] = useState("");
+  const isHighContrast = appearance?.highContrast;
   // 🆕 Batch Mode State
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -284,33 +285,33 @@ function AdminBorrowPage() {
             <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(59, 130, 246, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeBorrows") || "Active Borrows"}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeBorrows") || "Active Borrows"}</span>} 
                     value={records.length} 
-                    prefix={<BookOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<BookOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={8} lg={6}>
                 <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #ef4444, #b91c1c)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
-                  color: "white"
+                  borderRadius: isHighContrast ? 0 : 16,
+                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #ef4444, #b91c1c)",
+                  border: isHighContrast ? "1px solid #fff" : "none",
+                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(239, 68, 68, 0.3)",
+                  color: isHighContrast ? "#fff" : "white"
                 }}>
                   <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks") || "Overdue Books"}</span>} 
+                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks") || "Overdue Books"}</span>} 
                     value={records.filter(r => dayjs(r.dueDate).isBefore(dayjs())).length} 
-                    prefix={<ExclamationCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
+                    prefix={<ExclamationCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
+                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
                   />
                 </Card>
               </Col>

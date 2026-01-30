@@ -22,8 +22,9 @@ import {
 } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 
-function ReturnPage() {
+function ReturnPage({ appearance }) {
   const { t } = useLanguage();
+  const isHighContrast = appearance?.highContrast;
   const [borrowed, setBorrowed] = useState([]);
   const [loading, setLoading] = useState(false);
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
@@ -88,8 +89,9 @@ function ReturnPage() {
             onClick={fetchBorrowedBooks}
             style={{
               borderRadius: 6,
-              background: "linear-gradient(90deg,#36cfc9,#1890ff)",
+              background: isHighContrast ? "#000" : "linear-gradient(90deg,#36cfc9,#1890ff)",
               color: "#fff",
+              border: isHighContrast ? "1px solid #fff" : "none"
             }}
           >
             {t("common.refresh")}
@@ -147,7 +149,7 @@ function ReturnPage() {
                             <span>
                                 📅 {t("return.borrowedAt")} {record.borrowDate ? dayjs(record.borrowDate).format("YYYY-MM-DD") : t("common.unknown")}
                             </span>
-                            <span style={{ color: isOverdue ? "#ff4d4f" : "#52c41a" }}>
+                            <span style={{ color: isHighContrast ? "#fff" : (isOverdue ? "#ff4d4f" : "#52c41a") }}>
                                 ⏰ {t("borrow.dueDate")}: {record.dueDate ? dayjs(record.dueDate).format("YYYY-MM-DD") : t("common.unknown")}
                             </span>
                         </Space>
