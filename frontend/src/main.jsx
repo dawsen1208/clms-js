@@ -183,19 +183,34 @@ function App() {
   const isHome = location.pathname === '/home' || location.pathname === '/';
   const customBg = (!isHome && appearance.backgroundColor) ? appearance.backgroundColor : null;
 
+  // ♿ Accessibility Overrides
+  useEffect(() => {
+    // Apply Font Size to Body/Root for non-AntD content
+    const root = document.documentElement;
+    root.style.fontSize = `${baseFontSize}px`;
+    document.body.style.fontSize = `${baseFontSize}px`;
+
+    // Apply High Contrast Class
+    if (appearance.highContrast) {
+      document.body.classList.add('high-contrast');
+    } else {
+      document.body.classList.remove('high-contrast');
+    }
+  }, [baseFontSize, appearance.highContrast]);
+
   const themeTokens = {
-    colorPrimary: resolvePrimary(),
-    colorInfo: resolvePrimary(),
-    colorSuccess: '#52C41A',
-    colorWarning: '#FAAD14',
-    colorError: '#FF4D4F',
-    colorText: appearance.highContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#E6E6E6' : '#1F2937'),
-    colorTextSecondary: appearance.highContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#CFCFCF' : '#6B7280'),
-    colorBgContainer: isDark ? '#141414' : '#FFFFFF',
-    colorBgLayout: customBg || (isDark ? '#0b0b0b' : '#F5F7FA'),
-    colorBorder: appearance.highContrast ? (isDark ? '#ffffff' : '#000000') : '#E5EAF2',
-    borderRadius: 12,
-    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+    colorPrimary: appearance.highContrast ? (isDark ? '#FFFF00' : '#0000CD') : resolvePrimary(),
+    colorInfo: appearance.highContrast ? (isDark ? '#FFFF00' : '#0000CD') : resolvePrimary(),
+    colorSuccess: appearance.highContrast ? '#00FF00' : '#52C41A',
+    colorWarning: appearance.highContrast ? '#FFA500' : '#FAAD14',
+    colorError: appearance.highContrast ? '#FF0000' : '#FF4D4F',
+    colorText: appearance.highContrast ? (isDark ? '#FFFFFF' : '#000000') : (isDark ? '#E6E6E6' : '#1F2937'),
+    colorTextSecondary: appearance.highContrast ? (isDark ? '#FFFFFF' : '#000000') : (isDark ? '#CFCFCF' : '#6B7280'),
+    colorBgContainer: appearance.highContrast ? (isDark ? '#000000' : '#FFFFFF') : (isDark ? '#141414' : '#FFFFFF'),
+    colorBgLayout: appearance.highContrast ? (isDark ? '#000000' : '#FFFFFF') : (customBg || (isDark ? '#0b0b0b' : '#F5F7FA')),
+    colorBorder: appearance.highContrast ? (isDark ? '#FFFFFF' : '#000000') : '#E5EAF2',
+    borderRadius: appearance.highContrast ? 0 : 12, // Remove radius for HC
+    boxShadow: appearance.highContrast ? 'none' : '0 4px 12px rgba(0,0,0,0.08)',
     controlHeight: isMobile ? 32 : 36,
     controlPaddingHorizontal: isMobile ? 10 : 12,
     paddingXS: isMobile ? 6 : 8,

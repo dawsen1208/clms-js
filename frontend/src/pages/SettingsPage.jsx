@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from "react";
-import { Card, Typography, Radio, Space, Divider, Input, Switch, Form, Button, Table, Tag, message, Select, InputNumber, Checkbox, Tabs, Grid, Modal, ColorPicker, Slider, Row, Col } from "antd";
+import { Card, Typography, Radio, Space, Divider, Input, Switch, Form, Button, Table, Tag, message, Select, InputNumber, Checkbox, Tabs, Grid, Modal, ColorPicker, Slider, Row, Col, theme } from "antd";
 import { 
   LockOutlined, DesktopOutlined, DeleteOutlined, SafetyCertificateOutlined,
   GlobalOutlined, BgColorsOutlined, FormatPainterOutlined, FontSizeOutlined, 
@@ -13,10 +13,12 @@ import { useAccessibility } from "../contexts/AccessibilityContext";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const { language, setLanguage, t } = useLanguage(); // ✅ Use Language Hook
   const { ttsEnabled, accessibilityMode, updatePrefs } = useAccessibility();
+  const { token } = useToken();
   const [modal, contextHolder] = Modal.useModal();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
@@ -42,7 +44,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const token = useMemo(() => {
+  const authToken = useMemo(() => {
     return sessionStorage.getItem("token") || localStorage.getItem("token");
   }, []);
 
@@ -59,8 +61,8 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     const next = { ...notifPrefs, ...patch };
     try { localStorage.setItem("notification_prefs", JSON.stringify(next)); } catch {}
     try {
-      if (token) {
-        await updateProfile(token, { preferences: { notifications: next } });
+      if (authToken) {
+        await updateProfile(authToken, { preferences: { notifications: next } });
       }
     } catch {}
   };
@@ -72,7 +74,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     }
     try {
       setLoadingEmail(true);
-      const res = await sendAuthCode(token, email);
+      const res = await sendAuthCode(authToken, email);
       message.success(t("settings.codeSent"));
       
       // ✅ 模拟模式：弹窗显示验证码
@@ -115,7 +117,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     }
     try {
       setLoadingEmail(true);
-      await bindEmail(token, email, emailCode);
+      await bindEmail(authToken, email, emailCode);
       message.success(t("settings.bindSuccess"));
       
       const storedUser = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
@@ -148,7 +150,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     }
 
     try {
-      await toggle2FA(token, checked);
+      await toggle2FA(authToken, checked);
       saveSecurity({ twoFactorEnabled: checked });
       message.success(checked ? t("settings.2faEnabled") : t("settings.2faDisabled"));
       
@@ -185,8 +187,8 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     setOperationPrefs(next);
     try { localStorage.setItem("operation_prefs", JSON.stringify(next)); } catch {}
     try {
-      if (token) {
-        await updateProfile(token, { preferences: { operation: next } });
+      if (authToken) {
+        await updateProfile(authToken, { preferences: { operation: next } });
       }
     } catch {}
   };
@@ -217,8 +219,8 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     setRecommendPrefs(next);
     try { localStorage.setItem("recommend_prefs", JSON.stringify(next)); } catch {}
     try {
-      if (token) {
-        await updateProfile(token, { preferences: { recommendation: next } });
+      if (authToken) {
+        await updateProfile(authToken, { preferences: { recommendation: next } });
       }
     } catch {}
   };
@@ -237,8 +239,8 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     setAdminApprovalPrefs(next);
     try { localStorage.setItem("admin_approval_prefs", JSON.stringify(next)); } catch {}
     try {
-      if (token) {
-        await updateProfile(token, { preferences: { adminApproval: next } });
+      if (authToken) {
+        await updateProfile(authToken, { preferences: { adminApproval: next } });
       }
     } catch {}
   };
@@ -266,8 +268,8 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     setAdminPermissions(nextMap);
     try { localStorage.setItem("admin_permissions", JSON.stringify(nextMap)); } catch {}
     try {
-      if (token) {
-        await updateProfile(token, { preferences: { adminPermissions: nextMap } });
+      if (authToken) {
+        await updateProfile(authToken, { preferences: { adminPermissions: nextMap } });
       }
     } catch {}
   };
@@ -304,8 +306,8 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     setSecurityPrefs(next);
     try { localStorage.setItem("security_prefs", JSON.stringify(next)); } catch {}
     try {
-      if (token) {
-        await updateProfile(token, { preferences: { security: next } });
+      if (authToken) {
+        await updateProfile(authToken, { preferences: { security: next } });
       }
     } catch {}
   };
@@ -334,8 +336,8 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     
     try { localStorage.setItem("accessibility_prefs", JSON.stringify(next)); } catch {}
     try {
-      if (token) {
-        await updateProfile(token, { preferences: { accessibility: next } });
+      if (authToken) {
+        await updateProfile(authToken, { preferences: { accessibility: next } });
       }
     } catch {}
   };
@@ -389,10 +391,10 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const [rolesModalOpen, setRolesModalOpen] = useState(false);
 
   const fetchSessions = async () => {
-    if (!token) return;
+    if (!authToken) return;
     setSessionsLoading(true);
     try {
-      const res = await getSessions(token);
+      const res = await getSessions(authToken);
       const list = Array.isArray(res?.data) ? res.data : (res?.data?.sessions || []);
       setSessions(list.map((s) => ({
         key: s.id || s._id || `${s.device}-${s.ip}-${s.loginTime}`,
@@ -417,7 +419,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   return (
     <div className="settings-page" style={{ padding: isMobile ? "16px" : "24px", maxWidth: 1000, margin: "0 auto" }}>
       {contextHolder}
-      <Title level={2} className="page-modern-title" style={{ marginBottom: 24, fontSize: isMobile ? 24 : 30 }}>{t("settings.settings")}</Title>
+      <Title level={2} className="page-modern-title" style={{ marginBottom: 24, fontSize: isMobile ? '1.5rem' : '1.8rem' }}>{t("settings.settings")}</Title>
       <Tabs
         defaultActiveKey="language"
         tabPosition={isMobile ? "top" : "left"}
@@ -428,7 +430,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.language")}</Title>}>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                  <Card hoverable onClick={() => setLanguageModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                  <Card hoverable onClick={() => setLanguageModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                     <Space align="start">
                         <GlobalOutlined style={{ fontSize: 24, color: '#1890ff' }} />
                         <div>
@@ -455,7 +457,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.accessibility") || "Accessibility"}</Title>}>
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
                     <Space>
                        <SoundOutlined style={{ fontSize: 20, color: '#1890ff' }} />
                        <div>
@@ -465,7 +467,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                     </Space>
                     <Switch checked={!!accessibilityPrefs.ttsEnabled} onChange={(v) => saveAccessibility({ ttsEnabled: v })} />
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
                     <Space>
                        <RobotOutlined style={{ fontSize: 20, color: '#52c41a' }} />
                        <div>
@@ -485,7 +487,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.appearance")}</Title>}>
                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
                         <Space>
                             <BgColorsOutlined style={{ fontSize: 20, color: '#faad14' }} />
                             <Text strong>{t("settings.highContrast")}</Text>
@@ -494,7 +496,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setThemeModeModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setThemeModeModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <BgColorsOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
                               <div>
@@ -503,7 +505,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setThemeColorModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setThemeColorModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <FormatPainterOutlined style={{ fontSize: 24, color: '#722ed1' }} />
                               <div>
@@ -512,7 +514,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setFontSizeModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setFontSizeModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <FontSizeOutlined style={{ fontSize: 24, color: '#52c41a' }} />
                               <div>
@@ -521,7 +523,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setBgModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setBgModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <PictureOutlined style={{ fontSize: 24, color: '#eb2f96' }} />
                               <div>
@@ -652,7 +654,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.notifications")}</Title>}>
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
                         <Space>
                             <BellOutlined style={{ fontSize: 20, color: '#faad14' }} />
                             <Text strong>{t("settings.inAppNotif")}</Text>
@@ -661,7 +663,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                    </div>
 
                    {/* Email Binding Section */}
-                   <Card type="inner" title={t("settings.emailConfig")} size="small" style={{ borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                   <Card type="inner" title={t("settings.emailConfig")} size="small" style={{ borderColor: token.colorBorder }}>
                       <Space direction="vertical" style={{ width: '100%' }}>
                         <Text type="secondary">{t("settings.emailDesc")}</Text>
                         <Space.Compact style={{ width: '100%' }}>
@@ -699,7 +701,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                         <Switch checked={!!notifPrefs.email} onChange={(v) => saveNotifications({ email: v })} disabled={!boundEmail} />
                    </div>
                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setReminderDaysModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setReminderDaysModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <CalendarOutlined style={{ fontSize: 24, color: '#f5222d' }} />
                               <div>
@@ -750,7 +752,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                         console.log("Open password modal clicked (user settings)");
                         setPasswordModalOpen(true);
                       }}
-                      style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}
+                      style={{ cursor: 'pointer', borderColor: token.colorBorder }}
                     >
                       <Space align="start">
                           <LockOutlined style={{ fontSize: 24, color: '#1890ff' }} />
@@ -760,7 +762,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                           </div>
                       </Space>
                     </Card>
-                    <Card hoverable onClick={() => { setDevicesModalOpen(true); fetchSessions(); }} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                    <Card hoverable onClick={() => { setDevicesModalOpen(true); fetchSessions(); }} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                       <Space align="start">
                           <DesktopOutlined style={{ fontSize: 24, color: '#722ed1' }} />
                           <div>
@@ -778,7 +780,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                                  message.success(t("settings.cacheCleared"));
                              }
                          });
-                     }} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                     }} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                        <Space align="start">
                            <DeleteOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
                            <div>
@@ -831,8 +833,10 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                          try { 
                            console.log("Starting password change request (user settings)...");
                            setPasswordLoading(true);
-                           if (!token) { throw new Error(t("settings.notLoggedIn")); } 
-                           const result = await changePassword(token, currentPassword, newPassword); 
+                           if (!authToken) {
+        throw new Error(t("settings.notLoggedIn"));
+      }
+      const result = await changePassword(authToken, currentPassword, newPassword); 
                            console.log("Password change success (user settings)", result);
                            message.success(t("settings.passwordUpdated")); 
                            setPasswordModalOpen(false); 
@@ -901,7 +905,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                       <Text type="secondary">{t("settings.deviceManagementDesc")}</Text>
                       <Space>
                         <Button onClick={fetchSessions}>{t("settings.refreshDevices")}</Button>
-                        <Button danger onClick={async () => { try { if (!token) { message.error(t("settings.notLoggedIn")); return; } await revokeAllSessions(token); message.success(t("settings.signedOutAll")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutAllFailed")); } }}>{t("settings.signOutAll")}</Button>
+                        <Button danger onClick={async () => { try { if (!authToken) { message.error(t("settings.notLoggedIn")); return; } await revokeAllSessions(authToken); message.success(t("settings.signedOutAll")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutAllFailed")); } }}>{t("settings.signOutAll")}</Button>
                       </Space>
                    </Space>
                    <Table loading={sessionsLoading} dataSource={sessions} size="small" pagination={false} columns={[
@@ -909,7 +913,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                      { title: t("settings.ip"), dataIndex: 'ip', key: 'ip' },
                      { title: t("settings.loginTime"), dataIndex: 'loginTime', key: 'loginTime', render: (v) => new Date(v).toLocaleString() },
                      { title: t("settings.action"), key: 'action', render: (_, r) => (
-                       <Button danger size="small" onClick={async () => { try { if (!token) { message.error(t("settings.notLoggedIn")); return; } if (!r.id) { message.error(t("settings.sessionIdMissing")); return; } await revokeSession(token, r.id); message.success(t("settings.signedOutDevice")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutDeviceFailed")); } }}>{t("assistant.remove")}</Button>
+                       <Button danger size="small" onClick={async () => { try { if (!authToken) { message.error(t("settings.notLoggedIn")); return; } if (!r.id) { message.error(t("settings.sessionIdMissing")); return; } await revokeSession(authToken, r.id); message.success(t("settings.signedOutDevice")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutDeviceFailed")); } }}>{t("assistant.remove")}</Button>
                      ) }
                    ]} />
                 </Modal>
@@ -930,7 +934,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                         <Switch checked={!!operationPrefs.showAdvanced} onChange={(v) => saveOperation({ showAdvanced: v })} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setSearchPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setSearchPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <SearchOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
                               <div>
@@ -939,7 +943,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setSortPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setSortPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <SortAscendingOutlined style={{ fontSize: 24, color: '#eb2f96' }} />
                               <div>
@@ -948,7 +952,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setViewPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setViewPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <AppstoreOutlined style={{ fontSize: 24, color: '#fa8c16' }} />
                               <div>
@@ -1002,7 +1006,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                         <Switch checked={!!recommendPrefs.autoLearn} onChange={(v) => saveRecommend({ autoLearn: v })} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setCategoryPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setCategoryPrefModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <TagsOutlined style={{ fontSize: 24, color: '#722ed1' }} />
                               <div>
@@ -1011,7 +1015,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => { try { localStorage.removeItem('recommend_behavior'); localStorage.removeItem('compare_ids'); message.success(t("settings.dataReset")); } catch {} }} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => { try { localStorage.removeItem('recommend_behavior'); localStorage.removeItem('compare_ids'); message.success(t("settings.dataReset")); } catch {} }} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <ReloadOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
                               <div>
@@ -1052,7 +1056,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                           <Switch checked={!!adminApprovalPrefs.soundEnabled} onChange={(v) => saveAdminApproval({ soundEnabled: v })} />
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                         <Card hoverable onClick={() => setAutoRulesModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                         <Card hoverable onClick={() => setAutoRulesModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                             <Space align="start">
                                 <RobotOutlined style={{ fontSize: 24, color: '#1890ff' }} />
                                 <div>
@@ -1061,7 +1065,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                                 </div>
                             </Space>
                          </Card>
-                         <Card hoverable onClick={() => setBulkActionModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                         <Card hoverable onClick={() => setBulkActionModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                             <Space align="start">
                                 <BuildOutlined style={{ fontSize: 24, color: '#722ed1' }} />
                                 <div>
@@ -1107,7 +1111,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                 <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.adminRolesTitle")}</Title>}>
                   <Space direction="vertical" size={16} style={{ width: '100%' }}>
                      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                         <Card hoverable onClick={() => setRolesModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                         <Card hoverable onClick={() => setRolesModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                             <Space align="start">
                                 <TeamOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
                                 <div>

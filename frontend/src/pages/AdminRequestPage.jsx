@@ -62,7 +62,9 @@ function AdminRequestPage() {
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   
-  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+  const authToken = useMemo(() => {
+    return sessionStorage.getItem("token") || localStorage.getItem("token");
+  }, []);
   const approvalPrefs = (() => {
     try {
       const raw = localStorage.getItem("admin_approval_prefs");
@@ -109,7 +111,7 @@ function AdminRequestPage() {
   const fetchRequests = async () => {
     try {
       setLoading(true);
-      const res = await getAllRequests(token);
+      const res = await getAllRequests(authToken);
       const data = res.data || [];
       // 🧩 Sort by createdAt, newest first
       data.sort(
@@ -176,7 +178,7 @@ function AdminRequestPage() {
         console.log("🚀 onOk triggered, sending approve request...");
         try {
           // approveRequestLibrary parameters: id, approve (bool), reason (string), token
-          const res = await approveRequest(record._id, true, null, token);
+          const res = await approveRequest(record._id, true, null, authToken);
           message.success(res.data?.message || t("admin.approvedSuccess"));
           beep();
 
@@ -210,7 +212,7 @@ function AdminRequestPage() {
       cancelText: t("admin.cancel"),
       onOk: async () => {
         try {
-          const res = await approveRequest(record._id, false, reason, token);
+          const res = await approveRequest(record._id, false, reason, k);
           message.success(res.data?.message || t("admin.requestRejected"));
           beep();
           // ✅ Refresh immediately after rejection
@@ -238,9 +240,9 @@ function AdminRequestPage() {
       const stock = getStock(r);
       const overdue = getOverdue(r);
       if (r.type === "renew" && stock != null && stock > approvalPrefs.autoApproveWhenStockGt) {
-        try { await approveRequest(r._id, true, null, token); beep(); } catch {}
+        try { await approveRequest(r._id, true, null, authToken); beep(); } catch {}
       } else if (overdue != null && overdue > approvalPrefs.autoRejectWhenOverdueGt) {
-        try { await approveRequest(r._id, false, t("admin.autoRejectOverdue"), token); beep(); } catch {}
+        try { await approveRequest(r._id, false, t("admin.autoRejectOverdue"), authToken); beep(); } catch {}
       }
     }
     await fetchRequests();
@@ -280,9 +282,9 @@ function AdminRequestPage() {
           const promises = selectedRowKeys.map(async (id) => {
              try {
                 if (approvalPrefs.defaultBulkAction === "approve") {
-                  await approveRequest(id, true, null, token);
+                  await approveRequest(id, true, null, authToken);
                 } else {
-                  await approveRequest(id, false, t("admin.bulkReject"), token);
+                  await approveRequest(id, false, t("admin.bulkReject"), authToken);
                 }
                 successCount++;
              } catch (e) {

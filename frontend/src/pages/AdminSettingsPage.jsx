@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState } from "react";
-import { Card, Typography, Radio, Space, Input, Switch, Form, Button, Table, message, Select, InputNumber, Checkbox, Tabs, Grid, Modal, ColorPicker, Slider } from "antd";
+import { Card, Typography, Radio, Space, Input, Switch, Form, Button, Table, message, Select, InputNumber, Checkbox, Tabs, Grid, Modal, ColorPicker, Slider, theme } from "antd";
 import { 
   LockOutlined, DesktopOutlined, DeleteOutlined, SafetyCertificateOutlined,
   GlobalOutlined, BgColorsOutlined, FormatPainterOutlined, FontSizeOutlined, 
@@ -10,14 +10,16 @@ import { useLanguage } from "../contexts/LanguageContext";
 
 const { Title, Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 function AdminSettingsPage({ appearance, onChange, user }) {
   const { language, setLanguage, t } = useLanguage();
+  const { token } = useToken();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const [form] = Form.useForm();
 
-  const token = useMemo(() => {
+  const authToken = useMemo(() => {
     return sessionStorage.getItem("token") || localStorage.getItem("token");
   }, []);
 
@@ -36,8 +38,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
     setAdminApprovalPrefs(next);
     try { localStorage.setItem("admin_approval_prefs", JSON.stringify(next)); } catch {}
     try {
-      if (token) {
-        await updateProfile(token, { preferences: { adminApproval: next } });
+      if (authToken) {
+        await updateProfile(authToken, { preferences: { adminApproval: next } });
       }
     } catch {}
   };
@@ -66,8 +68,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
     setAdminPermissions(nextMap);
     try { localStorage.setItem("admin_permissions", JSON.stringify(nextMap)); } catch {}
     try {
-      if (token) {
-        await updateProfile(token, { preferences: { adminPermissions: nextMap } });
+      if (authToken) {
+        await updateProfile(authToken, { preferences: { adminPermissions: nextMap } });
       }
     } catch {}
   };
@@ -87,8 +89,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
     setSecurityPrefs(next);
     try { localStorage.setItem("security_prefs", JSON.stringify(next)); } catch {}
     try {
-      if (token) {
-        await updateProfile(token, { preferences: { security: next } });
+      if (authToken) {
+        await updateProfile(authToken, { preferences: { security: next } });
       }
     } catch {}
   };
@@ -111,10 +113,10 @@ function AdminSettingsPage({ appearance, onChange, user }) {
   const [sessionsLoading, setSessionsLoading] = useState(false);
 
   const fetchSessions = async () => {
-    if (!token) return;
+    if (!authToken) return;
     setSessionsLoading(true);
     try {
-      const res = await getSessions(token);
+      const res = await getSessions(authToken);
       const list = Array.isArray(res?.data) ? res.data : (res?.data?.sessions || []);
       setSessions(list.map((s) => ({
         key: s.id || s._id || `${s.device}-${s.ip}-${s.loginTime}`,
@@ -136,7 +138,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
 
   return (
     <div className="page-container" style={{ padding: isMobile ? "16px" : "24px", maxWidth: 1000, margin: "0 auto" }}>
-      <Title level={2} className="page-modern-title" style={{ marginBottom: 24, fontSize: isMobile ? 24 : 30 }}>
+      <Title level={2} className="page-modern-title" style={{ marginBottom: 24, fontSize: isMobile ? '1.5rem' : '1.8rem' }}>
         {t("admin.settings") || "Admin Settings"}
       </Title>
       
@@ -150,7 +152,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.language")}</Title>}>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                  <Card hoverable onClick={() => setLanguageModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                  <Card hoverable onClick={() => setLanguageModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                     <Space align="start">
                         <GlobalOutlined style={{ fontSize: 24, color: '#1890ff' }} />
                         <div>
@@ -177,7 +179,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.appearance")}</Title>}>
                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
                         <Space>
                             <BgColorsOutlined style={{ fontSize: 20, color: '#faad14' }} />
                             <AntText strong>{t("settings.highContrast")}</AntText>
@@ -186,7 +188,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setThemeModeModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setThemeModeModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <BgColorsOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
                               <div>
@@ -195,7 +197,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setThemeColorModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setThemeColorModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <FormatPainterOutlined style={{ fontSize: 24, color: '#722ed1' }} />
                               <div>
@@ -204,7 +206,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setFontSizeModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setFontSizeModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <FontSizeOutlined style={{ fontSize: 24, color: '#52c41a' }} />
                               <div>
@@ -213,7 +215,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setBgModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setBgModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <PictureOutlined style={{ fontSize: 24, color: '#eb2f96' }} />
                               <div>
@@ -303,7 +305,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
             children: (
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.privacySecurity")}</Title>}>
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
                        <Space>
                            <SafetyCertificateOutlined style={{ fontSize: 20, color: '#faad14' }} />
                            <AntText strong>{t("settings.twoFactor")}</AntText>
@@ -311,7 +313,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                        <Switch checked={!!securityPrefs.twoFactorEnabled} onChange={(v) => saveSecurity({ twoFactorEnabled: v })} />
                    </div>
                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                      <Card hoverable onClick={() => setPasswordModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                      <Card hoverable onClick={() => setPasswordModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                         <Space align="start">
                             <LockOutlined style={{ fontSize: 24, color: '#1890ff' }} />
                             <div>
@@ -320,7 +322,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                             </div>
                         </Space>
                       </Card>
-                      <Card hoverable onClick={() => { setDevicesModalOpen(true); fetchSessions(); }} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                      <Card hoverable onClick={() => { setDevicesModalOpen(true); fetchSessions(); }} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                         <Space align="start">
                             <DesktopOutlined style={{ fontSize: 24, color: '#722ed1' }} />
                             <div>
@@ -338,7 +340,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                                    message.success(t("settings.cacheCleared"));
                                }
                            });
-                       }} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       }} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                          <Space align="start">
                              <DeleteOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
                              <div>
@@ -379,11 +381,11 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                          
                          try {
                            console.log('Starting password change request...');
-                           setPasswordLoading(true);
-                           if (!token) { throw new Error(t("settings.notLoggedIn")); }
-                           const result = await changePassword(token, currentPassword, newPassword);
-                           console.log('Password change success', result);
-                           message.success(t("settings.passwordUpdated"));
+                          setPasswordLoading(true);
+                          if (!authToken) { throw new Error(t("settings.notLoggedIn")); }
+                          const result = await changePassword(authToken, currentPassword, newPassword);
+                          console.log('Password change success', result);
+                          message.success(t("settings.passwordUpdated"));
                            setPasswordModalOpen(false);
                          } catch (e) {
                            console.error("Change password failed:", e);
@@ -435,7 +437,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                         <AntText type="secondary">{t("settings.deviceManagementDesc")}</AntText>
                         <Space>
                           <Button onClick={fetchSessions}>{t("settings.refreshDevices")}</Button>
-                          <Button danger onClick={async () => { try { if (!token) { message.error(t("settings.notLoggedIn")); return; } await revokeAllSessions(token); message.success(t("settings.signedOutAll")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutAllFailed")); } }}>{t("settings.signOutAll")}</Button>
+                          <Button danger onClick={async () => { try { if (!authToken) { message.error(t("settings.notLoggedIn")); return; } await revokeAllSessions(authToken); message.success(t("settings.signedOutAll")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutAllFailed")); } }}>{t("settings.signOutAll")}</Button>
                         </Space>
                      </Space>
                      <Table loading={sessionsLoading} dataSource={sessions} size="small" pagination={false} columns={[
@@ -443,7 +445,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                        { title: t("settings.ip"), dataIndex: 'ip', key: 'ip' },
                        { title: t("settings.loginTime"), dataIndex: 'loginTime', key: 'loginTime', render: (v) => new Date(v).toLocaleString() },
                        { title: t("settings.action"), key: 'action', render: (_, r) => (
-                         <Button danger size="small" onClick={async () => { try { if (!token) { message.error(t("settings.notLoggedIn")); return; } if (!r.id) { message.error(t("settings.sessionIdMissing")); return; } await revokeSession(token, r.id); message.success(t("settings.signedOutDevice")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutDeviceFailed")); } }}>{t("assistant.remove")}</Button>
+                         <Button danger size="small" onClick={async () => { try { if (!authToken) { message.error(t("settings.notLoggedIn")); return; } if (!r.id) { message.error(t("settings.sessionIdMissing")); return; } await revokeSession(authToken, r.id); message.success(t("settings.signedOutDevice")); fetchSessions(); } catch (e) { message.error(e?.response?.data?.message || e?.message || t("settings.signOutDeviceFailed")); } }}>{t("assistant.remove")}</Button>
                        ) }
                      ]} />
                   </Modal>
@@ -464,7 +466,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                         <Switch checked={!!adminApprovalPrefs.soundEnabled} onChange={(v) => saveAdminApproval({ soundEnabled: v })} />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setAutoRulesModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setAutoRulesModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <RobotOutlined style={{ fontSize: 24, color: '#1890ff' }} />
                               <div>
@@ -473,7 +475,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setBulkActionModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setBulkActionModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <BuildOutlined style={{ fontSize: 24, color: '#722ed1' }} />
                               <div>
@@ -519,7 +521,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
               <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.adminRolesTitle")}</Title>}>
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setRolesModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.mode === 'dark' ? '#303030' : '#f0f0f0' }}>
+                       <Card hoverable onClick={() => setRolesModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
                               <TeamOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
                               <div>
