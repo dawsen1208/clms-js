@@ -126,7 +126,10 @@ function RegisterReader() {
           <Form.Item
             name="password"
             label={t("register.password")}
-            rules={[{ required: true, message: t("register.enterPass") }]}
+            rules={[
+              { required: true, message: t("register.enterPass") },
+              { min: 8, message: t("register.passwordRequirements") }
+            ]}
           >
             <Input.Password
               size="large"
