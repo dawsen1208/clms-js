@@ -112,7 +112,7 @@ function RegisterAdmin() {
             label={t("register.name")}
             rules={[
               { required: true, message: t("register.enterName") },
-              { pattern: /^(?!\d+$)[A-Za-z][A-Za-z0-9_]*$/, message: t("register.nameInvalid") }
+              { pattern: /^(?!\d+$)[A-Za-z][A-Za-z0-9_ ]*$/, message: t("register.nameInvalid") }
             ]}
           >
             <Input

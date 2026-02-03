@@ -1061,7 +1061,7 @@ export const translations = {
       regFail: "注册失败，请检查输入或网络。",
       redirectLogin: "正在跳转至登录页...",
       enterName: "请输入您的姓名",
-      nameInvalid: "以字母开头；仅限字母、数字、下划线；不能全为数字",
+      nameInvalid: "以字母开头；支持字母、数字、下划线、空格；不能全为数字",
       passwordRequirements: "密码长度至少为 8 位",
       enterPass: "请输入密码",
       enterAuth: "请输入管理员授权码 (默认: admin)",
