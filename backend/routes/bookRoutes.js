@@ -697,11 +697,15 @@ router.post("/borrow/:id", authMiddleware, async (req, res) => {
        return res.status(400).json({ message: "库存不足" });
     }
 
-  const record = await BorrowRecord.create({
+    // 🕒 获取用户偏好借阅天数
+    const user = await User.findOne({ userId });
+    const duration = user?.preferences?.borrowing?.defaultDuration || 30;
+
+    const record = await BorrowRecord.create({
       userId,
       bookId: book._id,
       borrowedAt: new Date(),
-      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      dueDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000),
     });
 
     // ✅ 记录到借阅历史（BorrowHistory），便于用户在 Profile 查看“Borrow History”

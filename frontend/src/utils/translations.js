@@ -354,6 +354,9 @@ export const translations = {
       noReplyYet: "No reply yet"
     },
     settings: {
+      borrowing: "Borrowing Settings",
+      defaultBorrowDuration: "Default Borrow Duration",
+      defaultBorrowDurationDesc: "Set the default number of days for borrowing books (1-30 days)",
       english: "English",
       chinese: "Chinese",
       appearance: "Appearance",
@@ -1268,6 +1271,9 @@ export const translations = {
       noReplyYet: "暂无回复"
     },
     settings: {
+      borrowing: "借阅设置",
+      defaultBorrowDuration: "默认借阅天数",
+      defaultBorrowDurationDesc: "设置借阅图书的默认天数（1-30天）",
       security: "安全",
       english: "英文",
       chinese: "中文",

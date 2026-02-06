@@ -321,6 +321,37 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     } catch {}
   };
 
+  const [borrowingPrefs, setBorrowingPrefs] = useState(() => {
+    // Priority: User prop > LocalStorage > Default
+    if (user?.preferences?.borrowing) {
+      return user.preferences.borrowing;
+    }
+    try {
+      const raw = localStorage.getItem("borrowing_prefs");
+      return raw ? JSON.parse(raw) : { defaultDuration: 30 };
+    } catch {
+      return { defaultDuration: 30 };
+    }
+  });
+
+  // Sync borrowing prefs when user prop updates
+  useEffect(() => {
+    if (user?.preferences?.borrowing) {
+      setBorrowingPrefs(user.preferences.borrowing);
+    }
+  }, [user]);
+
+  const saveBorrowing = async (patch) => {
+    const next = { ...borrowingPrefs, ...patch };
+    setBorrowingPrefs(next);
+    try { localStorage.setItem("borrowing_prefs", JSON.stringify(next)); } catch {}
+    try {
+      if (authToken) {
+        await updateProfile(authToken, { preferences: { borrowing: next } });
+      }
+    } catch {}
+  };
+
   const [accessibilityPrefs, setAccessibilityPrefs] = useState(() => {
     // Priority: User prop > LocalStorage > Default
     if (user?.preferences?.accessibility) {
@@ -739,6 +770,34 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                        </Space>
                      </Radio.Group>
                 </Modal>
+              </Card>
+            ),
+          },
+          {
+            key: "borrowing",
+            label: t("settings.borrowing"),
+            children: (
+              <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.borrowing")}</Title>}>
+                <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? '#fff' : token.colorBorder) }}>
+                        <Space>
+                            <CalendarOutlined style={{ fontSize: 20, color: appearance?.highContrast ? '#fff' : '#722ed1' }} />
+                            <div>
+                                <Text strong style={{ display: 'block', color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.defaultBorrowDuration")}</Text>
+                                <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? '#fff' : undefined }}>{t("settings.defaultBorrowDurationDesc")}</Text>
+                            </div>
+                        </Space>
+                        <Space>
+                            <InputNumber 
+                                min={1} 
+                                max={30} 
+                                value={borrowingPrefs.defaultDuration || 30} 
+                                onChange={(v) => saveBorrowing({ defaultDuration: v })} 
+                            />
+                            <Text>{t("common.days") || "days"}</Text>
+                        </Space>
+                   </div>
+                </Space>
               </Card>
             ),
           },

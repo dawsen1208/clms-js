@@ -36,7 +36,10 @@ const userSchema = new mongoose.Schema({
     adminPermissions: { type: Object, default: {} },
     security: { type: Object, default: {} },
     accessibility: { type: Object, default: {} }, // ✅ Accessibility preferences
-    appearance: { type: Object, default: {} }     // ✅ Appearance preferences
+    appearance: { type: Object, default: {} },     // ✅ Appearance preferences
+    borrowing: {
+      defaultDuration: { type: Number, default: 30, min: 1, max: 30 }
+    }
   },
 
   sessions: [{
