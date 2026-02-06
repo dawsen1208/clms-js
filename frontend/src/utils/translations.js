@@ -52,7 +52,44 @@ export const translations = {
       copyFailed: "Copy failed, please copy manually",
       operationGuide: "Operation Guide",
       clickToViewGuide: "Click for Guide",
-      clickToBack: "Click to Return"
+      clickToBack: "Click to Return",
+      feedback: "Feedback Center"
+    },
+    guide: {
+      search: {
+        desc: "Use the search bar to find books you are interested in.",
+        point1: "Search by title, author, or ISBN",
+        point2: "Use filters for precise lookup",
+        point3: "Click book cover for details",
+        btn: "Go Search"
+      },
+      borrow: {
+        desc: "View and manage your current borrowing status.",
+        point1: "View current borrowed books and due dates",
+        point2: "Support online renewal",
+        point3: "Check borrowing history",
+        btn: "Go Manage"
+      },
+      return: {
+        desc: "Learn how to return books.",
+        descFull: "Please go to the library counter or self-service machine to return books. The system will automatically update your status after return."
+      },
+      smartRec: {
+        desc: "Recommend good books based on your reading preferences.",
+        descFull: "The system updates the recommended book list daily based on your borrowing history and popular trends."
+      },
+      feedback: {
+        desc: "Your opinion matters to us.",
+        descFull: "If you encounter problems or have any suggestions, please tell us via the Feedback Center.",
+        btn: "Go Feedback"
+      },
+      settings: {
+        desc: "Personalize your app experience.",
+        point1: "Switch language (Chinese/English)",
+        point2: "Adjust font size and theme color",
+        point3: "Enable accessibility features (TTS, High Contrast)",
+        btn: "Go Settings"
+      }
     },
     titles: {
       popularToday: "Trending Books",
@@ -963,6 +1000,42 @@ export const translations = {
       clickToViewGuide: "点击查看指南",
       clickToBack: "点击返回",
       feedback: "反馈中心"
+    },
+    guide: {
+      search: {
+        desc: "使用搜索栏查找您感兴趣的图书。",
+        point1: "支持按书名、作者、ISBN 搜索",
+        point2: "可使用筛选功能精确查找",
+        point3: "点击图书封面查看详细信息",
+        btn: "去搜索"
+      },
+      borrow: {
+        desc: "查看和管理您当前的借阅状态。",
+        point1: "查看当前借阅的图书及归还期限",
+        point2: "支持在线续借操作",
+        point3: "查询历史借阅记录",
+        btn: "去管理"
+      },
+      return: {
+        desc: "了解如何归还图书。",
+        descFull: "请前往图书馆柜台或自助归还机进行还书操作。归还后系统会自动更新您的借阅状态。"
+      },
+      smartRec: {
+        desc: "基于您的阅读喜好为您推荐好书。",
+        descFull: "系统会根据您的借阅历史和热门趋势，每日更新推荐书单。"
+      },
+      feedback: {
+        desc: "您的意见对我们很重要。",
+        descFull: "如果您在使用过程中遇到问题或有任何建议，欢迎通过反馈中心告诉我们。",
+        btn: "去反馈"
+      },
+      settings: {
+        desc: "个性化您的应用体验。",
+        point1: "切换语言 (中文/English)",
+        point2: "调整字体大小和主题颜色",
+        point3: "开启无障碍功能 (TTS, 高对比度)",
+        btn: "去设置"
+      }
     },
     titles: {
       popularToday: "热门趋势",

@@ -41,48 +41,48 @@ function HomePage() {
     {
       key: 'search',
       icon: <SearchOutlined style={{ fontSize: 24, color: '#1890ff' }} />,
-      title: t("common.bookSearch") || "图书搜索",
+      title: t("common.bookSearch"),
       content: (
         <div>
-          <Paragraph>使用搜索栏查找您感兴趣的图书。</Paragraph>
+          <Paragraph>{t("guide.search.desc")}</Paragraph>
           <Paragraph>
             <ul>
-              <li>支持按书名、作者、ISBN 搜索</li>
-              <li>可使用筛选功能精确查找</li>
-              <li>点击图书封面查看详细信息</li>
+              <li>{t("guide.search.point1")}</li>
+              <li>{t("guide.search.point2")}</li>
+              <li>{t("guide.search.point3")}</li>
             </ul>
           </Paragraph>
-          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/search'); }}>去搜索</Button>
+          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/search'); }}>{t("guide.search.btn")}</Button>
         </div>
       )
     },
     {
       key: 'borrow',
       icon: <BookOutlined style={{ fontSize: 24, color: '#52c41a' }} />,
-      title: t("common.borrowManage") || "借阅管理",
+      title: t("common.borrowManage"),
       content: (
         <div>
-          <Paragraph>查看和管理您当前的借阅状态。</Paragraph>
+          <Paragraph>{t("guide.borrow.desc")}</Paragraph>
           <Paragraph>
             <ul>
-              <li>查看当前借阅的图书及归还期限</li>
-              <li>支持在线续借操作</li>
-              <li>查询历史借阅记录</li>
+              <li>{t("guide.borrow.point1")}</li>
+              <li>{t("guide.borrow.point2")}</li>
+              <li>{t("guide.borrow.point3")}</li>
             </ul>
           </Paragraph>
-          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/borrow'); }}>去管理</Button>
+          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/borrow'); }}>{t("guide.borrow.btn")}</Button>
         </div>
       )
     },
     {
       key: 'return',
       icon: <ScanOutlined style={{ fontSize: 24, color: '#faad14' }} />,
-      title: t("common.returnSystem") || "归还系统",
+      title: t("common.returnSystem"),
       content: (
         <div>
-          <Paragraph>了解如何归还图书。</Paragraph>
+          <Paragraph>{t("guide.return.desc")}</Paragraph>
           <Paragraph>
-             请前往图书馆柜台或自助归还机进行还书操作。归还后系统会自动更新您的借阅状态。
+             {t("guide.return.descFull")}
           </Paragraph>
         </div>
       )
@@ -90,12 +90,12 @@ function HomePage() {
     {
       key: 'smartRec',
       icon: <BulbOutlined style={{ fontSize: 24, color: '#722ed1' }} />,
-      title: t("common.smartRec") || "智能推荐",
+      title: t("common.smartRec"),
       content: (
         <div>
-          <Paragraph>基于您的阅读喜好为您推荐好书。</Paragraph>
+          <Paragraph>{t("guide.smartRec.desc")}</Paragraph>
           <Paragraph>
-            系统会根据您的借阅历史和热门趋势，每日更新推荐书单。
+            {t("guide.smartRec.descFull")}
           </Paragraph>
         </div>
       )
@@ -103,32 +103,32 @@ function HomePage() {
     {
       key: 'feedback',
       icon: <MessageOutlined style={{ fontSize: 24, color: '#eb2f96' }} />,
-      title: t("common.feedback") || "反馈中心",
+      title: t("common.feedback"),
       content: (
         <div>
-          <Paragraph>您的意见对我们很重要。</Paragraph>
+          <Paragraph>{t("guide.feedback.desc")}</Paragraph>
           <Paragraph>
-             如果您在使用过程中遇到问题或有任何建议，欢迎通过反馈中心告诉我们。
+             {t("guide.feedback.descFull")}
           </Paragraph>
-          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/feedback'); }}>去反馈</Button>
+          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/feedback'); }}>{t("guide.feedback.btn")}</Button>
         </div>
       )
     },
     {
       key: 'settings',
       icon: <SettingOutlined style={{ fontSize: 24, color: '#13c2c2' }} />,
-      title: t("settings.settings") || "设置",
+      title: t("settings.settings"),
       content: (
         <div>
-          <Paragraph>个性化您的应用体验。</Paragraph>
+          <Paragraph>{t("guide.settings.desc")}</Paragraph>
           <Paragraph>
             <ul>
-              <li>切换语言 (中文/English)</li>
-              <li>调整字体大小和主题颜色</li>
-              <li>开启无障碍功能 (TTS, 高对比度)</li>
+              <li>{t("guide.settings.point1")}</li>
+              <li>{t("guide.settings.point2")}</li>
+              <li>{t("guide.settings.point3")}</li>
             </ul>
           </Paragraph>
-          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/settings'); }}>去设置</Button>
+          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/settings'); }}>{t("guide.settings.btn")}</Button>
         </div>
       )
     }
