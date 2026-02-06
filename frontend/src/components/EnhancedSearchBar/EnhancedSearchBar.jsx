@@ -1,13 +1,13 @@
 // ✅ Enhanced search bar component (autocomplete + highlight matching)
 import { useState, useEffect, useMemo } from "react";
-import { AutoComplete, Input, Typography, Button, Tooltip, Tag } from "antd";
+import { AutoComplete, Input, Typography, Button, Tooltip, Tag, theme } from "antd";
 import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
-import { theme } from "../../styles/theme";
 import { useLanguage } from "../../contexts/LanguageContext";
 import "./EnhancedSearchBar.css";
 
 const { Search } = Input;
 const { Text } = Typography;
+const { useToken } = theme;
 
 function EnhancedSearchBar({ 
   onSearch, 
@@ -21,6 +21,7 @@ function EnhancedSearchBar({
   loading = false 
 }) {
   const { t } = useLanguage();
+  const { token } = useToken();
   const [searchValue, setSearchValue] = useState("");
   const [options, setOptions] = useState([]);
   const [error, setError] = useState(null);
@@ -201,7 +202,7 @@ function EnhancedSearchBar({
           notFoundContent={searchValue && searchValue.length >= 2 ? t("search.noMatching") : null}
         >
           <Search
-            prefix={<SearchOutlined style={{ color: theme.colors.neutral.darkGray }} aria-hidden="true" />}
+            prefix={<SearchOutlined style={{ color: token.colorTextDescription }} aria-hidden="true" />}
             enterButton={t("common.search")}
             size="large"
             loading={loading}
@@ -210,8 +211,8 @@ function EnhancedSearchBar({
             style={{
               width: '100%',
               borderRadius: '8px',
-              fontFamily: theme.typography.fontFamily.primary,
-              fontSize: theme.typography.fontSize.md
+              fontFamily: token.fontFamily,
+              fontSize: token.fontSize
             }}
           />
       </AutoComplete>
