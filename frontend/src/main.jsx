@@ -12,6 +12,7 @@ import "./styles/global.css";
 import { ConfigProvider, message, Grid, theme as antdTheme } from "antd";
 import enUS from "antd/locale/en_US";
 import zhCN from "antd/locale/zh_CN";
+import { appTheme } from "./styles/theme";
 import {
   BrowserRouter,
   Routes,
@@ -299,7 +300,18 @@ function App() {
   );
 
   return (
-    <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={enUS} theme={{ token: themeTokens, algorithm }}>
+    <ConfigProvider
+      componentSize={isMobile ? "small" : "middle"}
+      locale={language === "zh" ? zhCN : enUS}
+      theme={{
+        ...appTheme,
+        algorithm,
+        token: {
+          ...appTheme.token,
+          ...themeTokens,
+        },
+      }}
+    >
       <Routes>
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/register" element={<RegisterReader />} />

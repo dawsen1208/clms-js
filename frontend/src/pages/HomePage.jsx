@@ -1,563 +1,222 @@
 // ✅ client/src/pages/HomePage.jsx
 import { useEffect, useState } from "react";
-import { Card, Typography, Spin, message, Statistic, Row, Col, Button, Grid, Modal, Space } from "antd";
+import { Typography, Row, Col, Button, Skeleton, Space, Badge } from "antd";
 import { 
   SearchOutlined, 
-  BookOutlined, 
-  HistoryOutlined, 
-  FireOutlined, 
-  SettingOutlined, 
-  MessageOutlined, 
-  BulbOutlined, 
-  ScanOutlined,
-  AppstoreOutlined 
+  ReadOutlined, 
+  ClockCircleOutlined, 
+  BulbOutlined,
+  RightOutlined
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom"; // ✅ Added
-import PopularBanner from "../components/PopularBanner";
-import { getRecommendations } from "../api"; // ✅ unified API source
-import "./HomePage.css";
+import { useNavigate } from "react-router-dom";
+import { getRecommendations, getBorrowedBooks } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-const { Title, Paragraph } = Typography;
-// const { useBreakpoint } = Grid; // ❌ Moved inside
+dayjs.extend(relativeTime);
+
+const { Title, Text } = Typography;
 
 function HomePage() {
   const { t } = useLanguage();
-  const navigate = useNavigate(); // ✅ Added
-
-
-  const { useBreakpoint } = Grid; // ✅ Moved here
-  const [recommended, setRecommended] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [isFlipped, setIsFlipped] = useState(false); // ✅ Flip state
-  const [guideModal, setGuideModal] = useState({ open: false, title: "", content: null }); // ✅ Guide Modal State
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({
+    activeLoans: [],
+    recommendations: [],
+    dueSoonCount: 0
+  });
 
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-  const metrics = { rec: recommended.length };
-  const screens = useBreakpoint();
-  const isMobile = !screens.md;
-
-  const guideItems = [
-    {
-      key: 'search',
-      icon: <SearchOutlined style={{ fontSize: 24, color: '#1890ff' }} />,
-      title: t("common.bookSearch"),
-      content: (
-        <div>
-          <Paragraph>{t("guide.search.desc")}</Paragraph>
-          <Paragraph>
-            <ul>
-              <li>{t("guide.search.point1")}</li>
-              <li>{t("guide.search.point2")}</li>
-              <li>{t("guide.search.point3")}</li>
-            </ul>
-          </Paragraph>
-          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/search'); }}>{t("guide.search.btn")}</Button>
-        </div>
-      )
-    },
-    {
-      key: 'borrow',
-      icon: <BookOutlined style={{ fontSize: 24, color: '#52c41a' }} />,
-      title: t("common.borrowManage"),
-      content: (
-        <div>
-          <Paragraph>{t("guide.borrow.desc")}</Paragraph>
-          <Paragraph>
-            <ul>
-              <li>{t("guide.borrow.point1")}</li>
-              <li>{t("guide.borrow.point2")}</li>
-              <li>{t("guide.borrow.point3")}</li>
-            </ul>
-          </Paragraph>
-          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/borrow'); }}>{t("guide.borrow.btn")}</Button>
-        </div>
-      )
-    },
-    {
-      key: 'return',
-      icon: <ScanOutlined style={{ fontSize: 24, color: '#faad14' }} />,
-      title: t("common.returnSystem"),
-      content: (
-        <div>
-          <Paragraph>{t("guide.return.desc")}</Paragraph>
-          <Paragraph>
-             {t("guide.return.descFull")}
-          </Paragraph>
-        </div>
-      )
-    },
-    {
-      key: 'smartRec',
-      icon: <BulbOutlined style={{ fontSize: 24, color: '#722ed1' }} />,
-      title: t("common.smartRec"),
-      content: (
-        <div>
-          <Paragraph>{t("guide.smartRec.desc")}</Paragraph>
-          <Paragraph>
-            {t("guide.smartRec.descFull")}
-          </Paragraph>
-        </div>
-      )
-    },
-    {
-      key: 'feedback',
-      icon: <MessageOutlined style={{ fontSize: 24, color: '#eb2f96' }} />,
-      title: t("common.feedback"),
-      content: (
-        <div>
-          <Paragraph>{t("guide.feedback.desc")}</Paragraph>
-          <Paragraph>
-             {t("guide.feedback.descFull")}
-          </Paragraph>
-          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/feedback'); }}>{t("guide.feedback.btn")}</Button>
-        </div>
-      )
-    },
-    {
-      key: 'settings',
-      icon: <SettingOutlined style={{ fontSize: 24, color: '#13c2c2' }} />,
-      title: t("settings.settings"),
-      content: (
-        <div>
-          <Paragraph>{t("guide.settings.desc")}</Paragraph>
-          <Paragraph>
-            <ul>
-              <li>{t("guide.settings.point1")}</li>
-              <li>{t("guide.settings.point2")}</li>
-              <li>{t("guide.settings.point3")}</li>
-            </ul>
-          </Paragraph>
-          <Button type="primary" onClick={() => { setGuideModal({ open: false }); navigate('/settings'); }}>{t("guide.settings.btn")}</Button>
-        </div>
-      )
-    }
-  ];
-
-  const titleStyle = {
-    background: "linear-gradient(90deg, #1d4ed8, #3b82f6)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    marginBottom: "16px",
-    fontWeight: "bold"
-  };
-
-  /* =========================================================
-     📚 Fetch popular recommendations (backend logic)
-     ========================================================= */
-  const fetchRecommendations = async () => {
-    if (!token) return;
-    try {
-      setLoading(true);
-      const res = await getRecommendations(token);
-      const { popularBooks } = await import("../data/booksData");
-
-      const normalizeBooks = (books) =>
-        (books || []).map((book, index) => {
-          // 1. Try to find static cover match by ID (using imported popularBooks)
-          const staticMatch = popularBooks.find(b => b._id === book._id);
-
-          // 2. Resolve cover from various properties
-          let cover =
-            book.cover ||
-            book.coverUrl ||
-            book.image ||
-            book.imageUrl;
-
-          // 3. If no cover, fallback to static match
-          if (!cover && staticMatch?.cover) {
-            cover = staticMatch.cover;
-          }
-
-          // 4. If still no cover, fallback to popularBooks by index (cycling)
-          if (!cover && popularBooks.length > 0) {
-            const fallbackBook = popularBooks[index % popularBooks.length];
-            cover = fallbackBook.cover;
-          }
-
-          // 5. Last resort default
-          if (!cover) cover = "/books/cleancode.jpg";
-
-          // 6. URL Normalization (Cloud/Backend compatibility)
-          if (typeof cover === "string") {
-            if (cover.startsWith("http") || cover.startsWith("data:")) {
-              // Absolute URL, keep it
-            } else if (cover.startsWith("/books/")) {
-              // Static asset, keep it
-            } else {
-              // Backend relative path -> prepend API base
-              const apiBase = import.meta.env.VITE_API_BASE;
-              if (apiBase) {
-                const cleanBase = apiBase.replace(/\/$/, "");
-                const cleanPath = cover.startsWith("/") ? cover : `/${cover}`;
-                cover = `${cleanBase}${cleanPath}`;
-              }
-            }
-          }
-          return { ...book, cover };
-        });
-
-      const backendBooks = res.data?.recommended || [];
-      if (backendBooks.length) {
-        setRecommended(normalizeBooks(backendBooks));
-      } else {
-        setRecommended(normalizeBooks(popularBooks));
-      }
-    } catch (err) {
-      console.error("❌ Failed to fetch recommendations:", err);
-      const { popularBooks } = await import("../data/booksData");
-      setRecommended(popularBooks);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const user = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
 
   useEffect(() => {
-    fetchRecommendations();
-  }, []);
+    const fetchData = async () => {
+      if (!token) return;
+      try {
+        setLoading(true);
+        // Parallel fetch
+        const [recRes, borrowRes] = await Promise.allSettled([
+          getRecommendations(token),
+          getBorrowedBooks(token)
+        ]);
 
-  /* =========================================================
-     📱 Mobile View
-     ========================================================= */
-  if (isMobile) {
-    return (
-      <div className="home-page-mobile" style={{ padding: '16px', maxWidth: '100vw', overflowX: 'hidden' }}>
-        {/* ✅ 1. Welcome Flip Card (Mobile) */}
-        <div className={`flip-card-container ${isFlipped ? "flipped" : ""}`} onClick={() => setIsFlipped(!isFlipped)}>
-          <div className="flip-card-inner">
-            {/* Front Side */}
-            <div className="flip-card-front">
-              <Card className="welcome-card" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                <Title level={2} className="page-modern-title" style={{ textAlign: "center", width: "100%", fontSize: "1.5rem" }}>
-                  👋 {t("common.welcome")}
-                </Title>
-                <Paragraph className="home-paragraph" style={{ fontSize: "0.9rem" }}>
-                  {t("common.welcomeDesc")}
-                </Paragraph>
-                <div className="flip-hint">
-                  <span role="img" aria-label="touch">👆</span> {t("common.clickToViewGuide")}
-                </div>
-              </Card>
-            </div>
+        const recommendations = recRes.status === 'fulfilled' ? (recRes.value.data?.recommended || []) : [];
+        const activeLoans = borrowRes.status === 'fulfilled' ? (borrowRes.value.data || []) : [];
 
-            {/* Back Side */}
-            <div className="flip-card-back">
-              <Card className="welcome-card" bodyStyle={{ padding: '12px' }} style={{ height: '100%', overflow: 'hidden' }}>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: '1fr 1fr', 
-                  gap: '10px', 
-                  height: '100%', 
-                  alignContent: 'center' 
-                }}>
-                  {guideItems.map(item => (
-                    <div 
-                      key={item.key}
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent flip
-                        setGuideModal({ open: true, title: item.title, content: item.content });
-                      }}
-                      style={{
-                        background: '#f8fafc',
-                        borderRadius: '10px',
-                        padding: '10px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        border: '1px solid #e2e8f0',
-                        textAlign: 'center',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      <div style={{ marginBottom: '6px' }}>{item.icon}</div>
-                      <Typography.Text style={{ fontSize: '13px', fontWeight: '500', color: '#334155' }}>{item.title}</Typography.Text>
-                    </div>
-                  ))}
-                </div>
-                <div className="flip-hint" style={{ bottom: '8px', right: '12px' }}>
-                  <span role="img" aria-label="back">↩️</span> {t("common.clickToBack")}
-                </div>
-              </Card>
-            </div>
-          </div>
-        </div>
+        // Calculate Due Soon (within 3 days)
+        const dueSoon = activeLoans.filter(book => {
+          if (!book.dueDate) return false;
+          const diff = dayjs(book.dueDate).diff(dayjs(), 'day');
+          return diff >= 0 && diff <= 3;
+        }).length;
 
-        {/* ✅ 2. Quick Actions */}
-        <div style={{ marginBottom: '32px' }}>
-          <Row gutter={16}>
-            <Col span={12}>
-              <Button 
-                type="primary" 
-                size="large" 
-                block 
-                icon={<SearchOutlined />}
-                onClick={() => navigate('/search')}
-                style={{ height: '48px', borderRadius: '12px', background: '#3b82f6', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}
-              >
-                {t("common.searchBooks")}
-              </Button>
-            </Col>
-            <Col span={12}>
-              <Button 
-                type="default" 
-                size="large" 
-                block 
-                icon={<BookOutlined />}
-                onClick={() => navigate('/borrow')}
-                style={{ height: '48px', borderRadius: '12px', borderColor: '#cbd5e1', color: '#475569' }}
-              >
-                {t("titles.myBorrowings")}
-              </Button>
-            </Col>
-          </Row>
-        </div>
+        setData({
+          activeLoans,
+          recommendations,
+          dueSoonCount: dueSoon
+        });
+      } catch (error) {
+        console.error("Failed to load dashboard data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-        {/* ✅ 3. Popular Borrowing List (Horizontal Scroll) */}
-        <div style={{ marginBottom: '32px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <Title level={5} style={{ margin: 0, fontSize: '18px' }}>{t("titles.popularToday")}</Title>
-            <Button type="link" size="small" onClick={() => navigate('/search')} style={{ color: '#3b82f6' }}>{t("common.viewAll")}</Button>
-          </div>
-          
-          {loading ? (
-             <div style={{ display: "flex", justifyContent: "center", padding: "20px" }}><Spin /></div>
-          ) : (
-             <div className="h-scroll-container">
-               {recommended.map((book, index) => (
-                 <Card
-                   key={book._id}
-                   bordered={false}
-                   hoverable
-                   onClick={() => navigate(`/book/${book._id}`)}
-                   style={{ 
-                     minWidth: '140px',  
-                     maxWidth: '140px', 
-                     flexShrink: 0,
-                     borderRadius: '12px',
-                     overflow: 'hidden',
-                     boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-                   }}
-                   bodyStyle={{ padding: '10px' }}
-                 >
-                   <div style={{ position: 'relative', marginBottom: '8px' }}>
-                      <div style={{ 
-                        position: 'absolute', 
-                        top: '8px', right: '8px', left: 'auto',
-                        background: index < 3 ? 'rgba(239, 68, 68, 0.9)' : 'rgba(148, 163, 184, 0.9)', 
-                        color: '#fff', 
-                        minWidth: '24px', height: '24px', 
-                        borderRadius: '12px', 
-                        padding: '0 6px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '12px', fontWeight: 'bold',
-                        zIndex: 1,
-                        backdropFilter: 'blur(4px)'
-                      }}>
-                        #{index + 1}
-                      </div>
-                      <img 
-                        src={book.cover} 
-                        alt={book.title} 
-                        style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '8px' }} 
-                        onError={(e) => {e.target.onerror=null; e.target.src="https://via.placeholder.com/140x180?text=No+Cover"}}
-                      />
-                   </div>
-                   
-                   <div className="text-clamp-2" style={{ height: '36px', fontSize: '13px', fontWeight: '600', marginBottom: '4px', lineHeight: '1.3', color: '#1e293b' }}>
-                     {book.title}
-                   </div>
-                   
-                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#64748b', fontSize: '12px' }}>
-                      <FireOutlined style={{ color: '#f59e0b' }} />
-                      <span>{book.borrowCount || Math.floor(Math.random() * 50) + 10} {t("common.borrows")}</span>
-                   </div>
-                 </Card>
-               ))}
-             </div>
-          )}
-        </div>
+    fetchData();
+  }, [token]);
 
-        {/* ✅ 4. Recommended (Vertical List) - Keeping existing logic but simplified */}
-        <div style={{ marginBottom: '20px' }}>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <Title level={5} style={{ margin: 0, fontSize: '18px' }}>{t("titles.recommended")}</Title>
-           </div>
-           
-           {loading ? <Spin /> : (
-             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-               {recommended.slice(0, 5).map(book => (
-                 <div key={book._id} 
-                      onClick={() => navigate(`/book/${book._id}`)}
-                      style={{ 
-                        display: 'flex', 
-                        gap: '16px', 
-                        alignItems: 'center', 
-                        padding: '12px', 
-                        background: '#fff', 
-                        borderRadius: '16px', 
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                        border: '1px solid #f1f5f9'
-                      }}>
-                    <div style={{ width: '56px', height: '80px', borderRadius: '8px', background: '#f1f5f9', overflow: 'hidden', flexShrink: 0 }}>
-                      <img src={book.cover} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                        onError={(e) => {e.target.onerror=null; e.target.src="https://via.placeholder.com/56x80?text=No+Cover"}}
-                      />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <Typography.Text strong ellipsis style={{ fontSize: '16px', color: '#1e293b', display: 'block', marginBottom: '4px' }}>{book.title}</Typography.Text>
-                      <Typography.Text ellipsis type="secondary" style={{ fontSize: '14px' }}>{book.author}</Typography.Text>
-                      <div style={{ marginTop: '4px' }}>
-                        <span style={{ fontSize: '12px', color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: '10px' }}>{book.category || t("common.general")}</span>
-                      </div>
-                    </div>
-                 </div>
-               ))}
-             </div>
-           )}
-        </div>
-        <Modal
-          title={guideModal.title}
-          open={guideModal.open}
-          onCancel={() => setGuideModal({ ...guideModal, open: false })}
-          footer={null}
-          centered
-          destroyOnClose
-        >
-          {guideModal.content}
-        </Modal>
-      </div>
-    );
-  }
+  // Greeting based on time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
 
   return (
-    <div className="home-page">
-      {/* ✅ 热门借阅榜（动态数据） */}
+    <div className="page-container">
+      {/* 1. Hero Section */}
+      <div className="page-header" style={{ marginBottom: 32 }}>
+        <div>
+          <Title level={2} style={{ marginBottom: 4 }}>
+            {getGreeting()}, {user.name || "Reader"}
+          </Title>
+          <Text type="secondary">
+            {t("common.welcomeDesc") || "Here is what's happening with your library account today."}
+          </Text>
+        </div>
+        <div>
+          <Button 
+            type="primary" 
+            size="large" 
+            icon={<SearchOutlined />} 
+            onClick={() => navigate('/search')}
+            style={{ paddingLeft: 24, paddingRight: 24 }}
+          >
+            {t("common.searchBooks")}
+          </Button>
+        </div>
+      </div>
+
+      {/* 2. KPI Cards */}
+      <Row gutter={[24, 24]} style={{ marginBottom: 40 }}>
+        <Col xs={24} sm={12} md={6}>
+          <div className="kpi-card" onClick={() => navigate('/borrow')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-icon-wrapper" style={{ background: '#e6f7ff', color: '#1890ff' }}>
+              <ReadOutlined style={{ fontSize: 20 }} />
+            </div>
+            <div className="kpi-title">{t("titles.currentBorrowings") || "Active Loans"}</div>
+            <div className="kpi-value">
+              {loading ? <Skeleton.Button active size="small" /> : data.activeLoans.length}
+            </div>
+          </div>
+        </Col>
+        
+        <Col xs={24} sm={12} md={6}>
+          <div className="kpi-card" onClick={() => navigate('/borrow')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-icon-wrapper" style={{ background: '#fff7e6', color: '#faad14' }}>
+              <ClockCircleOutlined style={{ fontSize: 20 }} />
+            </div>
+            <div className="kpi-title">{t("titles.borrowLimit") || "Due Soon"}</div>
+            <div className="kpi-value">
+              {loading ? <Skeleton.Button active size="small" /> : data.dueSoonCount}
+            </div>
+          </div>
+        </Col>
+
+        <Col xs={24} sm={12} md={6}>
+          <div className="kpi-card" onClick={() => navigate('/assistant')} style={{ cursor: 'pointer' }}>
+            <div className="kpi-icon-wrapper" style={{ background: '#f9f0ff', color: '#722ed1' }}>
+              <BulbOutlined style={{ fontSize: 20 }} />
+            </div>
+            <div className="kpi-title">{t("common.smartRec") || "For You"}</div>
+            <div className="kpi-value">
+              {loading ? <Skeleton.Button active size="small" /> : data.recommendations.length}
+            </div>
+          </div>
+        </Col>
+
+         {/* Placeholder for future metric or static info */}
+         <Col xs={24} sm={12} md={6}>
+          <div className="kpi-card" style={{ background: '#fafafa', borderColor: 'transparent' }}>
+             <div className="kpi-title" style={{ marginBottom: 12 }}>Library Status</div>
+             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Badge status="processing" />
+                <Text strong>Open Now</Text>
+             </div>
+             <Text type="secondary" style={{ fontSize: 12, marginTop: 4 }}>Closes at 9:00 PM</Text>
+          </div>
+        </Col>
+      </Row>
+
+      {/* 3. Trending / Recommendations Section */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <Title level={4} style={{ margin: 0 }}>{t("titles.popularToday")}</Title>
+        <Button type="link" onClick={() => navigate('/search')} icon={<RightOutlined />}>
+           View All
+        </Button>
+      </div>
+
       {loading ? (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "200px" }}>
-          <Spin size="large" />
-        </div>
-      ) : (
-        <PopularBanner books={recommended} />
-      )}
-
-      {/* ✅ Welcome Flip Card */}
-      <div className={`flip-card-container ${isFlipped ? "flipped" : ""}`} onClick={() => setIsFlipped(!isFlipped)}>
-        <div className="flip-card-inner">
-          {/* Front Side */}
-          <div className="flip-card-front">
-            <Card className="welcome-card" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <Title level={2} className="page-modern-title" style={{ textAlign: "center", width: "100%" }}>
-                {t("common.welcomeFull")}
-              </Title>
-              <Paragraph className="home-paragraph">
-                {t("common.welcomeDesc")}
-              </Paragraph>
-              <div className="flip-hint">
-                <span role="img" aria-label="touch">👆</span> {t("common.clickToViewGuide")}
+        <Row gutter={[24, 24]}>
+          {[1, 2, 3, 4].map(i => (
+            <Col xs={24} sm={12} md={6} key={i}>
+              <div className="card-clean" style={{ height: 300, padding: 20 }}>
+                <Skeleton active />
               </div>
-            </Card>
-          </div>
-
-          {/* Back Side */}
-          <div className="flip-card-back">
-            <Card className="welcome-card" bodyStyle={{ padding: '20px' }} style={{ height: '100%', overflow: 'hidden' }}>
-               <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(3, 1fr)', 
-                  gap: '16px', 
-                  height: '100%', 
-                  alignContent: 'center' 
-                }}>
-                  {guideItems.map(item => (
-                    <div 
-                      key={item.key}
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent flip
-                        setGuideModal({ open: true, title: item.title, content: item.content });
-                      }}
-                      style={{
-                        background: '#f8fafc',
-                        borderRadius: '12px',
-                        padding: '12px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        border: '1px solid #e2e8f0',
-                        textAlign: 'center',
-                        transition: 'all 0.2s',
-                        height: '100%'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = '#eef2ff'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = '#f8fafc'}
-                    >
-                      <div style={{ marginBottom: '8px' }}>{item.icon}</div>
-                      <Typography.Text style={{ fontSize: '14px', fontWeight: '500', color: '#334155' }}>{item.title}</Typography.Text>
-                    </div>
-                  ))}
-                </div>
-              <div className="flip-hint" style={{ bottom: '12px', right: '20px' }}>
-                <span role="img" aria-label="back">↩️</span> {t("common.clickToBack")}
-              </div>
-            </Card>
-          </div>
-        </div>
-      </div>
-
-      {/* ✅ System overview */}
-      <Card className="overview-card">
-        <Row gutter={[24, 24]} justify="center">
-          <Col xs={24} sm={12} md={6}>
-            <div style={{ textAlign: "center", padding: "20px", background: "rgba(59, 130, 246, 0.1)", borderRadius: "12px" }}>
-              <Statistic title={t("titles.popularToday")} value={metrics.rec} valueStyle={{ color: '#3b82f6', fontSize: '24px', fontWeight: 'bold' }} />
-            </div>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <div style={{ textAlign: "center", padding: "20px", background: "rgba(16, 185, 129, 0.1)", borderRadius: "12px" }}>
-              <Statistic title={t("common.fastSearch")} value={"⚡"} valueStyle={{ color: '#10b981', fontSize: '24px' }} />
-            </div>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <div style={{ textAlign: "center", padding: "20px", background: "rgba(245, 158, 11, 0.1)", borderRadius: "12px" }}>
-              <Statistic title={t("common.easyBorrow")} value={"📚"} valueStyle={{ color: '#f59e0b', fontSize: '24px' }} />
-            </div>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <div style={{ textAlign: "center", padding: "20px", background: "rgba(239, 68, 68, 0.1)", borderRadius: "12px" }}>
-              <Statistic title={t("common.simpleReturn")} value={"✅"} valueStyle={{ color: '#ef4444', fontSize: '24px' }} />
-            </div>
-          </Col>
+            </Col>
+          ))}
         </Row>
-        <div style={{ marginTop: 16 }}>
-        <Title level={4} className="system-overview-title">✨ {t("common.systemOverview")}</Title>
-        <ul className="system-overview-list">
-          <li>📖 <b>{t("common.bookSearch")}:</b> {t("common.bookSearchDesc")}</li>
-          <li>📗 <b>{t("common.borrowManage")}:</b> {t("common.borrowManageDesc")}</li>
-          <li>📘 <b>{t("common.returnSystem")}:</b> {t("common.returnSystemDesc")}</li>
-          <li>🤖 <b>{t("common.smartRec")}:</b> {t("common.smartRecDesc")}</li>
-          <li>👤 <b>{t("common.profile")}:</b> {t("common.profileDesc")}</li>
-        </ul>
+      ) : (
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
+          gap: '24px' 
+        }}>
+          {data.recommendations.slice(0, 5).map(book => (
+            <div 
+              key={book._id} 
+              className="card-clean"
+              style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
+              onClick={() => navigate(`/book/${book._id}`)}
+            >
+              <div style={{ 
+                height: 200, 
+                background: '#f5f5f5', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                overflow: 'hidden'
+              }}>
+                {book.cover ? (
+                  <img 
+                    src={book.cover} 
+                    alt={book.title} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                ) : (
+                  <div style={{ fontSize: 40, color: '#d9d9d9' }}>📚</div>
+                )}
+              </div>
+              <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ fontWeight: 600, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={book.title}>
+                  {book.title}
+                </div>
+                <div style={{ fontSize: 13, color: '#8c8c8c', marginBottom: 12 }}>
+                  {book.author}
+                </div>
+                <div style={{ marginTop: 'auto' }}>
+                  <span className={`status-tag ${book.stock > 0 ? 'status-success' : 'status-default'}`}>
+                    {book.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
-      </Card>
-
-      <div style={{ textAlign: "center", marginTop: "40px", color: "#94a3b8", paddingBottom: "20px" }}>
-        © 2024 CLMS Library System | v1.3.0 (Fixed Mobile Borrow & UI)
-      </div>
-
-      {/* ✅ Guide Modal */}
-      <Modal
-        title={guideModal.title}
-        open={guideModal.open}
-        onCancel={() => setGuideModal({ ...guideModal, open: false })}
-        footer={null}
-        centered
-        destroyOnClose
-      >
-        {guideModal.content}
-      </Modal>
+      )}
     </div>
   );
 }

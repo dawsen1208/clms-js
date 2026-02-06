@@ -22,7 +22,7 @@ import {
   Col
 } from "antd";
 import "./AdminBorrowPage.css"; // Reuse CSS
-import { theme, themeUtils } from "../styles/theme";
+import { theme } from "../styles/theme";
 import {
   ReloadOutlined,
   CheckCircleOutlined,

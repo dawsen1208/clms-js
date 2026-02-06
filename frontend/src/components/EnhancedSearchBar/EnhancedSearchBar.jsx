@@ -142,7 +142,7 @@ function EnhancedSearchBar({
     try {
       setSearchValue(value);
       if (onSearch) {
-        onSearch(value, searchType);
+        onSearch(value);
       }
     } catch (error) {
       console.error('Search error:', error);
@@ -155,7 +155,7 @@ function EnhancedSearchBar({
     try {
       setSearchValue(value);
       if (onSearch) {
-        onSearch(value, searchType);
+        onSearch(value);
       }
     } catch (error) {
       console.error('Select error:', error);
@@ -163,19 +163,9 @@ function EnhancedSearchBar({
     }
   };
 
-  // Search type options
-  const searchTypeOptions = [
-    { value: "title", label: t("search.typeTitle") },
-    { value: "author", label: t("search.typeAuthor") },
-    { value: "category", label: t("search.typeCategory") },
-  ];
-
   // Helper for placeholder
   const getPlaceholder = () => {
-    if (searchType === "title") return t("search.enterTitle");
-    if (searchType === "author") return t("search.enterAuthor");
-    if (searchType === "category") return t("search.enterCategory");
-    return t("search.placeholder");
+    return t("search.placeholder") || "Search by title, author, or category...";
   };
 
   // Error boundary display
@@ -186,8 +176,8 @@ function EnhancedSearchBar({
           <Text type="danger">{t("search.searchError")}</Text>
         </div>
         <Input
-          placeholder={t("search.placeholder")}
-          onPressEnter={(e) => onSearch && onSearch(e.target.value, searchType)}
+          placeholder={getPlaceholder()}
+          onPressEnter={(e) => onSearch && onSearch(e.target.value)}
           style={{ width: '100%' }}
         />
       </div>
@@ -196,7 +186,7 @@ function EnhancedSearchBar({
 
   return (
     <div className="enhanced-search-bar">
-      <div className="search-controls">
+      <div className="search-controls" style={{ width: '100%' }}>
         <AutoComplete
           className="search-autocomplete"
           options={options}
@@ -208,84 +198,24 @@ function EnhancedSearchBar({
           loading={loading}
           allowClear
           style={{ width: '100%' }}
-          notFoundContent={searchValue && searchValue.length >= 2 ? t("search.noMatching") : t("search.enterTwoChars")}
+          notFoundContent={searchValue && searchValue.length >= 2 ? t("search.noMatching") : null}
         >
           <Search
             prefix={<SearchOutlined style={{ color: theme.colors.neutral.darkGray }} aria-hidden="true" />}
             enterButton={t("common.search")}
             size="large"
             loading={loading}
-            onSearch={handleSearch}
+            onSearch={(val) => onSearch && onSearch(val)}
             aria-label={t("common.search")}
             style={{
+              width: '100%',
               borderRadius: '8px',
-              background: theme.colors.neutral.white,
-              border: `1px solid ${theme.colors.neutral.gray}`,
               fontFamily: theme.typography.fontFamily.primary,
               fontSize: theme.typography.fontSize.md
             }}
           />
       </AutoComplete>
-
-       <div className="search-type-selector">
-          {searchTypeOptions.map(option => (
-            <button
-              key={option.value}
-              className={`type-button ${searchType === option.value ? 'active' : ''}`}
-              onClick={() => onSearchTypeChange && onSearchTypeChange(option.value)}
-              style={{
-                backgroundColor: searchType === option.value ? theme.colors.primary.main : 'transparent',
-                color: searchType === option.value ? 'white' : theme.colors.neutral.darkGray,
-                border: `1px solid ${searchType === option.value ? theme.colors.primary.main : theme.colors.neutral.lightGray}`,
-                borderRadius: theme.borderRadius.md,
-                padding: '8px 16px',
-                fontFamily: theme.typography.fontFamily.primary,
-                fontSize: theme.typography.fontSize.sm,
-                fontWeight: theme.typography.fontWeight.medium,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-
-        <Tooltip title={t("common.refresh")}>
-          <Button
-            type="default"
-            icon={<ReloadOutlined />}
-            onClick={() => (onRefresh ? onRefresh() : window.location.reload())}
-            style={{ borderColor: theme.colors.primary.main, color: theme.colors.primary.main }}
-          />
-        </Tooltip>
       </div>
-
-      {Array.isArray(categoriesList) && categoriesList.length > 0 && (
-        <div className="quick-category-tags">
-          {categoriesList.slice(0, 12).map((cat, idx) => (
-            <Tag
-              key={`quick-cat-${idx}`}
-              color={theme.colors.primary.main}
-              className="quick-cat-tag"
-              onClick={() => {
-                onSearchTypeChange && onSearchTypeChange('category');
-                onSearch && onSearch(cat, 'category');
-              }}
-            >
-              {cat}
-            </Tag>
-          ))}
-        </div>
-      )}
-
-      {searchValue && (
-        <div className="search-stats">
-          <Text type="secondary">
-            {t("search.foundResults", { count: options.length })}
-          </Text>
-        </div>
-      )}
     </div>
   );
 }

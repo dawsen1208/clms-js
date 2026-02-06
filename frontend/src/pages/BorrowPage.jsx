@@ -12,12 +12,19 @@ import {
   Typography,
   Statistic,
   Empty,
+  Table,
+  Space,
+  Row,
+  Col,
+  Tooltip
 } from "antd";
 import {
   ReloadOutlined,
   SyncOutlined,
   ClockCircleOutlined,
   RollbackOutlined,
+  CalendarOutlined,
+  WarningOutlined
 } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import dayjs from "dayjs";
@@ -28,63 +35,87 @@ import {
   requestRenewLibrary,
   requestReturnLibrary,
   getUserRequestsLibrary,
-} from "../api.js"; // ✅ 统一使用 /library 路由
-import { useLanguage } from "../contexts/LanguageContext"; // ✅ Import Hook
+} from "../api.js";
+import { useLanguage } from "../contexts/LanguageContext";
+import { theme } from "../styles/theme";
 
 function BorrowPage({ appearance }) {
-  const { t } = useLanguage(); // ✅ Use Hook
+  const { t } = useLanguage();
   const isHighContrast = appearance?.highContrast;
   const { Title, Text } = Typography;
   const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
   const isMobile = !screens.md;
+
   const [borrowed, setBorrowed] = useState([]);
   const [loading, setLoading] = useState(false);
   const [renewModal, setRenewModal] = useState({ open: false, record: null });
-  const [returnModal, setReturnModal] = useState({ open: false, record: null }); // ✅ Return Modal
+  const [returnModal, setReturnModal] = useState({ open: false, record: null });
   const [newDate, setNewDate] = useState(null);
   const [pendingRequests, setPendingRequests] = useState([]);
-  const [localPendingRenew, setLocalPendingRenew] = useState([]); // ✅ 本地乐观 Pending 列表 (Renew)
-  const [localPendingReturn, setLocalPendingReturn] = useState([]); // ✅ 本地乐观 Pending 列表 (Return)
+  const [localPendingRenew, setLocalPendingRenew] = useState([]);
+  const [localPendingReturn, setLocalPendingReturn] = useState([]);
+  
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
 
+  // Statistics
   const stats = useMemo(() => {
     const total = borrowed.length;
     const pending = pendingRequests.filter((r) => r.status === "pending").length;
-    const approved = pendingRequests.filter((r) => r.status === "approved").length;
-    const rejected = pendingRequests.filter((r) => r.status === "rejected").length;
-    return { total, pending, approved, rejected };
+    // Calculate overdue
+    const overdue = borrowed.filter(b => {
+      return b.dueDate && dayjs(b.dueDate).endOf('day').isBefore(dayjs());
+    }).length;
+    
+    return { total, pending, overdue };
   }, [borrowed, pendingRequests]);
 
   /* =========================================================
-     🏷️ 最近一次申请状态（不区分类型，用于行内 Tag 展示）
+     Helpers
+     ========================================================= */
+  const getBookId = (record) => {
+    return typeof record.bookId === "object"
+      ? record.bookId?._id
+      : record.bookId || record._id;
+  };
+
+  const getBookTitle = (record) => {
+    return record.title || record.bookTitle || t("common.unknown");
+  };
+
+  /* =========================================================
+     Status Logic
      ========================================================= */
   const getLatestRequestStatus = (bookId) => {
     const idStr = String(bookId);
-    // 本地乐观优先：只要在本地 Pending 列表中，则显示 Pending
     if (localPendingRenew.includes(idStr)) return "pending";
-
-    // 查找该书最近一次申请（后端按 updatedAt DESC 返回最多5条，不区分类型）
     const req = pendingRequests.find(
-      (r) => String(r.bookId) === idStr
+      (r) => String(r.bookId) === idStr && r.status === 'pending'
     );
     return req?.status || null;
   };
 
-  const renderStatusTag = (bookId) => {
-    const status = getLatestRequestStatus(bookId);
-    if (!status) return null;
-    const colorMap = { pending: "gold", approved: "green", rejected: "red" };
-    const text = status.charAt(0).toUpperCase() + status.slice(1);
-    return (
-      <Tag color={colorMap[status] || "default"} style={{ marginLeft: 8 }}>
-        {text}
-      </Tag>
-    );
+  const renderStatusTag = (record) => {
+    const bookId = getBookId(record);
+    const idStr = String(bookId);
+    
+    // Check pending requests
+    const pendingReq = pendingRequests.find(r => String(r.bookId) === idStr && r.status === 'pending');
+    const isRenewPending = localPendingRenew.includes(idStr) || (pendingReq && pendingReq.type === 'renew');
+    const isReturnPending = localPendingReturn.includes(idStr) || (pendingReq && pendingReq.type === 'return');
+    
+    if (isRenewPending) return <Tag color="gold" icon={<ClockCircleOutlined />}>{t("borrow.renewPending")}</Tag>;
+    if (isReturnPending) return <Tag color="orange" icon={<ClockCircleOutlined />}>{t("borrow.returnPending")}</Tag>;
+    
+    // Check overdue
+    const isOverdue = record.dueDate && dayjs(record.dueDate).endOf('day').isBefore(dayjs());
+    if (isOverdue) return <Tag color="error" icon={<WarningOutlined />}>{t("borrow.overdue")}</Tag>;
+
+    return <Tag color="processing">{t("borrow.active")}</Tag>;
   };
 
   /* =========================================================
-     📘 获取借阅记录（未归还） + 用户申请状态
+     Fetch Data
      ========================================================= */
   const fetchBorrowedBooks = async () => {
     if (!token) {
@@ -93,8 +124,6 @@ function BorrowPage({ appearance }) {
     }
     try {
       setLoading(true);
-
-      // ✅ 并行获取借阅数据 + 用户申请状态
       const [resBorrowed, resRequests] = await Promise.all([
         getBorrowedBooksLibrary(token),
         getUserRequestsLibrary(token),
@@ -103,19 +132,20 @@ function BorrowPage({ appearance }) {
       const activeBorrowed = (resBorrowed.data || []).filter((r) => !r.returned);
       setBorrowed(activeBorrowed);
       setPendingRequests(resRequests.data || []);
-
-      console.log("📚 当前借阅记录:", activeBorrowed);
-      console.log("📨 用户待处理申请:", resRequests.data);
     } catch (err) {
-      console.error("❌ Failed to fetch borrowed records:", err);
+      console.error("Failed to fetch records:", err);
       message.error(t("common.failedToLoad"));
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchBorrowedBooks();
+  }, []);
+
   /* =========================================================
-     🔁 打开续借申请弹窗
+     Actions
      ========================================================= */
   const openRenewModal = (record) => {
     setRenewModal({ open: true, record });
@@ -125,27 +155,15 @@ function BorrowPage({ appearance }) {
     setNewDate(defaultNewDate);
   };
 
-  /* =========================================================
-     📨 提交续借申请
-     ========================================================= */
   const handleConfirmRenew = async () => {
     const record = renewModal.record;
-    if (!record) return message.error(t("borrow.notFound"));
-
-    // ✅ 统一 bookId 类型（可能是对象）
-    const bookId =
-      typeof record.bookId === "object"
-        ? record.bookId._id
-        : record.bookId || record._id;
-
-    if (!bookId) return message.error(t("borrow.invalidId"));
+    if (!record) return;
+    const bookId = getBookId(record);
+    
     if (!newDate) return message.warning(t("borrow.selectDate"));
-
     const maxDate = dayjs(record.dueDate).add(30, "day");
-    if (newDate.isAfter(maxDate))
-      return message.warning(t("borrow.renewalLimit"));
+    if (newDate.isAfter(maxDate)) return message.warning(t("borrow.renewalLimit"));
 
-    // ✅ 立即设置本地 Pending，按钮立刻禁用并显示 Pending
     const idStr = String(bookId);
     setLocalPendingRenew((prev) => (prev.includes(idStr) ? prev : [...prev, idStr]));
 
@@ -153,75 +171,39 @@ function BorrowPage({ appearance }) {
       await requestRenewLibrary(
         {
           type: "renew",
-          bookId: record.bookId?._id || record.bookId || record._id,
-          bookTitle: record.title || record.bookTitle,
+          bookId: idStr,
+          bookTitle: getBookTitle(record),
         },
         token
       );
-
       message.success(t("borrow.renewalSubmitted"));
       setRenewModal({ open: false, record: null });
-      fetchBorrowedBooks(); // ✅ 即时刷新状态（同步后端 Pending）
+      fetchBorrowedBooks();
     } catch (err) {
       const msg = err.response?.data?.message || t("borrow.submitFailed");
       message.error(msg);
-      // ❌ 提交失败则移除本地 Pending
       setLocalPendingRenew((prev) => prev.filter((x) => x !== idStr));
     }
   };
 
-  /* =========================================================
-     🔒 判断该书是否存在任一待处理申请（续借或归还）
-     ========================================================= */
-  const isPendingAny = (bookId) =>
-    pendingRequests.some(
-      (r) => String(r.bookId) === String(bookId) && r.status === "pending"
-    );
-
-  const isPendingRenewUI = (bookId) => {
-    const idStr = String(bookId);
-    return localPendingRenew.includes(idStr) || isPendingAny(idStr);
-  };
-
-  const isPendingUI = (bookId) => {
-    const idStr = String(bookId);
-    return (
-      localPendingRenew.includes(idStr) ||
-      localPendingReturn.includes(idStr) ||
-      isPendingAny(idStr)
-    );
-  };
-
-  /* =========================================================
-     🔙 打开归还确认弹窗
-     ========================================================= */
   const openReturnModal = (record) => {
     setReturnModal({ open: true, record });
   };
 
-  /* =========================================================
-     📨 提交归还申请
-     ========================================================= */
   const handleConfirmReturn = async () => {
     const record = returnModal.record;
     if (!record) return;
-
-    // ✅ 统一 bookId
-    const bookId =
-      typeof record.bookId === "object"
-        ? record.bookId._id
-        : record.bookId || record._id;
-
+    const bookId = getBookId(record);
     const idStr = String(bookId);
-    // ✅ 立即设置本地 Return Pending
+    
     setLocalPendingReturn((prev) => (prev.includes(idStr) ? prev : [...prev, idStr]));
 
     try {
       await requestReturnLibrary(
         {
           type: "return",
-          bookId,
-          bookTitle: record.title || record.bookTitle,
+          bookId: idStr,
+          bookTitle: getBookTitle(record),
         },
         token
       );
@@ -231,339 +213,245 @@ function BorrowPage({ appearance }) {
     } catch (err) {
       const msg = err.response?.data?.message || t("borrow.submitFailed");
       message.error(msg);
-      // ❌ 失败移除本地 Pending
       setLocalPendingReturn((prev) => prev.filter((x) => x !== idStr));
     }
   };
 
   /* =========================================================
-     🚀 初始化加载（已去除8秒定时刷新）
+     Render
      ========================================================= */
-  useEffect(() => {
-    fetchBorrowedBooks();
-  }, []);
-
-  /* =========================================================
-     🧱 页面渲染
-     ========================================================= */
-  if (isMobile) {
+  const isPendingUI = (record) => {
+    const bookId = getBookId(record);
+    const idStr = String(bookId);
+    const pendingReq = pendingRequests.find(r => String(r.bookId) === idStr && r.status === 'pending');
     return (
-      <div className="borrow-page-mobile page-container" style={{ minHeight: "100vh", background: isHighContrast ? "#000" : "#f8fafc" }}>
-        <Title level={2} className="page-modern-title" style={{ marginBottom: "16px" }}>{t("titles.myBorrowings")}</Title>
-        
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
-             <Card size="small" bodyStyle={{ padding: "12px", textAlign: "center" }} style={{ borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
-                 <Statistic title={t("common.total")} value={stats.total} valueStyle={{ fontSize: "24px", fontWeight: "bold" }} />
-             </Card>
-             <Card size="small" bodyStyle={{ padding: "12px", textAlign: "center" }} style={{ borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
-                  <Statistic title={t("common.pending")} value={stats.pending} prefix={<ClockCircleOutlined />} valueStyle={{ fontSize: "24px", fontWeight: "bold", color: "#faad14" }} />
-             </Card>
+      localPendingRenew.includes(idStr) ||
+      localPendingReturn.includes(idStr) ||
+      !!pendingReq
+    );
+  };
+
+  const columns = [
+    {
+      title: t("common.bookTitle"),
+      dataIndex: 'title',
+      key: 'title',
+      width: '40%',
+      render: (text, record) => {
+        const bookId = getBookId(record);
+        return (
+          <Space direction="vertical" size={0}>
+            <Link to={`/book/${bookId}`} style={{ fontWeight: 600, color: theme.token.colorPrimary, fontSize: 15 }}>
+              {getBookTitle(record)}
+            </Link>
+            {/* Optional: Add Author if available in record */}
+          </Space>
+        );
+      }
+    },
+    {
+      title: t("borrow.dueDate"),
+      dataIndex: 'dueDate',
+      key: 'dueDate',
+      render: (date) => (
+        <Space>
+          <CalendarOutlined style={{ color: '#8c8c8c' }} />
+          <Text>{date ? dayjs(date).format("YYYY-MM-DD") : "N/A"}</Text>
+        </Space>
+      ),
+      sorter: (a, b) => dayjs(a.dueDate).valueOf() - dayjs(b.dueDate).valueOf(),
+    },
+    {
+      title: t("common.status"),
+      key: 'status',
+      render: (_, record) => renderStatusTag(record),
+    },
+    {
+      title: t("common.action"),
+      key: 'action',
+      render: (_, record) => {
+        const pending = isPendingUI(record);
+        return (
+          <Space>
+            <Tooltip title={pending ? t("borrow.pending") : t("borrow.renewLoan")}>
+              <Button
+                size="small"
+                type="text"
+                icon={<SyncOutlined />}
+                disabled={pending}
+                onClick={() => openRenewModal(record)}
+                style={{ color: pending ? undefined : theme.token.colorPrimary }}
+              >
+                {!isMobile && t("borrow.renew")}
+              </Button>
+            </Tooltip>
+            <Tooltip title={pending ? t("borrow.pending") : t("borrow.requestReturn")}>
+              <Button
+                size="small"
+                type="text"
+                danger
+                icon={<RollbackOutlined />}
+                disabled={pending}
+                onClick={() => openReturnModal(record)}
+              >
+                {!isMobile && t("borrow.return")}
+              </Button>
+            </Tooltip>
+          </Space>
+        );
+      }
+    }
+  ];
+
+  const renderMobileCard = (record) => {
+    const pending = isPendingUI(record);
+    return (
+      <div key={record._id} className="card-clean" style={{ marginBottom: 16, padding: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ flex: 1 }}>
+            <Link to={`/book/${getBookId(record)}`}>
+              <Title level={5} className="text-clamp-2" style={{ marginBottom: 4 }}>{getBookTitle(record)}</Title>
+            </Link>
+            <Space size={4} style={{ color: '#64748b', fontSize: 13 }}>
+              <CalendarOutlined />
+              <span>{t("borrow.due")}: {record.dueDate ? dayjs(record.dueDate).format("YYYY-MM-DD") : "N/A"}</span>
+            </Space>
+          </div>
+          <div style={{ marginLeft: 12 }}>
+            {renderStatusTag(record)}
+          </div>
         </div>
-
-        {loading ? (
-           <Spin size="large" style={{ display: "block", margin: "2rem auto" }} />
-        ) : borrowed.length > 0 ? (
-           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-             {borrowed.map((record) => {
-               const bookIdNormalized =
-                 typeof record.bookId === "object"
-                   ? record.bookId?._id
-                   : record.bookId;
-               
-               // Determine pending status
-               const pendingReq = pendingRequests.find(r => String(r.bookId) === String(bookIdNormalized) && r.status === 'pending');
-               const isRenewPending = localPendingRenew.includes(String(bookIdNormalized)) || (pendingReq && pendingReq.type === 'renew');
-               const isReturnPending = localPendingReturn.includes(String(bookIdNormalized)) || (pendingReq && pendingReq.type === 'return');
-               const isPending = isRenewPending || isReturnPending;
-               
-               const bookIdForLink = bookIdNormalized || null;
-
-               return (
-                 <div key={record._id} style={{ 
-                    background: isHighContrast ? "#000" : "#fff", 
-                    padding: "16px", 
-                    borderRadius: "12px", 
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-                    border: isHighContrast ? "1px solid #fff" : "none"
-                 }}>
-                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-                      <div style={{ flex: 1, marginRight: "12px" }}>
-                        <div className="text-clamp-2" style={{ fontSize: "16px", fontWeight: "600", color: isHighContrast ? "#fff" : "#1e293b", marginBottom: "4px", lineHeight: "1.4" }}>
-                           {bookIdForLink ? (
-                              <Link to={`/book/${bookIdForLink}`} style={{ color: "inherit", textDecoration: "none" }}>
-                                {record.title || t("common.unknown")}
-                              </Link>
-                           ) : (
-                              record.title || t("common.unknown")
-                           )}
-                        </div>
-                        <div style={{ fontSize: "13px", color: "#64748b" }}>
-                          {t("borrow.dueDate")}: {record.dueDate ? dayjs(record.dueDate).format("YYYY-MM-DD") : "N/A"}
-                        </div>
-                      </div>
-                      {renderStatusTag(bookIdNormalized)}
-                   </div>
-                   
-                   <div style={{ display: "flex", gap: "12px" }}>
-                      {isRenewPending ? (
-                        <Button 
-                          block 
-                          disabled 
-                          icon={<ClockCircleOutlined />} 
-                          style={{ borderRadius: "8px", background: "#f1f5f9", border: "none", color: "#94a3b8", height: "44px" }}
-                        >
-                          {t("borrow.renewPending")}
-                        </Button>
-                      ) : isReturnPending ? null : (
-                        <Button 
-                          block 
-                          type="primary" 
-                          icon={<SyncOutlined />} 
-                          onClick={() => openRenewModal(record)}
-                          style={{ borderRadius: "8px", height: "44px" }}
-                          disabled={isPending}
-                        >
-                          {t("borrow.renewLoan")}
-                        </Button>
-                      )}
-
-                      {/* ✅ Return Button for Mobile */}
-                      {isReturnPending ? (
-                         <Button
-                           block
-                           disabled
-                           icon={<ClockCircleOutlined />}
-                           style={{ borderRadius: "8px", background: "#f1f5f9", border: "none", color: "#94a3b8", height: "44px" }}
-                         >
-                           {t("borrow.returnPending")}
-                         </Button>
-                      ) : isRenewPending ? null : (
-                         <Button 
-                           block 
-                           danger
-                           type="default"
-                           icon={<RollbackOutlined />} 
-                           onClick={() => openReturnModal(record)}
-                           style={{ borderRadius: "8px", height: "44px", borderColor: "#ff4d4f", color: "#ff4d4f" }}
-                           disabled={isPending}
-                         >
-                           {t("borrow.requestReturn")}
-                         </Button>
-                      )}
-                    </div>
-                 </div>
-               );
-             })}
-           </div>
-        ) : (
-           <Empty description={t("common.unknown")} />
-        )}
-
-        <Modal
-          title={`${t("titles.applyRenew")}: ${renewModal.record?.title || ""}`}
-          open={renewModal.open}
-          onCancel={() => setRenewModal({ open: false, record: null })}
-          onOk={handleConfirmRenew}
-          okText={t("common.submit")}
-          cancelText={t("common.cancel")}
-          centered
-          destroyOnClose
-          width="90%"
-          zIndex={2000} // ✅ Ensure it's above mobile bottom nav
-        >
-          <p style={{ marginBottom: 10 }}>
-            {t("borrow.selectDate")}:
-          </p>
-          <DatePicker
-            style={{ width: "100%", height: "44px" }}
-            format="YYYY-MM-DD"
-            value={newDate}
-            onChange={(date) => setNewDate(date)}
-            disabledDate={(date) => {
-              if (!renewModal.record?.dueDate) return false;
-              const min = dayjs(renewModal.record.dueDate);
-              const max = dayjs(renewModal.record.dueDate).add(30, "day");
-              return date.isBefore(min) || date.isAfter(max);
-            }}
-          />
-        </Modal>
-
-        {/* ✅ Return Confirmation Modal (Mobile) */}
-        <Modal
-          title={t("borrow.confirmReturnTitle")}
-          open={returnModal.open}
-          onCancel={() => setReturnModal({ open: false, record: null })}
-          onOk={handleConfirmReturn}
-          okText={t("common.submit")}
-          cancelText={t("common.cancel")}
-          centered
-          destroyOnClose
-          zIndex={2000} // ✅ Ensure it's above mobile bottom nav
-        >
-          <p>{t("borrow.confirmReturnContent")}</p>
-          {returnModal.record && (
-             <p><strong>{returnModal.record.title || t("common.unknown")}</strong></p>
-          )}
-        </Modal>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <Button 
+            block 
+            icon={<SyncOutlined />} 
+            disabled={pending}
+            onClick={() => openRenewModal(record)}
+          >
+            {t("borrow.renew")}
+          </Button>
+          <Button 
+            block 
+            danger
+            icon={<RollbackOutlined />} 
+            disabled={pending}
+            onClick={() => openReturnModal(record)}
+          >
+            {t("borrow.return")}
+          </Button>
+        </div>
       </div>
     );
-  }
+  };
 
   return (
-    <div className="borrow-page" style={{ padding: "1.5rem" }}>
-      <Card
-        title={
-          <div className="page-header">
-            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("titles.currentBorrowings")}</Title>
-            <div style={{ marginBottom: 16 }}>
-              <Text type="secondary">{t("borrow.requestStatus")}</Text>
+    <div className="page-container">
+      {/* Header & KPIs */}
+      <div style={{ marginBottom: 24 }}>
+        <Row gutter={[24, 16]} align="middle" justify="space-between">
+          <Col xs={24} md={12}>
+            <Title level={2} style={{ margin: 0, fontWeight: 600 }}>{t("titles.myBorrowings")}</Title>
+            <Text type="secondary">{t("borrow.subtitle") || "Manage your active loans and requests"}</Text>
+          </Col>
+          <Col xs={24} md={12}>
+            <div style={{ display: 'flex', gap: 24, justifyContent: isMobile ? 'flex-start' : 'flex-end' }}>
+              <Statistic 
+                title={t("common.total")} 
+                value={stats.total} 
+                valueStyle={{ fontWeight: 600 }}
+                titleStyle={{ fontSize: 12, color: '#8c8c8c' }}
+              />
+              <Statistic 
+                title={t("borrow.overdue")} 
+                value={stats.overdue} 
+                valueStyle={{ fontWeight: 600, color: stats.overdue > 0 ? '#ff4d4f' : 'inherit' }}
+                titleStyle={{ fontSize: 12, color: '#8c8c8c' }}
+              />
+              <Statistic 
+                title={t("common.pending")} 
+                value={stats.pending} 
+                valueStyle={{ fontWeight: 600, color: stats.pending > 0 ? '#faad14' : 'inherit' }}
+                titleStyle={{ fontSize: 12, color: '#8c8c8c' }}
+              />
             </div>
-            <div className="stats-grid">
-              <Statistic title={t("admin.total")} value={stats.total} />
-              <Statistic title={t("admin.pending")} value={stats.pending} valueStyle={{ color: "#faad14" }} />
-              <Statistic title={t("admin.approved")} value={stats.approved} valueStyle={{ color: "#52c41a" }} />
-              <Statistic title={t("admin.rejected")} value={stats.rejected} valueStyle={{ color: "#ff4d4f" }} />
-            </div>
-          </div>
-        }
-        extra={
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={fetchBorrowedBooks}
-            loading={loading}
-          >
-            {t("common.refresh")}
-          </Button>
-        }
-        style={{
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        }}
-      >
+          </Col>
+        </Row>
+      </div>
+
+      {/* Main Content */}
+      <div className={isMobile ? "" : "card-clean"} style={!isMobile ? { padding: 0, overflow: 'hidden' } : {}}>
         {loading ? (
-          <Spin size="large" style={{ display: "block", margin: "2rem auto" }} />
+          <div style={{ padding: 40, textAlign: 'center' }}>
+            <Spin size="large" />
+          </div>
         ) : borrowed.length > 0 ? (
-          <List
-            dataSource={borrowed}
-            bordered
-            renderItem={(record) => {
-              // ✅ 统一 bookId：后端已返回 bookId（string），兼容对象与字符串
-              const bookIdNormalized =
-                typeof record.bookId === "object"
-                  ? record.bookId?._id
-                  : record.bookId;
-              const pending = isPendingRenewUI(bookIdNormalized);
-              // 仅用于详情链接：必须是书籍ID
-              const bookIdForLink = bookIdNormalized || null;
-              const isPending = isPendingUI(bookIdNormalized);
-              
-              // Determine which type of pending
-              const pendingReq = pendingRequests.find(r => String(r.bookId) === String(bookIdNormalized) && r.status === 'pending');
-              const isRenewPending = localPendingRenew.includes(String(bookIdNormalized)) || (pendingReq && pendingReq.type === 'renew');
-              const isReturnPending = localPendingReturn.includes(String(bookIdNormalized)) || (pendingReq && pendingReq.type === 'return');
-
-              return (
-                <List.Item
-                  actions={[
-                    isRenewPending ? (
-                      <Button
-                        disabled
-                        icon={<ClockCircleOutlined />}
-                        style={{ borderRadius: 6, background: "#f5f5f5", color: "#8c8c8c" }}
-                      >
-                        {t("borrow.renewPending")}
-                      </Button>
-                    ) : (
-                      <Button
-                        type="primary"
-                        icon={<SyncOutlined />}
-                        style={{ borderRadius: 6 }}
-                        onClick={() => openRenewModal(record)}
-                        disabled={isPending}
-                      >
-                        {t("borrow.renewLoan")}
-                      </Button>
-                    )
-                  ]}
-                >
-                  <List.Item.Meta
-                  title={
-                      (
-                        <>
-                          {bookIdForLink ? (
-                            <Link
-                              to={`/book/${bookIdForLink}`}
-                              style={{ color: "#1677ff", fontWeight: 600 }}
-                            >
-                              {record.title || t("common.unknown")}
-                            </Link>
-                          ) : (
-                            <span style={{ color: isHighContrast ? "#fff" : "#333", fontWeight: 600 }}>
-                              {record.title || t("common.unknown")}
-                            </span>
-                          )}
-                          {renderStatusTag(bookIdNormalized)}
-                        </>
-                      )
-                    }
-                    description={`📅 ${t("borrow.dueDate")}: ${
-                      record.dueDate
-                        ? dayjs(record.dueDate).format("YYYY-MM-DD")
-                        : "N/A"
-                    }`}
-                  />
-                </List.Item>
-              );
-            }}
-          />
+          isMobile ? (
+            <div>{borrowed.map(renderMobileCard)}</div>
+          ) : (
+            <Table
+              dataSource={borrowed}
+              columns={columns}
+              rowKey={(r) => r._id}
+              pagination={false}
+              size="middle"
+            />
+          )
         ) : (
-          <Empty description={t("borrow.noBorrowRecords")} />
+          <Empty 
+            image={Empty.PRESENTED_IMAGE_SIMPLE} 
+            description={t("borrow.noBorrowings")} 
+            style={{ margin: '40px 0' }}
+          >
+            <Link to="/search">
+              <Button type="primary">{t("borrow.goBorrow")}</Button>
+            </Link>
+          </Empty>
         )}
-      </Card>
+      </div>
 
+      {/* Renew Modal */}
       <Modal
-          title={`${t("titles.applyRenew")}: ${renewModal.record?.title || ""}`}
-          open={renewModal.open}
-          onCancel={() => setRenewModal({ open: false, record: null })}
-          onOk={handleConfirmRenew}
-          okText={t("common.submit")}
-          cancelText={t("common.cancel")}
-          centered
-          destroyOnClose
-        >
-          <p style={{ marginBottom: 10 }}>
-            {t("borrow.selectDate")}:
-          </p>
-          <DatePicker
-            style={{ width: "100%" }}
-            format="YYYY-MM-DD"
-            value={newDate}
-            onChange={(date) => setNewDate(date)}
-            disabledDate={(date) => {
-              if (!renewModal.record?.dueDate) return false;
-              const min = dayjs(renewModal.record.dueDate);
-              const max = dayjs(renewModal.record.dueDate).add(30, "day");
-              return date.isBefore(min) || date.isAfter(max);
-            }}
-          />
-        </Modal>
+        title={`${t("titles.applyRenew")}: ${renewModal.record ? getBookTitle(renewModal.record) : ""}`}
+        open={renewModal.open}
+        onCancel={() => setRenewModal({ open: false, record: null })}
+        onOk={handleConfirmRenew}
+        okText={t("common.submit")}
+        cancelText={t("common.cancel")}
+        centered
+        destroyOnClose
+      >
+        <p style={{ marginBottom: 10 }}>{t("borrow.selectDate")}:</p>
+        <DatePicker
+          style={{ width: "100%" }}
+          format="YYYY-MM-DD"
+          value={newDate}
+          onChange={(date) => setNewDate(date)}
+          disabledDate={(date) => {
+            if (!renewModal.record?.dueDate) return false;
+            const min = dayjs(renewModal.record.dueDate);
+            const max = dayjs(renewModal.record.dueDate).add(30, "day");
+            return date.isBefore(min) || date.isAfter(max);
+          }}
+        />
+      </Modal>
 
-        {/* ✅ Return Confirmation Modal (Desktop) */}
-        <Modal
-          title={t("borrow.confirmReturnTitle")}
-          open={returnModal.open}
-          onCancel={() => setReturnModal({ open: false, record: null })}
-          onOk={handleConfirmReturn}
-          okText={t("common.submit")}
-          cancelText={t("common.cancel")}
-          centered
-          destroyOnClose
-        >
-          <p>{t("borrow.confirmReturnContent")}</p>
-          {returnModal.record && (
-             <p><strong>{returnModal.record.title || t("common.unknown")}</strong></p>
-          )}
-        </Modal>
+      {/* Return Modal */}
+      <Modal
+        title={t("borrow.confirmReturnTitle")}
+        open={returnModal.open}
+        onCancel={() => setRenewModal({ open: false, record: null })}
+        onOk={handleConfirmReturn}
+        okText={t("common.submit")}
+        cancelText={t("common.cancel")}
+        centered
+        destroyOnClose
+      >
+        <p>{t("borrow.confirmReturnContent")}</p>
+        {returnModal.record && (
+           <p><strong>{getBookTitle(returnModal.record)}</strong></p>
+        )}
+      </Modal>
     </div>
   );
 }

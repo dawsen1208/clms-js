@@ -13,7 +13,9 @@ import {
   Spin,
   Space,
   Avatar,
-  Modal
+  Modal,
+  theme,
+  Grid
 } from "antd";
 import {
   MessageOutlined,
@@ -23,7 +25,8 @@ import {
   CheckCircleOutlined,
   SyncOutlined,
   UserOutlined,
-  RobotOutlined
+  RobotOutlined,
+  RightOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -32,9 +35,15 @@ import { submitFeedback, getMyFeedback } from "../api";
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
+const { useToken } = theme;
+const { useBreakpoint } = Grid;
 
 function FeedbackPage() {
   const { t } = useLanguage();
+  const { token } = useToken();
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedbacks, setFeedbacks] = useState([]);
@@ -46,13 +55,13 @@ function FeedbackPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState(null);
 
-  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+  const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
 
   const fetchFeedbacks = async () => {
-    if (!token) return;
+    if (!authToken) return;
     try {
       setLoading(true);
-      const res = await getMyFeedback(token);
+      const res = await getMyFeedback(authToken);
       setFeedbacks(res.data || []);
     } catch (err) {
       console.error("Failed to fetch feedback:", err);
@@ -73,18 +82,17 @@ function FeedbackPage() {
       message.warning(t("feedback.placeholder"));
       return;
     }
-    if (!token) {
+    if (!authToken) {
       message.error(t("common.loginFirst"));
       return;
     }
 
     try {
       setSubmitting(true);
-      await submitFeedback(content, type, token);
+      await submitFeedback(content, type, authToken);
       message.success(t("feedback.submitSuccess"));
       setContent("");
       setType("suggestion");
-      // Switch to history tab to see the new feedback
       setActiveTab("history");
     } catch (err) {
       console.error("Submit feedback failed:", err);
@@ -96,9 +104,9 @@ function FeedbackPage() {
 
   const getTypeIcon = (type) => {
     switch (type) {
-      case "bug": return <BugOutlined style={{ color: "#ff4d4f" }} />;
-      case "suggestion": return <BulbOutlined style={{ color: "#faad14" }} />;
-      default: return <QuestionCircleOutlined style={{ color: "#1890ff" }} />;
+      case "bug": return <BugOutlined style={{ color: token.colorError }} />;
+      case "suggestion": return <BulbOutlined style={{ color: token.colorWarning }} />;
+      default: return <QuestionCircleOutlined style={{ color: token.colorPrimary }} />;
     }
   };
 
@@ -111,7 +119,7 @@ function FeedbackPage() {
   };
 
   const renderSubmitForm = () => (
-    <div style={{ maxWidth: 600, margin: "0 auto", padding: "20px 0" }}>
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: isMobile ? "0" : "20px 0" }}>
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
         <div>
           <Text strong style={{ display: "block", marginBottom: 8 }}>
@@ -125,19 +133,19 @@ function FeedbackPage() {
           >
             <Option value="bug">
               <Space>
-                <BugOutlined style={{ color: "#ff4d4f" }} />
+                <BugOutlined style={{ color: token.colorError }} />
                 {t("feedback.bug")}
               </Space>
             </Option>
             <Option value="suggestion">
               <Space>
-                <BulbOutlined style={{ color: "#faad14" }} />
+                <BulbOutlined style={{ color: token.colorWarning }} />
                 {t("feedback.suggestion")}
               </Space>
             </Option>
             <Option value="other">
               <Space>
-                <QuestionCircleOutlined style={{ color: "#1890ff" }} />
+                <QuestionCircleOutlined style={{ color: token.colorPrimary }} />
                 {t("feedback.other")}
               </Space>
             </Option>
@@ -181,54 +189,50 @@ function FeedbackPage() {
           <Spin size="large" />
         </div>
       ) : feedbacks.length === 0 ? (
-        <Empty description={t("feedback.noFeedback")} />
+        <Empty description={t("feedback.noFeedback")} image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
         <List
           dataSource={feedbacks}
           renderItem={(item) => (
-            <Card
-              hoverable
+            <div 
               onClick={() => {
                 setSelectedFeedback(item);
                 setDetailModalOpen(true);
               }}
-              style={{ marginBottom: 16, borderRadius: 12, border: "1px solid #f0f0f0", cursor: "pointer" }}
-              bodyStyle={{ padding: 20 }}
+              style={{ 
+                padding: '16px 0',
+                borderBottom: `1px solid ${token.colorBorderSecondary}`,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              className="feedback-item"
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <Space>
                   {getTypeIcon(item.type)}
                   <Text strong>{getTypeText(item.type)}</Text>
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
-                  </Text>
+                  {item.status === "Replied" ? (
+                    <Tag color="success" style={{ margin: 0 }}>{t("feedback.closed")}</Tag>
+                  ) : (
+                    <Tag color="processing" style={{ margin: 0 }}>{t("feedback.open")}</Tag>
+                  )}
                 </Space>
-                <Tag color={item.status === "Replied" ? "green" : "orange"} icon={item.status === "Replied" ? <CheckCircleOutlined /> : <SyncOutlined spin />}>
-                  {item.status === "Replied" ? t("feedback.closed") : t("feedback.open")}
-                </Tag>
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  {dayjs(item.createdAt).format("YYYY-MM-DD")}
+                </Text>
               </div>
 
-              <Paragraph style={{ marginBottom: 16, fontSize: 15 }}>
+              <Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: 8, color: token.colorTextSecondary, fontSize: 14 }}>
                 {item.content}
               </Paragraph>
 
               {item.adminReply && (
-                <div style={{ background: "#f6ffed", padding: 16, borderRadius: 8, border: "1px solid #b7eb8f" }}>
-                  <Space align="start">
-                    <Avatar icon={<RobotOutlined />} style={{ backgroundColor: "#52c41a" }} size="small" />
-                    <div>
-                      <Text strong style={{ color: "#389e0d" }}>{t("feedback.adminReply")}:</Text>
-                      <Paragraph style={{ margin: "4px 0 0 0", color: "#389e0d" }}>
-                        {item.adminReply}
-                      </Paragraph>
-                      <Text type="secondary" style={{ fontSize: 11 }}>
-                        {dayjs(item.updatedAt).format("YYYY-MM-DD HH:mm")}
-                      </Text>
-                    </div>
-                  </Space>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: token.colorSuccess }}>
+                   <RobotOutlined />
+                   <span>{t("feedback.adminReply")}: {item.adminReply.substring(0, 30)}...</span>
                 </div>
               )}
-            </Card>
+            </div>
           )}
         />
       )}
@@ -236,45 +240,29 @@ function FeedbackPage() {
   );
 
   return (
-    <div className="feedback-page" style={{ padding: "1.5rem", maxWidth: 1000, margin: "0 auto" }}>
-      <Card
-        bordered={false}
-        style={{ borderRadius: 16, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
-      >
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <Title level={2} style={{ marginBottom: 8 }}>{t("feedback.title")}</Title>
-          <Text type="secondary">{t("feedback.description")}</Text>
-        </div>
+    <div className="feedback-page" style={{ maxWidth: 1000, margin: "0 auto", padding: isMobile ? 16 : 24 }}>
+      <div style={{ marginBottom: 24 }}>
+        <Title level={2} style={{ marginBottom: 8 }}>{t("feedback.title")}</Title>
+        <Text type="secondary">{t("feedback.description")}</Text>
+      </div>
 
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          centered
-          size="large"
-          items={[
-            {
-              key: "submit",
-              label: (
-                <span>
-                  <MessageOutlined />
-                  {t("feedback.submit")}
-                </span>
-              ),
-              children: renderSubmitForm(),
-            },
-            {
-              key: "history",
-              label: (
-                <span>
-                  <UserOutlined />
-                  {t("feedback.myFeedback")}
-                </span>
-              ),
-              children: renderHistory(),
-            },
-          ]}
-        />
-      </Card>
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        size="large"
+        items={[
+          {
+            key: "submit",
+            label: t("feedback.submit"),
+            children: renderSubmitForm(),
+          },
+          {
+            key: "history",
+            label: t("feedback.myFeedback"),
+            children: renderHistory(),
+          },
+        ]}
+      />
 
       {/* Detail Modal */}
       <Modal
@@ -299,7 +287,7 @@ function FeedbackPage() {
                 {getTypeIcon(selectedFeedback.type)}
                 <Text strong>{getTypeText(selectedFeedback.type)}</Text>
               </Space>
-              <Tag color={selectedFeedback.status === "Replied" ? "green" : "orange"} icon={selectedFeedback.status === "Replied" ? <CheckCircleOutlined /> : <SyncOutlined spin />}>
+              <Tag color={selectedFeedback.status === "Replied" ? "success" : "processing"} icon={selectedFeedback.status === "Replied" ? <CheckCircleOutlined /> : <SyncOutlined spin />}>
                 {selectedFeedback.status === "Replied" ? t("feedback.closed") : t("feedback.open")}
               </Tag>
             </div>
@@ -307,18 +295,18 @@ function FeedbackPage() {
             <div style={{ marginBottom: 24 }}>
               <Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 4 }}>{t("feedback.date")}: {dayjs(selectedFeedback.createdAt).format("YYYY-MM-DD HH:mm")}</Text>
               <Text strong style={{ display: "block", marginBottom: 8 }}>{t("feedback.content")}:</Text>
-              <div style={{ background: "#f5f5f5", padding: 12, borderRadius: 8 }}>
+              <div style={{ background: token.colorFillAlter, padding: 12, borderRadius: 8 }}>
                 <Paragraph style={{ marginBottom: 0 }}>{selectedFeedback.content}</Paragraph>
               </div>
             </div>
 
             {selectedFeedback.adminReply && (
-              <div style={{ background: "#f6ffed", padding: 16, borderRadius: 8, border: "1px solid #b7eb8f" }}>
+              <div style={{ background: token.colorSuccessBg, padding: 16, borderRadius: 8, border: `1px solid ${token.colorSuccessBorder}` }}>
                 <Space align="start" style={{ width: '100%' }}>
-                  <Avatar icon={<RobotOutlined />} style={{ backgroundColor: "#52c41a" }} />
+                  <Avatar icon={<RobotOutlined />} style={{ backgroundColor: token.colorSuccess }} />
                   <div style={{ flex: 1 }}>
-                    <Text strong style={{ color: "#389e0d", display: "block" }}>{t("feedback.adminReply")}:</Text>
-                    <Paragraph style={{ margin: "8px 0", color: "#389e0d" }}>
+                    <Text strong style={{ color: token.colorSuccessText, display: "block" }}>{t("feedback.adminReply")}:</Text>
+                    <Paragraph style={{ margin: "8px 0", color: token.colorSuccessText }}>
                       {selectedFeedback.adminReply}
                     </Paragraph>
                     <Text type="secondary" style={{ fontSize: 11 }}>

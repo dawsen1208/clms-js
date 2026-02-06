@@ -1,158 +1,197 @@
-.page-modern-title {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent; /* Fallback */
-  font-weight: 800 !important;
-  font-size: 28px !important;
-  letter-spacing: -0.5px;
-  margin-bottom: 24px !important;
-  display: inline-block;
+/* ✅ client/src/styles/global.css */
+
+/* 全局重置与基础样式 */
+body {
+  background-color: #F6F7FB;
+  color: #1f1f1f;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Mobile adjustments */
+/* 统一页面容器 */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  width: 100%;
+}
+
+/* 移动端适配页面容器 */
 @media (max-width: 768px) {
-  .page-modern-title {
-    font-size: 24px !important;
-    margin-bottom: 16px !important;
+  .page-container {
+    padding: 16px;
   }
 }
 
-/* ♿ High Contrast Mode Overrides */
-/* Note: Colors are mainly handled by Ant Design Tokens in main.jsx now */
-body.high-contrast {
-  background-color: #000000 !important;
-  color: #ffffff; /* Default text color, but allow components to override */
+/* 纯净卡片样式 (Notion/Linear 风格) */
+.card-clean {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  overflow: hidden;
 }
 
-body.high-contrast .ant-layout {
-  background-color: #000000 !important;
+.card-clean:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
 }
 
-/* Make buttons pop */
-body.high-contrast .ant-btn-primary {
-  background-color: #ffff00 !important;
-  color: #000000 !important;
-  border: 2px solid #ffffff !important;
+/* 无边框卡片（用于嵌入背景的列表项） */
+.card-flat {
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #f0f0f0;
 }
 
-/* Card borders for visibility */
-body.high-contrast .ant-card {
-  background-color: #000000 !important;
-  border: 1px solid #ffffff !important;
+/* 页面主标题区域 */
+.page-header {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-body.high-contrast .ant-card-head {
-  border-bottom: 1px solid #ffffff !important;
-  color: #ffffff !important;
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f1f1f;
+  margin: 0;
+  line-height: 1.3;
 }
 
-body.high-contrast .ant-card-body {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+.page-subtitle {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin-top: 4px;
 }
 
-/* 🛑 Stop Gradients in High Contrast */
-body.high-contrast [style*="linear-gradient"] {
-  background: #000000 !important;
-  border: 1px solid #ffffff !important;
-  box-shadow: none !important;
+/* KPI 卡片 */
+.kpi-card {
+  background: #FFFFFF;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  transition: all 0.2s;
 }
 
-/* 🛑 Stop Hardcoded Backgrounds */
-body.high-contrast [style*="background:"],
-body.high-contrast [style*="background-color:"] {
-  /* Use specificity to target divs that are likely containers */
-  /* This is risky if it targets too much, but needed for the "many backgrounds" issue */
+.kpi-card:hover {
+  border-color: #1890ff;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.1);
 }
 
-/* Specific Component Overrides */
-
-/* Inputs & Selects */
-body.high-contrast .ant-input,
-body.high-contrast .ant-select-selector,
-body.high-contrast .ant-input-affix-wrapper,
-body.high-contrast .ant-picker,
-body.high-contrast .ant-input-number,
-body.high-contrast .ant-input-search {
-  background-color: #000000 !important;
-  border: 1px solid #ffffff !important;
-  color: #ffffff !important;
+.kpi-title {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin-bottom: 8px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-body.high-contrast .ant-select-item {
-  color: #ffffff !important;
-}
-body.high-contrast .ant-select-item-option-selected {
-  background-color: #333333 !important;
-  color: #ffff00 !important;
-}
-
-/* Tags */
-body.high-contrast .ant-tag {
-  background-color: #000000 !important;
-  border: 1px solid #ffffff !important;
-  color: #ffffff !important;
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f1f1f;
+  line-height: 1.2;
 }
 
-/* Modals & Dropdowns */
-body.high-contrast .ant-modal-content,
-body.high-contrast .ant-modal-header,
-body.high-contrast .ant-dropdown-menu,
-body.high-contrast .ant-popover-inner {
-  background-color: #000000 !important;
-  border: 1px solid #ffffff !important;
-  color: #ffffff !important;
+.kpi-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  background: #f0f5ff;
+  color: #1890ff;
 }
 
-/* Typography */
-body.high-contrast h1,
-body.high-contrast h2,
-body.high-contrast h3,
-body.high-contrast h4,
-body.high-contrast h5,
-body.high-contrast .ant-typography {
-  color: #ffffff !important;
+/* 状态标签统一 */
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
 }
 
-body.high-contrast .ant-typography-secondary {
-  color: #ffffff !important;
+.status-success { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+.status-warning { background: #fffbe6; color: #faad14; border: 1px solid #ffe58f; }
+.status-error { background: #fff1f0; color: #ff4d4f; border: 1px solid #ffa39e; }
+.status-default { background: #f5f5f5; color: #8c8c8c; border: 1px solid #d9d9d9; }
+
+/* 骨架屏优化 */
+.ant-skeleton {
+  opacity: 0.6;
 }
 
-/* Table */
-body.high-contrast .ant-table {
-  background: #000000 !important;
-  color: #ffffff !important;
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
-body.high-contrast .ant-table-thead > tr > th {
-  background: #111111 !important;
-  color: #ffff00 !important;
-  border-bottom: 1px solid #ffffff !important;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
-body.high-contrast .ant-table-tbody > tr > td {
-  background: #000000 !important;
-  color: #ffffff !important;
-  border-bottom: 1px solid #333 !important;
+::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 4px;
 }
-body.high-contrast .ant-table-row:hover > td {
-  background: #333333 !important;
+::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
 }
 
-/* Statistics & Icons */
-body.high-contrast .ant-statistic-title {
-  color: #ffffff !important;
-}
-body.high-contrast .ant-statistic-content {
-  color: #ffff00 !important;
-}
-body.high-contrast .anticon {
-  color: #ffff00 !important;
+/* 文本截断 */
+.text-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
 }
 
-/* Fix modern title in HC mode */
-body.high-contrast .page-modern-title {
-  background: none !important;
-  -webkit-text-fill-color: #ffff00 !important;
-  color: #ffff00 !important;
+.text-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+}
+
+/* 书籍封面占位符 */
+.book-cover-placeholder {
+  width: 100%;
+  aspect-ratio: 2/3;
+  background: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #bfbfbf;
+  font-size: 32px;
+}
+
+.book-cover-placeholder-sm {
+  width: 48px;
+  height: 64px;
+  background: #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: #bfbfbf;
+  font-size: 20px;
 }

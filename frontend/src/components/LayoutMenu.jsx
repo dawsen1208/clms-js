@@ -289,86 +289,87 @@ function LayoutMenu({ currentPage, setCurrentPage, onLogout, children }) {
         {/* ✅ Top Navigation Bar (Mobile & Desktop) */}
         <Header
           style={{
-            padding: "0 16px",
+            padding: "0 24px",
             background: "#fff",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            boxShadow: isMobile ? "none" : "0 2px 8px rgba(0,0,0,0.06)", // 📱 Cleaner mobile header
-            borderBottom: isMobile ? "1px solid #f0f0f0" : "none",
+            boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.03)",
             height: 64,
-            // 📱 On mobile, Header is part of the fixed flex layout, so sticky is not needed (it stays at top)
-            // On desktop, we keep sticky
-            position: isMobile ? "relative" : "sticky",
+            position: "sticky",
             top: 0,
-            zIndex: 100,
-            flexShrink: 0, // Prevent header from shrinking
+            zIndex: 10,
+            width: "100%"
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {/* Desktop Collapse Button */}
-            {!isMobile && (
-              <Button
-                type="text"
-                icon={collapsed ? <MenuOutlined /> : <MenuOutlined />}
-                onClick={() => setCollapsed(!collapsed)}
-                style={{ fontSize: "16px", width: 64, height: 64 }}
-              />
+            {isMobile && (
+               <Button 
+                 type="text" 
+                 icon={<MenuOutlined />} 
+                 onClick={() => setMobileMenuOpen(true)}
+                 style={{ fontSize: '18px', marginLeft: -8 }}
+               />
             )}
-            
-            {/* Title */}
-            <div style={{ fontSize: "18px", fontWeight: 600, color: "#1e293b", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "8px" }}>
-              {isMobile && <img src="/icons/apple-icon-180.png" alt="Logo" style={{ width: 24, height: 24, borderRadius: 4 }} onError={(e) => e.target.style.display='none'} />}
+            <span style={{ fontSize: 18, fontWeight: 600, color: "#1f1f1f", letterSpacing: "-0.5px" }}>
               CLMS Library
-            </div>
+            </span>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {/* Global Notifier (Bell) */}
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <GlobalNotifier />
-            </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+             <GlobalNotifier />
+             <div 
+               style={{ 
+                 display: "flex", 
+                 alignItems: "center", 
+                 gap: 8, 
+                 cursor: "pointer",
+                 padding: "4px 8px",
+                 borderRadius: 6,
+                 transition: "background 0.2s"
+               }}
+               onClick={() => navigate('/profile')}
+               className="header-user-trigger"
+             >
+                <div style={{ 
+                  width: 32, 
+                  height: 32, 
+                  borderRadius: "50%", 
+                  background: "#e6f7ff", 
+                  color: "#1890ff",
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center",
+                  fontWeight: 600
+                }}>
+                  {userName ? userName.charAt(0).toUpperCase() : <UserOutlined />}
+                </div>
+                {!isMobile && (
+                  <span style={{ fontSize: 14, fontWeight: 500, color: "#1f1f1f" }}>
+                    {userName || "User"}
+                  </span>
+                )}
+             </div>
           </div>
         </Header>
 
-        {/* Main content area */}
+        {/* ✅ Content Area */}
         <Content
-          id="page-content" // ✅ Identify as scroll container
           style={{
-            padding: isMobile ? "0" : "24px", // Remove padding on mobile to allow full width
-            // background: "#f0f2f5", // ❌ Removed to respect theme token (custom background)
-            // 📱 Mobile: Independent scroll container
-            height: isMobile ? "calc(100dvh - 64px)" : "calc(100dvh - 64px)", 
-            overflowY: isMobile ? "auto" : "visible",
+            margin: 0,
+            minHeight: 280,
+            background: "#F6F7FB", // Ensure global bg color
+            overflowY: "auto",
             overflowX: "hidden",
-            transition: "all 0.3s ease",
-            // 📱 Mobile: Add bottom padding for TabBar + Safe Area
-            // 🔥 Increased padding to ensure content is not hidden behind floating browser bars or app tab bar
-            paddingBottom: isMobile ? "calc(130px + env(safe-area-inset-bottom))" : 0,
-            // 📱 Mobile: Ensure smooth scrolling and snap points work
-            scrollPaddingBottom: isMobile ? "calc(130px + env(safe-area-inset-bottom))" : 0,
-            WebkitOverflowScrolling: "touch", // Smooth scroll on iOS
+            position: "relative"
           }}
         >
-          <div className={isMobile ? "" : "page-container"}>
-          {children || (
-            <div
-              style={{
-                textAlign: "center",
-                color: "#888",
-                marginTop: "20vh",
-                fontSize: "1rem",
-              }}
-            >
-              ⚠️ {t("error.pageLoad")}
-            </div>
-          )}
-          {/* 📱 Mobile: Optional Spacer as a backup */}
-          {isMobile && <div style={{ height: "1px" }} />}
+          <div className="page-container">
+            {children}
           </div>
         </Content>
 
-        {/* 📱 Render Mobile Bottom Nav */}
+        {/* 📱 Mobile Bottom Nav */}
         {isMobile && <MobileBottomNav />}
       </Layout>
     </Layout>

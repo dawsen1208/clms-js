@@ -20,6 +20,11 @@ import {
   InputNumber,
   Collapse,
   Radio,
+  Row,
+  Col,
+  Empty,
+  Drawer,
+  Tooltip
 } from "antd";
 import { Grid } from "antd";
 import "./SmartAssistant.css";
@@ -28,22 +33,34 @@ import {
   BookOutlined,
   BarChartOutlined,
   SearchOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  SettingOutlined,
+  ReloadOutlined
 } from "@ant-design/icons";
 import {
   getRecommendations,
   getBooks,
   borrowBook,
   getBookDetail,
-} from "../api"; // ✅ 统一封装API调用
-import { getBookComparison, getBooksLibrary } from "../api.js"; // ✅ 统一 API
-import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage, showBorrowSuccessModal } from "../utils/borrowUI";
+  getBookComparison, 
+  getBooksLibrary 
+} from "../api";
+import { isBorrowLimitError, extractErrorMessage } from "../utils/borrowUI";
 import RadarChart from "../components/RadarChart.jsx";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
+import { theme } from "../styles/theme";
+
+const { Title, Text, Paragraph } = Typography;
 
 function SmartAssistant() {
   const { t, language } = useLanguage();
+  const { useBreakpoint } = Grid;
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+
   /* =========================================================
      🤖 Smart Recommendations
      ========================================================= */
@@ -51,66 +68,53 @@ function SmartAssistant() {
   const [strategy, setStrategy] = useState(t("assistant.generating"));
   const [loading, setLoading] = useState(false);
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-  // Controlled modals for robust visibility
+  
+  // Controlled modals
   const [limitOpen, setLimitOpen] = useState(false);
   const [successTitle, setSuccessTitle] = useState("");
 
-  // 🔤 Normalize backend strategy text based on language
   const formatStrategy = (s) => {
     if (!s) return t("assistant.basedOnHistory");
     let tStr = String(s);
-    
-    // If Chinese mode, just clean up
-    if (language === 'zh') {
-       // Remove common prefixes if they are redundant or just return as is
-       return tStr;
-    }
+    if (language === 'zh') return tStr;
 
-    // If English mode, translate common phrases
     tStr = tStr.replace("基于您偏借类别", t("assistant.basedOnPreferred"));
     tStr = tStr.replace("基于您常借类别", t("assistant.basedOnPreferred"));
     tStr = tStr.replace("未借阅用户推荐：", t("assistant.forNewUsers"));
     tStr = tStr.replace("全馆最热TOP3", t("assistant.top3LibraryHot"));
-    // Strip decorative emoji/symbols first
     tStr = tStr.replace(/[📚📖⭐️✨🌟📈]/g, "");
     tStr = tStr.replace(/\*+/g, "");
-    // Remove trailing Chinese '推荐' even if followed by spaces/emojis
     tStr = tStr.replace(/推荐(?:\s)*$/g, "");
-    // Collapse extra spaces
     tStr = tStr.replace(/\s{2,}/g, " ").trim();
     tStr = tStr.replace(/未知/g, t("common.unknown"));
     return tStr;
   };
 
   const fetchRecommendations = async () => {
-    if (!token) return message.error(t("assistant.loginFirst"));
+    if (!token) return; // Silent return if no token, handled by UI
     try {
       setLoading(true);
       const res = await getRecommendations(token);
       const data = res.data || {};
       let recs = data.recommended || [];
+      
+      // Client-side filtering based on local prefs (legacy support)
       try {
         const raw = localStorage.getItem('recommend_prefs');
         if (raw) {
           const prefs = JSON.parse(raw);
           const include = Array.isArray(prefs.preferredCategories) ? prefs.preferredCategories : [];
           const exclude = Array.isArray(prefs.excludedCategories) ? prefs.excludedCategories : [];
-          if (include.length > 0) {
-            recs = recs.filter(b => include.includes(b.category));
-          }
-          if (exclude.length > 0) {
-            recs = recs.filter(b => !exclude.includes(b.category));
-          }
-          if (prefs.autoLearn === false) {
-            // no-op for now: backend handles learning; avoid storing local behavior
-          }
+          if (include.length > 0) recs = recs.filter(b => include.includes(b.category));
+          if (exclude.length > 0) recs = recs.filter(b => !exclude.includes(b.category));
         }
       } catch {}
+
       setRecommends(recs);
       setStrategy(formatStrategy(data.strategy));
     } catch (err) {
-      console.error("❌ Failed to fetch recommendations:", err);
-      message.error(t("assistant.fetchFailed"));
+      console.error("Failed to fetch recommendations:", err);
+      // Don't show error immediately on load to avoid spam
     } finally {
       setLoading(false);
     }
@@ -119,69 +123,35 @@ function SmartAssistant() {
   const handleBorrow = async (bookId, title, copies) => {
     if (!token) return message.warning(t("assistant.loginToBorrow"));
     try {
-      let available = copies;
-      if (typeof available !== "number") {
-        // Preflight detail query to verify stock
-        const detail = await getBookDetail(bookId);
-        available = Number(detail?.data?.copies ?? 0);
-      }
-
-      if (available <= 0) {
-        Modal.info({
-          title: t("assistant.outOfStockTitle"),
-          content: t("assistant.outOfStockMsg"),
-          okText: t("assistant.gotIt"),
-          centered: true,
-        });
-        message.warning(t("assistant.borrowUnavailable"));
-        console.log("🟡 Borrow blocked due to zero stock:", { bookId, title, available });
-        return;
+      // Optimistic check
+      if (copies <= 0) {
+         // Double check with API if needed, but for UI responsiveness we warn first
+         const detail = await getBookDetail(bookId);
+         if ((detail?.data?.copies ?? 0) <= 0) {
+            message.warning(t("assistant.borrowUnavailable"));
+            return;
+         }
       }
 
       const res = await borrowBook(bookId, token);
       setSuccessTitle(title);
-      // showBorrowSuccessModal(title); // We use local controlled modal instead
-      message.success(res.data.message || t("assistant.borrowSuccessMsg"));
-      fetchRecommendations(); // ✅ Refresh recommendations after borrowing
+      fetchRecommendations(); 
     } catch (err) {
-      console.error("❌ Borrow failed:", err);
-      if (err?.__borrowLimit) {
-        console.warn("🔴 Borrow limit flagged by interceptor", {
-          url: err?.config?.url,
-          status: err?.response?.status,
-        });
+      if (err?.__borrowLimit || isBorrowLimitError(extractErrorMessage(err))) {
         setLimitOpen(true);
-        // showBorrowLimitModal(); // We use local controlled modal
         return;
       }
-      const backendMsg = extractErrorMessage(err);
-      if (isBorrowLimitError(backendMsg)) {
-        console.warn("🔴 Borrow limit matched by message", { backendMsg });
-        setLimitOpen(true);
-        // showBorrowLimitModal();
-        return;
-      }
-      // Fallback: detect by HTTP status and route
-      const status = err?.response?.status;
-      const url = err?.config?.url || "";
-      if (status === 400 && url.includes("/library/borrow/")) {
-        console.warn("🔴 Borrow limit fallback by status+route", { status, url });
-        setLimitOpen(true);
-        // showBorrowLimitModal();
-        return;
-      }
-      message.error(backendMsg || t("assistant.borrowFailed"));
+      message.error(extractErrorMessage(err) || t("assistant.borrowFailed"));
     }
   };
 
   useEffect(() => {
-    // Re-format strategy when language changes if we have one
     setStrategy(prev => formatStrategy(prev)); 
   }, [language]);
 
   useEffect(() => {
-    fetchRecommendations();
-  }, []);
+    if (token) fetchRecommendations();
+  }, [token]);
 
   /* =========================================================
      📊 Smart Comparison
@@ -192,58 +162,39 @@ function SmartAssistant() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
-  const { useBreakpoint } = Grid;
-  const screens = useBreakpoint();
-  const isMobile = !screens.md;
 
-  // 比较参数与结果
-  const DEFAULT_WEIGHTS = {
-    rating: 0.3,
-    popularity: 0.25,
-    availability: 0.25,
-    recency: 0.1,
-    match: 0.1,
-  };
+  // Weights & Settings
+  const DEFAULT_WEIGHTS = { rating: 0.3, popularity: 0.25, availability: 0.25, recency: 0.1, match: 0.1 };
   const [windowDays, setWindowDays] = useState(30);
   const [weights, setWeights] = useState(DEFAULT_WEIGHTS);
   const [cmpLoading, setCmpLoading] = useState(false);
   const [cmpData, setCmpData] = useState(null);
-  const [radarMode, setRadarMode] = useState("custom"); // "default" | "custom"
+  const [radarMode, setRadarMode] = useState("custom");
+  const [weightsDrawerOpen, setWeightsDrawerOpen] = useState(false);
 
   const fetchAllBooks = async () => {
     try {
-      // 优先 /library 路由，兼容旧 /books
       const res = await getBooksLibrary().catch(() => getBooks());
       const list = res?.data || [];
       setAllBooks(list);
       setFilteredBooks(list);
     } catch (err) {
-      console.error("❌ Failed to fetch books:", err);
-      message.error(t("assistant.fetchBooksFailed"));
+      console.error("Failed to fetch books:", err);
     }
   };
 
   useEffect(() => {
     fetchAllBooks();
     try {
-      const raw = localStorage.getItem('compare_ids') || '[]';
-      const arr = JSON.parse(raw);
-      if (Array.isArray(arr)) setSelectedIds(arr);
+      const raw = localStorage.getItem('compare_ids');
+      if (raw) setSelectedIds(JSON.parse(raw));
     } catch {}
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('compare_ids', JSON.stringify(selectedIds));
-    } catch {}
+    localStorage.setItem('compare_ids', JSON.stringify(selectedIds));
   }, [selectedIds]);
 
-  const headerStats = useMemo(() => ({
-    recommended: recommends.length,
-    selected: selectedIds.length,
-  }), [recommends, selectedIds]);
-
-  // 🔍 Search filter (by title or author)
   const handleSearch = (e) => {
     const value = e.target.value.toLowerCase();
     setSearchTerm(value);
@@ -256,60 +207,32 @@ function SmartAssistant() {
     setCurrentPage(1);
   };
 
-  // ✅ Select books to compare (up to 5)
   const handleSelect = (bookId) => {
     setSelectedIds((prev) => {
-      if (prev.includes(bookId)) {
-        return prev.filter((id) => id !== bookId);
-      } else if (prev.length < 5) {
-        return [...prev, bookId];
-      } else {
-        message.warning(t("assistant.selectLimit"));
-        return prev;
-      }
+      if (prev.includes(bookId)) return prev.filter((id) => id !== bookId);
+      if (prev.length < 5) return [...prev, bookId];
+      message.warning(t("assistant.selectLimit"));
+      return prev;
     });
   };
 
-  // ✅ 分页逻辑
   const startIdx = (currentPage - 1) * pageSize;
   const paginatedBooks = filteredBooks.slice(startIdx, startIdx + pageSize);
-  const comparisonData = allBooks.filter((b) => selectedIds.includes(b._id));
 
-
-
-  const comparisonColumns = [
-    { title: t("assistant.book"), dataIndex: "title", key: "title", render: (t) => <b>{t}</b> },
-    { title: t("bookDetail.author"), dataIndex: "author", key: "author" },
-    { title: t("bookDetail.category"), dataIndex: "category", key: "category" },
-    {
-      title: t("assistant.description"),
-      dataIndex: "description",
-      key: "description",
-      render: (t) => (t ? t.slice(0, 50) + (t.length > 50 ? "..." : "") : t("assistant.noDescription")),
-    },
-  ];
-
-  // 触发后端比较
   const handleCompare = async () => {
-    if (selectedIds.length < 2 || selectedIds.length > 6) {
-      message.warning(t("assistant.selectRange"));
-      return;
-    }
+    if (selectedIds.length < 2) return message.warning(t("assistant.selectRange"));
     setCmpLoading(true);
     try {
       const res = await getBookComparison(selectedIds, windowDays);
       setCmpData(res);
       message.success(t("assistant.compareUpdated"));
     } catch (err) {
-      console.error("❌ 比较数据获取失败:", err);
-      const msg = err.response?.data?.message || err.message || t("assistant.compareFailed");
-      message.error(msg);
+      message.error(t("assistant.compareFailed"));
     } finally {
       setCmpLoading(false);
     }
   };
 
-  // 前端自定义权重评分（与后端默认权重分开显示）
   const resultsWithCustomScore = useMemo(() => {
     if (!cmpData?.results) return [];
     return cmpData.results.map((r) => {
@@ -324,7 +247,6 @@ function SmartAssistant() {
     });
   }, [cmpData, weights]);
 
-  // 雷达图数据：根据模式对各指标进行加权缩放展示
   const radarSeries = useMemo(() => {
     if (!cmpData?.results) return [];
     const useW = radarMode === "default" ? DEFAULT_WEIGHTS : weights;
@@ -336,25 +258,22 @@ function SmartAssistant() {
       (useW.match || 0) * (m.match || 0);
     return cmpData.results.map((r) => {
       const m = r.metrics || {};
-      const weighted = {
-        rating: (m.rating || 0) * (useW.rating || 0),
-        popularity: (m.popularity || 0) * (useW.popularity || 0),
-        availability: (m.availability || 0) * (useW.availability || 0),
-        recency: (m.recency || 0) * (useW.recency || 0),
-        match: (m.match || 0) * (useW.match || 0),
-        customScore: Math.round(scoreOf(m) * 1000) / 1000,
-      };
       return {
         name: r.book?.title || t("common.unknown"),
-        metrics: weighted,
+        metrics: {
+          rating: (m.rating || 0) * (useW.rating || 0),
+          popularity: (m.popularity || 0) * (useW.popularity || 0),
+          availability: (m.availability || 0) * (useW.availability || 0),
+          recency: (m.recency || 0) * (useW.recency || 0),
+          match: (m.match || 0) * (useW.match || 0),
+          customScore: Math.round(scoreOf(m) * 1000) / 1000,
+        },
       };
     });
-  }, [cmpData, weights, radarMode, language]);
+  }, [cmpData, weights, radarMode]);
 
-  // 当前权重总和提示
   const weightSum = useMemo(() => {
-    const vals = Object.values(weights || {});
-    return Math.round(vals.reduce((acc, v) => acc + (isNaN(v) ? 0 : v), 0) * 100) / 100;
+    return Object.values(weights).reduce((acc, v) => acc + (isNaN(v) ? 0 : v), 0);
   }, [weights]);
 
   const metricsColumns = [
@@ -364,388 +283,265 @@ function SmartAssistant() {
       key: "title",
       render: (_, row) => (
         <div>
-          <div style={{ fontWeight: 600 }}>{row.book.title}</div>
-          <div style={{ color: "#888" }}>{row.book.author}</div>
-          <div>
-            <Tag>{row.book.category}</Tag>
-          </div>
+          <div style={{ fontWeight: 600, color: theme.token.colorPrimary }}>{row.book.title}</div>
+          <div style={{ color: "#888", fontSize: 12 }}>{row.book.author}</div>
         </div>
       ),
     },
-    {
-      title: t("assistant.ratings"),
-      key: "ratings",
-      render: (_, row) => (
-        <span>
-          {row.book.ratingAvg ?? 0} / 5
-          <Typography.Text type="secondary"> ({row.book.ratingCount || 0})</Typography.Text>
-        </span>
-      ),
-    },
-    {
-      title: `${t("assistant.popularity")} (30d)`,
-      dataIndex: ["metrics", "borrow30d"],
-      key: "borrow30d",
-    },
-    {
-      title: t("assistant.availability"),
-      key: "availability",
-      render: (_, row) => (
-        <span>
-          {row.book.copies ?? 0}/{row.book.totalCopies ?? 0}
-          <Typography.Text type="secondary"> (norm {Math.round((row.metrics.availability || 0) * 100) / 100})</Typography.Text>
-        </span>
-      ),
-    },
-    {
-      title: t("assistant.recency"),
-      key: "recency",
-      render: (_, row) => (
-        <span>
-          {row.book.publishDate ? new Date(row.book.publishDate).toLocaleDateString() : "—"}
-          <Typography.Text type="secondary"> (norm {Math.round((row.metrics.recency || 0) * 100) / 100})</Typography.Text>
-        </span>
-      ),
-    },
-    {
-      title: t("assistant.match"),
-      dataIndex: ["metrics", "match"],
-      key: "match",
-      render: (v) => Math.round((v || 0) * 100) / 100,
-    },
-    {
-      title: t("assistant.scoreDefault"),
-      dataIndex: "score",
-      key: "score",
-    },
-    {
-      title: t("assistant.scoreCustom"),
-      dataIndex: "customScore",
-      key: "customScore",
-    },
+    { title: t("assistant.scoreCustom"), dataIndex: "customScore", key: "customScore", sorter: (a, b) => b.customScore - a.customScore, render: (v) => <b>{v}</b> },
+    { title: t("assistant.ratings"), key: "ratings", render: (_, row) => <span>{row.book.ratingAvg ?? 0}</span>, responsive: ['md'] },
+    { title: t("assistant.availability"), key: "availability", render: (_, row) => <span>{row.book.copies}</span>, responsive: ['md'] },
   ];
 
   /* =========================================================
-     🧱 页面布局
+     🧱 Render Helpers
      ========================================================= */
+  const renderRecommendationCard = (book) => (
+    <Card
+      key={book._id}
+      bordered={false}
+      className="card-clean"
+      style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+      bodyStyle={{ flex: 1, padding: 20, display: 'flex', flexDirection: 'column' }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+        <div className="book-cover-placeholder-sm" style={{ background: theme.token.colorPrimary + '15', color: theme.token.colorPrimary }}>
+          <BookOutlined />
+        </div>
+        <Tag color="blue">{book.category}</Tag>
+      </div>
+      
+      <Title level={5} className="text-clamp-2" style={{ marginBottom: 4, minHeight: 44 }}>{book.title}</Title>
+      <Text type="secondary" className="text-clamp-1" style={{ marginBottom: 16 }}>{book.author}</Text>
+      
+      <div style={{ marginTop: 'auto', display: 'flex', gap: 8 }}>
+        <Button block type="primary" size="small" onClick={() => handleBorrow(book._id, book.title, book.copies)}>
+          {t("assistant.borrow")}
+        </Button>
+        <Tooltip title={t("assistant.addToCompare")}>
+          <Button size="small" icon={<PlusOutlined />} onClick={() => handleSelect(book._id)} />
+        </Tooltip>
+      </div>
+    </Card>
+  );
+
   return (
-    <div className="assistant-page" style={{ padding: "1.5rem" }}>
-      {/* Controlled Success Modal to guarantee visibility */}
+    <div className="page-container">
+      {/* Header */}
+      <div style={{ marginBottom: 32 }}>
+        <Row gutter={[24, 16]} align="middle" justify="space-between">
+          <Col xs={24} md={12}>
+            <Title level={2} style={{ margin: 0, fontWeight: 600 }}>{t("assistant.title")}</Title>
+            <Text type="secondary">{t("assistant.subTitle")}</Text>
+          </Col>
+          <Col xs={24} md={12}>
+            <div style={{ display: 'flex', gap: 24, justifyContent: isMobile ? 'flex-start' : 'flex-end' }}>
+              <Statistic title={t("assistant.recommended")} value={recommends.length} valueStyle={{ fontWeight: 600 }} titleStyle={{ fontSize: 12, color: '#8c8c8c' }} />
+              <Statistic title={t("assistant.selected")} value={selectedIds.length} valueStyle={{ fontWeight: 600, color: theme.token.colorPrimary }} titleStyle={{ fontSize: 12, color: '#8c8c8c' }} />
+            </div>
+          </Col>
+        </Row>
+      </div>
+
+      {/* 1. AI Recommendations */}
+      <div style={{ marginBottom: 40 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <Title level={4} style={{ margin: 0 }}><RobotOutlined /> {t("assistant.aiRecommendations")}</Title>
+          <Text type="secondary" style={{ fontSize: 13 }}><ReloadOutlined spin={loading} /> {strategy}</Text>
+        </div>
+        
+        {loading ? (
+          <div style={{ padding: 40, textAlign: 'center' }}><Spin size="large" /></div>
+        ) : recommends.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
+            {recommends.map(renderRecommendationCard)}
+          </div>
+        ) : (
+          <Empty description={t("assistant.noRecs")} />
+        )}
+      </div>
+
+      <Divider />
+
+      {/* 2. Book Comparison */}
+      <div id="comparison-section">
+        <Title level={4} style={{ marginBottom: 24 }}><BarChartOutlined /> {t("titles.bookComparison")}</Title>
+        
+        <Row gutter={[24, 24]}>
+          {/* Left: Selector */}
+          <Col xs={24} lg={8}>
+            <div className="card-clean" style={{ height: '100%' }}>
+              <div style={{ marginBottom: 16 }}>
+                <Input 
+                  prefix={<SearchOutlined />} 
+                  placeholder={t("assistant.searchPlaceholder")} 
+                  onChange={handleSearch} 
+                  allowClear
+                />
+              </div>
+              
+              <div style={{ marginBottom: 16 }}>
+                <Text strong>{t("assistant.selected")} ({selectedIds.length}/5)</Text>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                  {selectedIds.map(id => {
+                    const book = allBooks.find(b => b._id === id);
+                    return (
+                      <Tag key={id} closable onClose={() => handleSelect(id)} color="blue">
+                         {book ? book.title.slice(0, 10) + '...' : id}
+                      </Tag>
+                    );
+                  })}
+                  {selectedIds.length === 0 && <Text type="secondary" style={{ fontSize: 12 }}>{t("assistant.selectTip")}</Text>}
+                </div>
+              </div>
+              
+              <List
+                dataSource={paginatedBooks}
+                size="small"
+                renderItem={book => (
+                  <List.Item 
+                    onClick={() => handleSelect(book._id)}
+                    style={{ 
+                      cursor: 'pointer', 
+                      background: selectedIds.includes(book._id) ? '#e6f7ff' : 'transparent',
+                      borderRadius: 6,
+                      padding: '8px 12px',
+                      marginBottom: 4,
+                      border: '1px solid transparent',
+                      borderColor: selectedIds.includes(book._id) ? '#91caff' : 'transparent'
+                    }}
+                  >
+                    <div style={{ width: '100%' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Text strong className="text-clamp-1" style={{ maxWidth: '70%' }}>{book.title}</Text>
+                        <Tag style={{ margin: 0 }}>{book.category}</Tag>
+                      </div>
+                      <Text type="secondary" style={{ fontSize: 12 }}>{book.author}</Text>
+                    </div>
+                  </List.Item>
+                )}
+              />
+              <div style={{ textAlign: 'center', marginTop: 12 }}>
+                <Pagination 
+                  simple 
+                  current={currentPage} 
+                  total={filteredBooks.length} 
+                  pageSize={pageSize}
+                  onChange={setCurrentPage} 
+                />
+              </div>
+              
+              <Button 
+                type="primary" 
+                block 
+                style={{ marginTop: 16 }} 
+                onClick={handleCompare}
+                disabled={selectedIds.length < 2}
+                loading={cmpLoading}
+              >
+                {t("assistant.compare")}
+              </Button>
+            </div>
+          </Col>
+
+          {/* Right: Analysis */}
+          <Col xs={24} lg={16}>
+             {resultsWithCustomScore.length > 0 ? (
+               <div className="card-clean">
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                   <Title level={5} style={{ margin: 0 }}>{t("assistant.analysisResult")}</Title>
+                   <Button icon={<SettingOutlined />} onClick={() => setWeightsDrawerOpen(true)}>{t("assistant.adjustWeights")}</Button>
+                 </div>
+                 
+                 <Row gutter={[24, 24]}>
+                   <Col xs={24} xl={14}>
+                     <Table 
+                       dataSource={resultsWithCustomScore} 
+                       columns={metricsColumns} 
+                       pagination={false} 
+                       size="small"
+                       rowKey={(r) => r.book._id}
+                     />
+                   </Col>
+                   <Col xs={24} xl={10}>
+                     <div style={{ textAlign: 'center' }}>
+                       <Radio.Group 
+                         value={radarMode} 
+                         onChange={e => setRadarMode(e.target.value)}
+                         options={[
+                           { label: t("assistant.defaultWeights"), value: "default" },
+                           { label: t("assistant.customWeights"), value: "custom" },
+                         ]}
+                         optionType="button"
+                         size="small"
+                         style={{ marginBottom: 16 }}
+                       />
+                       <RadarChart series={radarSeries} size={300} />
+                     </div>
+                   </Col>
+                 </Row>
+               </div>
+             ) : (
+               <div className="card-clean" style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#ccc' }}>
+                 <BarChartOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+                 <Text type="secondary">{t("assistant.compareTip")}</Text>
+               </div>
+             )}
+          </Col>
+        </Row>
+      </div>
+
+      {/* Weights Drawer */}
+      <Drawer
+        title={t("assistant.adjustWeights")}
+        placement="right"
+        onClose={() => setWeightsDrawerOpen(false)}
+        open={weightsDrawerOpen}
+        width={360}
+      >
+         <div style={{ marginBottom: 24 }}>
+           <Text strong>{t("assistant.totalWeight")}: <span style={{ color: Math.abs(weightSum - 1) > 0.01 ? '#faad14' : '#52c41a' }}>{weightSum.toFixed(2)}</span></Text>
+           <Text type="secondary" style={{ display: 'block', fontSize: 12 }}>{t("assistant.weightTip")}</Text>
+         </div>
+         {Object.keys(weights).map(key => (
+           <div key={key} style={{ marginBottom: 20 }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+               <Text>{t(`assistant.${key}`) || key}</Text>
+               <Text>{weights[key].toFixed(2)}</Text>
+             </div>
+             <Slider 
+               min={0} max={1} step={0.05} 
+               value={weights[key]} 
+               onChange={v => setWeights({...weights, [key]: v})} 
+             />
+           </div>
+         ))}
+         <Button block onClick={() => setWeights(DEFAULT_WEIGHTS)}>{t("assistant.resetDefault")}</Button>
+      </Drawer>
+
+      {/* Modals */}
       <Modal
         open={!!successTitle}
-        title={`"${successTitle}" ${t("assistant.borrowSuccessTitle")}`}
+        title={t("assistant.borrowSuccessTitle")}
         onOk={() => setSuccessTitle("")}
         onCancel={() => setSuccessTitle("")}
         centered
-        maskClosable
-        getContainer={false}
-        zIndex={10000}
+        footer={[<Button key="ok" type="primary" onClick={() => setSuccessTitle("")}>{t("common.ok")}</Button>]}
       >
-        <div>{t("assistant.borrowSuccessMsg")}</div>
+        <p>{t("assistant.borrowSuccessMsg")}</p>
+        <p><strong>{successTitle}</strong></p>
       </Modal>
-      {/* Controlled Limit Modal to guarantee visibility */}
+
       <Modal
         open={limitOpen}
         title={t("assistant.borrowLimitTitle")}
         onOk={() => setLimitOpen(false)}
         onCancel={() => setLimitOpen(false)}
         centered
-        maskClosable
-        getContainer={false}
-        zIndex={10000}
+        footer={[<Button key="ok" type="primary" onClick={() => setLimitOpen(false)}>{t("common.ok")}</Button>]}
       >
-        <div>
-          {t("assistant.limitContent")}
-        </div>
+        <p>{t("assistant.limitContent")}</p>
       </Modal>
-      <Card
-        title={
-          <div className="page-header">
-            <Typography.Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("assistant.title")}</Typography.Title>
-            <Typography.Text type="secondary">{t("assistant.subTitle")}</Typography.Text>
-            <div className="stats-grid">
-              <Statistic title={t("assistant.recommended")} value={headerStats.recommended} />
-              <Statistic title={t("assistant.selected")} value={headerStats.selected} />
-            </div>
-            <Typography.Text style={{ marginTop: 6 }} type="secondary">{strategy}</Typography.Text>
-          </div>
-        }
-        style={{
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          marginBottom: "2rem",
-        }}
-      >
-        {loading ? (
-          <Spin size="large" style={{ display: "block", margin: "2rem auto" }} />
-        ) : recommends.length > 0 ? (
-          <div style={{ position: 'relative' }}>
-            <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8 }} id="recs-scroll">
-              {recommends.map((book) => (
-                <Card
-                  key={book._id}
-                  title={book.title}
-                  style={{ minWidth: 280, borderRadius: 10 }}
-                  draggable
-                  onDragStart={(e) => { e.dataTransfer.setData('text/plain', book._id); }}
-                  extra={
-                    <Space>
-                      <Button size="small" onClick={() => handleSelect(book._id)}>
-                        {selectedIds.includes(book._id) ? t("assistant.remove") : t("assistant.add")}
-                      </Button>
-                      <Button size="small" type="primary" icon={<BookOutlined />} onClick={() => handleBorrow(book._id, book.title, book.copies)}>{t("assistant.borrow")}</Button>
-                    </Space>
-                  }
-                >
-                  <p>{book.author || t("common.unknown")} · <Tag>{book.category || t("common.unknown")}</Tag></p>
-                </Card>
-              ))}
-            </div>
-            <Space style={{ position: 'absolute', top: -40, right: 0 }}>
-              <Button size="small" onClick={() => { const el = document.getElementById('recs-scroll'); el && el.scrollBy({ left: -300, behavior: 'smooth' }); }}>◀</Button>
-              <Button size="small" onClick={() => { const el = document.getElementById('recs-scroll'); el && el.scrollBy({ left: 300, behavior: 'smooth' }); }}>▶</Button>
-            </Space>
-          </div>
-        ) : (
-          <p style={{ textAlign: "center", color: "#999", padding: "1rem" }}>
-            {t("assistant.noRecs")}
-          </p>
-        )}
-      </Card>
-
-      <Card
-        title={
-          <div className="page-header">
-            <Typography.Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("titles.bookComparison")}</Typography.Title>
-            <Typography.Text type="secondary">{t("search.title")}</Typography.Text>
-            <div className="stats-grid">
-              <Statistic title={t("common.total")} value={headerStats.selected} />
-            </div>
-          </div>
-        }
-        style={{
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        }}
-      >
-        {/* 🔍 搜索栏 */}
-        <Input
-          prefix={<SearchOutlined />}
-          placeholder={t("assistant.searchPlaceholder")}
-          value={searchTerm}
-          onChange={handleSearch}
-          allowClear
-          style={{
-            marginBottom: "1rem",
-            borderRadius: 8,
-            width: "100%",
-            maxWidth: 500,
-          }}
-        />
-
-        {/* 📚 分页书籍展示 + 拖拽加入比较 */}
-        <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            const id = e.dataTransfer.getData('text/plain');
-            if (id) handleSelect(id);
-          }}
-          style={{ border: '1px dashed #e5e7eb', padding: 12, borderRadius: 10, marginBottom: 12 }}
-        >
-          <Typography.Text type="secondary">{t("assistant.dragTip")}</Typography.Text>
-        </div>
-        <List
-          grid={{ gutter: 16, column: isMobile ? 1 : 3 }}
-          dataSource={paginatedBooks}
-          renderItem={(book) => (
-            <List.Item>
-              <Card
-                title={book.title}
-                size="small"
-                extra={
-                  <Space>
-                    <Checkbox
-                      checked={selectedIds.includes(book._id)}
-                      onChange={() => handleSelect(book._id)}
-                    >
-                      {t("assistant.selectToCompare")}
-                    </Checkbox>
-                    {selectedIds.includes(book._id) && <Tag color="green">{t("assistant.added")}</Tag>}
-                  </Space>
-                }
-                style={{
-                  borderRadius: "10px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                }}
-              >
-                <p>{t("bookDetail.author")}: {book.author || t("common.unknown")}</p>
-                <p>{t("bookDetail.category")}: {book.category || t("common.unknown")}</p>
-              </Card>
-            </List.Item>
-          )}
-        />
-
-        {/* 📑 分页控制 */}
-        <div style={{ textAlign: "center", marginTop: "1rem" }}>
-          <Pagination
-            current={currentPage}
-            pageSize={pageSize}
-            total={filteredBooks.length}
-            onChange={(page) => setCurrentPage(page)}
-            showSizeChanger={false}
-          />
-        </div>
-
-        {/* ⚙️ 比较参数与操作 */}
-        {selectedIds.length > 0 && (
-          <>
-            <Divider />
-            <Space wrap>
-              <Typography.Text>{t("assistant.windowDays")}:</Typography.Text>
-              <InputNumber min={7} max={180} value={windowDays} onChange={(v) => setWindowDays(v || 30)} />
-              <Button type="primary" onClick={handleCompare} disabled={selectedIds.length < 2}>
-                {t("assistant.compare")} ({selectedIds.length})
-              </Button>
-            </Space>
-
-            <Divider />
-            <Card
-              size="small"
-              title={t("assistant.weights")}
-              style={{ borderRadius: 10 }}
-              extra={<Button onClick={() => setWeights(DEFAULT_WEIGHTS)}>{t("assistant.resetDefault")}</Button>}
-            >
-              <Space direction="vertical" style={{ width: "100%", maxWidth: 900 }}>
-                <Space align="center" style={{ justifyContent: "space-between" }}>
-                  <Typography.Text style={{ color: Math.abs(weightSum - 1) < 0.01 ? "#6b7280" : "#d97706" }}>
-                    {t("assistant.total")}: {weightSum.toFixed(2)}
-                  </Typography.Text>
-                </Space>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Typography.Text style={{ width: 120 }}>{t("assistant.ratings")}</Typography.Text>
-                  <Slider
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    marks={{ 0: "0", 0.25: "0.25", 0.5: "0.5", 0.75: "0.75", 1: "1" }}
-                    value={weights.rating}
-                    onChange={(v) => setWeights({ ...weights, rating: v })}
-                    style={{ flex: 1, minWidth: 420 }}
-                  />
-                  <Typography.Text style={{ width: 56, textAlign: "right" }}>{weights.rating.toFixed(2)}</Typography.Text>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Typography.Text style={{ width: 120 }}>{t("assistant.popularity")}</Typography.Text>
-                  <Slider
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    marks={{ 0: "0", 0.25: "0.25", 0.5: "0.5", 0.75: "0.75", 1: "1" }}
-                    value={weights.popularity}
-                    onChange={(v) => setWeights({ ...weights, popularity: v })}
-                    style={{ flex: 1, minWidth: 420 }}
-                  />
-                  <Typography.Text style={{ width: 56, textAlign: "right" }}>{weights.popularity.toFixed(2)}</Typography.Text>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Typography.Text style={{ width: 120 }}>{t("assistant.availability")}</Typography.Text>
-                  <Slider
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    marks={{ 0: "0", 0.25: "0.25", 0.5: "0.5", 0.75: "0.75", 1: "1" }}
-                    value={weights.availability}
-                    onChange={(v) => setWeights({ ...weights, availability: v })}
-                    style={{ flex: 1, minWidth: 420 }}
-                  />
-                  <Typography.Text style={{ width: 56, textAlign: "right" }}>{weights.availability.toFixed(2)}</Typography.Text>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Typography.Text style={{ width: 120 }}>{t("assistant.recency")}</Typography.Text>
-                  <Slider
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    marks={{ 0: "0", 0.25: "0.25", 0.5: "0.5", 0.75: "0.75", 1: "1" }}
-                    value={weights.recency}
-                    onChange={(v) => setWeights({ ...weights, recency: v })}
-                    style={{ flex: 1, minWidth: 420 }}
-                  />
-                  <Typography.Text style={{ width: 56, textAlign: "right" }}>{weights.recency.toFixed(2)}</Typography.Text>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Typography.Text style={{ width: 120 }}>{t("assistant.match")}</Typography.Text>
-                  <Slider
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    marks={{ 0: "0", 0.25: "0.25", 0.5: "0.5", 0.75: "0.75", 1: "1" }}
-                    value={weights.match}
-                    onChange={(v) => setWeights({ ...weights, match: v })}
-                    style={{ flex: 1, minWidth: 420 }}
-                  />
-                  <Typography.Text style={{ width: 56, textAlign: "right" }}>{weights.match.toFixed(2)}</Typography.Text>
-                </div>
-              </Space>
-            </Card>
-
-            <Divider />
-            <h3 style={{ marginBottom: "1rem" }}>
-              <BarChartOutlined /> {t("assistant.comparisonResults")}
-            </h3>
-            {cmpLoading ? (
-              <Spin size="large" style={{ display: "block", margin: "2rem auto" }} />
-            ) : (
-              resultsWithCustomScore.length > 0 ? (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 16 }}>
-                  <Table
-                    rowKey={(row) => row.book?._id || row.book?.id || row.book?.title}
-                    dataSource={resultsWithCustomScore}
-                    columns={metricsColumns}
-                    pagination={{ pageSize: 6 }}
-                    bordered
-                  />
-                  <div>
-                    <Space direction="vertical" style={{ width: 360 }}>
-                      <Space align="center" style={{ justifyContent: "space-between" }}>
-                        <Typography.Text strong>{t("assistant.radarMode")}</Typography.Text>
-                        <Radio.Group
-                          value={radarMode}
-                          onChange={(e) => setRadarMode(e.target.value)}
-                          options={[
-                            { label: t("assistant.defaultWeights"), value: "default" },
-                            { label: t("assistant.customWeights"), value: "custom" },
-                          ]}
-                          optionType="button"
-                          buttonStyle="solid"
-                        />
-                      </Space>
-                      <RadarChart series={radarSeries} size={360} />
-                    </Space>
-                  </div>
-                </div>
-              ) : (
-                <Collapse defaultActiveKey={[]}>
-                  <Collapse.Panel header={t("assistant.currentSelection")} key="selection">
-                    <List
-                      dataSource={allBooks.filter((b) => selectedIds.includes(b._id))}
-                      renderItem={(book) => (
-                        <List.Item>
-                          <List.Item.Meta
-                            title={book.title}
-                            description={book.author || t("assistant.unknownAuthor")}
-                          />
-                          <Tag>{book.category || t("assistant.uncategorized")}</Tag>
-                        </List.Item>
-                      )}
-                    />
-                  </Collapse.Panel>
-                </Collapse>
-              )
-            )}
-          </>
-        )}
-      </Card>
     </div>
   );
 }
