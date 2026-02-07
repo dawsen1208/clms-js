@@ -23,7 +23,8 @@ import {
   AppstoreOutlined,
   BarsOutlined,
   SortAscendingOutlined,
-  ReloadOutlined
+  ReloadOutlined,
+  BookOutlined
 } from "@ant-design/icons";
 import { useLanguage } from "../contexts/LanguageContext";
 import PageContainer from "../components/common/PageContainer";
