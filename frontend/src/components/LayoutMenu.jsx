@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Button, Dropdown, Avatar, Input, Badge, Space, Drawer, Typography, theme } from "antd";
+import { Layout, Menu, Button, Dropdown, Avatar, Input, Badge, Space, Drawer, Typography, theme, AutoComplete } from "antd";
 import {
   HomeOutlined,
   SearchOutlined,
@@ -20,6 +20,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import GlobalNotifier from "./GlobalNotifier";
 import { motion } from "framer-motion";
+import { getBooks } from "../api";
 import "./LayoutMenu.css";
 
 const { Sider, Content, Header } = Layout;
@@ -34,12 +35,65 @@ const LayoutMenu = ({ onLogout, children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [user, setUser] = useState({});
+  
+  // Search AutoComplete State
+  const [allBooks, setAllBooks] = useState([]);
+  const [searchOptions, setSearchOptions] = useState([]);
 
   useEffect(() => {
     const sessionUser = sessionStorage.getItem("user");
     const localUser = localStorage.getItem("user");
     setUser(JSON.parse(sessionUser || localUser || "{}"));
+    
+    // Fetch books for search suggestions
+    fetchBooks();
   }, []);
+
+  const fetchBooks = async () => {
+    try {
+      const res = await getBooks();
+      if (res && res.data) {
+        setAllBooks(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to load books for search suggestions", error);
+    }
+  };
+
+  const handleSearch = (value) => {
+    if (!value) {
+      setSearchOptions([]);
+      return;
+    }
+    
+    const lowerVal = value.toLowerCase();
+    const filtered = allBooks
+      .filter(book => 
+        book.title.toLowerCase().includes(lowerVal) || 
+        book.author.toLowerCase().includes(lowerVal) ||
+        (book.isbn && book.isbn.includes(lowerVal))
+      )
+      .slice(0, 8) // Limit to top 8
+      .map(book => ({
+        value: book.title,
+        label: (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+               <Text strong style={{ fontSize: 14 }}>{book.title}</Text>
+               <Text type="secondary" style={{ fontSize: 12 }}>{book.author}</Text>
+            </div>
+            {book.category && <span style={{ fontSize: 11, color: '#bfbfbf', marginLeft: 8 }}>{book.category}</span>}
+          </div>
+        ),
+        bookId: book._id || book.id
+      }));
+      
+    setSearchOptions(filtered);
+  };
+
+  const onSelect = (value, option) => {
+    navigate(`/book/${option.bookId}`);
+  };
 
   const menuItems = [
     { key: "home", icon: <HomeOutlined />, label: t("titles.stats") || "Home" },
@@ -228,12 +282,19 @@ const LayoutMenu = ({ onLogout, children }) => {
             
             {/* Global Search */}
             <div className="header-search" style={{ width: 300 }}>
-               <Input.Search 
-                 placeholder="Search books..." 
-                 allowClear
-                 onSearch={(value) => navigate(`/search?q=${value}`)}
+               <AutoComplete
+                 options={searchOptions}
+                 onSelect={onSelect}
+                 onSearch={handleSearch}
                  style={{ width: '100%' }}
-               />
+               >
+                 <Input.Search 
+                   placeholder="Search books..." 
+                   allowClear
+                   onSearch={(value) => navigate(`/search?q=${value}`)}
+                   enterButton
+                 />
+               </AutoComplete>
             </div>
           </div>
 
