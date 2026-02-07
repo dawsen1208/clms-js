@@ -839,7 +839,6 @@ router.get("/history", authMiddleware, async (req, res) => {
     
     // 使用BorrowHistory模型的静态方法查询
     const history = await BorrowHistory.findByUser(userId)
-      .sort({ borrowDate: -1 })
       .lean();
 
     const formatted = history.map((r) => ({
@@ -849,6 +848,7 @@ router.get("/history", authMiddleware, async (req, res) => {
       title: r.bookTitle || "未知书籍",
       author: r.bookAuthor || "未知作者",
       action: r.action,
+      date: r.createdAt, // ✅ 统一使用记录创建时间作为发生时间
       borrowDate: r.borrowDate,
       dueDate: r.dueDate,
       returnDate: r.returnDate,

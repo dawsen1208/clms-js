@@ -68,18 +68,19 @@ borrowHistorySchema.index({ userId: 1, action: 1 });
 borrowHistorySchema.index({ bookId: 1, action: 1 });
 borrowHistorySchema.index({ userId: 1, bookId: 1 });
 borrowHistorySchema.index({ borrowDate: -1 });
+borrowHistorySchema.index({ createdAt: -1 });
 
 // ✅ 添加静态方法
 borrowHistorySchema.statics.findByUser = function(userId) {
-  return this.find({ userId }).sort({ borrowDate: -1 });
+  return this.find({ userId }).sort({ createdAt: -1 });
 };
 
 borrowHistorySchema.statics.findByBook = function(bookId) {
-  return this.find({ bookId }).sort({ borrowDate: -1 });
+  return this.find({ bookId }).sort({ createdAt: -1 });
 };
 
 borrowHistorySchema.statics.findByUserAndBook = function(userId, bookId) {
-  return this.find({ userId, bookId }).sort({ borrowDate: -1 });
+  return this.find({ userId, bookId }).sort({ createdAt: -1 });
 };
 
 // ✅ 兼容ID类型转换（与BorrowRecord保持一致）

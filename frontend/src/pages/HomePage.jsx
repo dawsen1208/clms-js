@@ -249,7 +249,7 @@ const HomePage = () => {
                     description={
                       <Space direction="vertical" size={0}>
                         <Text type="secondary" style={{ fontSize: 12 }}>
-                           {item.action === 'borrow' ? 'Borrowed' : 'Returned'} on {new Date(item.date).toLocaleDateString()}
+                           {item.action === 'borrow' ? 'Borrowed' : item.action === 'renew' ? 'Renewed' : 'Returned'} on {new Date(item.date).toLocaleDateString()}
                         </Text>
                       </Space>
                     }
