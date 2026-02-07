@@ -62,6 +62,22 @@ const SearchPage = () => {
     return Array.from(cats).sort();
   }, [books]);
 
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    books.forEach(b => {
+      const cat = b.category || "Uncategorized";
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return counts;
+  }, [books]);
+
+  const toggleCategory = (cat) => {
+    const newCats = selectedCategories.includes(cat)
+      ? selectedCategories.filter(c => c !== cat)
+      : [...selectedCategories, cat];
+    setSelectedCategories(newCats);
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -169,23 +185,90 @@ const SearchPage = () => {
   };
 
   const FilterPanel = () => (
-    <div style={{ padding: '0 8px' }}>
-      <div style={{ marginBottom: 24 }}>
-        <Title level={5} style={{ marginBottom: 12 }}>Availability</Title>
-        <Space>
-           <Switch checked={showAvailableOnly} onChange={setShowAvailableOnly} />
-           <Text>In Stock Only</Text>
-        </Space>
+    <div style={{ padding: '0 4px' }}>
+      <style>
+        {`
+          .category-item:hover {
+            background-color: #fafafa;
+          }
+          .category-item.selected:hover {
+            background-color: #e6f7ff;
+          }
+        `}
+      </style>
+      
+      {/* Availability Section */}
+      <div style={{ 
+        marginBottom: 24, 
+        padding: '16px 20px', 
+        background: '#fff', 
+        border: '1px solid #f0f0f0',
+        borderRadius: 16,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ 
+            width: 36, height: 36, borderRadius: 12, background: '#e6f7ff', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 12
+          }}>
+             <FilterOutlined style={{ color: '#1890ff', fontSize: 18 }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <Text strong style={{ fontSize: 14, lineHeight: 1.2 }}>In Stock</Text>
+            <Text type="secondary" style={{ fontSize: 11 }}>Hide unavailable</Text>
+          </div>
+        </div>
+        <Switch checked={showAvailableOnly} onChange={setShowAvailableOnly} />
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <Title level={5} style={{ marginBottom: 12 }}>Categories</Title>
-        <Checkbox.Group 
-          options={categories.map(c => ({ label: c || "Uncategorized", value: c }))} 
-          value={selectedCategories}
-          onChange={setSelectedCategories}
-          style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
-        />
+        <Title level={5} style={{ marginBottom: 16, paddingLeft: 4, fontSize: 15 }}>Categories</Title>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {categories.map(cat => {
+            const isSelected = selectedCategories.includes(cat);
+            return (
+              <div 
+                key={cat}
+                onClick={() => toggleCategory(cat)}
+                className={`category-item ${isSelected ? 'selected' : ''}`}
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: 12,
+                  cursor: 'pointer',
+                  background: isSelected ? '#e6f7ff' : 'transparent',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  transition: 'all 0.2s',
+                }}
+              >
+                 <Text style={{ 
+                   color: isSelected ? '#1890ff' : '#434343', 
+                   fontWeight: isSelected ? 600 : 400,
+                   fontSize: 14
+                 }}>
+                   {cat}
+                 </Text>
+                 <Tag style={{ 
+                   marginRight: 0, 
+                   background: isSelected ? '#1890ff' : '#f5f5f5', 
+                   color: isSelected ? '#fff' : '#8c8c8c',
+                   border: 'none',
+                   borderRadius: 12,
+                   fontSize: 11,
+                   padding: '0 8px',
+                   height: 22,
+                   lineHeight: '22px'
+                 }}>
+                   {categoryCounts[cat] || 0}
+                 </Tag>
+              </div>
+            );
+          })}
+        </div>
       </div>
       
       <Button block icon={<ReloadOutlined />} onClick={() => {
@@ -193,7 +276,10 @@ const SearchPage = () => {
         setSelectedCategories([]);
         setShowAvailableOnly(false);
         setSortBy("newest");
-      }}>
+      }}
+      style={{ borderRadius: 12, height: 42, border: '1px dashed #d9d9d9', color: '#8c8c8c' }}
+      type="text"
+      >
         Reset Filters
       </Button>
     </div>
