@@ -49,7 +49,7 @@ const SearchPage = () => {
   const [sortBy, setSortBy] = useState("newest");
   
   // UI State
-  const [viewMode, setViewMode] = useState("grid"); // grid | list
+  const [viewMode, setViewMode] = useState("list"); // grid | list
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   
   // User State for Borrow Logic

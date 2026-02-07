@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import { getBookDetail, getBorrowHistory, borrowBook, getBorrowedBooksLibrary, getUserRequestsLibrary } from "../api";
 import ReviewModal from "../components/ReviewModal";
 import { useLanguage } from "../contexts/LanguageContext";
+import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage, showBorrowSuccessModal } from "../utils/borrowUI";
 import PageContainer from "../components/common/PageContainer";
 import PageHeader from "../components/common/PageHeader";
 import KPIStatCard from "../components/common/KPIStatCard";
@@ -134,12 +135,16 @@ function BookDetail() {
     try {
       setActionLoading(true);
       await borrowBook(id, token);
-      message.success(t("borrow.borrowSuccess"));
+      showBorrowSuccessModal(t, book.title);
       setIsBorrowed(true);
       const res = await getBookDetail(id);
       setBook(res?.data);
     } catch (e) {
-      message.error(e?.response?.data?.message || t("borrow.borrowFailed"));
+      if (isBorrowLimitError(e?.response?.data?.message)) {
+        showBorrowLimitModal(t);
+      } else {
+        message.error(extractErrorMessage(e));
+      }
     } finally {
       setActionLoading(false);
     }
