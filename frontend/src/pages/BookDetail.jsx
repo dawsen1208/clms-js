@@ -21,7 +21,7 @@ import dayjs from "dayjs";
 import { getBookDetail, getBorrowHistory, borrowBook, getBorrowedBooksLibrary, getUserRequestsLibrary } from "../api";
 import ReviewModal from "../components/ReviewModal";
 import { useLanguage } from "../contexts/LanguageContext";
-import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage, showBorrowSuccessModal } from "../utils/borrowUI";
+import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
 import PageContainer from "../components/common/PageContainer";
 import PageHeader from "../components/common/PageHeader";
 import KPIStatCard from "../components/common/KPIStatCard";
@@ -132,22 +132,30 @@ function BookDetail() {
       return;
     }
     
-    try {
-      setActionLoading(true);
-      await borrowBook(id, token);
-      showBorrowSuccessModal(t, book.title);
-      setIsBorrowed(true);
-      const res = await getBookDetail(id);
-      setBook(res?.data);
-    } catch (e) {
-      if (isBorrowLimitError(e?.response?.data?.message)) {
-        showBorrowLimitModal(t);
-      } else {
-        message.error(extractErrorMessage(e));
+    Modal.confirm({
+      title: t("borrow.confirmTitle") || "Confirm Borrow",
+      content: t("borrow.confirmContent", { title: book.title }) || `Are you sure you want to borrow "${book.title}"?`,
+      okText: t("common.confirm") || "Yes",
+      cancelText: t("common.cancel") || "No",
+      onOk: async () => {
+        try {
+          // setActionLoading(true); // Modal handles loading state
+          await borrowBook(id, token);
+          message.success(t("borrow.borrowSuccess") || "Borrowed successfully!");
+          setIsBorrowed(true);
+          const res = await getBookDetail(id);
+          setBook(res?.data);
+        } catch (e) {
+          if (isBorrowLimitError(e?.response?.data?.message)) {
+            showBorrowLimitModal(t);
+          } else {
+            message.error(extractErrorMessage(e));
+          }
+        } finally {
+          // setActionLoading(false);
+        }
       }
-    } finally {
-      setActionLoading(false);
-    }
+    });
   };
 
   if (loading) return (

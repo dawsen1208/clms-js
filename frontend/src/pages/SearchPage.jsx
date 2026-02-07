@@ -164,6 +164,45 @@ const SearchPage = () => {
     setFilteredBooks(result);
   };
 
+  const BOOK_IMAGES = [
+    "/books/art.jpg",
+    "/books/cleancode.jpg",
+    "/books/design.jpg",
+    "/books/habits.jpg",
+    "/books/investor.jpg",
+    "/books/psychology.jpg",
+    "/books/sapiens.jpg",
+    "/books/app.jpg"
+  ];
+
+  const getRandomImage = (id) => {
+    if (!id) return BOOK_IMAGES[0];
+    const index = id.toString().charCodeAt(0) % BOOK_IMAGES.length;
+    return BOOK_IMAGES[index];
+  };
+
+  const categoryColors = {
+    "Fiction": "#1890ff",
+    "Science": "#722ed1",
+    "Technology": "#13c2c2",
+    "History": "#faad14",
+    "Biography": "#eb2f96",
+    "Business": "#52c41a",
+    "Art": "#fa541c",
+    "default": "#8c8c8c"
+  };
+
+  const categoryIcons = {
+    "Fiction": <ReadOutlined />,
+    "Science": <ExperimentOutlined />,
+    "Technology": <RocketOutlined />,
+    "History": <HourglassOutlined />,
+    "Biography": <UserOutlined />,
+    "Business": <BankOutlined />,
+    "Art": <BgColorsOutlined />,
+    "default": <BookOutlined />
+  };
+
   const handleBorrow = async (bookId, title, copies) => {
     const token = sessionStorage.getItem("token") || localStorage.getItem("token");
     if (!token) {
@@ -171,17 +210,26 @@ const SearchPage = () => {
       return;
     }
     
-    try {
-      await borrowBook(bookId, token);
-      showBorrowSuccessModal(t, title);
-      fetchData(); // Refresh state
-    } catch (error) {
-      if (isBorrowLimitError(error)) {
-        showBorrowLimitModal(t);
-      } else {
-        message.error(extractErrorMessage(error));
+    // Add confirmation modal
+    Modal.confirm({
+      title: t("borrow.confirmTitle") || "Confirm Borrow",
+      content: t("borrow.confirmContent", { title }) || `Are you sure you want to borrow "${title}"?`,
+      okText: t("common.confirm") || "Yes",
+      cancelText: t("common.cancel") || "No",
+      onOk: async () => {
+        try {
+          await borrowBook(bookId, token);
+          message.success(t("borrow.borrowSuccess") || "Borrowed successfully!");
+          fetchData(); // Refresh state
+        } catch (error) {
+          if (isBorrowLimitError(error)) {
+            showBorrowLimitModal(t);
+          } else {
+            message.error(extractErrorMessage(error));
+          }
+        }
       }
-    }
+    });
   };
 
   const FilterPanel = () => (
