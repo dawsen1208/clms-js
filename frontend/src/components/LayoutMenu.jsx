@@ -13,7 +13,8 @@ import {
   BellOutlined,
   MenuOutlined,
   MenuFoldOutlined,
-  MenuUnfoldOutlined
+  MenuUnfoldOutlined,
+  HistoryOutlined
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -44,7 +45,7 @@ const LayoutMenu = ({ onLogout, children }) => {
     { key: "home", icon: <HomeOutlined />, label: t("titles.stats") || "Home" },
     { key: "search", icon: <SearchOutlined />, label: t("common.bookSearch") || "Search" },
     { key: "borrow", icon: <BookOutlined />, label: t("common.borrowManage") || "My Library" },
-    { key: "return", icon: <RollbackOutlined />, label: t("guide.return.desc") || "Return" },
+    { key: "return", icon: <HistoryOutlined />, label: "借阅记录" },
     { key: "assistant", icon: <RobotOutlined />, label: t("titles.smartAssistant") || "Assistant" },
     { type: 'divider' },
     { key: "profile", icon: <UserOutlined />, label: t("common.profile") || "Profile" },
@@ -225,14 +226,13 @@ const LayoutMenu = ({ onLogout, children }) => {
               className="mobile-trigger-btn"
             />
             
-            {/* Global Search (Optional) */}
+            {/* Global Search */}
             <div className="header-search" style={{ width: 300 }}>
-               <Input 
-                 prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />} 
+               <Input.Search 
                  placeholder="Search books..." 
-                 bordered={false}
-                 style={{ background: '#f5f5f5', borderRadius: 8 }}
-                 onPressEnter={(e) => navigate(`/search?q=${e.target.value}`)}
+                 allowClear
+                 onSearch={(value) => navigate(`/search?q=${value}`)}
+                 style={{ width: '100%' }}
                />
             </div>
           </div>

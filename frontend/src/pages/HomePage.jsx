@@ -57,15 +57,17 @@ const HomePage = () => {
         getBorrowHistory(token)
       ]);
 
-      // Process Books
-      if (allBooksRes.status === 'fulfilled') {
-        setBooks(allBooksRes.value.data.slice(0, 8)); // New Arrivals
+      // Process Books & Recommendations
+      let recommendedBooks = [];
+      if (recommendRes.status === 'fulfilled' && recommendRes.value.data.length > 0) {
+        recommendedBooks = recommendRes.value.data;
+      } else if (allBooksRes.status === 'fulfilled') {
+        // Fallback to generic books if no recommendations
+        recommendedBooks = allBooksRes.value.data.slice(0, 8);
       }
 
-      // Process Trending (Recommendations)
-      if (recommendRes.status === 'fulfilled') {
-        setTrending(recommendRes.value.data);
-      }
+      setTrending(recommendedBooks);
+
 
       // Process Active Borrows
       let currentActive = 0;
@@ -158,6 +160,7 @@ const HomePage = () => {
                 <FireOutlined style={{ color: '#ff4d4f', marginRight: 8 }} />
                 Recommended for You
               </Title>
+              <Button type="link" onClick={() => navigate('/search')}>View All <RightOutlined /></Button>
             </div>
             
             {loading ? (
@@ -166,36 +169,16 @@ const HomePage = () => {
               <div className="trending-scroll-container">
                  {trending.length > 0 ? (
                    <Row gutter={[16, 16]}>
-                     {trending.slice(0, 3).map(book => (
-                       <Col xs={24} sm={8} key={book._id || book.id}>
+                     {trending.map(book => (
+                       <Col xs={12} sm={8} md={6} key={book._id || book.id}>
                          <ModernBookCard book={book} onBorrow={() => navigate(`/book/${book._id || book.id}`)} />
                        </Col>
                      ))}
                    </Row>
                  ) : (
-                   <Text type="secondary">No recommendations yet. Start reading to get personalized picks!</Text>
+                   <Text type="secondary">No recommendations available.</Text>
                  )}
               </div>
-            )}
-          </div>
-
-          {/* New Arrivals Section */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Title level={3} style={{ margin: 0 }}>New Arrivals</Title>
-              <Button type="link" onClick={() => navigate('/search')}>View All <RightOutlined /></Button>
-            </div>
-            
-            {loading ? (
-               <Skeleton active paragraph={{ rows: 4 }} />
-            ) : (
-              <Row gutter={[16, 16]}>
-                {books.map(book => (
-                  <Col xs={12} sm={8} md={6} key={book._id || book.id}>
-                    <ModernBookCard book={book} />
-                  </Col>
-                ))}
-              </Row>
             )}
           </div>
         </Col>

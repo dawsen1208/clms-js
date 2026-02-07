@@ -6,6 +6,23 @@ import { motion } from 'framer-motion';
 
 const { Title, Text } = Typography;
 
+const BOOK_IMAGES = [
+  "/books/art.jpg",
+  "/books/cleancode.jpg",
+  "/books/design.jpg",
+  "/books/habits.jpg",
+  "/books/investor.jpg",
+  "/books/psychology.jpg",
+  "/books/sapiens.jpg",
+  "/books/app.jpg"
+];
+
+const getRandomImage = (id) => {
+  if (!id) return BOOK_IMAGES[0];
+  const index = id.toString().charCodeAt(0) % BOOK_IMAGES.length;
+  return BOOK_IMAGES[index];
+};
+
 const categoryColors = {
   "Fiction": "blue",
   "Science": "purple",
@@ -22,6 +39,8 @@ const ModernBookCard = ({ book, onBorrow, onRenew, isBorrowed, isPending, loadin
   const { _id, id, title, author, category, copies, available, coverUrl } = book;
   const bookId = _id || id;
   const isAvailable = copies > 0;
+  
+  const displayCover = coverUrl || getRandomImage(bookId);
 
   const handleCardClick = () => {
     navigate(`/book/${bookId}`);
@@ -45,7 +64,7 @@ const ModernBookCard = ({ book, onBorrow, onRenew, isBorrowed, isPending, loadin
         cover={
           <div style={{ 
             height: 200, 
-            background: coverUrl ? `url(${coverUrl}) center/cover` : 'linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%)',
+            background: `url(${displayCover}) center/cover`,
             position: 'relative',
             overflow: 'hidden',
             display: 'flex',
@@ -66,6 +85,13 @@ const ModernBookCard = ({ book, onBorrow, onRenew, isBorrowed, isPending, loadin
               </Tag>
             </div>
             
+            {/* Status Tag */}
+            <div style={{ position: 'absolute', top: 12, right: 12 }}>
+              <Tag color={isAvailable ? 'success' : 'error'} style={{ margin: 0, borderRadius: 12, border: 'none' }}>
+                {isAvailable ? 'In Stock' : 'Out'}
+              </Tag>
+            </div>
+
             {/* Bookmark Corner (Signature Element) */}
             <div className="bookmark-corner" />
             
