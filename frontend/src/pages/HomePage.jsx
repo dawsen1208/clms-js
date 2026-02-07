@@ -71,10 +71,21 @@ const HomePage = () => {
           "atomic habits"
         ];
         
-        // Filter for specific books
-        recommendedBooks = allBooks.filter(b => 
-          targetTitles.some(t => b.title.toLowerCase().includes(t))
-        );
+        // Filter for specific books and remove duplicates by title
+        const uniqueTitles = new Set();
+        recommendedBooks = allBooks.filter(b => {
+            const lowerTitle = b.title.toLowerCase();
+            const isTarget = targetTitles.some(t => lowerTitle.includes(t));
+            if (!isTarget) return false;
+            
+            // Deduplicate logic: use a normalized title key
+            // e.g. "Clean Code" vs "clean code" -> "clean code"
+            if (uniqueTitles.has(lowerTitle)) {
+                return false;
+            }
+            uniqueTitles.add(lowerTitle);
+            return true;
+        });
         
         // Enforce specific covers and ensure order if needed (optional)
         recommendedBooks = recommendedBooks.map(b => {
@@ -271,7 +282,7 @@ const HomePage = () => {
                       }
                       title={
                           <Text strong>
-                              {actionText} <Text type="secondary" strong style={{ color: '#595959' }}>{item.bookTitle}</Text>
+                              {actionText} <Text type="secondary" strong style={{ color: '#595959' }}>{item.title || item.bookTitle}</Text>
                           </Text>
                       }
                       description={
