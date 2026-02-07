@@ -1,61 +1,130 @@
-// ✅ client/src/styles/theme.js
-export const appTheme = {
-  token: {
-    colorPrimary: '#1890ff', // 保持主蓝
-    colorSuccess: '#52c41a', // 绿色
-    colorWarning: '#faad14', // 橙色
-    colorError: '#ff4d4f',   // 红色
-    colorBgLayout: '#F6F7FB', // 全局浅灰背景
-    colorBgContainer: '#FFFFFF', // 容器纯白
-    borderRadius: 12,        // 统一圆角
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'",
-    fontSizeHeading1: 26,
-    fontSizeHeading2: 22,
-    fontSizeHeading3: 18,
-    fontSize: 14,
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)', // 轻微阴影
-  },
-  components: {
-    Layout: {
-      headerBg: '#FFFFFF',
-      siderBg: '#001529', // 保持深色侧边栏，或者改为白色（Notion风格通常侧边栏较浅，但为了对比度，先保持深色或改为浅灰）
-      // 决定保持深色侧边栏以区分区域，但Header改为纯白
-      bodyBg: '#F6F7FB',
+// 图书馆统一主题配置
+// Library Unified Theme Configuration
+
+export const theme = {
+  colors: {
+    primary: {
+      main: '#1677FF',
+      light: '#5B8EF3',
+      dark: '#0F60D8',
+      gradient: 'linear-gradient(135deg, #1E3A8A, #3B82F6)',
+      gradientHover: 'linear-gradient(135deg, #1E40AF, #2563EB)'
     },
-    Card: {
-      borderRadiusLG: 12,
-      boxShadowTertiary: '0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02)', // 更轻的阴影
-      paddingLG: 24,
+    secondary: {
+      main: '#5B8EF3',
+      light: '#8AAAF7',
+      dark: '#396FE0',
+      gradient: 'linear-gradient(135deg, #1E3A8A, #3B82F6)',
+      gradientHover: 'linear-gradient(135deg, #1E40AF, #2563EB)'
     },
-    Button: {
-      borderRadius: 8, // 按钮圆角稍微小一点点，或者统一12
-      borderRadiusLG: 12,
-      controlHeight: 36, // 稍微高一点
-      controlHeightLG: 44,
-      defaultShadow: '0 2px 0 rgba(0, 0, 0, 0.02)',
-      primaryShadow: '0 2px 0 rgba(0, 0, 0, 0.045)',
+    neutral: {
+      white: '#FFFFFF',
+      lightGray: '#F5F7FA',
+      gray: '#E5EAF2',
+      darkGray: '#6B7280',
+      darkerGray: '#374151',
+      black: '#0A0A0A'
     },
-    Input: {
-      borderRadius: 8,
-      controlHeight: 36,
-      controlHeightLG: 44,
+    status: {
+      success: '#52C41A',
+      warning: '#FAAD14',
+      error: '#FF4D4F',
+      info: '#1677FF'
     },
-    Table: {
-      borderRadiusLG: 12,
-      headerBg: '#FAFAFA', // 表头浅灰
-    },
-    Menu: {
-      itemBorderRadius: 8,
-      itemMarginInline: 8,
+    background: {
+      main: '#F5F7FA',
+      card: '#FFFFFF',
+      glass: 'rgba(255, 255, 255, 0.95)'
     }
   },
+
+  // 字体配置
+  typography: {
+    fontFamily: {
+      primary: '"Segoe UI", "Inter", sans-serif',
+      secondary: '"Segoe UI", "Inter", sans-serif'
+    },
+    fontSize: {
+      xs: '12px',
+      sm: '14px',
+      md: '14px',
+      lg: '18px',
+      xl: '22px',
+      xxl: '28px'
+    },
+    fontWeight: {
+      normal: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700
+    }
+  },
+
+  // 圆角配置
+  borderRadius: {
+    sm: '6px',
+    md: '12px',
+    lg: '12px',
+    xl: '16px',
+    xxl: '20px'
+  },
+
+  // 阴影配置
   shadows: {
-    sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-    md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-    lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-    xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    xxl: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+    sm: '0 2px 4px rgba(0, 0, 0, 0.05)',
+    md: '0 4px 12px rgba(0, 0, 0, 0.08)',
+    lg: '0 8px 20px rgba(0, 0, 0, 0.12)',
+    xl: '0 12px 28px rgba(0, 0, 0, 0.16)'
+  },
+
+  // 间距配置
+  spacing: {
+    xs: '4px',
+    sm: '8px',
+    md: '16px',
+    lg: '24px',
+    xl: '32px',
+    xxl: '48px'
   }
 };
 
-export const theme = appTheme;
+// 主题工具函数
+export const themeUtils = {
+  // 获取主按钮样式
+  getPrimaryButtonStyle: (hover = false) => ({
+    background: theme.colors.primary.main,
+    border: 'none',
+    borderRadius: '8px',
+    boxShadow: theme.shadows.md,
+    color: theme.colors.neutral.white,
+    fontFamily: theme.typography.fontFamily.primary,
+    fontWeight: theme.typography.fontWeight.medium,
+    transition: 'all 0.3s ease'
+  }),
+
+  // 获取卡片样式
+  getCardStyle: () => ({
+    background: theme.colors.background.card,
+    borderRadius: theme.borderRadius.md,
+    boxShadow: theme.shadows.lg,
+    border: '1px solid rgba(255, 255, 255, 0.2)'
+  }),
+
+  // 获取玻璃态样式
+  getGlassStyle: () => ({
+    background: theme.colors.background.glass,
+    backdropFilter: 'blur(10px)',
+    borderRadius: theme.borderRadius.md,
+    border: '1px solid rgba(255, 255, 255, 0.2)'
+  }),
+
+  // 获取页面容器样式
+  getPageContainerStyle: () => ({
+    background: theme.colors.background.main,
+    minHeight: 'calc(100vh - 64px)',
+    padding: theme.spacing.xl,
+    fontFamily: theme.typography.fontFamily.primary
+  })
+};
+
+export default theme;

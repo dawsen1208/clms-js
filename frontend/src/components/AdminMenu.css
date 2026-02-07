@@ -33,14 +33,14 @@
   transform: translateY(-50%) !important;
   width: 3px !important;
   height: 0 !important;
-  background: #1677FF !important;
+  background: var(--ant-color-primary) !important;
   border-radius: 0 2px 2px 0 !important;
   transition: height 0.3s ease !important;
 }
 
 .app-like-menu .ant-menu-item:hover {
-  background: rgba(91, 142, 243, 0.12) !important;
-  color: #1677FF !important;
+  background: color-mix(in srgb, var(--ant-color-primary), transparent 88%) !important;
+  color: var(--ant-color-primary) !important;
   transform: translateX(4px) !important;
 }
 
@@ -97,7 +97,7 @@
 .sidebar-header {
   padding: 16px 20px !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  background: linear-gradient(135deg, #1E3A8A, #3B82F6) !important;
+  background: linear-gradient(135deg, var(--ant-color-primary-active), var(--ant-color-primary)) !important;
   backdrop-filter: blur(10px) !important;
 }
 

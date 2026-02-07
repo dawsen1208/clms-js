@@ -9,22 +9,22 @@
   min-height: 360px;
   display: flex;
   flex-direction: column;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: var(--ant-border-radius-lg);
+  box-shadow: var(--ant-box-shadow);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid #f0f0f0;
-  background: white;
+  border: 1px solid var(--ant-color-border-secondary);
+  background: var(--ant-color-bg-container);
 }
 
 .book-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border-color: #e6f7ff;
+  box-shadow: var(--ant-box-shadow-secondary);
+  border-color: var(--ant-color-primary-hover);
 }
 
 .book-info {
   padding: 20px;
-  background: white;
+  background: var(--ant-color-bg-container);
   height: auto;
   display: flex;
   flex-direction: column;
@@ -36,7 +36,7 @@
 
 .book-title {
   margin-bottom: 16px !important;
-  color: #262626;
+  color: var(--ant-color-text);
   font-weight: 600;
   line-height: 1.4;
   font-size: 16px;
@@ -73,21 +73,21 @@
 .book-description {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--ant-color-split);
   flex-grow: 1;
 }
 
 .book-borrow-info {
   margin-top: 8px;
   padding: 8px 10px;
-  background: #F5F7FA;
-  border-radius: 8px;
+  background: var(--ant-color-fill-alter);
+  border-radius: var(--ant-border-radius);
 }
 
 /* 操作按钮区域 */
 .ant-card-actions {
-  border-top: 1px solid #f0f0f0;
-  background: #fafafa;
+  border-top: 1px solid var(--ant-color-split);
+  background: var(--ant-color-fill-quaternary);
   border-radius: 0 0 12px 12px;
 }
 
@@ -109,9 +109,9 @@
 
 /* Borrowed state: white button with blue border/text, keep visible even when disabled */
 .borrow-btn.borrowed {
-  background: #ffffff !important;
-  color: #1677FF !important;
-  border: 1px solid #1677FF !important;
+  background: var(--ant-color-bg-container) !important;
+  color: var(--ant-color-primary) !important;
+  border: 1px solid var(--ant-color-primary) !important;
 }
 .borrow-btn.borrowed[disabled] {
   opacity: 1 !important;
@@ -140,22 +140,6 @@
   }
 }
 
-/* 暗色模式支持 */
-@media (prefers-color-scheme: dark) {
-  .book-card {
-    background: #1f1f1f;
-    border-color: #303030;
-  }
-  
-  .book-info {
-    background: #1f1f1f;
-  }
-  
-  .book-title {
-    color: #ffffff;
-  }
-}
-
 /* 加载动画 */
 .book-card-container.loading {
   opacity: 0.7;
@@ -164,5 +148,5 @@
 
 .book-card-container.loading .book-card {
   transform: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--ant-box-shadow);
 }

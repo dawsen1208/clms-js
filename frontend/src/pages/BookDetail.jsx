@@ -1,18 +1,38 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
-import { Card, Typography, Tag, Divider, List, Empty, Spin, Button, message, Tooltip, Statistic, Row, Col } from "antd";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { 
+  Card, Typography, Tag, List, Empty, Spin, Button, message, Tooltip, 
+  Row, Col, Space, Divider, Avatar, Rate 
+} from "antd";
+import { 
+  BookOutlined, 
+  UserOutlined, 
+  TagsOutlined, 
+  StarOutlined, 
+  StockOutlined, 
+  CommentOutlined, 
+  RollbackOutlined,
+  EditOutlined,
+  CheckCircleOutlined,
+  SyncOutlined,
+  ClockCircleOutlined
+} from "@ant-design/icons";
+import dayjs from "dayjs";
 import { getBookDetail, getBorrowHistory, borrowBook, requestReturnLibrary, getBorrowedBooksLibrary, getUserRequestsLibrary } from "../api";
 import ReviewModal from "../components/ReviewModal";
 import { useLanguage } from "../contexts/LanguageContext";
-import "./BookDetail.css";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
+import KPIStatCard from "../components/common/KPIStatCard";
 
 const { Title, Text, Paragraph } = Typography;
 
 function BookDetail() {
   const { t } = useLanguage();
   const { id } = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
+  
+  // State
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -24,17 +44,6 @@ function BookDetail() {
   const [isBorrowed, setIsBorrowed] = useState(false);
   const [pendingType, setPendingType] = useState(null); // 'borrow' | 'return' | null
   const [actionLoading, setActionLoading] = useState(false);
-
-  // Handle browser back button
-  useEffect(() => {
-    const handlePopState = () => {
-      // Browser back button will naturally preserve React state
-      console.log('Browser back button pressed - state preserved');
-    };
-    
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -48,7 +57,7 @@ function BookDetail() {
         const data = res?.data;
         setBook(data);
 
-        // 2. Check Review Eligibility (User ID logic)
+        // 2. Check Review Eligibility
         try {
           const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
           const user = rawUser ? JSON.parse(rawUser) : null;
@@ -79,7 +88,7 @@ function BookDetail() {
              String(r.bookId) === String(id) && r.status === 'pending'
            );
            if (pendingReq) {
-             setPendingType(pendingReq.type); // 'borrow' or 'return' or 'renew'
+             setPendingType(pendingReq.type); 
            } else {
              setPendingType(null);
            }
@@ -88,61 +97,13 @@ function BookDetail() {
       } catch (e) {
         setError(e?.response?.data?.message || e.message);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [id]);
 
-  // Handler for Borrowing
-  const handleBorrow = async () => {
-    const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-    if (!token) {
-      message.warning(t("common.loginFirst"));
-      navigate("/login");
-      return;
-    }
-    
-    try {
-      setActionLoading(true);
-      await borrowBook(id, token);
-      message.success(t("borrow.borrowSuccess")); // You might need to add this key or use a generic one
-      setIsBorrowed(true);
-      // Refresh book details to update stock
-      const res = await getBookDetail(id);
-      setBook(res?.data);
-    } catch (e) {
-      message.error(e?.response?.data?.message || t("borrow.borrowFailed"));
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  // Handler for Returning
-  const handleReturn = async () => {
-    const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-    if (!token) return;
-
-    try {
-      setActionLoading(true);
-      // Request return
-      await requestReturnLibrary(
-        { type: "return", bookId: id, bookTitle: book.title },
-        token
-      );
-      message.success(t("borrow.returnSubmitted"));
-      setPendingType('return');
-    } catch (e) {
-      message.error(e?.response?.data?.message || t("borrow.submitFailed"));
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-
-  // 检查是否借阅且已归还（基于历史）
+  // Check history for review eligibility
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -156,191 +117,258 @@ function BookDetail() {
         );
         if (mounted) setEligible(returnedThis);
       } catch (e) {
-        console.warn("获取借阅历史失败：", e?.message);
+        console.warn("Failed to fetch borrow history:", e?.message);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [id]);
 
-  if (loading) return <Spin style={{ marginTop: 40 }} />;
-  if (error) return <Text type="danger">{t("bookDetail.failedToLoad").replace("{error}", error)}</Text>;
-  if (!book) return <Empty description={t("bookDetail.notFound")} />;
+  const handleBorrow = async () => {
+    const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+    if (!token) {
+      message.warning(t("common.loginFirst"));
+      navigate("/login");
+      return;
+    }
+    
+    try {
+      setActionLoading(true);
+      await borrowBook(id, token);
+      message.success(t("borrow.borrowSuccess"));
+      setIsBorrowed(true);
+      const res = await getBookDetail(id);
+      setBook(res?.data);
+    } catch (e) {
+      message.error(e?.response?.data?.message || t("borrow.borrowFailed"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReturn = async () => {
+    const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      setActionLoading(true);
+      await requestReturnLibrary(
+        { type: "return", bookId: id, bookTitle: book.title },
+        token
+      );
+      message.success(t("borrow.returnSubmitted"));
+      setPendingType('return');
+    } catch (e) {
+      message.error(e?.response?.data?.message || t("borrow.submitFailed"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  if (loading) return (
+    <PageContainer>
+      <div style={{ textAlign: 'center', marginTop: 100 }}>
+        <Spin size="large" />
+      </div>
+    </PageContainer>
+  );
+
+  if (error) return (
+    <PageContainer>
+      <Empty description={t("bookDetail.failedToLoad").replace("{error}", error)} />
+    </PageContainer>
+  );
+
+  if (!book) return (
+    <PageContainer>
+      <Empty description={t("bookDetail.notFound")} />
+    </PageContainer>
+  );
+
+  // Derived state for UI
+  const canReview = eligible && !hasReviewed;
+  const reviewReason = !eligible
+    ? t("bookDetail.reviewOnlyAfterReturn")
+    : hasReviewed
+    ? t("bookDetail.youHaveReviewed")
+    : "";
 
   return (
-    <div className="book-detail-page">
-      <Card className="book-card" style={{
-        borderRadius: 20,
-        boxShadow: "0 15px 35px rgba(0, 0, 0, 0.1)",
-        background: isHighContrast ? "#000" : "rgba(255, 255, 255, 0.95)",
-        backdropFilter: "blur(10px)",
-        border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.2)"
-      }}>
-        <div className="page-header" style={{ marginBottom: "2rem" }}>
-          <Title level={2} className="page-modern-title" style={{ margin: "0 0 1rem 0", color: isHighContrast ? "#fff" : "#1e293b", fontWeight: 700 }}>📚 {book.title}</Title>
-          <div className="meta-tags" style={{ marginBottom: "1.5rem" }}>
-            <Tag color={isHighContrast ? "#fff" : "blue"} style={{ borderRadius: 8, fontWeight: 500, color: isHighContrast ? "#000" : undefined }}>✍️ {t("bookDetail.author")}: {book.author}</Tag>
-            <Tag color={isHighContrast ? "#fff" : "purple"} style={{ borderRadius: 8, fontWeight: 500, color: isHighContrast ? "#000" : undefined }}>📂 {t("bookDetail.category")}: {book.category}</Tag>
-          </div>
-          <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "1rem" }}>
-            <div style={{ 
-              background: isHighContrast ? "#000" : "linear-gradient(135deg, #52c41a, #73d13d)", 
-              borderRadius: 16, 
-              padding: "1rem", 
-              color: isHighContrast ? "#fff" : "white",
-              boxShadow: isHighContrast ? "none" : "0 4px 12px rgba(82, 196, 26, 0.3)",
-              border: isHighContrast ? "1px solid #fff" : "none"
-            }}>
-              <Statistic 
-                title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.inStock")}</span>} 
-                value={book.copies || 0} 
-                valueStyle={{ color: isHighContrast ? "#fff" : "white", fontSize: "24px", fontWeight: 700 }}
+    <PageContainer>
+      <PageHeader 
+        title={book.title}
+        subtitle={book.author}
+        breadcrumbs={[
+          { title: t("nav.home"), path: "/" },
+          { title: t("nav.search"), path: "/search" },
+          { title: book.title }
+        ]}
+        extra={
+          <Button icon={<RollbackOutlined />} onClick={() => navigate(-1)}>
+            {t("bookDetail.back")}
+          </Button>
+        }
+      />
+
+      <Row gutter={[24, 24]}>
+        {/* Left Column: Details */}
+        <Col xs={24} lg={16}>
+          <Card 
+            className="card-shadow" 
+            bordered={false} 
+            style={{ borderRadius: 16, marginBottom: 24 }}
+          >
+            <Space size="middle" style={{ marginBottom: 16 }}>
+              <Tag color="blue" icon={<UserOutlined />}>{book.author}</Tag>
+              <Tag color="purple" icon={<TagsOutlined />}>{book.category}</Tag>
+              <Tag color="gold" icon={<StarOutlined />}>{book.rating || 0} / 5</Tag>
+            </Space>
+            
+            <Divider orientation="left" style={{ margin: '24px 0 16px' }}>
+              <Text type="secondary" style={{ fontSize: 14 }}>{t("bookDetail.description")}</Text>
+            </Divider>
+            
+            <Paragraph style={{ fontSize: 16, lineHeight: 1.8, color: 'var(--text-color)' }}>
+              {book.description || t("bookDetail.noDescription")}
+            </Paragraph>
+          </Card>
+
+          {/* Reviews Section */}
+          <Card 
+            title={
+              <Space>
+                <CommentOutlined />
+                {t("bookDetail.userReviews")}
+                <Tag>{Array.isArray(book.reviews) ? book.reviews.length : 0}</Tag>
+              </Space>
+            }
+            className="card-shadow"
+            bordered={false}
+            style={{ borderRadius: 16 }}
+            extra={
+              canReview ? (
+                <Button type="primary" onClick={() => setReviewOpen(true)} icon={<EditOutlined />}>
+                  {t("bookDetail.writeReview")}
+                </Button>
+              ) : (
+                <Tooltip title={reviewReason}>
+                  <Button disabled icon={<EditOutlined />}>
+                    {t("bookDetail.writeReview")}
+                  </Button>
+                </Tooltip>
+              )
+            }
+          >
+            {Array.isArray(book.reviews) && book.reviews.length > 0 ? (
+              <List
+                itemLayout="horizontal"
+                dataSource={book.reviews}
+                renderItem={(rev) => (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={<Avatar icon={<UserOutlined />} style={{ backgroundColor: '#87d068' }} />}
+                      title={
+                        <Space>
+                          <Rate disabled defaultValue={rev.rating} style={{ fontSize: 14 }} />
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            {dayjs(rev.createdAt).format("YYYY-MM-DD HH:mm")}
+                          </Text>
+                        </Space>
+                      }
+                      description={
+                        <Text style={{ fontSize: 15 }}>{rev.comment || t("bookDetail.noComment")}</Text>
+                      }
+                    />
+                  </List.Item>
+                )}
               />
-            </div>
-            <div style={{ 
-              background: isHighContrast ? "#000" : "linear-gradient(135deg, #faad14, #ffc53d)", 
-              borderRadius: 16, 
-              padding: "1rem", 
-              color: isHighContrast ? "#fff" : "white",
-              boxShadow: isHighContrast ? "none" : "0 4px 12px rgba(250, 173, 20, 0.3)",
-              border: isHighContrast ? "1px solid #fff" : "none"
-            }}>
-              <Statistic 
-                title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.rating")}</span>} 
-                value={book.rating || 0} 
-                valueStyle={{ color: isHighContrast ? "#fff" : "white", fontSize: "24px", fontWeight: 700 }}
-                suffix="/5"
-              />
-            </div>
-            <div style={{ 
-              background: isHighContrast ? "#000" : "linear-gradient(135deg, #1890ff, #36cfc9)", 
-              borderRadius: 16, 
-              padding: "1rem", 
-              color: isHighContrast ? "#fff" : "white",
-              boxShadow: isHighContrast ? "none" : "0 4px 12px rgba(24, 144, 255, 0.3)",
-              border: isHighContrast ? "1px solid #fff" : "none"
-            }}>
-              <Statistic 
-                title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255,255,255,0.9)", fontSize: "12px" }}>{t("bookDetail.reviews")}</span>} 
-                value={book.reviewCount || (Array.isArray(book.reviews) ? book.reviews.length : 0)} 
-                valueStyle={{ color: isHighContrast ? "#fff" : "white", fontSize: "24px", fontWeight: 700 }}
-              />
-            </div>
-          </div>
-        </div>
-        
-        <Divider orientation="left">{t("bookDetail.actions")}</Divider>
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "2rem", paddingLeft: "1rem" }}>
-            {isBorrowed ? (
-                <Button 
+            ) : (
+              <Empty description={t("bookDetail.noReviews")} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+            )}
+          </Card>
+        </Col>
+
+        {/* Right Column: Stats & Actions */}
+        <Col xs={24} lg={8}>
+          <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            {/* Action Card */}
+            <Card 
+              className="card-shadow" 
+              bordered={false} 
+              style={{ borderRadius: 16, textAlign: 'center' }}
+            >
+              <Title level={4} style={{ marginTop: 0 }}>{t("bookDetail.actions")}</Title>
+              <div style={{ padding: '20px 0' }}>
+                {isBorrowed ? (
+                  <Button 
                     type="primary" 
                     danger 
                     size="large"
                     loading={actionLoading}
                     disabled={pendingType === 'return'}
                     onClick={handleReturn}
-                    style={{ minWidth: '160px', height: '48px', fontSize: '16px', borderRadius: '12px' }}
-                >
+                    block
+                    icon={<RollbackOutlined />}
+                    style={{ height: 48, borderRadius: 12 }}
+                  >
                     {pendingType === 'return' ? t("borrow.returnPending") : t("borrow.applyReturn")}
-                </Button>
-            ) : (
-                <Button 
+                  </Button>
+                ) : (
+                  <Button 
                     type="primary" 
                     size="large"
                     loading={actionLoading}
                     disabled={book.copies <= 0 || pendingType === 'borrow'}
                     onClick={handleBorrow}
-                    style={{ 
-                        minWidth: '160px', 
-                        height: '48px', 
-                        fontSize: '16px', 
-                        borderRadius: '12px',
-                        background: (book.copies <= 0 || pendingType === 'borrow') ? undefined : (isHighContrast ? "#000" : "linear-gradient(135deg, #3b82f6, #2563eb)"),
-                        border: isHighContrast ? "1px solid #fff" : "none"
-                    }}
-                >
+                    block
+                    icon={<BookOutlined />}
+                    style={{ height: 48, borderRadius: 12 }}
+                  >
                     {pendingType === 'borrow' 
                         ? t("borrow.borrowPending") 
                         : (book.copies > 0 ? t("borrow.applyBorrow") : t("borrow.outOfStock"))}
-                </Button>
-            )}
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Title level={4} style={{ color: isHighContrast ? "#fff" : undefined }}>{t("bookDetail.description")}</Title>
-          {ttsEnabled && (
-             <Button 
-               type="text" 
-               icon={<SoundOutlined />} 
-               onClick={() => speak(book.description)}
-               title="Read Description"
-             >
-               Read
-             </Button>
-          )}
-        </div>
-        <Paragraph style={{ whiteSpace: "pre-wrap" }}>{book.description || t("bookDetail.noDescription")}</Paragraph>
-
-        <Divider>{t("bookDetail.userReviews")}</Divider>
-        {Array.isArray(book.reviews) && book.reviews.length > 0 ? (
-          <List
-            dataSource={book.reviews}
-            renderItem={(rev) => (
-              <List.Item>
-                <List.Item.Meta
-                  title={<Text strong>{rev.rating} {t("bookDetail.stars")}</Text>}
-                  description={
-                    <>
-                      <div>{rev.comment || t("bookDetail.noComment")}</div>
-                      <div style={{ fontSize: 12, color: "#999", marginTop: 4 }}>
-                        {new Date(rev.createdAt).toLocaleString()}
-                      </div>
-                    </>
-                  }
-                />
-              </List.Item>
-            )}
-          />
-        ) : (
-          <Empty description={t("bookDetail.noReviews")} />
-        )}
-      <Divider />
-        {(() => {
-          const canReview = eligible && !hasReviewed;
-          const reason = !eligible
-            ? t("bookDetail.reviewOnlyAfterReturn")
-            : hasReviewed
-            ? t("bookDetail.youHaveReviewed")
-            : "";
-          return (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <Button 
-                type="default" 
-                onClick={() => navigate(-1)} // Browser back button - preserves state
-                style={{ marginRight: 8 }}
-              >
-                ← {t("bookDetail.back")}
-              </Button>
-              {canReview ? (
-                <Button type="primary" onClick={() => setReviewOpen(true)}>
-                  {t("bookDetail.writeReview")}
-                </Button>
-              ) : (
-                <Tooltip title={reason} placement="top">
-                  <span style={{ display: "inline-block" }}>
-                    <Button type="primary" disabled>
-                      {t("bookDetail.writeReview")}
-                    </Button>
-                  </span>
-                </Tooltip>
+                  </Button>
+                )}
+              </div>
+              {book.copies <= 0 && !isBorrowed && (
+                <Text type="danger" style={{ display: 'block' }}>
+                  <StockOutlined /> {t("borrow.outOfStock")}
+                </Text>
               )}
-            </div>
-          );
-        })()}
-      </Card>
+            </Card>
 
-      {/* 写书评弹窗 */}
+            {/* KPI Stats */}
+            <Row gutter={[16, 16]}>
+              <Col span={24}>
+                <KPIStatCard 
+                  title={t("bookDetail.inStock")} 
+                  value={book.copies || 0} 
+                  icon={<StockOutlined />} 
+                  color={book.copies > 0 ? "#52c41a" : "#ff4d4f"} 
+                />
+              </Col>
+              <Col span={12}>
+                <KPIStatCard 
+                  title={t("bookDetail.rating")} 
+                  value={book.rating || 0} 
+                  icon={<StarOutlined />} 
+                  color="#faad14"
+                  suffix="/ 5" 
+                />
+              </Col>
+              <Col span={12}>
+                <KPIStatCard 
+                  title={t("bookDetail.reviews")} 
+                  value={book.reviewCount || (Array.isArray(book.reviews) ? book.reviews.length : 0)} 
+                  icon={<CommentOutlined />} 
+                  color="#3b82f6" 
+                />
+              </Col>
+            </Row>
+          </Space>
+        </Col>
+      </Row>
+
+      {/* Review Modal */}
       {book && (
         <ReviewModal
           open={reviewOpen}
@@ -350,7 +378,6 @@ function BookDetail() {
           token={sessionStorage.getItem("token") || localStorage.getItem("token")}
           onSubmitted={async () => {
             try {
-              // 重新拉取详情，刷新评论列表与评分
               const res = await getBookDetail(id);
               setBook(res?.data);
               setHasReviewed(true);
@@ -360,7 +387,7 @@ function BookDetail() {
           }}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }
 

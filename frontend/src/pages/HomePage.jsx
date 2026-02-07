@@ -1,224 +1,261 @@
-// ✅ client/src/pages/HomePage.jsx
-import { useEffect, useState } from "react";
-import { Typography, Row, Col, Button, Skeleton, Space, Badge } from "antd";
+import React, { useEffect, useState } from "react";
+import { Row, Col, Typography, Button, Carousel, List, Tag, Skeleton, Avatar, Space } from "antd";
 import { 
-  SearchOutlined, 
+  FireOutlined, 
   ReadOutlined, 
-  ClockCircleOutlined, 
-  BulbOutlined,
-  RightOutlined
+  HistoryOutlined, 
+  RightOutlined,
+  BookOutlined,
+  UserOutlined,
+  CalendarOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { getRecommendations, getBorrowedBooks } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
+import KPIStatCard from "../components/common/KPIStatCard";
+import ModernBookCard from "../components/common/ModernBookCard";
+import { getBooks, getRecommendations, getBorrowedBooks, getBorrowHistory } from "../api";
 
-dayjs.extend(relativeTime);
+const { Title, Text, Paragraph } = Typography;
 
-const { Title, Text } = Typography;
-
-function HomePage() {
+const HomePage = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState({
-    activeLoans: [],
-    recommendations: [],
-    dueSoonCount: 0
+  
+  const [books, setBooks] = useState([]);
+  const [trending, setTrending] = useState([]);
+  const [activeBorrows, setActiveBorrows] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [stats, setStats] = useState({
+    active: 0,
+    total: 0,
+    overdue: 0
   });
 
-  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-  const user = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
-
   useEffect(() => {
-    const fetchData = async () => {
-      if (!token) return;
-      try {
-        setLoading(true);
-        // Parallel fetch
-        const [recRes, borrowRes] = await Promise.allSettled([
-          getRecommendations(token),
-          getBorrowedBooks(token)
-        ]);
-
-        const recommendations = recRes.status === 'fulfilled' ? (recRes.value.data?.recommended || []) : [];
-        const activeLoans = borrowRes.status === 'fulfilled' ? (borrowRes.value.data || []) : [];
-
-        // Calculate Due Soon (within 3 days)
-        const dueSoon = activeLoans.filter(book => {
-          if (!book.dueDate) return false;
-          const diff = dayjs(book.dueDate).diff(dayjs(), 'day');
-          return diff >= 0 && diff <= 3;
-        }).length;
-
-        setData({
-          activeLoans,
-          recommendations,
-          dueSoonCount: dueSoon
-        });
-      } catch (error) {
-        console.error("Failed to load dashboard data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    const sessionUser = sessionStorage.getItem("user");
+    const localUser = localStorage.getItem("user");
+    if (sessionUser || localUser) {
+      setUser(JSON.parse(sessionUser || localUser));
+    }
     fetchData();
-  }, [token]);
+  }, []);
 
-  // Greeting based on time
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+      
+      // Parallel fetching
+      const [allBooksRes, recommendRes, borrowedRes, historyRes] = await Promise.allSettled([
+        getBooks(),
+        getRecommendations(token),
+        getBorrowedBooks(token),
+        getBorrowHistory(token)
+      ]);
+
+      // Process Books
+      if (allBooksRes.status === 'fulfilled') {
+        setBooks(allBooksRes.value.data.slice(0, 8)); // New Arrivals
+      }
+
+      // Process Trending (Recommendations)
+      if (recommendRes.status === 'fulfilled') {
+        setTrending(recommendRes.value.data);
+      }
+
+      // Process Active Borrows
+      let currentActive = 0;
+      if (borrowedRes.status === 'fulfilled') {
+        setActiveBorrows(borrowedRes.value.data);
+        currentActive = borrowedRes.value.data.length;
+      }
+
+      // Process History
+      let totalRead = 0;
+      if (historyRes.status === 'fulfilled') {
+        setHistory(historyRes.value.data.slice(0, 5)); // Last 5
+        totalRead = historyRes.value.data.length;
+      }
+
+      setStats({
+        active: currentActive,
+        total: totalRead,
+        overdue: 0 // Mock for now, logic needs due date calc
+      });
+
+    } catch (error) {
+      console.error("Error fetching home data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
   };
 
   return (
-    <div className="page-container">
-      {/* 1. Hero Section */}
-      <div className="page-header" style={{ marginBottom: 32 }}>
-        <div>
-          <Title level={2} style={{ marginBottom: 4 }}>
-            {getGreeting()}, {user.name || "Reader"}
-          </Title>
-          <Text type="secondary">
-            {t("common.welcomeDesc") || "Here is what's happening with your library account today."}
-          </Text>
-        </div>
-        <div>
-          <Button 
-            type="primary" 
-            size="large" 
-            icon={<SearchOutlined />} 
-            onClick={() => navigate('/search')}
-            style={{ paddingLeft: 24, paddingRight: 24 }}
-          >
-            {t("common.searchBooks")}
+    <PageContainer>
+      <PageHeader 
+        title={`${getGreeting()}, ${user.name || 'Reader'}!`}
+        subtitle="Welcome back to your digital library."
+        extra={
+          <Button type="primary" size="large" onClick={() => navigate('/search')}>
+            Browse Library
           </Button>
-        </div>
-      </div>
+        }
+      />
 
-      {/* 2. KPI Cards */}
-      <Row gutter={[24, 24]} style={{ marginBottom: 40 }}>
-        <Col xs={24} sm={12} md={6}>
-          <div className="kpi-card" onClick={() => navigate('/borrow')} style={{ cursor: 'pointer' }}>
-            <div className="kpi-icon-wrapper" style={{ background: '#e6f7ff', color: '#1890ff' }}>
-              <ReadOutlined style={{ fontSize: 20 }} />
-            </div>
-            <div className="kpi-title">{t("titles.currentBorrowings") || "Active Loans"}</div>
-            <div className="kpi-value">
-              {loading ? <Skeleton.Button active size="small" /> : data.activeLoans.length}
-            </div>
-          </div>
+      {/* Stats Row */}
+      <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
+        <Col xs={24} sm={8}>
+          <KPIStatCard 
+            title="Active Loans" 
+            value={stats.active} 
+            icon={<BookOutlined />} 
+            color="#1890ff"
+            loading={loading}
+            suffix="books"
+          />
         </Col>
-        
-        <Col xs={24} sm={12} md={6}>
-          <div className="kpi-card" onClick={() => navigate('/borrow')} style={{ cursor: 'pointer' }}>
-            <div className="kpi-icon-wrapper" style={{ background: '#fff7e6', color: '#faad14' }}>
-              <ClockCircleOutlined style={{ fontSize: 20 }} />
-            </div>
-            <div className="kpi-title">{t("titles.borrowLimit") || "Due Soon"}</div>
-            <div className="kpi-value">
-              {loading ? <Skeleton.Button active size="small" /> : data.dueSoonCount}
-            </div>
-          </div>
+        <Col xs={24} sm={8}>
+          <KPIStatCard 
+            title="Total Read" 
+            value={stats.total} 
+            icon={<ReadOutlined />} 
+            color="#52c41a"
+            trend="up"
+            trendValue="12%"
+            loading={loading}
+          />
         </Col>
-
-        <Col xs={24} sm={12} md={6}>
-          <div className="kpi-card" onClick={() => navigate('/assistant')} style={{ cursor: 'pointer' }}>
-            <div className="kpi-icon-wrapper" style={{ background: '#f9f0ff', color: '#722ed1' }}>
-              <BulbOutlined style={{ fontSize: 20 }} />
-            </div>
-            <div className="kpi-title">{t("common.smartRec") || "For You"}</div>
-            <div className="kpi-value">
-              {loading ? <Skeleton.Button active size="small" /> : data.recommendations.length}
-            </div>
-          </div>
-        </Col>
-
-         {/* Placeholder for future metric or static info */}
-         <Col xs={24} sm={12} md={6}>
-          <div className="kpi-card" style={{ background: '#fafafa', borderColor: 'transparent' }}>
-             <div className="kpi-title" style={{ marginBottom: 12 }}>Library Status</div>
-             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Badge status="processing" />
-                <Text strong>Open Now</Text>
-             </div>
-             <Text type="secondary" style={{ fontSize: 12, marginTop: 4 }}>Closes at 9:00 PM</Text>
-          </div>
+        <Col xs={24} sm={8}>
+          <KPIStatCard 
+            title="Recommended" 
+            value={trending.length} 
+            icon={<FireOutlined />} 
+            color="#ff4d4f"
+            loading={loading}
+            suffix="new picks"
+          />
         </Col>
       </Row>
 
-      {/* 3. Trending / Recommendations Section */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <Title level={4} style={{ margin: 0 }}>{t("titles.popularToday")}</Title>
-        <Button type="link" onClick={() => navigate('/search')} icon={<RightOutlined />}>
-           View All
-        </Button>
-      </div>
-
-      {loading ? (
-        <Row gutter={[24, 24]}>
-          {[1, 2, 3, 4].map(i => (
-            <Col xs={24} sm={12} md={6} key={i}>
-              <div className="card-clean" style={{ height: 300, padding: 20 }}>
-                <Skeleton active />
-              </div>
-            </Col>
-          ))}
-        </Row>
-      ) : (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
-          gap: '24px' 
-        }}>
-          {data.recommendations.slice(0, 5).map(book => (
-            <div 
-              key={book._id} 
-              className="card-clean"
-              style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
-              onClick={() => navigate(`/book/${book._id}`)}
-            >
-              <div style={{ 
-                height: 200, 
-                background: '#f5f5f5', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                overflow: 'hidden'
-              }}>
-                {book.cover ? (
-                  <img 
-                    src={book.cover} 
-                    alt={book.title} 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                  />
-                ) : (
-                  <div style={{ fontSize: 40, color: '#d9d9d9' }}>📚</div>
-                )}
-              </div>
-              <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                <div style={{ fontWeight: 600, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={book.title}>
-                  {book.title}
-                </div>
-                <div style={{ fontSize: 13, color: '#8c8c8c', marginBottom: 12 }}>
-                  {book.author}
-                </div>
-                <div style={{ marginTop: 'auto' }}>
-                  <span className={`status-tag ${book.stock > 0 ? 'status-success' : 'status-default'}`}>
-                    {book.stock > 0 ? 'In Stock' : 'Out of Stock'}
-                  </span>
-                </div>
-              </div>
+      <Row gutter={[32, 32]}>
+        {/* Left Column: Main Content */}
+        <Col xs={24} lg={16}>
+          {/* Trending / Recommended Section */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Title level={3} style={{ margin: 0 }}>
+                <FireOutlined style={{ color: '#ff4d4f', marginRight: 8 }} />
+                Recommended for You
+              </Title>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+            
+            {loading ? (
+              <Skeleton active paragraph={{ rows: 4 }} />
+            ) : (
+              <div className="trending-scroll-container">
+                 {trending.length > 0 ? (
+                   <Row gutter={[16, 16]}>
+                     {trending.slice(0, 3).map(book => (
+                       <Col xs={24} sm={8} key={book._id || book.id}>
+                         <ModernBookCard book={book} onBorrow={() => navigate(`/book/${book._id || book.id}`)} />
+                       </Col>
+                     ))}
+                   </Row>
+                 ) : (
+                   <Text type="secondary">No recommendations yet. Start reading to get personalized picks!</Text>
+                 )}
+              </div>
+            )}
+          </div>
+
+          {/* New Arrivals Section */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Title level={3} style={{ margin: 0 }}>New Arrivals</Title>
+              <Button type="link" onClick={() => navigate('/search')}>View All <RightOutlined /></Button>
+            </div>
+            
+            {loading ? (
+               <Skeleton active paragraph={{ rows: 4 }} />
+            ) : (
+              <Row gutter={[16, 16]}>
+                {books.map(book => (
+                  <Col xs={12} sm={8} md={6} key={book._id || book.id}>
+                    <ModernBookCard book={book} />
+                  </Col>
+                ))}
+              </Row>
+            )}
+          </div>
+        </Col>
+
+        {/* Right Column: Sidebar Info */}
+        <Col xs={24} lg={8}>
+          {/* Quick Actions Card */}
+          <div className="card-shadow" style={{ background: '#fff', borderRadius: 14, padding: 24, marginBottom: 24 }}>
+             <Title level={4} style={{ marginTop: 0 }}>Quick Actions</Title>
+             <Space direction="vertical" style={{ width: '100%' }} size={12}>
+               <Button block icon={<BookOutlined />} onClick={() => navigate('/borrow')} style={{ textAlign: 'left', height: 44 }}>
+                 Manage My Loans
+               </Button>
+               <Button block icon={<HistoryOutlined />} onClick={() => navigate('/return')} style={{ textAlign: 'left', height: 44 }}>
+                 Return Books
+               </Button>
+               <Button block icon={<UserOutlined />} onClick={() => navigate('/profile')} style={{ textAlign: 'left', height: 44 }}>
+                 Update Profile
+               </Button>
+             </Space>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="card-shadow" style={{ background: '#fff', borderRadius: 14, padding: 24 }}>
+            <Title level={4} style={{ marginTop: 0 }}>Recent Activity</Title>
+            <List
+              loading={loading}
+              itemLayout="horizontal"
+              dataSource={history}
+              renderItem={(item) => (
+                <List.Item>
+                  <List.Item.Meta
+                    avatar={
+                       <Avatar 
+                         icon={<BookOutlined />} 
+                         style={{ backgroundColor: item.action === 'return' ? '#52c41a' : '#1890ff' }} 
+                       />
+                    }
+                    title={<Text strong>{item.bookTitle}</Text>}
+                    description={
+                      <Space direction="vertical" size={0}>
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                           {item.action === 'borrow' ? 'Borrowed' : 'Returned'} on {new Date(item.date).toLocaleDateString()}
+                        </Text>
+                      </Space>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+            {history.length === 0 && !loading && (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <Text type="secondary">No recent activity</Text>
+              </div>
+            )}
+          </div>
+        </Col>
+      </Row>
+    </PageContainer>
   );
-}
+};
 
 export default HomePage;

@@ -5,8 +5,10 @@ import {
   GlobalOutlined, BgColorsOutlined, FormatPainterOutlined, FontSizeOutlined, 
   PictureOutlined, RobotOutlined, BuildOutlined, TeamOutlined, BellOutlined
 } from "@ant-design/icons";
-import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
+import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions } from "../api";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
 
 const { Title, Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
@@ -137,10 +139,11 @@ function AdminSettingsPage({ appearance, onChange, user }) {
   };
 
   return (
-    <div className="page-container" style={{ padding: isMobile ? "16px" : "24px", maxWidth: 1000, margin: "0 auto" }}>
-      <Title level={2} className="page-modern-title" style={{ marginBottom: 24, fontSize: isMobile ? '1.5rem' : '1.8rem' }}>
-        {t("admin.settings") || "Admin Settings"}
-      </Title>
+    <PageContainer>
+      <PageHeader
+        title={t("admin.settings") || "Admin Settings"}
+        subtitle={t("admin.settingsSubtitle") || "Manage system preferences and configurations"}
+      />
       
       <Tabs
         defaultActiveKey="language"
@@ -150,11 +153,11 @@ function AdminSettingsPage({ appearance, onChange, user }) {
             key: "language",
             label: t("settings.language"),
             children: (
-              <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.language")}</Title>}>
+              <Card style={{ borderRadius: token.borderRadiusLG, boxShadow: token.boxShadowTertiary }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.language")}</Title>}>
                 <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                   <Card hoverable onClick={() => setLanguageModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                     <Space align="start">
-                        <GlobalOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                        <GlobalOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
                         <div>
                             <AntText strong style={{ display: 'block' }}>{t("settings.language")}</AntText>
                             <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.languageDesc")}</AntText>
@@ -165,8 +168,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                 <Modal title={t("settings.language")} open={languageModalOpen} onCancel={() => setLanguageModalOpen(false)} footer={null}>
                    <Radio.Group value={language} onChange={(e) => setLanguage(e.target.value)} style={{ width: '100%' }}>
                       <Space direction="vertical" style={{ width: '100%' }}>
-                        <Radio value="en" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>🇺🇸 English</Radio>
-                        <Radio value="zh" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>🇨🇳 中文</Radio>
+                        <Radio value="en" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>🇺🇸 English</Radio>
+                        <Radio value="zh" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>🇨🇳 中文</Radio>
                       </Space>
                    </Radio.Group>
                 </Modal>
@@ -177,11 +180,11 @@ function AdminSettingsPage({ appearance, onChange, user }) {
             key: "appearance",
             label: t("settings.appearance"),
             children: (
-              <Card style={{ borderRadius: 12 }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.appearance")}</Title>}>
+              <Card style={{ borderRadius: token.borderRadiusLG, boxShadow: token.boxShadowTertiary }} title={<Title level={4} style={{ margin: 0 }}>{t("settings.appearance")}</Title>}>
                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
                         <Space>
-                            <BgColorsOutlined style={{ fontSize: 20, color: '#faad14' }} />
+                            <BgColorsOutlined style={{ fontSize: 20, color: token.colorWarning }} />
                             <AntText strong>{t("settings.highContrast")}</AntText>
                         </Space>
                         <Switch checked={!!appearance?.highContrast} onChange={(v) => handleUpdate({ highContrast: v })} />
@@ -208,7 +211,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                        </Card>
                        <Card hoverable onClick={() => setFontSizeModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
-                              <FontSizeOutlined style={{ fontSize: 24, color: '#52c41a' }} />
+                              <FontSizeOutlined style={{ fontSize: 24, color: token.colorSuccess }} />
                               <div>
                                   <AntText strong style={{ display: 'block' }}>{t("settings.fontSize")}</AntText>
                                   <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.fontSizeDesc")}</AntText>
@@ -229,18 +232,18 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                  <Modal title={t("settings.themeMode")} open={themeModeModalOpen} onCancel={() => setThemeModeModalOpen(false)} footer={null}>
                      <Radio.Group value={appearance?.mode || 'light'} onChange={(e) => handleUpdate({ mode: e.target.value })} style={{ width: '100%' }}>
                        <Space direction="vertical" style={{ width: '100%' }}>
-                          <Radio value="light" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.light")}</Radio>
-                          <Radio value="dark" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.dark")}</Radio>
+                          <Radio value="light" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>{t("settings.light")}</Radio>
+                          <Radio value="dark" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>{t("settings.dark")}</Radio>
                        </Space>
                      </Radio.Group>
                  </Modal>
                  <Modal title={t("settings.themeColor")} open={themeColorModalOpen} onCancel={() => setThemeColorModalOpen(false)} footer={null}>
                      <Radio.Group value={appearance?.themeColor || 'blue'} onChange={(e) => handleUpdate({ themeColor: e.target.value })} style={{ width: '100%' }}>
                        <Space direction="vertical" style={{ width: '100%' }}>
-                          <Radio value="blue" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.blue")}</Radio>
-                          <Radio value="purple" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.purple")}</Radio>
-                          <Radio value="green" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.green")}</Radio>
-                          <Radio value="custom" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("settings.custom")}</Radio>
+                          <Radio value="blue" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>{t("settings.blue")}</Radio>
+                          <Radio value="purple" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>{t("settings.purple")}</Radio>
+                          <Radio value="green" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>{t("settings.green")}</Radio>
+                          <Radio value="custom" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>{t("settings.custom")}</Radio>
                        </Space>
                      </Radio.Group>
                      {appearance?.themeColor === 'custom' && (
@@ -303,11 +306,11 @@ function AdminSettingsPage({ appearance, onChange, user }) {
             key: "security",
             label: t("settings.security"),
             children: (
-              <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.privacySecurity")}</Title>}>
+              <Card style={{ borderRadius: token.borderRadiusLG, boxShadow: token.boxShadowTertiary }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.privacySecurity")}</Title>}>
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + token.colorBorder }}>
+                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: `1px solid ${token.colorBorder}` }}>
                        <Space>
-                           <SafetyCertificateOutlined style={{ fontSize: 20, color: '#faad14' }} />
+                           <SafetyCertificateOutlined style={{ fontSize: 20, color: token.colorWarning }} />
                            <AntText strong>{t("settings.twoFactor")}</AntText>
                        </Space>
                        <Switch checked={!!securityPrefs.twoFactorEnabled} onChange={(v) => saveSecurity({ twoFactorEnabled: v })} />
@@ -315,7 +318,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                       <Card hoverable onClick={() => setPasswordModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                         <Space align="start">
-                            <LockOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                            <LockOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
                             <div>
                                 <AntText strong style={{ display: 'block' }}>{t("settings.updatePassword")}</AntText>
                                 <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.updatePasswordDesc")}</AntText>
@@ -342,7 +345,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                            });
                        }} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                          <Space align="start">
-                             <DeleteOutlined style={{ fontSize: 24, color: '#ff4d4f' }} />
+                             <DeleteOutlined style={{ fontSize: 24, color: token.colorError }} />
                              <div>
                                  <AntText strong type="danger" style={{ display: 'block' }}>{t("settings.clearCache")}</AntText>
                                  <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.clearCacheDesc")}</AntText>
@@ -456,11 +459,11 @@ function AdminSettingsPage({ appearance, onChange, user }) {
             key: "approval",
             label: t("settings.adminApproval"),
             children: (
-              <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.adminApprovalSettings")}</Title>}>
+              <Card style={{ borderRadius: token.borderRadiusLG, boxShadow: token.boxShadowTertiary }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.adminApprovalSettings")}</Title>}>
                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.mode === 'dark' ? '#1f1f1f' : '#f9f9f9', borderRadius: 8, border: '1px solid ' + (appearance?.mode === 'dark' ? '#303030' : '#f0f0f0') }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: token.colorBgLayout, borderRadius: token.borderRadius, border: `1px solid ${token.colorBorder}` }}>
                         <Space>
-                            <BellOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+                            <BellOutlined style={{ fontSize: 20, color: token.colorSuccess }} />
                             <AntText strong>{t("settings.approvalSound")}</AntText>
                         </Space>
                         <Switch checked={!!adminApprovalPrefs.soundEnabled} onChange={(v) => saveAdminApproval({ soundEnabled: v })} />
@@ -468,7 +471,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                        <Card hoverable onClick={() => setAutoRulesModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
-                              <RobotOutlined style={{ fontSize: 24, color: '#1890ff' }} />
+                              <RobotOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
                               <div>
                                   <AntText strong style={{ display: 'block' }}>{t("settings.autoRules")}</AntText>
                                   <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.autoRulesDesc")}</AntText>
@@ -506,8 +509,8 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                  <Modal title={t("settings.defaultBulkAction")} open={bulkActionModalOpen} onCancel={() => setBulkActionModalOpen(false)} footer={null}>
                     <Radio.Group value={adminApprovalPrefs.defaultBulkAction} onChange={(e) => saveAdminApproval({ defaultBulkAction: e.target.value })} style={{ width: '100%' }}>
                        <Space direction="vertical" style={{ width: '100%' }}>
-                          <Radio value="approve" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("common.approved")}</Radio>
-                          <Radio value="reject" style={{ padding: 12, border: '1px solid #f0f0f0', borderRadius: 8, width: '100%' }}>{t("common.rejected")}</Radio>
+                          <Radio value="approve" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>{t("common.approved")}</Radio>
+                          <Radio value="reject" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>{t("common.rejected")}</Radio>
                        </Space>
                      </Radio.Group>
                  </Modal>
@@ -518,7 +521,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
             key: "roles",
             label: t("settings.roles") || "Roles",
             children: (
-              <Card style={{ borderRadius: 12 }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.adminRolesTitle")}</Title>}>
+              <Card style={{ borderRadius: token.borderRadiusLG, boxShadow: token.boxShadowTertiary }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.adminRolesTitle")}</Title>}>
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                        <Card hoverable onClick={() => setRolesModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
@@ -566,10 +569,10 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                 </Modal>
               </Card>
             ),
-          }
+          },
         ]}
       />
-    </div>
+    </PageContainer>
   );
 }
 

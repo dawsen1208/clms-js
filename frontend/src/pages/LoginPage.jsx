@@ -1,10 +1,8 @@
 // ✅ client/src/pages/LoginPage.jsx
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Card, Checkbox, message, Typography, QRCode, Modal } from "antd";
+import { Form, Input, Button, Checkbox, message, QRCode, Modal, theme, Grid } from "antd";
 import { QrcodeOutlined, ScanOutlined } from "@ant-design/icons";
-import "./LoginPage.css";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { login as apiLogin, login2FA } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -13,6 +11,9 @@ import { useLanguage } from "../contexts/LanguageContext";
  */
 function LoginPage({ onLogin }) {
   const { t } = useLanguage();
+  const { token } = theme.useToken();
+  const screens = Grid.useBreakpoint();
+  
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -96,10 +97,6 @@ function LoginPage({ onLogin }) {
     if (onLogin) {
       onLogin(token, user);
       // onLogin 内部已经处理了 navigate，所以这里不需要再 navigate
-      // 但为了保险起见，如果 onLogin 没有处理跳转（虽然 App.jsx 里处理了），我们可以保留
-      // 不过 App.jsx 里的 handleLogin 确实调用了 navigate。
-      // 为避免双重跳转，我们应该移除这里的 navigate，或者只在 onLogin 不存在时 navigate。
-      // 现在的 App.jsx: handleLogin 确实调用了 navigate。
       return; 
     }
 
@@ -146,196 +143,256 @@ function LoginPage({ onLogin }) {
   }, []);
 
   return (
-    <div className="login-page">
-      {/* ✅ 左侧登录卡片 */}
-      <Card className="login-card" title={
-        <div style={{ textAlign: "center" }}>
-          <div style={{ 
-            width: "60px", 
-            height: "60px", 
-            background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", 
-            borderRadius: "50%", 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center",
-            margin: "0 auto 1rem auto",
-            fontSize: "24px",
-            color: "white"
-          }}>📚</div>
-          <div style={{ fontSize: "24px", fontWeight: 700, color: "#1e293b" }}>{t("login.welcomeBack")}</div>
-          <div style={{ fontSize: "14px", color: "#64748b", marginTop: "4px" }}>{t("login.signInToContinue")}</div>
-        </div>
-      } style={{ width: "420px", maxWidth: "90vw", borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)", background: "#fff" }}>
-        <p style={{ marginBottom: 24, color: "#64748b", textAlign: "center", fontSize: "14px" }}>
-          {t("login.instruction")}
-        </p>
-
-        {loginError && (
-          <p
-            style={{
-              color: "red",
-              fontWeight: 500,
-              marginBottom: 15,
-              textAlign: "center",
-            }}
-          >
-            {loginError}
-          </p>
-        )}
-
-        <Form layout="vertical" onFinish={handleLogin}>
-          <Form.Item
-            label={t("login.userIdLabel")}
-            name="userId"
-            rules={[{ required: true, message: t("login.enterUserId") }]}
-          >
-            <Input
-              size="large"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              placeholder={t("login.userIdPlaceholder")}
-              style={{ 
-                borderRadius: 12,
-                border: "1px solid #e2e8f0",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
-              }}
-              prefix={<span style={{ color: '#3b82f6' }}>👤</span>}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label={t("login.passwordLabel")}
-            name="password"
-            rules={[{ required: true, message: t("login.enterPassword") }]}
-          >
-            <Input.Password
-              size="large"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t("login.passwordPlaceholder")}
-              style={{ 
-                borderRadius: 12,
-                border: "1px solid #e2e8f0",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
-              }}
-              prefix={<span style={{ color: '#3b82f6' }}>🔒</span>}
-            />
-          </Form.Item>
-
-          {/* ✅ 记住我 */}
-          <Form.Item>
-            <Checkbox
-              checked={remember}
-              onChange={(e) => setRemember(e.target.checked)}
-              style={{ float: "left" }}
-            >
-              {t("login.rememberMe")}
-            </Checkbox>
-          </Form.Item>
-
-          {/* ✅ 登录按钮 */}
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              size="large"
-              block
-              loading={loading}
-              style={{
-                borderRadius: 12,
-                border: "none",
-                boxShadow: "0 4px 15px rgba(102, 126, 234, 0.4)",
-                transition: "all 0.3s ease",
-                transform: "translateY(0)",
-                background: "linear-gradient(90deg, #667eea, #764ba2)",
-                fontWeight: "bold",
-              }}
-            >
-              🔐 {t("login.loginBtn")}
-            </Button>
-          </Form.Item>
-
-          {/* ✅ 跳转按钮 */}
-          <div style={{ marginTop: 20, borderTop: "1px solid #e2e8f0", paddingTop: 16 }}>
-            <Button
-              type="link"
-              block
-              style={{ 
-                color: "#3b82f6", 
-                fontWeight: 500,
-                marginBottom: 8,
-                transition: "all 0.3s ease"
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.color = "#1d4ed8"}
-              onMouseLeave={(e) => e.currentTarget.style.color = "#3b82f6"}
-              onClick={() => navigate("/register")}
-            >
-              👉 {t("login.registerReader")}
-            </Button>
-            <Button
-              type="link"
-              block
-              style={{ 
-                color: "#8b5cf6", 
-                fontWeight: 500,
-                marginBottom: 8,
-                transition: "all 0.3s ease"
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.color = "#7c3aed"}
-              onMouseLeave={(e) => e.currentTarget.style.color = "#8b5cf6"}
-              onClick={() => navigate("/register-admin")}
-            >
-              🧑‍💼 {t("login.registerAdmin")}
-            </Button>
-            
-          </div>
-        </Form>
-      </Card>
-
-      {/* ✅ 右侧插图区 (带翻转动画) */}
-      <div 
-        className="login-illustration" 
-        onClick={() => setIsFlipped(!isFlipped)}
-        style={{ cursor: "pointer" }}
-      >
-        <div className={`flip-container ${isFlipped ? "flipped" : ""}`}>
-          <div className="flipper">
-            {/* 正面：插画 */}
-            <div className="front">
-              <img
-                src="/icons/app-icon-512.png"
-                alt="app logo"
-                onError={(e) => {
-                  e.currentTarget.src = "/icons/manifest-icon-512.maskable.png";
-                  e.currentTarget.onerror = null;
-                }}
-                className="login-logo"
-              />
-              <div className="flip-hint-text">
-                <ScanOutlined style={{ marginRight: 6 }} />
-                {t("login.scanMobile")}
-              </div>
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: `linear-gradient(135deg, ${token.colorPrimary}, ${token.colorInfo})`,
+      padding: screens.md ? "2rem" : "1rem"
+    }}>
+      {/* Split Card Container */}
+      <div style={{ 
+        display: 'flex', 
+        width: '100%', 
+        maxWidth: '900px', 
+        minHeight: '600px',
+        background: token.colorBgContainer,
+        borderRadius: token.borderRadiusLG,
+        overflow: 'hidden',
+        boxShadow: token.boxShadowSecondary,
+        flexDirection: screens.md ? 'row' : 'column'
+      }}>
+        {/* Left Side - Login Form */}
+        <div style={{ 
+          flex: 1, 
+          padding: screens.md ? '40px' : '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center'
+        }}>
+           <div style={{ textAlign: "center", marginBottom: 32 }}>
+              <div style={{ 
+                width: "60px", 
+                height: "60px", 
+                background: `linear-gradient(135deg, ${token.colorPrimary}, ${token.colorPrimaryActive})`, 
+                borderRadius: "50%", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center",
+                margin: "0 auto 1rem auto",
+                fontSize: "24px",
+                color: "#fff",
+                boxShadow: token.boxShadow
+              }}>📚</div>
+              <div style={{ fontSize: "24px", fontWeight: 700, color: token.colorTextHeading }}>{t("login.welcomeBack")}</div>
+              <div style={{ fontSize: "14px", color: token.colorTextSecondary, marginTop: "4px" }}>{t("login.signInToContinue")}</div>
             </div>
-            
-            {/* 背面：二维码 */}
-            <div className="back">
-              <div style={{ background: "white", padding: "20px", borderRadius: "20px", boxShadow: "0 8px 30px rgba(0,0,0,0.15)" }}>
-                <QRCode 
-                  value="https://clmsf5164136.z1.web.core.windows.net/" 
-                  size={220} 
-                  icon="/icons/app-icon-192.png"
-                  errorLevel="H"
-                  bordered={false}
+
+            {loginError && (
+              <div style={{
+                background: token.colorErrorBg,
+                border: `1px solid ${token.colorErrorBorder}`,
+                borderRadius: token.borderRadius,
+                padding: '10px 16px',
+                marginBottom: 24,
+                color: token.colorError,
+                textAlign: 'center'
+              }}>
+                {loginError}
+              </div>
+            )}
+
+            <Form layout="vertical" onFinish={handleLogin} size="large">
+              <Form.Item
+                label={t("login.userIdLabel")}
+                name="userId"
+                rules={[{ required: true, message: t("login.enterUserId") }]}
+              >
+                <Input
+                  prefix={<span style={{ color: token.colorPrimary }}>👤</span>}
+                  placeholder={t("login.userIdPlaceholder")}
+                  value={userId}
+                  onChange={(e) => setUserId(e.target.value)}
+                  style={{ borderRadius: token.borderRadius }}
                 />
+              </Form.Item>
+
+              <Form.Item
+                label={t("login.passwordLabel")}
+                name="password"
+                rules={[{ required: true, message: t("login.enterPassword") }]}
+              >
+                <Input.Password
+                  prefix={<span style={{ color: token.colorPrimary }}>🔒</span>}
+                  placeholder={t("login.passwordPlaceholder")}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{ borderRadius: token.borderRadius }}
+                />
+              </Form.Item>
+
+              <Form.Item>
+                <Checkbox
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                >
+                  {t("login.rememberMe")}
+                </Checkbox>
+              </Form.Item>
+
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  block
+                  loading={loading}
+                  style={{
+                    borderRadius: token.borderRadius,
+                    background: `linear-gradient(90deg, ${token.colorPrimary}, ${token.colorPrimaryActive})`,
+                    border: 'none',
+                    height: 48,
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    boxShadow: `0 4px 15px ${token.colorPrimary}4D`
+                  }}
+                >
+                  {t("login.loginBtn")}
+                </Button>
+              </Form.Item>
+
+              <div style={{ 
+                marginTop: 16, 
+                borderTop: `1px solid ${token.colorBorderSecondary}`, 
+                paddingTop: 16,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8
+              }}>
+                <Button type="link" onClick={() => navigate("/register")}>
+                  {t("login.registerReader")}
+                </Button>
+                <Button type="link" onClick={() => navigate("/register-admin")} style={{ color: token.colorTextSecondary }}>
+                  {t("login.registerAdmin")}
+                </Button>
               </div>
-              <div className="flip-hint-text" style={{ color: "#475569", marginTop: "20px" }}>
-                <QrcodeOutlined style={{ marginRight: 6 }} />
-                {t("login.scanToOpen")}
-              </div>
-            </div>
-          </div>
+            </Form>
         </div>
+
+        {/* Right Side - Illustration (Hidden on mobile) */}
+        {screens.md && (
+          <div style={{ 
+            width: '45%', 
+            background: `linear-gradient(135deg, ${token.colorPrimary}1A, ${token.colorInfo}1A)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            borderLeft: `1px solid ${token.colorBorderSecondary}`
+          }}>
+             <div 
+                onClick={() => setIsFlipped(!isFlipped)}
+                style={{ 
+                  width: 280, 
+                  height: 280,
+                  perspective: "1000px",
+                  cursor: "pointer"
+                }} 
+              >
+                <div style={{
+                  position: "relative",
+                  width: "100%",
+                  height: "100%",
+                  transition: "transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                  transformStyle: "preserve-3d",
+                  transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)"
+                }}>
+                  {/* Front: Logo */}
+                  <div style={{
+                    position: "absolute",
+                    width: "100%",
+                    height: "100%",
+                    backfaceVisibility: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 2
+                  }}>
+                    <img
+                      src="/icons/app-icon-512.png"
+                      alt="app logo"
+                      onError={(e) => {
+                        e.currentTarget.src = "/icons/manifest-icon-512.maskable.png";
+                        e.currentTarget.onerror = null;
+                      }}
+                      className="login-logo"
+                      style={{ 
+                        width: '80%', 
+                        maxWidth: 200, 
+                        filter: `drop-shadow(0 10px 20px ${token.colorPrimary}4D)`,
+                        transition: "transform 0.3s ease"
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+                      onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
+                    />
+                    <div style={{ 
+                      color: token.colorTextSecondary, 
+                      marginTop: 24,
+                      fontSize: 14,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>
+                      <ScanOutlined style={{ marginRight: 8 }} />
+                      {t("login.scanMobile")}
+                    </div>
+                  </div>
+                  
+                  {/* Back: QR Code */}
+                  <div style={{
+                    position: "absolute",
+                    width: "100%",
+                    height: "100%",
+                    backfaceVisibility: "hidden",
+                    transform: "rotateY(180deg)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}>
+                    <div style={{ 
+                      background: token.colorBgContainer, 
+                      padding: 20, 
+                      borderRadius: token.borderRadiusLG, 
+                      boxShadow: token.boxShadow 
+                    }}>
+                      <QRCode 
+                        value="https://clmsf5164136.z1.web.core.windows.net/" 
+                        size={200} 
+                        icon="/icons/app-icon-192.png"
+                        errorLevel="H"
+                        bordered={false}
+                      />
+                    </div>
+                    <div style={{ 
+                      color: token.colorTextSecondary, 
+                      marginTop: 24,
+                      fontSize: 14,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center"
+                    }}>
+                      <QrcodeOutlined style={{ marginRight: 8 }} />
+                      {t("login.scanToOpen")}
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+        )}
       </div>
+
       {/* ✅ 2FA Modal */}
       <Modal
         title={t("login.twoFactorAuth")}
@@ -345,14 +402,21 @@ function LoginPage({ onLogin }) {
         confirmLoading={loading}
         okText={t("login.verify")}
         cancelText={t("common.cancel")}
+        centered
       >
-        <p>{t("login.enterCode")}</p>
+        <p style={{ marginBottom: 16 }}>{t("login.enterCode")}</p>
         <Input 
-          placeholder={t("login.authCodePlaceholder")} 
+          placeholder="000000"
           value={twoFactorCode} 
           onChange={(e) => setTwoFactorCode(e.target.value)} 
           maxLength={6}
-          style={{ textAlign: 'center', letterSpacing: '4px', fontSize: '18px' }}
+          style={{ 
+            textAlign: 'center', 
+            letterSpacing: '8px', 
+            fontSize: '24px', 
+            height: '60px',
+            borderRadius: token.borderRadiusLG
+          }}
         />
       </Modal>
 

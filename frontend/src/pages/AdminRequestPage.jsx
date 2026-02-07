@@ -1,5 +1,4 @@
-// ✅ client/src/pages/AdminRequestPage.jsx
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Card,
   Table,
@@ -13,16 +12,11 @@ import {
   Typography,
   Tooltip,
   Segmented,
-  Statistic,
-  Divider,
-  Empty,
   Grid,
-  List,
   Row,
-  Col
+  Col,
+  theme
 } from "antd";
-import "./AdminBorrowPage.css"; // Reuse CSS
-import { theme } from "../styles/theme";
 import {
   ReloadOutlined,
   CheckCircleOutlined,
@@ -38,10 +32,14 @@ import {
   approveRequestLibrary as approveRequest,
 } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
+import KPIStatCard from "../components/common/KPIStatCard";
 
 const { Option } = Select;
 const { Title, Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 const STATUS_INFO = {
   approved: { color: "green", icon: <CheckCircleOutlined /> },
@@ -52,6 +50,7 @@ const STATUS_INFO = {
 
 function AdminRequestPage({ appearance }) {
   const { t } = useLanguage();
+  const { token } = useToken();
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState([]);
   const [filtered, setFiltered] = useState([]);
@@ -213,7 +212,7 @@ function AdminRequestPage({ appearance }) {
       cancelText: t("admin.cancel"),
       onOk: async () => {
         try {
-          const res = await approveRequest(record._id, false, reason, k);
+          const res = await approveRequest(record._id, false, reason, authToken);
           message.success(res.data?.message || t("admin.requestRejected"));
           beep();
           // ✅ Refresh immediately after rejection
@@ -423,7 +422,7 @@ function AdminRequestPage({ appearance }) {
         t ? (
           <span>{dayjs(t).format("YYYY-MM-DD HH:mm")}</span>
         ) : (
-          <span style={{ color: "#999" }}>—</span>
+          <span style={{ color: token.colorTextDisabled }}>—</span>
         ),
       sorter: (a, b) => new Date(a.handledAt || 0) - new Date(b.handledAt || 0),
     },
@@ -434,10 +433,10 @@ function AdminRequestPage({ appearance }) {
       render: (text, record) =>
         record.status === "rejected" || record.status === "invalid" ? (
           <Tooltip title={text || t("admin.noReason")}>
-            <span style={{ color: "#8c8c8c" }}>{text || "—"}</span>
+            <span style={{ color: token.colorTextSecondary }}>{text || "—"}</span>
           </Tooltip>
         ) : (
-          <span style={{ color: "#999" }}>—</span>
+          <span style={{ color: token.colorTextDisabled }}>—</span>
         ),
       responsive: ["lg"],
     },
@@ -485,132 +484,76 @@ function AdminRequestPage({ appearance }) {
      🧱 页面渲染
      ========================================================= */
   return (
-    <div className="admin-request-page" style={{ padding: "1.5rem" }}>
+    <PageContainer>
       {contextHolder}
-      <Card
-        title={
-          <div className="page-header">
-            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-              {t("admin.applicationManagement") || "Application Management"}
-            </Title>
-            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
-              {t("admin.manageBorrowReturnRequests")}
-            </AntText>
-            
-            {/* 📊 Statistics Cards */}
-            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(59, 130, 246, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalRequests")}</span>} 
-                    value={stats.total} 
-                    prefix={<BookOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #faad14, #d48806)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(250, 173, 20, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.pending")}</span>} 
-                    value={stats.pending} 
-                    prefix={<ClockCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #10b981, #059669)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(16, 185, 129, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.approved")}</span>} 
-                    value={stats.approved} 
-                    prefix={<CheckCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #ef4444, #dc2626)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(239, 68, 68, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.rejected")}</span>} 
-                    value={stats.rejected} 
-                    prefix={<CloseCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-            </Row>
-
-            {/* Action Buttons Row */}
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, marginTop: 16 }}>
-              <Button onClick={autoProcessEligible} disabled={isBatchMode} style={{
-                border: isHighContrast ? "1px solid #fff" : undefined,
-                background: isHighContrast ? "#000" : undefined,
-                color: isHighContrast ? "#fff" : undefined
-              }}>
-                {t("admin.autoProcess")}
-              </Button>
-              {isBatchMode && (
-                <Button onClick={exitBatchMode} style={{
-                  border: isHighContrast ? "1px solid #fff" : undefined,
-                  background: isHighContrast ? "#000" : undefined,
-                  color: isHighContrast ? "#fff" : undefined
-                }}>
-                  {t("admin.cancelBulkMode")}
-                </Button>
-              )}
-              <Button type="primary" onClick={isBatchMode ? executeBulkProcess : enterBatchMode} style={{
-                border: isHighContrast ? "1px solid #fff" : undefined,
-                background: isHighContrast && !isBatchMode ? "#000" : undefined
-              }}>
-                {isBatchMode 
-                  ? `${t("admin.confirmBulkProcess")} (${selectedRowKeys.length})` 
-                  : t("admin.bulkProcess")}
-              </Button>
-            </div>
-          </div>
-        }
+      <PageHeader
+        title={t("admin.applicationManagement") || "Application Management"}
+        subtitle={t("admin.manageBorrowReturnRequests")}
         extra={
             <Button
               icon={<ReloadOutlined />}
               onClick={fetchRequests}
               loading={loading}
-              style={{
-                border: isHighContrast ? "1px solid #fff" : undefined,
-                background: isHighContrast ? "#000" : undefined,
-                color: isHighContrast ? "#fff" : undefined
-              }}
             >
               {t("admin.refresh")}
             </Button>
-          }
-        style={{ borderRadius: 16 }}
-        bodyStyle={{ padding: "1.5rem" }}
-      >
+        }
+      />
+      
+      {/* 📊 Statistics Cards */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={8} lg={6}>
+            <KPIStatCard
+                title={t("admin.totalRequests")}
+                value={stats.total}
+                icon={<BookOutlined />}
+                color={token.colorInfo}
+            />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+            <KPIStatCard
+                title={t("admin.pending")}
+                value={stats.pending}
+                icon={<ClockCircleOutlined />}
+                color={token.colorWarning}
+            />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+            <KPIStatCard
+                title={t("admin.approved")}
+                value={stats.approved}
+                icon={<CheckCircleOutlined />}
+                color={token.colorSuccess}
+            />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+            <KPIStatCard
+                title={t("admin.rejected")}
+                value={stats.rejected}
+                icon={<CloseCircleOutlined />}
+                color={token.colorError}
+            />
+        </Col>
+      </Row>
+
+      <Card style={{ borderRadius: token.borderRadiusLG }}>
+        {/* Action Buttons Row */}
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, marginBottom: 16 }}>
+            <Button onClick={autoProcessEligible} disabled={isBatchMode}>
+            {t("admin.autoProcess")}
+            </Button>
+            {isBatchMode && (
+            <Button onClick={exitBatchMode}>
+                {t("admin.cancelBulkMode")}
+            </Button>
+            )}
+            <Button type="primary" onClick={isBatchMode ? executeBulkProcess : enterBatchMode}>
+            {isBatchMode 
+                ? `${t("admin.confirmBulkProcess")} (${selectedRowKeys.length})` 
+                : t("admin.bulkProcess")}
+            </Button>
+        </div>
+
         {/* 🔍 Search & Filter */}
         <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
           <Input
@@ -656,7 +599,7 @@ function AdminRequestPage({ appearance }) {
           }}
         />
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

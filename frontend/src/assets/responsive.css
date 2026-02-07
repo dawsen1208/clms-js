@@ -72,24 +72,26 @@ h2, .ds-title-2 { font-size: 22px; font-weight: 600; }
 h3, .ds-title-3 { font-size: 18px; font-weight: 600; }
 body, p, .ds-body { font-size: 14px; }
 
-/* Global buttons */
+/* Global buttons - rely on Ant Design Tokens */
 .ant-btn-primary {
-  background: #1677FF !important;
-  border-color: #1677FF !important;
+  /* background: #1677FF !important; REMOVED to support theme tokens */
+  /* border-color: #1677FF !important; REMOVED to support theme tokens */
   border-radius: 8px !important;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
 }
 .ant-btn-primary:hover { filter: brightness(1.05); transform: translateY(-1px); }
 
 .ant-btn-default {
-  background: #FFFFFF !important;
-  border-color: #1677FF !important;
-  color: #1677FF !important;
+  /* background: #FFFFFF !important; */
+  /* border-color: #1677FF !important; */
+  /* color: #1677FF !important; */
   border-radius: 8px !important;
 }
 .ant-btn-default:hover { background: #F5F7FA !important; }
 
-.ant-btn-dangerous { background: #FF4D4F !important; border-color: #FF4D4F !important; }
+.ant-btn-dangerous { 
+  /* background: #FF4D4F !important; border-color: #FF4D4F !important; */ 
+}
 
 /* Cards */
 .ant-card { border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; }

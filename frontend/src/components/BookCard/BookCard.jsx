@@ -1,5 +1,5 @@
 // ✅ Modern book card component
-import { Card, Button, Tag, Typography, Space } from "antd";
+import { Card, Button, Tag, Typography, Space, theme } from "antd";
 import { BookOutlined, UserOutlined, CalendarOutlined, TagOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import "./BookCard.css";
@@ -23,6 +23,8 @@ const { Title, Text } = Typography;
 
 function BookCard({ book, onBorrow, onRenew, onReturn, loading, userBorrowedBooks = new Set(), userBorrowedBooksCount = {}, borrowedInfo, isPending = false }) {
   const navigate = useNavigate();
+  const { token } = theme.useToken();
+  
   const {
     _id,
     id,
@@ -65,10 +67,8 @@ function BookCard({ book, onBorrow, onRenew, onReturn, loading, userBorrowedBook
         onClick={handleViewDetails}
         style={{ 
           cursor: 'pointer',
-          background: 'white',
-          border: '1px solid #e8e8e8',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          borderTop: `4px solid ${categoryGradients[category] ? categoryGradients[category].split(' ')[3] : '#667eea'}`
+          // background and border are handled by CSS with theme variables
+          borderTop: `4px solid ${categoryGradients[category] ? categoryGradients[category].split(' ')[3] : token.colorPrimary}`
         }}
         actions={[
           <div key="actions" className="borrow-button-container" style={{ display: 'flex', gap: '8px', padding: '0 16px' }}>
@@ -92,7 +92,7 @@ function BookCard({ book, onBorrow, onRenew, onReturn, loading, userBorrowedBook
                   disabled={isPending}
                   onClick={(e) => { e.stopPropagation(); onRenew?.(bookId, 7); }}
                   size="small"
-                  style={{ borderColor: '#1677FF', color: '#1677FF', borderRadius: '8px', flex: 1 }}
+                  style={{ borderColor: token.colorPrimary, color: token.colorPrimary, borderRadius: '8px', flex: 1 }}
                 >
                   {isPending ? 'Pending' : 'Renew +7'}
                 </Button>
@@ -113,23 +113,23 @@ function BookCard({ book, onBorrow, onRenew, onReturn, loading, userBorrowedBook
         ]}
       >
         <div className="book-info">
-          <Title level={4} className="book-title" ellipsis={{ rows: 2 }} style={{ color: '#262626' }}>
+          <Title level={4} className="book-title" ellipsis={{ rows: 2 }} style={{ color: token.colorText }}>
             {title}
           </Title>
           
           <Space direction="vertical" size="small" style={{ width: '100%' }}>
             <div className="book-author">
-              <UserOutlined style={{ color: '#8c8c8c' }} />
-              <Text style={{ color: '#595959' }} ellipsis>
+              <UserOutlined style={{ color: token.colorIcon }} />
+              <Text style={{ color: token.colorTextSecondary }} ellipsis>
                 {author || 'Unknown Author'}
               </Text>
             </div>
 
             {category && (
               <div className="book-category">
-                <TagOutlined style={{ color: '#8c8c8c' }} />
+                <TagOutlined style={{ color: token.colorIcon }} />
                 <Tag 
-                  color="#1677ff"
+                  color={token.colorPrimary}
                   style={{ margin: 0, fontSize: '12px' }}
                 >
                   {category}
@@ -139,16 +139,16 @@ function BookCard({ book, onBorrow, onRenew, onReturn, loading, userBorrowedBook
 
             {publishedYear && (
               <div className="book-year">
-                <CalendarOutlined style={{ color: '#8c8c8c' }} />
-                <Text style={{ color: '#595959' }}>
+                <CalendarOutlined style={{ color: token.colorIcon }} />
+                <Text style={{ color: token.colorTextSecondary }}>
                   {publishedYear}
                 </Text>
               </div>
             )}
 
             <div className="book-copies">
-              <BookOutlined style={{ color: '#8c8c8c' }} />
-              <Text style={{ color: '#595959' }}>
+              <BookOutlined style={{ color: token.colorIcon }} />
+              <Text style={{ color: token.colorTextSecondary }}>
                 Available: {copies || 0} copies
               </Text>
             </div>
@@ -156,7 +156,7 @@ function BookCard({ book, onBorrow, onRenew, onReturn, loading, userBorrowedBook
 
           {isBorrowedByUser && (
             <div className="book-borrow-info">
-              <Text style={{ color: daysLeft == null ? '#8c8c8c' : (daysLeft > 3 ? '#52C41A' : daysLeft >= 0 ? '#FAAD14' : '#FF4D4F') }}>
+              <Text style={{ color: daysLeft == null ? token.colorTextSecondary : (daysLeft > 3 ? token.colorSuccess : daysLeft >= 0 ? token.colorWarning : token.colorError) }}>
                 {daysLeft == null ? 'Borrowed' : daysLeft >= 0 ? `Due in ${daysLeft} days` : `Overdue by ${Math.abs(daysLeft)} days`}
               </Text>
             </div>
@@ -164,7 +164,7 @@ function BookCard({ book, onBorrow, onRenew, onReturn, loading, userBorrowedBook
 
           {description && (
             <div className="book-description">
-              <Text style={{ color: '#8c8c8c' }} ellipsis={{ rows: 2 }}>
+              <Text style={{ color: token.colorTextSecondary }} ellipsis={{ rows: 2 }}>
                 {description}
               </Text>
             </div>

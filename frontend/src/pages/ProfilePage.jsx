@@ -1,11 +1,24 @@
 import { useEffect, useState, useMemo } from "react";
 import { 
-  Card, message, Spin, Typography, Statistic, Tag, Avatar, Upload, Button, Input, Space, Table, Modal, Row, Col, Tabs, List, Divider, theme, Grid 
+  Card, message, Typography, Tag, Avatar, Upload, Button, Input, 
+  Space, Table, Modal, Row, Col, Tabs, Statistic, Divider, Form, theme 
 } from "antd";
 import { 
-  UserOutlined, CheckCircleOutlined, CloseCircleOutlined, ClockCircleOutlined, UploadOutlined, SaveOutlined, LogoutOutlined,
-  EditOutlined, MailOutlined, BookOutlined, HistoryOutlined
+  UserOutlined, 
+  UploadOutlined, 
+  SaveOutlined, 
+  LogoutOutlined,
+  ReadOutlined,
+  SolutionOutlined,
+  HistoryOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ClockCircleOutlined,
+  SyncOutlined,
+  EditOutlined,
+  MailOutlined
 } from "@ant-design/icons";
+import { blue, gold, purple } from "@ant-design/colors";
 import dayjs from "dayjs";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
@@ -15,19 +28,20 @@ import {
   uploadAvatar,
   getBorrowHistoryLibrary,
   getUserRequestsLibrary,
-} from "../api";
+} from "../api.js";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
+import KPIStatCard from "../components/common/KPIStatCard";
+import { motion } from "framer-motion";
 
 const { Title, Text } = Typography;
-const { useToken } = theme;
-const { useBreakpoint } = Grid;
 
 function ProfilePage({ appearance }) {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { token: themeToken } = useToken();
-  const screens = useBreakpoint();
-  const isMobile = !screens.md;
-
+  const { token: themeToken } = theme.useToken();
+  
+  // State
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState([]);
   const [requests, setRequests] = useState([]);
@@ -38,12 +52,14 @@ function ProfilePage({ appearance }) {
   const [name, setName] = useState("");
   const [nameEditing, setNameEditing] = useState(false);
 
+  // User Data from Storage
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
   const userLS = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
 
   const API_BASE = (import.meta.env.VITE_API_BASE?.trim() || window.location.origin).replace(/\/+$/, "");
   const API_ROOT = API_BASE.replace(/\/api\/?$/, "");
 
+  // Helper: Clean Avatar URL
   const getCleanAvatarUrl = (url) => {
     if (!url) return null;
     if (url.includes("localhost:5000")) {
@@ -53,14 +69,16 @@ function ProfilePage({ appearance }) {
     return `${API_ROOT}${url}`;
   };
 
+  // Derived Stats
   const stats = useMemo(() => {
     const totalHistory = history.length;
     const returned = history.filter((h) => h.isReturned).length;
+    const active = history.filter((h) => !h.isReturned).length;
     const pending = requests.filter((r) => r.status === "pending").length;
-    const approved = requests.filter((r) => r.status === "approved").length;
-    return { totalHistory, returned, pending, approved };
+    return { totalHistory, returned, active, pending };
   }, [history, requests]);
 
+  // Actions
   const handleLogout = () => {
     sessionStorage.clear();
     localStorage.clear();
@@ -77,6 +95,7 @@ function ProfilePage({ appearance }) {
 
       setEmail(u.email || "");
       setName(u.name || t("profile.unnamedUser"));
+
       const fullAvatar = getCleanAvatarUrl(u.avatar);
       setAvatarUrl(fullAvatar ? `${fullAvatar}?t=${Date.now()}` : null);
 
@@ -91,7 +110,8 @@ function ProfilePage({ appearance }) {
       sessionStorage.setItem("user", JSON.stringify(updatedUser));
       localStorage.setItem("user", JSON.stringify(updatedUser));
     } catch (err) {
-      console.error("Failed to fetch user info:", err);
+      console.error("❌ Failed to fetch user info:", err);
+      // message.error("Failed to load user info"); // Suppress initial error to avoid spam
     }
   };
 
@@ -100,9 +120,11 @@ function ProfilePage({ appearance }) {
       setLoading(true);
       const res = await getBorrowHistoryLibrary(token);
       const list = res.data || [];
+
+      // Logic: Aggregate by book ID, keep latest status
       const normalizeTime = (it) => new Date(it.returnDate || it.borrowDate || it.dueDate || 0).getTime();
       const sorted = [...list].sort((a, b) => normalizeTime(b) - normalizeTime(a));
-      
+
       const byBook = new Map();
       for (const item of sorted) {
         const bookKey = String(item.bookId || "");
@@ -123,23 +145,26 @@ function ProfilePage({ appearance }) {
           else dueStatus = "overdue";
         }
 
+        const isReturned = Boolean(item.returnDate || item.action === "return");
+        const isRenewed = Boolean(item.isRenewed || item.action === "renew");
+
         return {
           key: item._id || index,
           title: item.title,
           borrowDate: item.borrowDate,
           dueDate: item.dueDate,
-          dueDiff: dueDiff,
-          dueStatus: dueStatus,
-          renewDate: (item.isRenewed || item.action === "renew") && item.dueDate ? item.dueDate : null,
-          isRenewed: Boolean(item.isRenewed || item.action === "renew"),
+          dueDiff,
+          dueStatus,
+          renewDate: isRenewed && item.dueDate ? item.dueDate : null,
+          isRenewed,
           returnDate: item.returnDate,
-          isReturned: Boolean(item.returnDate || item.action === "return"),
+          isReturned,
         };
       });
 
       setHistory(mapped);
     } catch (err) {
-      console.error("Failed to fetch borrow history:", err);
+      console.error("❌ Failed to fetch borrow history:", err);
     } finally {
       setLoading(false);
     }
@@ -152,7 +177,7 @@ function ProfilePage({ appearance }) {
       const sorted = list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setRequests(sorted);
     } catch (err) {
-      console.error("Failed to fetch requests:", err);
+      console.error("❌ Failed to fetch request records:", err);
     }
   };
 
@@ -162,18 +187,24 @@ function ProfilePage({ appearance }) {
       setAvatarUploading(true);
       const formData = new FormData();
       formData.append("avatar", file);
+      
       const res = await uploadAvatar(token, formData);
       const rawUrl = res.data?.avatarUrl;
+      
       if (rawUrl) {
         const fullRawUrl = getCleanAvatarUrl(rawUrl);
-        setAvatarUrl(`${fullRawUrl}?t=${Date.now()}`);
+        const newUrl = `${fullRawUrl}?t=${Date.now()}`;
+        setAvatarUrl(newUrl);
         const updatedUser = { ...userLS, avatar: rawUrl };
         sessionStorage.setItem("user", JSON.stringify(updatedUser));
         localStorage.setItem("user", JSON.stringify(updatedUser));
-        message.success("Avatar updated successfully!");
+        message.success(t("profile.uploadSuccess") || "Avatar updated successfully!");
+      } else {
+        message.error("Avatar upload failed - no URL returned");
       }
       await fetchUserProfile();
     } catch (err) {
+      console.error("❌ Failed to upload avatar:", err);
       message.error("Failed to upload avatar");
     } finally {
       setAvatarUploading(false);
@@ -191,7 +222,9 @@ function ProfilePage({ appearance }) {
       setName(u.name || name);
       setNameEditing(false);
       message.success(t("profile.nameUpdated"));
+      await fetchUserProfile();
     } catch (err) {
+      console.error("❌ Failed to update name:", err);
       message.error(t("profile.nameUpdateFailed"));
     }
   };
@@ -207,241 +240,282 @@ function ProfilePage({ appearance }) {
       setEmail(u.email || email);
       setEmailEditing(false);
       message.success("Email updated successfully!");
+      await fetchUserProfile();
     } catch (err) {
+      console.error("❌ Failed to update email:", err);
       message.error("Failed to update email");
     }
   };
 
   useEffect(() => {
-    if (token) {
-      fetchUserProfile();
-      fetchBorrowHistory();
-      fetchMyRequests();
-    }
-  }, [token]);
+    setAvatarUrl(userLS.avatar ? `${userLS.avatar}?t=${Date.now()}` : null);
+    setEmail(userLS.email || "");
+    setName(userLS.name || "");
+    fetchUserProfile();
+    fetchBorrowHistory();
+    fetchMyRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Columns definition
+  // Columns for Tables
   const historyColumns = [
-    { title: t("admin.bookTitle"), dataIndex: "title", key: "title", render: t => <span style={{fontWeight: 600}}>{t}</span> },
-    { title: t("admin.borrowDate"), dataIndex: "borrowDate", key: "borrowDate", render: d => d ? dayjs(d).format("YYYY-MM-DD") : "-", responsive: ['md'] },
-    { title: t("borrow.dueDate"), dataIndex: "dueDate", key: "dueDate", render: d => d ? dayjs(d).format("YYYY-MM-DD") : "-", responsive: ['md'] },
     { 
-      title: t("admin.status"), 
-      key: "status", 
-      render: (_, r) => r.isReturned ? <Tag color="green">{t("admin.returned")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag> 
+      title: t("admin.bookTitle"), 
+      dataIndex: "title", 
+      key: "title",
+      render: (text) => <Text strong>{text}</Text>
+    },
+    { 
+      title: t("admin.borrowDate"), 
+      dataIndex: "borrowDate", 
+      key: "borrowDate",
+      responsive: ['md'],
+      render: (t) => t ? dayjs(t).format("YYYY-MM-DD") : "-"
+    },
+    { 
+      title: t("borrow.dueDate"), 
+      dataIndex: "dueDate", 
+      key: "dueDate",
+      render: (t, record) => {
+        if (record.isReturned) return <Tag color="default">Returned</Tag>;
+        const dateStr = t ? dayjs(t).format("YYYY-MM-DD") : "-";
+        if (record.dueStatus === "overdue") return <Tag color="error">{dateStr}</Tag>;
+        if (record.dueStatus === "warning") return <Tag color="warning">{dateStr}</Tag>;
+        return <Text>{dateStr}</Text>;
+      }
+    },
+    { 
+      title: "Status", 
+      key: "status",
+      render: (_, record) => {
+        if (record.isReturned) return <Tag icon={<CheckCircleOutlined />} color="success">Returned</Tag>;
+        if (record.isRenewed) return <Tag icon={<SyncOutlined />} color="blue">Renewed</Tag>;
+        if (record.dueStatus === "overdue") return <Tag icon={<ClockCircleOutlined />} color="error">Overdue</Tag>;
+        return <Tag color="processing">Borrowed</Tag>;
+      }
     },
   ];
 
   const requestColumns = [
-    { title: t("admin.bookTitle"), dataIndex: "bookTitle", key: "bookTitle", render: t => <span style={{fontWeight: 600}}>{t}</span> },
-    { 
-      title: t("admin.type"), 
-      dataIndex: "type", 
-      key: "type", 
-      render: t => t === "renew" ? <Tag color="blue">{t("admin.renew")}</Tag> : <Tag color="purple">{t("admin.return")}</Tag> 
+    { title: t("admin.bookTitle"), dataIndex: "bookTitle", key: "bookTitle", render: (text) => <Text strong>{text}</Text> },
+    {
+      title: t("admin.type"),
+      dataIndex: "type",
+      key: "type",
+      render: (tVal) =>
+        tVal === "renew" ? <Tag color="blue">{t("admin.renew")}</Tag> : <Tag color="purple">{t("admin.return")}</Tag>,
     },
-    { 
-      title: t("admin.status"), 
-      dataIndex: "status", 
-      key: "status", 
-      render: s => {
-        if (s === 'approved') return <Tag color="green" icon={<CheckCircleOutlined />}>Approved</Tag>;
-        if (s === 'rejected') return <Tag color="red" icon={<CloseCircleOutlined />}>Rejected</Tag>;
+    {
+      title: t("admin.status"),
+      dataIndex: "status",
+      key: "status",
+      render: (status) => {
+        if (status === "approved") return <Tag color="success" icon={<CheckCircleOutlined />}>Approved</Tag>;
+        if (status === "rejected") return <Tag color="error" icon={<CloseCircleOutlined />}>Rejected</Tag>;
         return <Tag color="gold" icon={<ClockCircleOutlined />}>Pending</Tag>;
-      } 
+      },
     },
-    { title: t("profile.requestTime"), dataIndex: "createdAt", key: "createdAt", render: t => t ? dayjs(t).format("YYYY-MM-DD") : "-", responsive: ['md'] },
+    {
+      title: t("profile.requestTime"),
+      dataIndex: "createdAt",
+      key: "createdAt",
+      responsive: ['md'],
+      render: (t) => (t ? dayjs(t).format("YYYY-MM-DD HH:mm") : "—"),
+    },
   ];
 
-  const renderStatCard = (title, value, icon, color) => (
-    <Card className="card-clean" bodyStyle={{ padding: 16 }}>
-      <Statistic 
-        title={<span style={{ fontSize: 13, color: '#8c8c8c' }}>{title}</span>}
-        value={value}
-        valueStyle={{ fontWeight: 600, color: themeToken.colorText }}
-        prefix={<span style={{ color: color, marginRight: 8, fontSize: 18 }}>{icon}</span>}
-      />
-    </Card>
-  );
-
-  const renderHistoryContent = () => {
-    if (isMobile) {
-      return (
-        <List
-          dataSource={history}
-          pagination={{ pageSize: 5, hideOnSinglePage: true }}
+  const items = [
+    {
+      key: '1',
+      label: (
+        <span>
+          <ReadOutlined />
+          {t("admin.history")}
+        </span>
+      ),
+      children: (
+        <Table 
+          columns={historyColumns} 
+          dataSource={history} 
+          pagination={{ pageSize: 5 }} 
           rowKey="key"
-          renderItem={(item) => (
-            <List.Item style={{ padding: '12px 0' }}>
-              <Card className="card-clean" bodyStyle={{ padding: 16 }} style={{ width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <Text strong style={{ fontSize: 16 }}>{item.title}</Text>
-                  {item.isReturned ? <Tag color="green">{t("admin.returned")}</Tag> : <Tag color="orange">{t("profile.borrowed")}</Tag>}
-                </div>
-                <Space direction="vertical" size={8} style={{ width: '100%', fontSize: 13 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Text type="secondary">{t("admin.borrowDate")}</Text>
-                    <Text>{item.borrowDate ? dayjs(item.borrowDate).format("YYYY-MM-DD") : "-"}</Text>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Text type="secondary">{t("borrow.dueDate")}</Text>
-                    <Text>{item.dueDate ? dayjs(item.dueDate).format("YYYY-MM-DD") : "-"}</Text>
-                  </div>
-                </Space>
-              </Card>
-            </List.Item>
-          )}
+          loading={loading}
         />
-      );
-    }
-    return (
-      <Table 
-        dataSource={history} 
-        columns={historyColumns} 
-        pagination={{ pageSize: 5, hideOnSinglePage: true }} 
-        rowKey="key"
-        size="middle"
-      />
-    );
-  };
-
-  const renderRequestsContent = () => {
-    if (isMobile) {
-      return (
-        <List
-          dataSource={requests}
-          pagination={{ pageSize: 5, hideOnSinglePage: true }}
+      ),
+    },
+    {
+      key: '2',
+      label: (
+        <span>
+          <SolutionOutlined />
+          {t("profile.myRequests")}
+        </span>
+      ),
+      children: (
+        <Table 
+          columns={requestColumns} 
+          dataSource={requests} 
+          pagination={{ pageSize: 5 }} 
           rowKey="_id"
-          renderItem={(item) => (
-            <List.Item style={{ padding: '12px 0' }}>
-              <Card className="card-clean" bodyStyle={{ padding: 16 }} style={{ width: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <Text strong style={{ fontSize: 16 }}>{item.bookTitle}</Text>
-                  {(() => {
-                    if (item.status === 'approved') return <Tag color="green" icon={<CheckCircleOutlined />}>Approved</Tag>;
-                    if (item.status === 'rejected') return <Tag color="red" icon={<CloseCircleOutlined />}>Rejected</Tag>;
-                    return <Tag color="gold" icon={<ClockCircleOutlined />}>Pending</Tag>;
-                  })()}
-                </div>
-                <Space direction="vertical" size={8} style={{ width: '100%', fontSize: 13 }}>
-                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Text type="secondary">{t("admin.type")}</Text>
-                    {item.type === "renew" ? <Tag color="blue">{t("admin.renew")}</Tag> : <Tag color="purple">{t("admin.return")}</Tag>}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Text type="secondary">{t("profile.requestTime")}</Text>
-                    <Text>{item.createdAt ? dayjs(item.createdAt).format("YYYY-MM-DD") : "-"}</Text>
-                  </div>
-                </Space>
-              </Card>
-            </List.Item>
-          )}
         />
-      );
-    }
-    return (
-      <Table 
-        dataSource={requests} 
-        columns={requestColumns} 
-        pagination={{ pageSize: 5, hideOnSinglePage: true }} 
-        rowKey="_id"
-        size="middle"
-      />
-    );
-  };
+      ),
+    },
+  ];
 
   return (
-    <div className="page-container">
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ margin: 0, fontWeight: 600 }}>{t("titles.profile")}</Title>
-        <Text type="secondary">{t("profile.myProfile")}</Text>
-      </div>
+    <PageContainer>
+      <PageHeader 
+        title={t("profile.myProfile")}
+        subtitle="Manage your account settings and view history"
+        breadcrumbs={[
+          { title: t("nav.home"), path: "/" },
+          { title: t("profile.myProfile") }
+        ]}
+      />
 
       <Row gutter={[24, 24]}>
-        {/* Left: Profile Card */}
+        {/* Left Column: Profile Card */}
         <Col xs={24} lg={8}>
-          <Card className="card-clean" bodyStyle={{ padding: 32, textAlign: 'center' }}>
-            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
-              <Avatar size={100} src={avatarUrl} icon={<UserOutlined />} style={{ border: `1px solid ${themeToken.colorBorderSecondary}` }} />
-              <Upload showUploadList={false} customRequest={handleUpload} accept="image/*">
+          <Card 
+            className="card-shadow"
+            bordered={false} 
+            style={{ borderRadius: 16, textAlign: 'center', height: '100%' }}
+          >
+            <div style={{ position: 'relative', display: 'inline-block', marginBottom: 24 }}>
+              <Avatar 
+                size={120} 
+                src={avatarUrl} 
+                icon={<UserOutlined />} 
+                style={{ 
+                  border: '4px solid white', 
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                }} 
+              />
+              <Upload 
+                showUploadList={false} 
+                customRequest={handleUpload} 
+                accept="image/*"
+              >
                 <Button 
-                  type="primary" shape="circle" icon={<UploadOutlined />} size="small" 
-                  style={{ position: 'absolute', bottom: 0, right: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }} 
+                  type="primary" 
+                  shape="circle" 
+                  icon={<UploadOutlined />} 
+                  size="small"
                   loading={avatarUploading}
+                  style={{ 
+                    position: 'absolute', 
+                    bottom: 0, 
+                    right: 0, 
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)' 
+                  }}
                 />
               </Upload>
             </div>
 
-            <div style={{ marginBottom: 24 }}>
+            {/* Name Section */}
+            <div style={{ marginBottom: 16 }}>
               {nameEditing ? (
-                 <Space>
-                   <Input value={name} onChange={e => setName(e.target.value)} />
-                   <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveName} />
-                 </Space>
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <Input 
+                    value={name} 
+                    onChange={e => setName(e.target.value)} 
+                    placeholder="Enter your name" 
+                    onPressEnter={handleSaveName}
+                  />
+                  <Space>
+                    <Button type="primary" size="small" onClick={handleSaveName} icon={<SaveOutlined />}>Save</Button>
+                    <Button size="small" onClick={() => setNameEditing(false)}>Cancel</Button>
+                  </Space>
+                </Space>
               ) : (
-                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
-                   <Title level={4} style={{ margin: 0 }}>{name}</Title>
-                   <EditOutlined style={{ color: '#8c8c8c', cursor: 'pointer' }} onClick={() => setNameEditing(true)} />
-                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <Title level={3} style={{ margin: 0 }}>{name || t("profile.unnamedUser")}</Title>
+                  <Button type="text" icon={<EditOutlined />} onClick={() => setNameEditing(true)} />
+                </div>
               )}
-              <Tag color="blue" style={{ marginTop: 8 }}>{userLS.role === "admin" ? t("role.libraryAdmin") : t("role.libraryReader")}</Tag>
+              <Tag color="blue" style={{ marginTop: 8 }}>
+                {userLS.role === "admin" ? t("role.libraryAdmin") : t("role.libraryReader")}
+              </Tag>
             </div>
 
             <Divider />
 
-            <div style={{ textAlign: 'left', marginBottom: 32 }}>
-              <Text type="secondary" style={{ display: 'block', marginBottom: 4, fontSize: 12 }}>EMAIL</Text>
+            {/* Email Section */}
+            <div style={{ marginBottom: 24, textAlign: 'left' }}>
+              <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Email Address
+              </Text>
               {emailEditing ? (
-                <Space style={{ width: '100%' }}>
-                  <Input value={email} onChange={e => setEmail(e.target.value)} />
-                  <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveEmail} />
-                </Space>
+                 <Space.Compact style={{ width: '100%', marginTop: 8 }}>
+                  <Input 
+                    prefix={<MailOutlined />} 
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)} 
+                  />
+                  <Button type="primary" onClick={handleSaveEmail} icon={<SaveOutlined />} />
+                  <Button onClick={() => setEmailEditing(false)}>X</Button>
+                </Space.Compact>
               ) : (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Space><MailOutlined style={{ color: '#8c8c8c' }} /> <Text>{email || "Not set"}</Text></Space>
-                  <Button type="text" size="small" icon={<EditOutlined />} onClick={() => setEmailEditing(true)} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+                  <Space>
+                    <MailOutlined style={{ color: themeToken.colorTextSecondary }} />
+                    <Text strong>{email || t("profile.notSet")}</Text>
+                  </Space>
+                  <Button type="link" size="small" onClick={() => setEmailEditing(true)}>Edit</Button>
                 </div>
               )}
             </div>
 
-            <Button block danger size="large" icon={<LogoutOutlined />} onClick={handleLogout}>
+            <Button 
+              danger 
+              block 
+              size="large" 
+              icon={<LogoutOutlined />} 
+              onClick={handleLogout}
+              style={{ borderRadius: 12, height: 48 }}
+            >
               {t("common.logout")}
             </Button>
           </Card>
         </Col>
 
-        {/* Right: Stats & History */}
+        {/* Right Column: Stats & Data */}
         <Col xs={24} lg={16}>
-          {/* Stats */}
+          {/* KPI Stats */}
           <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-            <Col xs={12} sm={6}>{renderStatCard(t("admin.totalBorrows"), stats.totalHistory, <BookOutlined />, '#1677ff')}</Col>
-            <Col xs={12} sm={6}>{renderStatCard(t("profile.activeRequests"), stats.pending, <ClockCircleOutlined />, '#faad14')}</Col>
-            <Col xs={12} sm={6}>{renderStatCard(t("admin.returned"), stats.returned, <CheckCircleOutlined />, '#52c41a')}</Col>
-            <Col xs={12} sm={6}>{renderStatCard("Approved", stats.approved, <CheckCircleOutlined />, '#13c2c2')}</Col>
+            <Col xs={12} sm={8}>
+              <KPIStatCard 
+                title={t("profile.borrowed")} 
+                value={stats.totalHistory} 
+                icon={<ReadOutlined />} 
+                color={blue[5]} 
+              />
+            </Col>
+            <Col xs={12} sm={8}>
+              <KPIStatCard 
+                title="Active Loans" 
+                value={stats.active} 
+                icon={<ClockCircleOutlined />} 
+                color={gold[5]} 
+              />
+            </Col>
+            <Col xs={24} sm={8}>
+              <KPIStatCard 
+                title={t("profile.activeRequests")} 
+                value={stats.pending} 
+                icon={<SolutionOutlined />} 
+                color={purple[5]} 
+              />
+            </Col>
           </Row>
 
-          {/* Tabs */}
-          <Card className="card-clean" bodyStyle={{ padding: 0 }}>
-             <Tabs 
-               defaultActiveKey="1" 
-               tabBarStyle={{ padding: '0 24px', margin: 0 }}
-               items={[
-                 {
-                   key: '1',
-                   label: <span><HistoryOutlined /> {t("profile.borrowHistory")}</span>,
-                   children: <div style={{ padding: isMobile ? 16 : 0 }}>{renderHistoryContent()}</div>
-                 },
-                 {
-                   key: '2',
-                   label: <span><MailOutlined /> {t("profile.myRequests")}</span>,
-                   children: <div style={{ padding: isMobile ? 16 : 0 }}>{renderRequestsContent()}</div>
-                 }
-               ]}
-             />
+          {/* Tabs for History and Requests */}
+          <Card className="card-shadow" bordered={false} style={{ borderRadius: 16 }}>
+            <Tabs defaultActiveKey="1" items={items} size="large" />
           </Card>
         </Col>
       </Row>
-    </div>
+    </PageContainer>
   );
 }
 

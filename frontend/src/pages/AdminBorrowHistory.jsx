@@ -5,24 +5,21 @@ import {
   Table,
   Input,
   DatePicker,
-  Select,
-  Space,
   Button,
   message,
   Tag,
   Typography,
-  Statistic,
   Empty,
   Segmented,
   Grid,
   List,
   Row,
-  Col
+  Col,
+  theme
 } from "antd";
 import { 
   SearchOutlined, 
   ReloadOutlined, 
-  UserOutlined, 
   BookOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -31,14 +28,18 @@ import {
 import { getBorrowHistoryAllLibrary } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import dayjs from "dayjs";
-import "./AdminBorrowHistory.css";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
+import KPIStatCard from "../components/common/KPIStatCard";
 
 const { RangePicker } = DatePicker;
-const { Title, Text: AntText } = Typography;
+const { Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 function AdminBorrowHistory() {
   const { t } = useLanguage();
+  const { token } = useToken();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const [records, setRecords] = useState([]);
@@ -51,7 +52,7 @@ function AdminBorrowHistory() {
   const [returnFilter, setReturnFilter] = useState(null);
   const [dateRange, setDateRange] = useState([]);
 
-  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+  const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
 
   const stats = {
     total: filtered.length,
@@ -62,10 +63,10 @@ function AdminBorrowHistory() {
 
   /** ✅ Fetch all borrow records */
   const fetchRecords = async () => {
-    if (!token) return message.warning(t("common.loginFirst"));
+    if (!authToken) return message.warning(t("common.loginFirst"));
     try {
       setLoading(true);
-      const res = await getBorrowHistoryAllLibrary(token);
+      const res = await getBorrowHistoryAllLibrary(authToken);
       const list = res.data || [];
       setRecords(list);
       setFiltered(list);
@@ -87,12 +88,13 @@ function AdminBorrowHistory() {
       data = data.filter(
         (r) =>
           r.userName?.toLowerCase().includes(keyword) ||
-          r.userId?.toLowerCase().includes(keyword)
+          r.userId?.toLowerCase().includes(keyword) ||
+          r.bookTitle?.toLowerCase().includes(keyword)
       );
     }
 
     // Date range filter
-    if (dateRange.length === 2) {
+    if (dateRange && dateRange.length === 2) {
       const [start, end] = dateRange;
       data = data.filter((r) => {
         const borrowDate = dayjs(r.borrowDate);
@@ -123,6 +125,10 @@ function AdminBorrowHistory() {
   };
 
   useEffect(() => {
+    handleSearch();
+  }, [searchText, renewFilter, returnFilter, dateRange]); // Auto-filter on change
+
+  useEffect(() => {
     fetchRecords();
   }, []);
 
@@ -136,12 +142,7 @@ function AdminBorrowHistory() {
       dataIndex: "borrowDate",
       key: "borrowDate",
       render: (v) => (v ? dayjs(v).format("YYYY-MM-DD") : "—"),
-    },
-    {
-      title: t("admin.renewDate"),
-      dataIndex: "renewDate",
-      key: "renewDate",
-      render: (v) => (v ? dayjs(v).format("YYYY-MM-DD") : "—"),
+      sorter: (a, b) => new Date(a.borrowDate) - new Date(b.borrowDate),
     },
     {
       title: t("admin.renewed"),
@@ -149,6 +150,11 @@ function AdminBorrowHistory() {
       key: "renewed",
       render: (v) =>
         v ? <Tag color="blue">{t("admin.yes")}</Tag> : <Tag color="default">{t("admin.no")}</Tag>,
+      filters: [
+        { text: t("admin.yes"), value: true },
+        { text: t("admin.no"), value: false },
+      ],
+      onFilter: (value, record) => record.renewed === value,
     },
     {
       title: t("admin.returnDate"),
@@ -162,140 +168,90 @@ function AdminBorrowHistory() {
       key: "returned",
       render: (v) =>
         v ? <Tag color="green">{t("admin.returned")}</Tag> : <Tag color="red">{t("admin.notReturned")}</Tag>,
+      filters: [
+        { text: t("admin.returned"), value: true },
+        { text: t("admin.notReturned"), value: false },
+      ],
+      onFilter: (value, record) => record.returned === value,
     },
   ];
 
   return (
-    <div className="admin-history-page" style={{ padding: "1.5rem" }}>
-      <Card
-        title={
-          <div className="page-header">
-            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-              {t("admin.history")}
-            </Title>
-            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
-              {t("admin.historyOverview")}
-            </AntText>
-
-            {/* 📊 统计卡片 */}
-            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-                  color: "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.total")}</span>} 
-                    value={stats.total} 
-                    prefix={<BookOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(139, 92, 246, 0.3)",
-                  color: "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.renewed")}</span>} 
-                    value={stats.renewedYes} 
-                    prefix={<SyncOutlined spin style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #10b981, #059669)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
-                  color: "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.returned")}</span>} 
-                    value={stats.returnedYes} 
-                    prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #ef4444, #b91c1c)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
-                  color: "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.notReturned")}</span>} 
-                    value={stats.notReturned} 
-                    prefix={<CloseCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-            </Row>
-          </div>
-        }
+    <PageContainer>
+      <PageHeader
+        title={t("admin.history")}
+        subtitle={t("admin.historyOverview")}
         extra={
           <Button icon={<ReloadOutlined />} onClick={fetchRecords} loading={loading}>
             {t("admin.refresh")}
           </Button>
         }
-        style={{ borderRadius: 16 }}
-        bodyStyle={{ padding: "1.5rem" }}
-      >
-        <Space
-          direction="vertical"
-          size="middle"
-          style={{ width: "100%", marginBottom: "1rem" }}
-        >
-          <Space wrap>
-            <Input
-              placeholder={t("admin.searchUserOrId")}
-              prefix={<SearchOutlined />}
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: 220 }}
-            />
-            <RangePicker
-              value={dateRange}
-              onChange={setDateRange}
-              placeholder={[t("admin.startDate"), t("admin.endDate")]}
-            />
-            <Segmented
-              value={renewFilter === null ? "all" : renewFilter ? "yes" : "no"}
-              onChange={(v) => setRenewFilter(v === "all" ? null : v === "yes")}
-              options={[
-                { label: t("admin.renewedAll"), value: "all" },
-                { label: t("admin.yes"), value: "yes" },
-                { label: t("admin.no"), value: "no" },
-              ]}
-            />
-            <Segmented
-              value={returnFilter === null ? "all" : returnFilter ? "yes" : "no"}
-              onChange={(v) => setReturnFilter(v === "all" ? null : v === "yes")}
-              options={[
-                { label: t("admin.returnedAll"), value: "all" },
-                { label: t("admin.yes"), value: "yes" },
-                { label: t("admin.no"), value: "no" },
-              ]}
-            />
-            <Button type="primary" onClick={handleSearch}>
-              {t("common.search")}
-            </Button>
-            <Button onClick={handleReset}>{t("admin.reset")}</Button>
-          </Space>
-        </Space>
+      />
+
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={6}>
+          <KPIStatCard
+            title={t("admin.total")}
+            value={stats.total}
+            icon={<BookOutlined />}
+            color={token.colorPrimary}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <KPIStatCard
+            title={t("admin.renewed")}
+            value={stats.renewedYes}
+            icon={<SyncOutlined spin={loading} />}
+            color={token.colorWarning} // Use warning color for renewals
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <KPIStatCard
+            title={t("admin.returned")}
+            value={stats.returnedYes}
+            icon={<CheckCircleOutlined />}
+            color={token.colorSuccess}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <KPIStatCard
+            title={t("admin.notReturned")}
+            value={stats.notReturned}
+            icon={<CloseCircleOutlined />}
+            color={token.colorError}
+            loading={loading}
+          />
+        </Col>
+      </Row>
+
+      <Card style={{ borderRadius: token.borderRadiusLG, boxShadow: token.boxShadowTertiary }}>
+        <div style={{ marginBottom: 24 }}>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={8}>
+              <Input
+                placeholder={t("admin.searchUserOrId")}
+                prefix={<SearchOutlined />}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                allowClear
+              />
+            </Col>
+            <Col xs={24} md={8}>
+              <RangePicker
+                value={dateRange}
+                onChange={setDateRange}
+                placeholder={[t("admin.startDate"), t("admin.endDate")]}
+                style={{ width: "100%" }}
+              />
+            </Col>
+            <Col xs={24} md={8} style={{ display: 'flex', gap: 8 }}>
+               <Button onClick={handleReset}>{t("admin.reset")}</Button>
+            </Col>
+          </Row>
+        </div>
 
         {isMobile ? (
           <List
@@ -306,7 +262,7 @@ function AdminBorrowHistory() {
               <List.Item style={{ padding: 0, marginBottom: 16 }}>
                 <Card
                   hoverable
-                  style={{ width: "100%", borderRadius: 12 }}
+                  style={{ width: "100%", borderRadius: 12, border: `1px solid ${token.colorBorderSecondary}` }}
                 >
                   <Card.Meta
                     title={
@@ -335,12 +291,6 @@ function AdminBorrowHistory() {
                             ✅ {t("admin.returnDate")}: {dayjs(item.returnDate).format("YYYY-MM-DD")}
                           </div>
                         )}
-                        <div style={{ marginBottom: 4 }}>
-                          🔄 {t("admin.renewed")}:{" "}
-                          <Tag color={item.renewed ? "blue" : "default"}>
-                            {item.renewed ? t("admin.yes") : t("admin.no")}
-                          </Tag>
-                        </div>
                       </div>
                     }
                   />
@@ -354,14 +304,14 @@ function AdminBorrowHistory() {
             dataSource={filtered}
             loading={loading}
             rowKey="_id"
-            pagination={{ pageSize: 6, showTotal: (total) => `${t("admin.totalRecords")} ${total} ${t("admin.recordsSuffix")}` }}
+            pagination={{ pageSize: 10, showTotal: (total) => `${t("admin.totalRecords")} ${total} ${t("admin.recordsSuffix")}` }}
             locale={{ emptyText: <Empty description={t("admin.noRecords")} /> }}
             size="middle"
             scroll={{ x: 800 }}
           />
         )}
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

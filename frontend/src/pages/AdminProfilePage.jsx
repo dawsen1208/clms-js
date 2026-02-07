@@ -14,18 +14,23 @@ import {
   Table,
   Upload,
   Spin,
-  Grid
+  Grid,
+  theme
 } from "antd";
 import { UserOutlined, MailOutlined, EditOutlined, SaveOutlined, CloseOutlined, UploadOutlined, ClockCircleOutlined, LogoutOutlined } from "@ant-design/icons";
 import { getProfile, updateProfile, getPendingRequestsLibrary, uploadAvatar } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
 
 const { Title } = Typography;
 const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 const AdminProfilePage = () => {
   const { t } = useLanguage();
+  const { token } = useToken();
   const navigate = useNavigate();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
@@ -35,7 +40,7 @@ const AdminProfilePage = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const token =
+  const authToken =
     localStorage.getItem("token") || sessionStorage.getItem("token");
   const API_BASE = (
     import.meta.env.VITE_API_BASE?.trim() || window.location.origin
@@ -59,7 +64,7 @@ const AdminProfilePage = () => {
      ========================================================= */
   const fetchProfile = async () => {
     try {
-      const res = await getProfile(token);
+      const res = await getProfile(authToken);
       setProfile(res.data);
       setEmail(res.data.email || "");
     } catch (err) {
@@ -73,7 +78,7 @@ const AdminProfilePage = () => {
      ========================================================= */
   const fetchRequests = async () => {
     try {
-      const res = await getPendingRequestsLibrary(token);
+      const res = await getPendingRequestsLibrary(authToken);
 
       // ✅ Backend returns BorrowRecord; normalize to BorrowRequest-like structure
       const pending = (res.data || [])
@@ -108,7 +113,7 @@ const AdminProfilePage = () => {
      ========================================================= */
   const handleUpdateEmail = async () => {
     try {
-      await updateProfile(token, { email });
+      await updateProfile(authToken, { email });
       message.success(t("admin.emailUpdated"));
       setEditing(false);
       fetchProfile();
@@ -125,7 +130,7 @@ const AdminProfilePage = () => {
     const formData = new FormData();
     formData.append("avatar", file);
     try {
-      await uploadAvatar(token, formData);
+      await uploadAvatar(authToken, formData);
       message.success(t("admin.avatarUpdated"));
       fetchProfile();
     } catch (err) {
@@ -223,71 +228,67 @@ const AdminProfilePage = () => {
      🎨 页面结构渲染
      ========================================================= */
   return (
-    <Card
-      bordered={false}
-      style={{
-        maxWidth: 960,
-        margin: isMobile ? "1rem auto" : "2rem auto",
-        borderRadius: 20,
-        boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-        background: "#fff",
-        padding: isMobile ? "1.5rem" : "2.5rem 3rem",
-      }}
-    >
+    <PageContainer>
+      <PageHeader
+        title={t("admin.profileTitle") || t("common.profile")}
+        subtitle={t("admin.profileSubtitle") || "Manage your account and view requests"}
+      />
+      
       {/* 🧑‍💼 Top avatar + basic info */}
-      <div
+      <Card
+        bordered={false}
         style={{
-          textAlign: "center",
-          marginBottom: 30,
-          paddingBottom: 20,
-          borderBottom: "1px solid #f0f0f0",
+          borderRadius: token.borderRadiusLG,
+          boxShadow: token.boxShadowSecondary,
+          background: token.colorBgContainer,
+          marginBottom: 24,
+          textAlign: "center"
         }}
       >
-        <Avatar
-          size={120}
-          src={getCleanAvatarUrl(profile.avatar)}
-          style={{ marginBottom: 20 }}
-        />
-        <Title level={3} style={{ marginBottom: 4 }}>
-          {profile.name || t("admin.administrator")}
-        </Title>
-        <div style={{ marginBottom: 12 }}>
-          <Tag color="purple" style={{ fontSize: '14px', padding: '4px 12px' }}>
-            {profile.role === "Administrator" ? t("admin.administrator") : profile.role}
-          </Tag>
+        <div
+          style={{
+            paddingBottom: 20,
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
+            marginBottom: 20
+          }}
+        >
+          <Avatar
+            size={120}
+            src={getCleanAvatarUrl(profile.avatar)}
+            style={{ marginBottom: 20, border: `4px solid ${token.colorBgContainer}`, boxShadow: token.boxShadow }}
+          />
+          <Title level={3} style={{ marginBottom: 4 }}>
+            {profile.name || t("admin.administrator")}
+          </Title>
+          <div style={{ marginBottom: 12 }}>
+            <Tag color="purple" style={{ fontSize: '14px', padding: '4px 12px', borderRadius: token.borderRadius }}>
+              {profile.role === "Administrator" ? t("admin.administrator") : profile.role}
+            </Tag>
+          </div>
+
+          <Upload
+            showUploadList={false}
+            customRequest={handleUpload}
+            accept="image/*"
+          >
+            <Button icon={<UploadOutlined />} type="primary" style={{ borderRadius: token.borderRadiusLG }}>
+              {t("admin.changeAvatar")}
+            </Button>
+          </Upload>
         </div>
 
-        <Upload
-          showUploadList={false}
-          customRequest={handleUpload}
-          accept="image/*"
-        >
-          <Button icon={<UploadOutlined />} type="primary">
-            {t("admin.changeAvatar")}
-          </Button>
-        </Upload>
-      </div>
-
-      {/* 📋 Email card */}
-      <Card
-        bordered
-        style={{
-          textAlign: "left",
-          borderRadius: 12,
-          boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-          marginBottom: 30,
-          padding: "1rem 1.5rem",
-        }}
-      >
+        {/* 📋 Email Section */}
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: 10,
+            padding: "0 1rem",
+            maxWidth: 600,
+            margin: "0 auto"
           }}
         >
-          <span style={{ fontWeight: 500 }}>{t("admin.email")}</span>
+          <span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("admin.email")}</span>
           <Space>
             {editing ? (
               <>
@@ -295,7 +296,7 @@ const AdminProfilePage = () => {
                   size="small"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{ width: 180 }}
+                  style={{ width: 200 }}
                 />
                 <Button size="small" type="primary" onClick={handleUpdateEmail}>
                   {t("admin.save")}
@@ -306,10 +307,8 @@ const AdminProfilePage = () => {
               </>
             ) : (
               <>
-                <span>{profile.email || t("admin.noEmail")}</span>
-                <Button size="small" onClick={() => setEditing(true)}>
-                  {t("admin.edit")}
-                </Button>
+                <span style={{ color: token.colorText, fontWeight: 500 }}>{profile.email || t("admin.noEmail")}</span>
+                <Button type="text" icon={<EditOutlined />} onClick={() => setEditing(true)} />
               </>
             )}
           </Space>
@@ -320,14 +319,14 @@ const AdminProfilePage = () => {
       <Card
         title={
           <span>
-            <ClockCircleOutlined style={{ marginRight: 8 }} />
-            {t("admin.pendingRequests")} ({t("admin.total")} {requests.length})
+            <ClockCircleOutlined style={{ marginRight: 8, color: token.colorPrimary }} />
+            {t("admin.pendingRequests")} <span style={{ color: token.colorTextSecondary, fontSize: '0.9em' }}>({t("admin.total")} {requests.length})</span>
           </span>
         }
-        bordered
+        bordered={false}
         style={{
-          borderRadius: 12,
-          boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+          borderRadius: token.borderRadiusLG,
+          boxShadow: token.boxShadowSecondary,
         }}
       >
         {loading ? (
@@ -343,7 +342,7 @@ const AdminProfilePage = () => {
               <List.Item style={{ padding: 0, marginBottom: 16 }}>
                 <Card
                   hoverable
-                  style={{ width: "100%", borderRadius: 12 }}
+                  style={{ width: "100%", borderRadius: token.borderRadiusLG, border: `1px solid ${token.colorBorderSecondary}` }}
                 >
                   <Card.Meta
                     title={
@@ -412,17 +411,17 @@ const AdminProfilePage = () => {
           onClick={handleLogout}
           block
           style={{ 
-            marginTop: '1rem', 
+            marginTop: 24, 
             height: '48px', 
             fontSize: '16px', 
-            borderRadius: '12px',
+            borderRadius: token.borderRadiusLG,
             fontWeight: 'bold'
           }}
         >
           {t("common.logout") || "Logout"}
         </Button>
       )}
-    </Card>
+    </PageContainer>
   );
 };
 

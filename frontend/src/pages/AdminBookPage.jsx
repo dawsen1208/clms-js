@@ -1,4 +1,3 @@
-// ✅ client/src/pages/AdminBookPage.jsx
 import { useState, useEffect } from "react";
 import {
   Card,
@@ -16,11 +15,9 @@ import {
   Typography,
   Grid,
   List,
-  Tag
+  Tag,
+  theme
 } from "antd";
-
-const { Title, Text: AntText } = Typography;
-const { useBreakpoint } = Grid;
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -31,12 +28,19 @@ import {
   CloseCircleOutlined,
   TagsOutlined,
 } from "@ant-design/icons";
-import { getBooks, addBook, deleteBook } from "../api"; // ✅ 使用统一 api.js
+import { getBooks, addBook, deleteBook } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
-import { Statistic } from "antd";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
+import KPIStatCard from "../components/common/KPIStatCard";
+
+const { Text: AntText } = Typography;
+const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 function AdminBookPage() {
   const { t } = useLanguage();
+  const { token } = useToken();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const [books, setBooks] = useState([]);
@@ -48,7 +52,7 @@ function AdminBookPage() {
   const [filterCategory, setFilterCategory] = useState("All");
   const [filterStock, setFilterStock] = useState("All");
 
-  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+  const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
 
   /** ✅ 获取书籍列表 */
   const fetchBooks = async () => {
@@ -71,7 +75,7 @@ function AdminBookPage() {
   /** ✅ 添加书籍 */
   const handleAddBook = async (values) => {
     try {
-      const res = await addBook(values, token);
+      const res = await addBook(values, authToken);
       message.success(res.data.message || t("admin.bookAdded"));
       setAddModalOpen(false);
       form.resetFields();
@@ -85,7 +89,7 @@ function AdminBookPage() {
   /** ✅ 删除书籍 */
   const handleDelete = async (id) => {
     try {
-      await deleteBook(id, token);
+      await deleteBook(id, authToken);
       message.success(t("admin.bookDeleted"));
       fetchBooks();
     } catch (err) {
@@ -120,19 +124,24 @@ function AdminBookPage() {
 
   /** ✅ 表格列 */
   const columns = [
-    { title: t("admin.bookId"), dataIndex: "_id", key: "_id", width: 200 },
-    { title: t("admin.title"), dataIndex: "title", key: "title" },
-    { title: t("admin.author"), dataIndex: "author", key: "author" },
-    { title: t("admin.category"), dataIndex: "category", key: "category" },
+    { title: t("admin.bookId"), dataIndex: "_id", key: "_id", width: 200, ellipsis: true },
+    { title: t("admin.title"), dataIndex: "title", key: "title", ellipsis: true },
+    { title: t("admin.author"), dataIndex: "author", key: "author", ellipsis: true },
+    { 
+      title: t("admin.category"), 
+      dataIndex: "category", 
+      key: "category",
+      render: (cat) => <Tag>{cat}</Tag>
+    },
     {
       title: t("admin.stock"),
       dataIndex: "copies",
       key: "copies",
       align: "center",
       render: (copies) => (
-        <span style={{ color: copies > 0 ? "green" : "red" }}>
+        <Tag color={copies > 0 ? "success" : "error"}>
           {copies > 0 ? `${copies} ${t("admin.copies")}` : t("admin.outOfStock")}
-        </span>
+        </Tag>
       ),
     },
     {
@@ -146,7 +155,7 @@ function AdminBookPage() {
           okText={t("common.confirm")}
           cancelText={t("admin.cancel")}
         >
-          <Button danger icon={<DeleteOutlined />} size="small">
+          <Button danger icon={<DeleteOutlined />} size="small" type="text">
             {t("admin.delete")}
           </Button>
         </Popconfirm>
@@ -155,102 +164,75 @@ function AdminBookPage() {
   ];
 
   return (
-    <div style={{ padding: "1.5rem" }}>
-      <Card
-        title={
-          <div className="page-header">
-            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-              {t("admin.bookManage")}
-            </Title>
-            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
-              {t("admin.bookManageSubtitle") || "Manage library collection and inventory"}
-            </AntText>
-            
-            {/* 📊 统计卡片 */}
-            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-                  color: "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBooks")}</span>} 
-                    value={stats.total} 
-                    prefix={<BookOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #10b981, #059669)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
-                  color: "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.inStock")}</span>} 
-                    value={stats.inStock} 
-                    prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #ef4444, #b91c1c)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(239, 68, 68, 0.3)",
-                  color: "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.outOfStock")}</span>} 
-                    value={stats.outOfStock} 
-                    prefix={<CloseCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(245, 158, 11, 0.3)",
-                  color: "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("admin.category")}</span>} 
-                    value={stats.categories} 
-                    prefix={<TagsOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-            </Row>
-          </div>
-        }
+    <PageContainer>
+      <PageHeader
+        title={t("admin.bookManage")}
+        subtitle={t("admin.bookManageSubtitle") || "Manage library collection and inventory"}
         extra={
-          <Button icon={<ReloadOutlined />} onClick={fetchBooks}>
+          <Button 
+            icon={<ReloadOutlined />} 
+            onClick={fetchBooks}
+            loading={loading}
+          >
             {t("admin.refresh")}
           </Button>
         }
-        style={{ borderRadius: 16 }}
-        bodyStyle={{ padding: "1.5rem" }}
+      />
+      
+      {/* 📊 统计卡片 */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.totalBooks")}
+            value={stats.total}
+            icon={<BookOutlined />}
+            color={token.colorPrimary}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.inStock")}
+            value={stats.inStock}
+            icon={<CheckCircleOutlined />}
+            color={token.colorSuccess}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.outOfStock")}
+            value={stats.outOfStock}
+            icon={<CloseCircleOutlined />}
+            color={token.colorError}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.category")}
+            value={stats.categories}
+            icon={<TagsOutlined />}
+            color={token.colorWarning}
+            loading={loading}
+          />
+        </Col>
+      </Row>
+
+      <Card
+        bordered={false}
+        style={{ borderRadius: token.borderRadiusLG, boxShadow: token.boxShadowTertiary }}
+        bodyStyle={{ padding: "24px" }}
       >
         {/* 🔍 搜索 & 筛选 */}
         <Row gutter={[16, 16]} style={{ marginBottom: "1.5rem" }}>
           <Col xs={24} sm={10} md={8}>
             <Input
               placeholder={t("admin.searchPlaceholder")}
-              prefix={<SearchOutlined />}
+              prefix={<SearchOutlined style={{ color: token.colorTextDescription }} />}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              allowClear
             />
           </Col>
 
@@ -276,16 +258,11 @@ function AdminBookPage() {
             />
           </Col>
 
-          <Col xs={24} sm={8} md={6} style={{ textAlign: "right" }}>
+          <Col xs={24} sm={8} md={8} style={{ textAlign: "right" }}>
             <Button
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => setAddModalOpen(true)}
-              style={{
-                background: "linear-gradient(90deg,#667eea,#764ba2)",
-                borderRadius: "8px",
-                fontWeight: "bold",
-              }}
             >
               {t("admin.addBook")}
             </Button>
@@ -317,13 +294,13 @@ function AdminBookPage() {
                   <Card.Meta
                     title={<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                       <span style={{fontWeight: 'bold', fontSize: '16px', maxWidth: '70%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{item.title}</span>
-                      <Tag color={item.copies > 0 ? "green" : "red"}>{item.copies > 0 ? t("admin.inStock") : t("admin.outOfStock")}</Tag>
+                      <Tag color={item.copies > 0 ? "success" : "error"}>{item.copies > 0 ? t("admin.inStock") : t("admin.outOfStock")}</Tag>
                     </div>}
                     description={
                       <div style={{ marginTop: 8 }}>
                         <div style={{marginBottom: 4}}>👤 {t("admin.author")}: {item.author}</div>
                         <div style={{marginBottom: 4}}>🏷️ {t("admin.category")}: {item.category}</div>
-                        <div>📦 {t("admin.stock")}: <span style={{color: item.copies > 0 ? 'green' : 'red', fontWeight: 'bold'}}>{item.copies}</span></div>
+                        <div>📦 {t("admin.stock")}: <span style={{color: item.copies > 0 ? token.colorSuccess : token.colorError, fontWeight: 'bold'}}>{item.copies}</span></div>
                       </div>
                     }
                   />
@@ -337,11 +314,10 @@ function AdminBookPage() {
             columns={columns}
             dataSource={filteredBooks}
             loading={loading}
-            bordered
             scroll={{ x: 'max-content' }}
             pagination={{
-              pageSize: 6,
-              showSizeChanger: false,
+              pageSize: 10,
+              showSizeChanger: true,
               showTotal: (total) => `${t("admin.total")} ${total}`,
             }}
           />
@@ -389,19 +365,14 @@ function AdminBookPage() {
               htmlType="submit"
               block
               icon={<PlusOutlined />}
-              style={{
-                height: 40,
-                borderRadius: "8px",
-                background: "linear-gradient(90deg,#667eea,#764ba2)",
-                fontWeight: "bold",
-              }}
+              style={{ height: 40 }}
             >
               {t("admin.addBook")}
             </Button>
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 

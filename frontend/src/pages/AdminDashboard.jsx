@@ -1,17 +1,21 @@
-// client/src/pages/AdminDashboard.jsx
 import React, { useMemo, useEffect, useState } from "react";
-import { Card, Statistic, Row, Col, Typography, Divider, Button, Tooltip, Tag, Spin, Modal, Table } from "antd";
-import { BookOutlined, UserOutlined, ClockCircleOutlined, ReloadOutlined, AlertOutlined, TeamOutlined, CheckCircleOutlined } from "@ant-design/icons";
-import "./AdminDashboard.css";
+import { Card, Row, Col, Typography, Divider, Button, Tag, Spin, Modal, Table, theme } from "antd";
+import { BookOutlined, ClockCircleOutlined, ReloadOutlined, AlertOutlined, TeamOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { getBooksLibrary, getAllRequestsLibrary, getUserAnalytics, getBorrowedBooksLibrary, getBorrowHistoryLibrary, getBorrowHistoryAllLibrary, getBooks, getLibraryStats } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
+import KPIStatCard from "../components/common/KPIStatCard";
 
 const { Title, Text: AntText } = Typography;
+const { useToken } = theme;
 
 const AdminDashboard = ({ appearance }) => {
   const { t } = useLanguage();
+  const { token } = useToken();
   const [loading, setLoading] = useState(false);
   const isHighContrast = appearance?.highContrast;
+  
   const [metrics, setMetrics] = useState({
     books: 0,
     totalBorrowed: 0,
@@ -36,14 +40,14 @@ const AdminDashboard = ({ appearance }) => {
   const refresh = async () => {
     try {
       setLoading(true);
-      const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+      const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
       const [booksRes, reqRes, borrowedRes, usersRes, historyAllRes, statsRes] = await Promise.all([
         getBooksLibrary().catch(() => getBooks()).catch(() => ({ data: [] })),
-        token ? getAllRequestsLibrary(token) : Promise.resolve({ data: [] }),
-        token ? getBorrowedBooksLibrary(token) : Promise.resolve({ data: [] }),
-        token ? getUserAnalytics(token) : Promise.resolve({ data: [] }),
-        token ? getBorrowHistoryAllLibrary(token) : Promise.resolve({ data: [] }),
-        token ? getLibraryStats(token) : Promise.resolve({ data: null }),
+        authToken ? getAllRequestsLibrary(authToken) : Promise.resolve({ data: [] }),
+        authToken ? getBorrowedBooksLibrary(authToken) : Promise.resolve({ data: [] }),
+        authToken ? getUserAnalytics(authToken) : Promise.resolve({ data: [] }),
+        authToken ? getBorrowHistoryAllLibrary(authToken) : Promise.resolve({ data: [] }),
+        authToken ? getLibraryStats(authToken) : Promise.resolve({ data: null }),
       ]);
 
       const books = booksRes.data || [];
@@ -108,216 +112,120 @@ const AdminDashboard = ({ appearance }) => {
   };
 
   useEffect(() => { refresh(); }, [t]);
+  
   return (
-    <div className="admin-dashboard" style={{ 
-      padding: "2rem",
-      background: isHighContrast ? "#000" : "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
-      minHeight: "calc(100vh - 64px)"
-    }}>
-      <Card
-        title={
-          <div className="page-header">
-            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-              {t("admin.dashboard")}
-            </Title>
-            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
-              {t("admin.dashboardOverview") || "System overview and statistics"}
-            </AntText>
-
-            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card className="metric-card" style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(59, 130, 246, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBooks")}</span>} 
-                    value={metrics.books}
-                    prefix={<BookOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card className="metric-card" style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #10b981, #059669)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(16, 185, 129, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeReaders")}</span>} 
-                    value={metrics.activeReaders} 
-                    prefix={<TeamOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card className="metric-card" style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #f59e0b, #d97706)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(245, 158, 11, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.totalBorrowed")}</span>} 
-                    value={metrics.totalBorrowed} 
-                    prefix={<ClockCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card className="metric-card" style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #ef4444, #dc2626)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(239, 68, 68, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks")}</span>} 
-                    value={metrics.overdueBooks} 
-                    prefix={<AlertOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card className="metric-card" style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #faad14, #d48806)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(250, 173, 20, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.pendingRequests")}</span>} 
-                    value={metrics.pendingRequests} 
-                    prefix={<ClockCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card className="metric-card" style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #52C41A, #3f9f14)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(82, 196, 26, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.onTimeRate")}</span>} 
-                    value={metrics.onTimeRate} 
-                    suffix="%"
-                    prefix={<CheckCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-            </Row>
-          </div>
-        }
+    <PageContainer>
+      <PageHeader
+        title={t("admin.dashboard")}
+        subtitle={t("admin.dashboardOverview") || "System overview and statistics"}
         extra={
           <Button 
             type="primary" 
             icon={<ReloadOutlined />}
-            style={{
-              borderRadius: 12,
-              background: "linear-gradient(90deg, #3b82f6, #8b5cf6)",
-              border: "none",
-              boxShadow: "0 4px 15px rgba(59, 130, 246, 0.3)",
-              transition: "all 0.3s ease"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-1px)";
-              e.currentTarget.style.boxShadow = "0 6px 20px rgba(59, 130, 246, 0.4)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 15px rgba(59, 130, 246, 0.3)";
-            }}
-          onClick={refresh}>{t("admin.refresh")}</Button>
+            onClick={refresh}
+            loading={loading}
+          >
+            {t("admin.refresh")}
+          </Button>
         }
-        className="dash-card"
-        style={{
-          borderRadius: 16,
-          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
-          background: "rgba(255, 255, 255, 0.95)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255, 255, 255, 0.2)"
-        }}>
-        {loading && <Spin style={{ display: 'block', margin: '12px auto' }} />}
+      />
 
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={12}>
-            <Card title={t("admin.borrowTrend")} hoverable className="section-card" style={{
-              borderRadius: isHighContrast ? 0 : 16,
-              boxShadow: isHighContrast ? "none" : "0 4px 15px rgba(0, 0, 0, 0.05)",
-              background: isHighContrast ? "#000" : "rgba(255, 255, 255, 0.9)",
-              border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.2)",
-              color: isHighContrast ? "#fff" : undefined
-            }} onClick={() => setTrendOpen(true)}>
-              <div style={{ height: 180 }}>
-                {renderSparkline(chartData.trend30d)}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.totalBooks")}
+            value={metrics.books}
+            icon={<BookOutlined />}
+            color={token.colorPrimary}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.activeReaders")}
+            value={metrics.activeReaders}
+            icon={<TeamOutlined />}
+            color={token.colorSuccess}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.totalBorrowed")}
+            value={metrics.totalBorrowed}
+            icon={<ClockCircleOutlined />}
+            color={token.colorWarning}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.overdueBooks")}
+            value={metrics.overdueBooks}
+            icon={<AlertOutlined />}
+            color={token.colorError}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.pendingRequests")}
+            value={metrics.pendingRequests}
+            icon={<ClockCircleOutlined />}
+            color={token.colorWarning}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.onTimeRate")}
+            value={metrics.onTimeRate}
+            suffix="%"
+            icon={<CheckCircleOutlined />}
+            color={token.colorSuccess}
+            loading={loading}
+          />
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={12}>
+          <Card title={t("admin.borrowTrend")} hoverable style={{ height: '100%' }} onClick={() => setTrendOpen(true)}>
+            <div style={{ height: 180 }}>
+              {renderSparkline(chartData.trend30d, token)}
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} md={6}>
+          <Card title={t("admin.categoryRatio")} hoverable style={{ height: '100%' }} onClick={() => setDetailsOpen(true)}>
+            <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {renderPie(chartData.categoryPie)}
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} md={6}>
+          <Card title={t("admin.userGrowth")} hoverable style={{ height: '100%' }} onClick={() => setGrowthOpen(true)}>
+            <div style={{ height: 180, padding: 8 }}>{renderBars(chartData.userGrowth, token)}</div>
+          </Card>
+        </Col>
+      </Row>
+
+      <Divider orientation="left">{t("admin.systemAnnouncements")}</Divider>
+
+      <Row gutter={[16, 16]}>
+        <Col xs={24}>
+          <Card hoverable onClick={() => setAnnOpen(true)}>
+            {(announcements.slice(0, 3)).map((a) => (
+              <div key={a.id} className="announcement-item" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                <Tag color={a.color} style={{ borderRadius: 8, fontWeight: 500 }}>{a.tag}</Tag>
+                <span style={{ color: token.colorText, fontSize: "14px" }}>{a.title}</span>
+                <span style={{ marginLeft: 'auto', color: token.colorTextSecondary, fontSize: '12px' }}>{a.date}</span>
               </div>
-            </Card>
-          </Col>
-          <Col xs={24} md={6}>
-            <Card title={t("admin.categoryRatio")} hoverable className="section-card" style={{
-              borderRadius: isHighContrast ? 0 : 16,
-              boxShadow: isHighContrast ? "none" : "0 4px 15px rgba(0, 0, 0, 0.05)",
-              background: isHighContrast ? "#000" : "rgba(255, 255, 255, 0.9)",
-              border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.2)",
-              color: isHighContrast ? "#fff" : undefined
-            }} onClick={() => setDetailsOpen(true)}>
-              <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {renderPie(chartData.categoryPie)}
-              </div>
-            </Card>
-          </Col>
-          <Col xs={24} md={6}>
-            <Card title={t("admin.userGrowth")} hoverable className="section-card" style={{
-              borderRadius: isHighContrast ? 0 : 16,
-              boxShadow: isHighContrast ? "none" : "0 4px 15px rgba(0, 0, 0, 0.05)",
-              background: isHighContrast ? "#000" : "rgba(255, 255, 255, 0.9)",
-              border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.2)",
-              color: isHighContrast ? "#fff" : undefined
-            }} onClick={() => setGrowthOpen(true)}>
-              <div style={{ height: 180, padding: 8 }}>{renderBars(chartData.userGrowth)}</div>
-            </Card>
-          </Col>
-        </Row>
+            ))}
+          </Card>
+        </Col>
+      </Row>
 
-        <Divider />
-
-        <Row gutter={[16, 16]}>
-          <Col xs={24} md={24}>
-            <Card title={t("admin.systemAnnouncements")} hoverable className="section-card" style={{
-              borderRadius: isHighContrast ? 0 : 16,
-              boxShadow: isHighContrast ? "none" : "0 4px 15px rgba(0, 0, 0, 0.05)",
-              background: isHighContrast ? "#000" : "rgba(255, 255, 255, 0.9)",
-              border: isHighContrast ? "1px solid #fff" : "1px solid rgba(255, 255, 255, 0.2)",
-              color: isHighContrast ? "#fff" : undefined
-            }} onClick={() => setAnnOpen(true)}>
-              {(announcements.slice(0, 3)).map((a) => (
-                <div key={a.id} className="announcement-item" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-                  <Tag color={a.color} style={{ borderRadius: 8, fontWeight: 500 }}>{a.tag}</Tag>
-                  <span style={{ color: isHighContrast ? "#fff" : "#475569", fontSize: "14px" }}>{a.title}</span>
-                  <span style={{ marginLeft: 'auto', color: isHighContrast ? "#ccc" : '#94a3b8', fontSize: '12px' }}>{a.date}</span>
-                </div>
-              ))}
-            </Card>
-          </Col>
-        </Row>
-      </Card>
       <Modal
         title={t("admin.categoryDetails")}
         open={detailsOpen}
@@ -389,8 +297,8 @@ const AdminDashboard = ({ appearance }) => {
                   <Tag color={a.color}>{a.tag}</Tag>
                   <span style={{ fontWeight: 600 }}>{a.title}</span>
                 </div>
-                <div style={{ color: '#64748b', marginTop: 6 }}>{a.summary}</div>
-                <div style={{ textAlign: 'right', marginTop: 8, color: '#94a3b8' }}>{a.date}</div>
+                <div style={{ color: token.colorTextSecondary, marginTop: 6 }}>{a.summary}</div>
+                <div style={{ textAlign: 'right', marginTop: 8, color: token.colorTextDescription }}>{a.date}</div>
               </Card>
             </Col>
           ))}
@@ -403,26 +311,28 @@ const AdminDashboard = ({ appearance }) => {
         footer={null}
         width={640}
       >
-        <div style={{ marginBottom: 8 }}><Tag color={selectedAnn?.color}>{selectedAnn?.tag}</Tag> <span style={{ color: '#94a3b8' }}>{selectedAnn?.date}</span></div>
+        <div style={{ marginBottom: 8 }}><Tag color={selectedAnn?.color}>{selectedAnn?.tag}</Tag> <span style={{ color: token.colorTextDescription }}>{selectedAnn?.date}</span></div>
         <Typography.Paragraph style={{ whiteSpace: 'pre-wrap' }}>{selectedAnn?.content}</Typography.Paragraph>
       </Modal>
-    </div>
+    </PageContainer>
   );
 };
 
 // Mini charts (no external libs)
-function renderSparkline(points = []) {
+function renderSparkline(points = [], token) {
   const width = 520; const height = 160; const pad = 10;
   const max = Math.max(...points, 1); const min = Math.min(...points, 0);
   const stepX = (width - pad * 2) / (points.length - 1 || 1);
   const toY = (v) => pad + (height - pad * 2) * (1 - (v - min) / (max - min || 1));
   const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${pad + i * stepX},${toY(p)}`).join(' ');
+  const color = token?.colorPrimary || "#1677FF";
+  
   return (
     <svg width={width} height={height}>
       <defs>
         <linearGradient id="gradLine" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#1677FF" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#5B8EF3" stopOpacity="0.3" />
+          <stop offset="0%" stopColor={color} stopOpacity="0.9" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.3" />
         </linearGradient>
       </defs>
       <path d={d} fill="none" stroke="url(#gradLine)" strokeWidth="2.5" />
@@ -430,12 +340,13 @@ function renderSparkline(points = []) {
   );
 }
 
-function renderBars(values = []) {
+function renderBars(values = [], token) {
   const max = Math.max(...values, 1);
+  const color = token?.colorPrimary || "#1677FF";
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 140 }}>
       {values.map((v, i) => (
-        <div key={i} style={{ width: 18, height: Math.round((v / max) * 120), background: '#1677FF', borderRadius: 6 }} />
+        <div key={i} style={{ width: 18, height: Math.round((v / max) * 120), background: color, borderRadius: 6 }} />
       ))}
     </div>
   );

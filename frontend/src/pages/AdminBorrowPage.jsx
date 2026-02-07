@@ -6,24 +6,21 @@ import {
   Button,
   Tag,
   Input,
-  Space,
   Modal,
   message,
   Typography,
-  Tooltip,
-  Statistic,
-  Divider,
   Grid,
   Row,
-  Col
+  Col,
+  theme
 } from "antd";
-import "./AdminBorrowPage.css";
 import {
   ReloadOutlined,
-  CheckCircleOutlined,
   SearchOutlined,
   BookOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  CheckSquareOutlined,
+  CloseSquareOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
@@ -31,26 +28,34 @@ import {
   markBookReturned
 } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
+import KPIStatCard from "../components/common/KPIStatCard";
 
-const { Title, Text: AntText } = Typography;
+const { Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 function AdminBorrowPage({ appearance }) {
   const { t } = useLanguage();
+  const { token } = useToken();
   const [loading, setLoading] = useState(false);
   const [records, setRecords] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [searchText, setSearchText] = useState("");
-  const isHighContrast = appearance?.highContrast;
   // 🆕 Batch Mode State
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
 
-  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+  const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
   
   const [modal, contextHolder] = Modal.useModal();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
+
+  // Stats
+  const activeCount = records.length;
+  const overdueCount = records.filter(r => dayjs(r.dueDate).isBefore(dayjs())).length;
 
   /* =========================================================
      ✅ Fetch active borrows
@@ -58,7 +63,7 @@ function AdminBorrowPage({ appearance }) {
   const fetchRecords = async () => {
     try {
       setLoading(true);
-      const res = await getActiveBorrowRecords(token);
+      const res = await getActiveBorrowRecords(authToken);
       const data = res.data || [];
       setRecords(data);
       setFiltered(data);
@@ -114,7 +119,7 @@ function AdminBorrowPage({ appearance }) {
       cancelText: t("admin.cancel"),
       onOk: async () => {
         try {
-          await markBookReturned({ borrowRecordId: record._id }, token);
+          await markBookReturned({ borrowRecordId: record._id }, authToken);
           message.success(t("admin.returnSuccess") || "Book returned successfully");
           await fetchRecords();
         } catch (err) {
@@ -157,7 +162,7 @@ function AdminBorrowPage({ appearance }) {
         try {
           const promises = selectedRowKeys.map(async (id) => {
              try {
-                await markBookReturned({ borrowRecordId: id }, token);
+                await markBookReturned({ borrowRecordId: id }, authToken);
                 successCount++;
              } catch (e) {
                 failCount++;
@@ -268,83 +273,63 @@ function AdminBorrowPage({ appearance }) {
   }, []);
 
   return (
-    <div className="admin-borrow-page fade-in" style={{ padding: "1.5rem" }}>
+    <PageContainer>
       {contextHolder}
       
-      <Card
-        title={
-          <div className="page-header">
-            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-              {t("admin.borrowManagement") || "Borrow Management"}
-            </Title>
-            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
-              {t("admin.manageActiveBorrows") || "Manage active loans and process returns"}
-            </AntText>
-            
-            {/* 📊 Statistic Cards */}
-            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(59, 130, 246, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.activeBorrows") || "Active Borrows"}</span>} 
-                    value={records.length} 
-                    prefix={<BookOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: isHighContrast ? 0 : 16,
-                  background: isHighContrast ? "#000" : "linear-gradient(135deg, #ef4444, #b91c1c)",
-                  border: isHighContrast ? "1px solid #fff" : "none",
-                  boxShadow: isHighContrast ? "none" : "0 8px 25px rgba(239, 68, 68, 0.3)",
-                  color: isHighContrast ? "#fff" : "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: isHighContrast ? "#fff" : "rgba(255, 255, 255, 0.9)" }}>{t("admin.overdueBooks") || "Overdue Books"}</span>} 
-                    value={records.filter(r => dayjs(r.dueDate).isBefore(dayjs())).length} 
-                    prefix={<ExclamationCircleOutlined style={{ color: isHighContrast ? "#fff" : "white" }} />} 
-                    valueStyle={{ color: isHighContrast ? "#fff" : "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-            </Row>
-            
-            {/* Bulk Process Button Row */}
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, marginTop: 16 }}>
-              {isBatchMode && (
-                <Button onClick={exitBatchMode}>
+      <PageHeader
+        title={t("admin.borrowManagement") || "Borrow Management"}
+        subtitle={t("admin.manageActiveBorrows") || "Manage active loans and process returns"}
+        extra={
+          <div style={{ display: "flex", gap: 8 }}>
+            {isBatchMode ? (
+              <>
+                 <Button onClick={exitBatchMode} icon={<CloseSquareOutlined />}>
                   {t("admin.cancelBulkMode")}
                 </Button>
-              )}
-              <Button type="primary" onClick={isBatchMode ? executeBulkProcess : enterBatchMode}>
-                {isBatchMode 
-                  ? `${t("admin.confirmBulkProcess")} (${selectedRowKeys.length})` 
-                  : t("admin.bulkProcess") || "Bulk Process"}
-              </Button>
-            </div>
+                <Button type="primary" onClick={executeBulkProcess} icon={<CheckSquareOutlined />}>
+                  {`${t("admin.confirmBulkProcess")} (${selectedRowKeys.length})`}
+                </Button>
+              </>
+            ) : (
+               <Button onClick={enterBatchMode} icon={<CheckSquareOutlined />}>
+                 {t("admin.bulkProcess") || "Bulk Process"}
+               </Button>
+            )}
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={fetchRecords}
+              loading={loading}
+            >
+              {t("admin.refresh")}
+            </Button>
           </div>
         }
-        extra={
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={fetchRecords}
+      />
+            
+      {/* 📊 Statistic Cards */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.activeBorrows") || "Active Borrows"}
+            value={activeCount}
+            icon={<BookOutlined />}
+            color={token.colorPrimary}
             loading={loading}
-          >
-            {t("admin.refresh")}
-          </Button>
-        }
-        style={{ borderRadius: 16 }}
-        bodyStyle={{ padding: "1.5rem" }}
-      >
-        <div style={{ marginBottom: 24 }}>
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8} lg={6}>
+          <KPIStatCard
+            title={t("admin.overdueBooks") || "Overdue Books"}
+            value={overdueCount}
+            icon={<ExclamationCircleOutlined />}
+            color={token.colorError}
+            loading={loading}
+          />
+        </Col>
+      </Row>
+
+      <Card style={{ borderRadius: token.borderRadiusLG, boxShadow: token.boxShadowTertiary }}>
+        <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between' }}>
           <Input
             prefix={<SearchOutlined />}
             placeholder={t("admin.searchPlaceholder") || "Search user or book..."}
@@ -368,7 +353,7 @@ function AdminBorrowPage({ appearance }) {
           }}
         />
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   Typography,
@@ -14,8 +14,7 @@ import {
   Space,
   Avatar,
   Modal,
-  theme,
-  Grid
+  theme
 } from "antd";
 import {
   MessageOutlined,
@@ -25,25 +24,21 @@ import {
   CheckCircleOutlined,
   SyncOutlined,
   UserOutlined,
-  RobotOutlined,
-  RightOutlined
+  RobotOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useLanguage } from "../contexts/LanguageContext";
 import { submitFeedback, getMyFeedback } from "../api";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
-const { useToken } = theme;
-const { useBreakpoint } = Grid;
 
 function FeedbackPage() {
   const { t } = useLanguage();
-  const { token } = useToken();
-  const screens = useBreakpoint();
-  const isMobile = !screens.md;
-
+  const { token } = theme.useToken();
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [feedbacks, setFeedbacks] = useState([]);
@@ -55,13 +50,13 @@ function FeedbackPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState(null);
 
-  const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
+  const tokenAuth = sessionStorage.getItem("token") || localStorage.getItem("token");
 
   const fetchFeedbacks = async () => {
-    if (!authToken) return;
+    if (!tokenAuth) return;
     try {
       setLoading(true);
-      const res = await getMyFeedback(authToken);
+      const res = await getMyFeedback(tokenAuth);
       setFeedbacks(res.data || []);
     } catch (err) {
       console.error("Failed to fetch feedback:", err);
@@ -82,17 +77,18 @@ function FeedbackPage() {
       message.warning(t("feedback.placeholder"));
       return;
     }
-    if (!authToken) {
+    if (!tokenAuth) {
       message.error(t("common.loginFirst"));
       return;
     }
 
     try {
       setSubmitting(true);
-      await submitFeedback(content, type, authToken);
+      await submitFeedback(content, type, tokenAuth);
       message.success(t("feedback.submitSuccess"));
       setContent("");
       setType("suggestion");
+      // Switch to history tab to see the new feedback
       setActiveTab("history");
     } catch (err) {
       console.error("Submit feedback failed:", err);
@@ -104,9 +100,9 @@ function FeedbackPage() {
 
   const getTypeIcon = (type) => {
     switch (type) {
-      case "bug": return <BugOutlined style={{ color: token.colorError }} />;
-      case "suggestion": return <BulbOutlined style={{ color: token.colorWarning }} />;
-      default: return <QuestionCircleOutlined style={{ color: token.colorPrimary }} />;
+      case "bug": return <BugOutlined style={{ color: "#ff4d4f" }} />;
+      case "suggestion": return <BulbOutlined style={{ color: "#faad14" }} />;
+      default: return <QuestionCircleOutlined style={{ color: "#1890ff" }} />;
     }
   };
 
@@ -119,7 +115,7 @@ function FeedbackPage() {
   };
 
   const renderSubmitForm = () => (
-    <div style={{ maxWidth: 600, margin: "0 auto", padding: isMobile ? "0" : "20px 0" }}>
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: "20px 0" }}>
       <Space direction="vertical" size="large" style={{ width: "100%" }}>
         <div>
           <Text strong style={{ display: "block", marginBottom: 8 }}>
@@ -133,19 +129,19 @@ function FeedbackPage() {
           >
             <Option value="bug">
               <Space>
-                <BugOutlined style={{ color: token.colorError }} />
+                <BugOutlined style={{ color: "#ff4d4f" }} />
                 {t("feedback.bug")}
               </Space>
             </Option>
             <Option value="suggestion">
               <Space>
-                <BulbOutlined style={{ color: token.colorWarning }} />
+                <BulbOutlined style={{ color: "#faad14" }} />
                 {t("feedback.suggestion")}
               </Space>
             </Option>
             <Option value="other">
               <Space>
-                <QuestionCircleOutlined style={{ color: token.colorPrimary }} />
+                <QuestionCircleOutlined style={{ color: "#1890ff" }} />
                 {t("feedback.other")}
               </Space>
             </Option>
@@ -189,50 +185,44 @@ function FeedbackPage() {
           <Spin size="large" />
         </div>
       ) : feedbacks.length === 0 ? (
-        <Empty description={t("feedback.noFeedback")} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        <Empty description={t("feedback.noFeedback")} />
       ) : (
         <List
+          grid={{ gutter: 16, xs: 1, sm: 1, md: 1, lg: 2, xl: 2, xxl: 3 }}
           dataSource={feedbacks}
           renderItem={(item) => (
-            <div 
-              onClick={() => {
-                setSelectedFeedback(item);
-                setDetailModalOpen(true);
-              }}
-              style={{ 
-                padding: '16px 0',
-                borderBottom: `1px solid ${token.colorBorderSecondary}`,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              className="feedback-item"
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <Space>
-                  {getTypeIcon(item.type)}
-                  <Text strong>{getTypeText(item.type)}</Text>
-                  {item.status === "Replied" ? (
-                    <Tag color="success" style={{ margin: 0 }}>{t("feedback.closed")}</Tag>
-                  ) : (
-                    <Tag color="processing" style={{ margin: 0 }}>{t("feedback.open")}</Tag>
-                  )}
-                </Space>
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  {dayjs(item.createdAt).format("YYYY-MM-DD")}
-                </Text>
-              </div>
-
-              <Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: 8, color: token.colorTextSecondary, fontSize: 14 }}>
-                {item.content}
-              </Paragraph>
-
-              {item.adminReply && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: token.colorSuccess }}>
-                   <RobotOutlined />
-                   <span>{t("feedback.adminReply")}: {item.adminReply.substring(0, 30)}...</span>
+            <List.Item>
+                <Card
+                hoverable
+                onClick={() => {
+                    setSelectedFeedback(item);
+                    setDetailModalOpen(true);
+                }}
+                style={{ borderRadius: 12, border: "1px solid #f0f0f0", cursor: "pointer", height: '100%' }}
+                bodyStyle={{ padding: 20 }}
+                >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                    <Space>
+                    {getTypeIcon(item.type)}
+                    <Text strong>{getTypeText(item.type)}</Text>
+                    </Space>
+                    <Tag color={item.status === "Replied" ? "green" : "orange"} icon={item.status === "Replied" ? <CheckCircleOutlined /> : <SyncOutlined spin />}>
+                    {item.status === "Replied" ? t("feedback.closed") : t("feedback.open")}
+                    </Tag>
                 </div>
-              )}
-            </div>
+
+                <Paragraph ellipsis={{ rows: 2 }} style={{ marginBottom: 16, fontSize: 15, color: token.colorTextSecondary }}>
+                    {item.content}
+                </Paragraph>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+                     <Text type="secondary" style={{ fontSize: 12 }}>
+                        {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
+                    </Text>
+                    {item.adminReply && <Tag color="success">{t("feedback.adminReply")}</Tag>}
+                </div>
+                </Card>
+            </List.Item>
           )}
         />
       )}
@@ -240,29 +230,46 @@ function FeedbackPage() {
   );
 
   return (
-    <div className="feedback-page" style={{ maxWidth: 1000, margin: "0 auto", padding: isMobile ? 16 : 24 }}>
-      <div style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ marginBottom: 8 }}>{t("feedback.title")}</Title>
-        <Text type="secondary">{t("feedback.description")}</Text>
-      </div>
-
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        size="large"
-        items={[
-          {
-            key: "submit",
-            label: t("feedback.submit"),
-            children: renderSubmitForm(),
-          },
-          {
-            key: "history",
-            label: t("feedback.myFeedback"),
-            children: renderHistory(),
-          },
-        ]}
+    <PageContainer>
+      <PageHeader
+        title={t("feedback.title")}
+        subtitle={t("feedback.description")}
+        icon={<MessageOutlined />}
       />
+
+      <Card
+        bordered={false}
+        style={{ borderRadius: 16, boxShadow: token.boxShadowTertiary }}
+      >
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          centered
+          size="large"
+          items={[
+            {
+              key: "submit",
+              label: (
+                <span>
+                  <MessageOutlined />
+                  {t("feedback.submit")}
+                </span>
+              ),
+              children: renderSubmitForm(),
+            },
+            {
+              key: "history",
+              label: (
+                <span>
+                  <UserOutlined />
+                  {t("feedback.myFeedback")}
+                </span>
+              ),
+              children: renderHistory(),
+            },
+          ]}
+        />
+      </Card>
 
       {/* Detail Modal */}
       <Modal
@@ -287,7 +294,7 @@ function FeedbackPage() {
                 {getTypeIcon(selectedFeedback.type)}
                 <Text strong>{getTypeText(selectedFeedback.type)}</Text>
               </Space>
-              <Tag color={selectedFeedback.status === "Replied" ? "success" : "processing"} icon={selectedFeedback.status === "Replied" ? <CheckCircleOutlined /> : <SyncOutlined spin />}>
+              <Tag color={selectedFeedback.status === "Replied" ? "green" : "orange"} icon={selectedFeedback.status === "Replied" ? <CheckCircleOutlined /> : <SyncOutlined spin />}>
                 {selectedFeedback.status === "Replied" ? t("feedback.closed") : t("feedback.open")}
               </Tag>
             </div>
@@ -301,12 +308,12 @@ function FeedbackPage() {
             </div>
 
             {selectedFeedback.adminReply && (
-              <div style={{ background: token.colorSuccessBg, padding: 16, borderRadius: 8, border: `1px solid ${token.colorSuccessBorder}` }}>
+              <div style={{ background: "#f6ffed", padding: 16, borderRadius: 8, border: "1px solid #b7eb8f" }}>
                 <Space align="start" style={{ width: '100%' }}>
-                  <Avatar icon={<RobotOutlined />} style={{ backgroundColor: token.colorSuccess }} />
+                  <Avatar icon={<RobotOutlined />} style={{ backgroundColor: "#52c41a" }} />
                   <div style={{ flex: 1 }}>
-                    <Text strong style={{ color: token.colorSuccessText, display: "block" }}>{t("feedback.adminReply")}:</Text>
-                    <Paragraph style={{ margin: "8px 0", color: token.colorSuccessText }}>
+                    <Text strong style={{ color: "#389e0d", display: "block" }}>{t("feedback.adminReply")}:</Text>
+                    <Paragraph style={{ margin: "8px 0", color: "#389e0d" }}>
                       {selectedFeedback.adminReply}
                     </Paragraph>
                     <Text type="secondary" style={{ fontSize: 11 }}>
@@ -323,7 +330,7 @@ function FeedbackPage() {
           </div>
         )}
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 

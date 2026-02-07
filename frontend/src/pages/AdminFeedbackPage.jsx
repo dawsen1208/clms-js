@@ -14,7 +14,8 @@ import {
   Statistic,
   Grid,
   Row,
-  Col
+  Col,
+  theme
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -28,13 +29,18 @@ import {
 import dayjs from "dayjs";
 import { useLanguage } from "../contexts/LanguageContext";
 import { getAllFeedback, replyFeedback } from "../api";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
+import KPIStatCard from "../components/common/KPIStatCard";
 
-const { Title, Text: AntText, Paragraph } = Typography;
+const { Text: AntText, Paragraph } = Typography;
 const { TextArea } = Input;
 const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 function AdminFeedbackPage() {
   const { t } = useLanguage();
+  const { token } = useToken();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const [loading, setLoading] = useState(false);
@@ -45,13 +51,13 @@ function AdminFeedbackPage() {
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
 
-  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+  const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
 
   const fetchFeedbacks = async () => {
-    if (!token) return;
+    if (!authToken) return;
     try {
       setLoading(true);
-      const res = await getAllFeedback(token);
+      const res = await getAllFeedback(authToken);
       setFeedbacks(res.data || []);
     } catch (err) {
       console.error("Failed to fetch all feedback:", err);
@@ -79,7 +85,7 @@ function AdminFeedbackPage() {
 
     try {
       setSubmitting(true);
-      await replyFeedback(currentFeedback._id, replyContent, token);
+      await replyFeedback(currentFeedback._id, replyContent, authToken);
       message.success(t("feedback.replySuccess"));
       setReplyModalVisible(false);
       fetchFeedbacks(); // Refresh list
@@ -93,9 +99,9 @@ function AdminFeedbackPage() {
 
   const getTypeIcon = (type) => {
     switch (type) {
-      case "bug": return <BugOutlined style={{ color: "#ff4d4f" }} />;
-      case "suggestion": return <BulbOutlined style={{ color: "#faad14" }} />;
-      default: return <QuestionCircleOutlined style={{ color: "#1890ff" }} />;
+      case "bug": return <BugOutlined style={{ color: token.colorError }} />;
+      case "suggestion": return <BulbOutlined style={{ color: token.colorWarning }} />;
+      default: return <QuestionCircleOutlined style={{ color: token.colorInfo }} />;
     }
   };
 
@@ -189,81 +195,62 @@ function AdminFeedbackPage() {
     return true;
   });
 
+  const stats = {
+    total: feedbacks.length,
+    pending: feedbacks.filter(f => f.status === "Unreplied").length,
+    replied: feedbacks.filter(f => f.status === "Replied").length
+  };
+
   return (
-    <div className="admin-feedback-page" style={{ padding: "1.5rem" }}>
-      <Card
-        title={
-          <div className="page-header">
-            <Title level={2} className="page-modern-title" style={{ margin: 0 }}>
-              {t("feedback.adminTitle") || "Feedback Management"}
-            </Title>
-            <AntText type="secondary" style={{ display: "block", marginTop: 8 }}>
-              {t("feedback.subtitle") || "View and reply to user feedback and inquiries"}
-            </AntText>
-            
-            {/* 📊 Statistic Cards */}
-            <Row gutter={[16, 16]} style={{ marginTop: 24, marginBottom: 8 }}>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(59, 130, 246, 0.3)",
-                  color: "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabAll")}</span>} 
-                    value={feedbacks.length} 
-                    prefix={<MessageOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #f59e0b, #d97706)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(245, 158, 11, 0.3)",
-                  color: "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabPending")}</span>} 
-                    value={feedbacks.filter(f => f.status === "Unreplied").length} 
-                    prefix={<SyncOutlined spin style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-              <Col xs={24} sm={12} md={8} lg={6}>
-                <Card style={{
-                  borderRadius: 16,
-                  background: "linear-gradient(135deg, #10b981, #059669)",
-                  border: "none",
-                  boxShadow: "0 8px 25px rgba(16, 185, 129, 0.3)",
-                  color: "white"
-                }}>
-                  <Statistic 
-                    title={<span style={{ color: "rgba(255, 255, 255, 0.9)" }}>{t("feedback.tabReplied")}</span>} 
-                    value={feedbacks.filter(f => f.status === "Replied").length} 
-                    prefix={<CheckCircleOutlined style={{ color: "white" }} />} 
-                    valueStyle={{ color: "white", fontWeight: "bold", fontSize: "32px" }}
-                  />
-                </Card>
-              </Col>
-            </Row>
-          </div>
+    <PageContainer>
+      <PageHeader
+        title={t("feedback.adminTitle") || "Feedback Management"}
+        subtitle={t("feedback.subtitle") || "View and reply to user feedback and inquiries"}
+        extra={
+          <Button icon={<SyncOutlined />} onClick={fetchFeedbacks} loading={loading}>
+            {t("admin.refresh")}
+          </Button>
         }
-        style={{ borderRadius: 16 }}
-        bodyStyle={{ padding: "1.5rem" }}
-      >
+      />
+
+      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
+        <Col xs={24} sm={12} md={8}>
+          <KPIStatCard
+            title={t("feedback.tabAll")}
+            value={stats.total}
+            icon={<MessageOutlined />}
+            color={token.colorPrimary}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8}>
+          <KPIStatCard
+            title={t("feedback.tabPending")}
+            value={stats.pending}
+            icon={<SyncOutlined spin={loading} />}
+            color={token.colorWarning}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} md={8}>
+          <KPIStatCard
+            title={t("feedback.tabReplied")}
+            value={stats.replied}
+            icon={<CheckCircleOutlined />}
+            color={token.colorSuccess}
+            loading={loading}
+          />
+        </Col>
+      </Row>
+
+      <Card style={{ borderRadius: token.borderRadiusLG, boxShadow: token.boxShadowTertiary }}>
         <Tabs
           activeKey={activeTab}
           onChange={setActiveTab}
           items={[
-            { key: "all", label: `${t("feedback.tabAll")} (${feedbacks.length})` },
-            { key: "pending", label: `${t("feedback.tabPending")} (${feedbacks.filter(f => f.status === "Unreplied").length})` },
-            { key: "replied", label: `${t("feedback.tabReplied")} (${feedbacks.filter(f => f.status === "Replied").length})` },
+            { key: "all", label: `${t("feedback.tabAll")} (${stats.total})` },
+            { key: "pending", label: `${t("feedback.tabPending")} (${stats.pending})` },
+            { key: "replied", label: `${t("feedback.tabReplied")} (${stats.replied})` },
           ]}
         />
 
@@ -274,6 +261,7 @@ function AdminFeedbackPage() {
           loading={loading}
           pagination={{ pageSize: 10 }}
           locale={{ emptyText: t("feedback.noData") }}
+          scroll={{ x: 800 }}
         />
       </Card>
 
@@ -293,12 +281,12 @@ function AdminFeedbackPage() {
       >
         {currentFeedback && (
           <Space direction="vertical" style={{ width: "100%" }} size="middle">
-            <Card size="small" style={{ background: "#f5f5f5" }}>
+            <Card size="small" style={{ background: token.colorFillAlter }}>
               <Space align="start">
                 {getTypeIcon(currentFeedback.type)}
                 <div>
                   <AntText type="secondary" style={{ fontSize: 12 }}>
-                    {dayjs(currentFeedback.createdAt).format("YYYY-MM-DD HH:mm")} - {currentFeedback.user?.name}
+                    {dayjs(currentFeedback.createdAt).format("YYYY-MM-DD HH:mm")} - {currentFeedback.userName || "Unknown"}
                   </AntText>
                   <Paragraph style={{ margin: "4px 0 0 0" }}>
                     {currentFeedback.content}
@@ -319,7 +307,7 @@ function AdminFeedbackPage() {
           </Space>
         )}
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
 

@@ -9,10 +9,10 @@ import "antd/dist/reset.css";
 import "./assets/responsive.css";
 import "./styles/mobile.css";
 import "./styles/global.css";
+import { theme } from "./theme";
 import { ConfigProvider, message, Grid, theme as antdTheme } from "antd";
 import enUS from "antd/locale/en_US";
 import zhCN from "antd/locale/zh_CN";
-import { appTheme } from "./styles/theme";
 import {
   BrowserRouter,
   Routes,
@@ -202,6 +202,7 @@ function App() {
   }, [baseFontSize, appearance.highContrast]);
 
   const themeTokens = {
+    ...theme.token,
     // ♿ High Contrast: Force Black BG + Yellow/White Text regardless of Light/Dark mode
     colorPrimary: appearance.highContrast ? '#FFFF00' : resolvePrimary(),
     colorInfo: appearance.highContrast ? '#FFFF00' : resolvePrimary(),
@@ -217,7 +218,7 @@ function App() {
     colorTextPlaceholder: appearance.highContrast ? '#D1D5DB' : (isDark ? '#6B7280' : '#9CA3AF'),
     
     colorBgContainer: appearance.highContrast ? '#000000' : (isDark ? '#141414' : '#FFFFFF'),
-    colorBgLayout: appearance.highContrast ? '#000000' : (customBg || (isDark ? '#0b0b0b' : '#F5F7FA')),
+    colorBgLayout: appearance.highContrast ? '#000000' : (customBg || (isDark ? '#0b0b0b' : '#F6F7FB')),
     colorBgElevated: appearance.highContrast ? '#000000' : (isDark ? '#1f1f1f' : '#FFFFFF'),
     colorBgSpotlight: appearance.highContrast ? '#000000' : (isDark ? '#1f1f1f' : '#000000'),
     
@@ -231,9 +232,9 @@ function App() {
     colorIcon: appearance.highContrast ? '#FFFFFF' : (isDark ? '#E6E6E6' : '#1F2937'),
     colorIconHover: appearance.highContrast ? '#FFFF00' : (isDark ? '#FFFFFF' : '#000000'),
 
-    borderRadius: appearance.highContrast ? 0 : 12, // Remove radius for HC
-    boxShadow: appearance.highContrast ? 'none' : '0 4px 12px rgba(0,0,0,0.08)',
-    controlHeight: isMobile ? 32 : 36,
+    borderRadius: appearance.highContrast ? 0 : 14, // New Radius 14px
+    boxShadow: appearance.highContrast ? 'none' : '0 4px 12px rgba(0, 0, 0, 0.05)',
+    controlHeight: isMobile ? 32 : 40,
     controlPaddingHorizontal: isMobile ? 10 : 12,
     paddingXS: isMobile ? 6 : 8,
     paddingSM: isMobile ? 10 : 12,
@@ -300,18 +301,7 @@ function App() {
   );
 
   return (
-    <ConfigProvider
-      componentSize={isMobile ? "small" : "middle"}
-      locale={language === "zh" ? zhCN : enUS}
-      theme={{
-        ...appTheme,
-        algorithm,
-        token: {
-          ...appTheme.token,
-          ...themeTokens,
-        },
-      }}
-    >
+    <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={enUS} theme={{ token: themeTokens, algorithm, cssVar: true }}>
       <Routes>
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/register" element={<RegisterReader />} />
