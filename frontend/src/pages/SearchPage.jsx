@@ -273,7 +273,7 @@ const SearchPage = () => {
             viewMode === 'grid' ? (
               <Row gutter={[16, 16]}>
                 {filteredBooks.map(book => (
-                  <Col xs={12} sm={12} lg={8} xl={6} key={book._id || book.id}>
+                  <Col xs={24} sm={12} lg={12} xl={8} key={book._id || book.id}>
                     <ModernBookCard 
                       book={book} 
                       variant="search"

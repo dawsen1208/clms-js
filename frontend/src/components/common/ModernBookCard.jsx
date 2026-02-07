@@ -94,7 +94,7 @@ const ModernBookCard = ({ book, onBorrow, onRenew, isBorrowed, isPending, loadin
         >
           {/* Left Side: Category Placeholder */}
           <div style={{ 
-            width: 120, 
+            width: 90, 
             backgroundColor: categoryColor,
             display: 'flex',
             flexDirection: 'column',
@@ -103,28 +103,28 @@ const ModernBookCard = ({ book, onBorrow, onRenew, isBorrowed, isPending, loadin
             color: '#fff',
             flexShrink: 0
           }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>
+            <div style={{ fontSize: 28, marginBottom: 8 }}>
               {CategoryIcon}
             </div>
-            <Text style={{ color: '#fff', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>
+            <Text style={{ color: '#fff', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, textAlign: 'center', padding: '0 4px' }}>
               {category || "Book"}
             </Text>
           </div>
 
           {/* Right Side: Info */}
-          <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ padding: 12, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minWidth: 0 }}>
             <div>
-              <Title level={5} ellipsis={{ rows: 2 }} style={{ marginBottom: 4, fontSize: 16 }}>
+              <Title level={5} ellipsis={{ rows: 2 }} style={{ marginBottom: 4, fontSize: 15, lineHeight: 1.3 }}>
                 {title}
               </Title>
-              <Text type="secondary" style={{ fontSize: 13 }}>
+              <Text type="secondary" style={{ fontSize: 12 }} ellipsis>
                 <UserOutlined style={{ marginRight: 6 }} />{author}
               </Text>
             </div>
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Tag color={isAvailable ? 'success' : 'error'} bordered={false}>
-                {isAvailable ? 'Available' : 'Out'}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+              <Tag color={isAvailable ? 'success' : 'error'} bordered={false} style={{ marginRight: 0, fontSize: 11 }}>
+                {isAvailable ? 'In Stock' : 'Out'}
               </Tag>
               <Button 
                 type="primary" 
@@ -133,6 +133,7 @@ const ModernBookCard = ({ book, onBorrow, onRenew, isBorrowed, isPending, loadin
                 ghost 
                 onClick={handleBorrowClick}
                 disabled={!isAvailable}
+                style={{ fontSize: 12, height: 24, padding: '0 8px' }}
               >
                 Borrow
               </Button>
