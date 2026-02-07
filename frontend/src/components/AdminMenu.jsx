@@ -178,7 +178,11 @@ function AdminMenu({ onLogout, children }) {
       >
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <DashboardOutlined className="sidebar-logo-icon" />
+            <img 
+              src="/icons/app-icon-192.png" 
+              alt="Logo" 
+              style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }} 
+            />
             {!collapsed && <span>{t("bookDetail.libraryAdmin")}</span>}
           </div>
         </div>

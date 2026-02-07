@@ -153,20 +153,16 @@ const LayoutMenu = ({ onLogout, children }) => {
       padding: collapsed ? 0 : '0 24px',
       borderBottom: '1px solid rgba(0,0,0,0.06)'
     }}>
-      <div style={{ 
-        width: 32, 
-        height: 32, 
-        background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)', 
-        borderRadius: 8,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 18
-      }}>
-        C
-      </div>
+      <img 
+        src="/icons/app-icon-192.png" 
+        alt="Logo" 
+        style={{ 
+          width: 32, 
+          height: 32, 
+          borderRadius: 8,
+          objectFit: 'contain'
+        }} 
+      />
       {!collapsed && (
         <span style={{ marginLeft: 12, fontWeight: 700, fontSize: 18, color: '#1f1f1f' }}>
           CLMS
