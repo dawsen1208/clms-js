@@ -264,10 +264,7 @@ export const requestRenewLibrary = (payload, token) =>
   API.post("/library/request", payload, {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
   });
-export const requestReturnLibrary = (payload, token) =>
-  API.post("/library/request", payload, {
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-  });
+
 export const getUserRequestsLibrary = (token) =>
   API.get("/library/request/user", { headers: { Authorization: `Bearer ${token}` } });
 

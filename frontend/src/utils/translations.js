@@ -55,6 +55,30 @@ export const translations = {
       clickToBack: "Click to Return",
       feedback: "Feedback Center"
     },
+    nav: {
+      home: "Home",
+      books: "Library",
+      myBooks: "My Books",
+      login: "Login",
+      register: "Register",
+      logout: "Logout",
+      profile: "Profile",
+      dashboard: "Dashboard",
+      borrowHistory: "Borrow History",
+    },
+    history: {
+      title: "Borrowing History",
+      subtitle: "View your complete borrowing and returning activity",
+      empty: "No borrowing history found.",
+      book: "Book",
+      borrowDate: "Borrow Date",
+      dueDate: "Due Date",
+      returnDate: "Return Date",
+      status: "Status",
+      returned: "Returned",
+      overdue: "Overdue",
+      borrowing: "Borrowing",
+    },
     guide: {
       search: {
         desc: "Use the search bar to find books you are interested in.",
@@ -1000,6 +1024,30 @@ export const translations = {
       clickToViewGuide: "点击查看指南",
       clickToBack: "点击返回",
       feedback: "反馈中心"
+    },
+    nav: {
+      home: "首页",
+      books: "图书库",
+      myBooks: "我的图书",
+      login: "登录",
+      register: "注册",
+      logout: "退出登录",
+      profile: "个人中心",
+      dashboard: "管理后台",
+      borrowHistory: "借阅历史",
+    },
+    history: {
+      title: "借阅历史",
+      subtitle: "查看您完整的借阅和归还记录",
+      empty: "暂无借阅记录",
+      book: "书籍信息",
+      borrowDate: "借阅日期",
+      dueDate: "应还日期",
+      returnDate: "归还日期",
+      status: "状态",
+      returned: "已归还",
+      overdue: "已逾期",
+      borrowing: "借阅中",
     },
     guide: {
       search: {

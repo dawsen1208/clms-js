@@ -96,10 +96,10 @@ const LayoutMenu = ({ onLogout, children }) => {
   };
 
   const menuItems = [
-    { key: "home", icon: <HomeOutlined />, label: t("titles.stats") || "Home" },
-    { key: "search", icon: <SearchOutlined />, label: t("common.bookSearch") || "Search" },
-    { key: "borrow", icon: <BookOutlined />, label: t("common.borrowManage") || "My Library" },
-    { key: "return", icon: <HistoryOutlined />, label: "借阅记录" },
+    { key: "home", icon: <HomeOutlined />, label: t("nav.home") || "Home" },
+    { key: "search", icon: <SearchOutlined />, label: t("nav.books") || "Library" },
+    { key: "borrow", icon: <BookOutlined />, label: t("nav.myBooks") || "My Books" },
+    { key: "return", icon: <HistoryOutlined />, label: t("nav.borrowHistory") || "Borrow History" },
     { key: "assistant", icon: <RobotOutlined />, label: t("titles.smartAssistant") || "Assistant" },
     { type: 'divider' },
     { key: "profile", icon: <UserOutlined />, label: t("common.profile") || "Profile" },

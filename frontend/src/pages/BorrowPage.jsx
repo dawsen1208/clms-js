@@ -30,8 +30,7 @@ import KPIStatCard from "../components/common/KPIStatCard";
 import { 
   getBorrowedBooks, 
   getUserRequestsLibrary, 
-  requestRenewLibrary, 
-  requestReturnLibrary 
+  requestRenewLibrary 
 } from "../api";
 
 const { Title, Text } = Typography;
@@ -44,7 +43,6 @@ const BorrowPage = () => {
   
   // Modals
   const [renewModalOpen, setRenewModalOpen] = useState(false);
-  const [returnModalOpen, setReturnModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const [renewDate, setRenewDate] = useState(null);
 
@@ -102,11 +100,6 @@ const BorrowPage = () => {
     setRenewModalOpen(true);
   };
 
-  const handleReturnClick = (book) => {
-    setSelectedBook(book);
-    setReturnModalOpen(true);
-  };
-
   const submitRenew = async () => {
     if (!selectedBook) return;
     try {
@@ -122,24 +115,6 @@ const BorrowPage = () => {
       fetchData();
     } catch (error) {
       message.error("Failed to submit renew request");
-    }
-  };
-
-  const submitReturn = async () => {
-    if (!selectedBook) return;
-    try {
-      const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-      await requestReturnLibrary({
-        type: 'return',
-        bookId: selectedBook._id || selectedBook.id,
-        bookTitle: selectedBook.title
-      }, token);
-      
-      message.success("Return request submitted successfully");
-      setReturnModalOpen(false);
-      fetchData();
-    } catch (error) {
-      message.error("Failed to submit return request");
     }
   };
 
@@ -176,7 +151,7 @@ const BorrowPage = () => {
                </Tag>
                {pendingType && (
                  <Tag color="processing" icon={<SyncOutlined spin />}>
-                   {pendingType === 'renew' ? 'Renew Pending' : 'Return Pending'}
+                   {pendingType === 'renew' ? 'Renew Pending' : 'Pending'}
                  </Tag>
                )}
             </Space>
@@ -206,16 +181,6 @@ const BorrowPage = () => {
               onClick={() => handleRenewClick(book)}
             >
               Renew
-            </Button>
-            <Button 
-              type="primary" 
-              danger={!pendingType}
-              ghost
-              icon={<RollbackOutlined />} 
-              disabled={!!pendingType}
-              onClick={() => handleReturnClick(book)}
-            >
-              Return
             </Button>
           </Col>
         </Row>
@@ -288,19 +253,6 @@ const BorrowPage = () => {
       >
         <p>Would you like to request a renewal for <strong>{selectedBook?.title}</strong>?</p>
         <p>This will extend the due date by 7 days pending approval.</p>
-      </Modal>
-
-      {/* Return Modal */}
-      <Modal
-        title="Return Book"
-        open={returnModalOpen}
-        onOk={submitReturn}
-        onCancel={() => setReturnModalOpen(false)}
-        okText="Confirm Return"
-        okType="danger"
-      >
-        <p>Are you sure you want to return <strong>{selectedBook?.title}</strong>?</p>
-        <p>This action will submit a return request to the librarian.</p>
       </Modal>
     </PageContainer>
   );

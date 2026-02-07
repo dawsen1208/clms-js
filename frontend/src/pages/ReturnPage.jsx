@@ -107,7 +107,7 @@ function ReturnPage() {
                         />
                         <div style={{ flex: 1 }}>
                              <Text strong style={{ fontSize: 16, display: 'block', marginBottom: 4 }}>
-                                {item.bookTitle || "Unknown Book"}
+                                {item.title || "Unknown Book"}
                              </Text>
                              <div style={{ marginBottom: 8 }}>
                                 <Tag color={isReturn ? "green" : "blue"}>

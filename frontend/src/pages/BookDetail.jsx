@@ -18,7 +18,7 @@ import {
   ClockCircleOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { getBookDetail, getBorrowHistory, borrowBook, requestReturnLibrary, getBorrowedBooksLibrary, getUserRequestsLibrary } from "../api";
+import { getBookDetail, getBorrowHistory, borrowBook, getBorrowedBooksLibrary, getUserRequestsLibrary } from "../api";
 import ReviewModal from "../components/ReviewModal";
 import { useLanguage } from "../contexts/LanguageContext";
 import PageContainer from "../components/common/PageContainer";
@@ -140,25 +140,6 @@ function BookDetail() {
       setBook(res?.data);
     } catch (e) {
       message.error(e?.response?.data?.message || t("borrow.borrowFailed"));
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleReturn = async () => {
-    const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-    if (!token) return;
-
-    try {
-      setActionLoading(true);
-      await requestReturnLibrary(
-        { type: "return", bookId: id, bookTitle: book.title },
-        token
-      );
-      message.success(t("borrow.returnSubmitted"));
-      setPendingType('return');
-    } catch (e) {
-      message.error(e?.response?.data?.message || t("borrow.submitFailed"));
     } finally {
       setActionLoading(false);
     }
@@ -300,17 +281,14 @@ function BookDetail() {
               <div style={{ padding: '20px 0' }}>
                 {isBorrowed ? (
                   <Button 
-                    type="primary" 
-                    danger 
+                    type="default" 
                     size="large"
-                    loading={actionLoading}
-                    disabled={pendingType === 'return'}
-                    onClick={handleReturn}
+                    disabled
                     block
-                    icon={<RollbackOutlined />}
-                    style={{ height: 48, borderRadius: 12 }}
+                    icon={<CheckCircleOutlined />}
+                    style={{ height: 48, borderRadius: 12, backgroundColor: '#f6ffed', borderColor: '#b7eb8f', color: '#52c41a' }}
                   >
-                    {pendingType === 'return' ? t("borrow.returnPending") : t("borrow.applyReturn")}
+                    {t("borrow.borrowed") || "Borrowed"}
                   </Button>
                 ) : (
                   <Button 

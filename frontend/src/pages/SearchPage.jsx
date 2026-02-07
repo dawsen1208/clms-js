@@ -305,7 +305,15 @@ const SearchPage = () => {
       <Row gutter={[32, 32]}>
         {/* Sidebar Filters - Desktop */}
         <Col xs={0} md={6}>
-           <div className="card-shadow" style={{ background: '#fff', padding: 24, borderRadius: 14, position: 'sticky', top: 88 }}>
+           <div className="card-shadow custom-scroll" style={{ 
+             background: '#fff', 
+             padding: 24, 
+             borderRadius: 14, 
+             position: 'sticky', 
+             top: 88,
+             maxHeight: 'calc(100vh - 110px)',
+             overflowY: 'auto'
+           }}>
              <FilterPanel />
            </div>
         </Col>
@@ -427,6 +435,16 @@ const SearchPage = () => {
       </Drawer>
       
       <style jsx>{`
+        .custom-scroll::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+          background-color: #d9d9d9;
+          border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+          background: transparent;
+        }
         @media (max-width: 768px) {
           .mobile-filter-btn {
             display: inline-flex !important;
