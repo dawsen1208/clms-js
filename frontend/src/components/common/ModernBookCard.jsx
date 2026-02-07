@@ -154,7 +154,7 @@ const ModernBookCard = ({ book, onBorrow, onRenew, isBorrowed, isPending, loadin
           bordered={false}
           className="card-shadow"
           style={{ borderRadius: 14, overflow: 'hidden' }}
-          bodyStyle={{ padding: 0, display: 'flex', height: 150 }}
+          bodyStyle={{ padding: 0, display: 'flex', minHeight: 150 }}
         >
             {/* Left: Image */}
             <div style={{
