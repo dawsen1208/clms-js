@@ -14,7 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 const BOOK_IMAGES = [
   "/books/art.jpg",
@@ -138,6 +138,59 @@ const ModernBookCard = ({ book, onBorrow, onRenew, isBorrowed, isPending, loadin
               </Button>
             </div>
           </div>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  if (variant === "horizontal") {
+    // Horizontal Variant (Home Page): Image on Left, Details on Right
+    return (
+      <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+        <Card
+          hoverable
+          onClick={handleCardClick}
+          bordered={false}
+          className="card-shadow"
+          style={{ borderRadius: 14, overflow: 'hidden' }}
+          bodyStyle={{ padding: 0, display: 'flex', height: 150 }}
+        >
+            {/* Left: Image */}
+            <div style={{
+                width: 110,
+                background: `url(${displayCover}) center/cover`,
+                flexShrink: 0,
+                position: 'relative'
+            }}>
+                 <div style={{ position: 'absolute', top: 8, left: 8 }}>
+                    <Tag color={isAvailable ? 'success' : 'error'} style={{ margin: 0, border: 'none', opacity: 0.9 }}>
+                        {isAvailable ? 'In Stock' : 'Out'}
+                    </Tag>
+                 </div>
+            </div>
+
+            {/* Right: Content */}
+            <div style={{ flex: 1, padding: '12px 16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ flex: 1, paddingRight: 8 }}>
+                             <Tag color={categoryColor} style={{ border: 'none', marginBottom: 6, fontSize: 11, padding: '0 6px' }}>{category || 'General'}</Tag>
+                             <Title level={5} style={{ margin: 0, fontSize: 16, lineHeight: 1.3 }} ellipsis={{ rows: 1 }}>{title}</Title>
+                        </div>
+                    </div>
+                    <Text type="secondary" style={{ fontSize: 13, display: 'block', marginTop: 4 }}><UserOutlined /> {author}</Text>
+                    <Paragraph ellipsis={{ rows: 2 }} type="secondary" style={{ marginTop: 8, fontSize: 12, marginBottom: 0, lineHeight: 1.4 }}>
+                        {book.description || "Immerse yourself in this fascinating read. Discover new perspectives and ideas within these pages."}
+                    </Paragraph>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+                    <Text type="secondary" style={{ fontSize: 12 }}>{copies} copies</Text>
+                     <Button type="primary" size="small" shape="round" onClick={handleBorrowClick} disabled={!isAvailable}>
+                        Borrow
+                     </Button>
+                </div>
+            </div>
         </Card>
       </motion.div>
     );

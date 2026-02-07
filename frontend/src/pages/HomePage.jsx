@@ -194,8 +194,12 @@ const HomePage = () => {
                  {trending.length > 0 ? (
                    <Row gutter={[16, 16]}>
                      {trending.map(book => (
-                       <Col xs={12} sm={8} md={6} key={book._id || book.id}>
-                         <ModernBookCard book={book} onBorrow={() => navigate(`/book/${book._id || book.id}`)} />
+                       <Col span={24} key={book._id || book.id}>
+                         <ModernBookCard 
+                           book={book} 
+                           variant="horizontal"
+                           onBorrow={() => navigate(`/book/${book._id || book.id}`)} 
+                         />
                        </Col>
                      ))}
                    </Row>
