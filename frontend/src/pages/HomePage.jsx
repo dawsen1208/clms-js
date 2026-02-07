@@ -281,12 +281,13 @@ const HomePage = () => {
                          />
                       }
                       title={
-                          <Text strong>
-                              {actionText} <Text type="secondary" strong style={{ color: '#595959' }}>{item.title || item.bookTitle}</Text>
-                          </Text>
+                          <Text strong>{actionText}</Text>
                       }
                       description={
                         <Space direction="vertical" size={0}>
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                             {item.title || item.bookTitle}
+                          </Text>
                           <Text type="secondary" style={{ fontSize: 12 }}>
                              {new Date(item.date).toLocaleDateString()}
                           </Text>
