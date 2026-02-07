@@ -59,11 +59,35 @@ const HomePage = () => {
 
       // Process Books & Recommendations
       let recommendedBooks = [];
-      if (recommendRes.status === 'fulfilled' && recommendRes.value.data.length > 0) {
-        recommendedBooks = recommendRes.value.data;
-      } else if (allBooksRes.status === 'fulfilled') {
-        // Fallback to generic books if no recommendations
-        recommendedBooks = allBooksRes.value.data.slice(0, 8);
+      
+      if (allBooksRes.status === 'fulfilled') {
+        const allBooks = allBooksRes.value.data;
+        const targetTitles = [
+          "sapiens", 
+          "clean code", 
+          "the intelligent investor", 
+          "atomic habits"
+        ];
+        
+        // Filter for specific books
+        recommendedBooks = allBooks.filter(b => 
+          targetTitles.some(t => b.title.toLowerCase().includes(t))
+        );
+        
+        // Enforce specific covers and ensure order if needed (optional)
+        recommendedBooks = recommendedBooks.map(b => {
+             let cover = b.coverUrl;
+             const lowerTitle = b.title.toLowerCase();
+             if (lowerTitle.includes("sapiens")) cover = "/books/sapiens.jpg";
+             else if (lowerTitle.includes("clean code")) cover = "/books/cleancode.jpg";
+             else if (lowerTitle.includes("investor")) cover = "/books/investor.jpg";
+             else if (lowerTitle.includes("atomic habits")) cover = "/books/habits.jpg";
+             return { ...b, coverUrl: cover };
+        });
+
+        // If we found fewer than 4, fallback or keep as is.
+        // If we found more (duplicates), slice.
+        recommendedBooks = recommendedBooks.slice(0, 4);
       }
 
       setTrending(recommendedBooks);

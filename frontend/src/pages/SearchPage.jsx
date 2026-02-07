@@ -150,11 +150,9 @@ const SearchPage = () => {
   const handleBorrow = async (bookId, title, copies) => {
     const token = sessionStorage.getItem("token") || localStorage.getItem("token");
     if (!token) {
-      message.warning("Please login first");
+      message.warning(t("common.loginFirst"));
       return;
     }
-    
-    // Optimistic UI updates could go here, but safely relying on API for now
     
     try {
       await borrowBook(bookId, token);
@@ -278,6 +276,7 @@ const SearchPage = () => {
                   <Col xs={12} sm={12} lg={8} xl={6} key={book._id || book.id}>
                     <ModernBookCard 
                       book={book} 
+                      variant="search"
                       onBorrow={handleBorrow}
                       isBorrowed={userBorrowedBooks.has(book._id || book.id)}
                       isPending={pendingRequests.has(book._id || book.id)}
