@@ -13,6 +13,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -56,6 +57,7 @@ const categoryIcons = {
 };
 
 const ModernBookCard = ({ book, onBorrow, onRenew, isBorrowed, isPending, loading, variant = "default" }) => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { _id, id, title, author, category, copies, available, coverUrl } = book;
   const bookId = _id || id;
@@ -259,10 +261,10 @@ const ModernBookCard = ({ book, onBorrow, onRenew, isBorrowed, isPending, loadin
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', fontSize: 12, color: '#8c8c8c' }}>
-            <UserOutlined style={{ marginRight: 4 }} /> {copies} copies
+            <UserOutlined style={{ marginRight: 4 }} /> {copies} {t("guide.borrow.desc").includes("copies") ? "" : "copies"}
           </div>
           {isBorrowed && (
-             <Tag color="processing" style={{ margin: 0 }}>Borrowed</Tag>
+             <Tag color="processing" style={{ margin: 0 }}>{t("common.borrowed")}</Tag>
           )}
         </div>
       </Card>

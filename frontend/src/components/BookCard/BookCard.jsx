@@ -4,6 +4,7 @@ import { BookOutlined, UserOutlined, CalendarOutlined, TagOutlined } from "@ant-
 import { useNavigate } from "react-router-dom";
 import "./BookCard.css";
 import { memo } from "react";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 // Category gradient color mapping
 const categoryGradients = {
@@ -22,6 +23,7 @@ const categoryGradients = {
 const { Title, Text } = Typography;
 
 function BookCard({ book, onBorrow, onRenew, onReturn, loading, userBorrowedBooks = new Set(), userBorrowedBooksCount = {}, borrowedInfo, isPending = false }) {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { token } = theme.useToken();
   
@@ -157,7 +159,7 @@ function BookCard({ book, onBorrow, onRenew, onReturn, loading, userBorrowedBook
           {isBorrowedByUser && (
             <div className="book-borrow-info">
               <Text style={{ color: daysLeft == null ? token.colorTextSecondary : (daysLeft > 3 ? token.colorSuccess : daysLeft >= 0 ? token.colorWarning : token.colorError) }}>
-                {daysLeft == null ? 'Borrowed' : daysLeft >= 0 ? `Due in ${daysLeft} days` : `Overdue by ${Math.abs(daysLeft)} days`}
+                {daysLeft == null ? t("common.borrowed") : daysLeft >= 0 ? t("common.remainingDays", { days: daysLeft }) : t("common.overdueDays", { days: Math.abs(daysLeft) })}
               </Text>
             </div>
           )}

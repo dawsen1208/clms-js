@@ -65,13 +65,13 @@ function ReturnPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
          <KPIStatCard 
-           title="Total Activities" 
+           title={t("history.totalActivities")} 
            value={stats.total} 
            icon={<BookOutlined/>} 
            color={token.colorPrimary} 
          />
          <KPIStatCard 
-           title="Books Returned" 
+           title={t("history.booksReturned")} 
            value={stats.returned} 
            icon={<CheckCircleOutlined/>} 
            color={token.colorSuccess} 
@@ -87,7 +87,7 @@ function ReturnPage() {
           grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 3, xl: 3, xxl: 4 }}
           dataSource={history}
           renderItem={(item) => {
-            const isReturn = item.action === 'return';
+            const isReturn = item.action === 'return' || !!item.returnDate;
             const color = isReturn ? token.colorSuccess : token.colorPrimary;
             const icon = isReturn ? <CheckCircleOutlined /> : <BookOutlined />;
             
@@ -107,11 +107,13 @@ function ReturnPage() {
                         />
                         <div style={{ flex: 1 }}>
                              <Text strong style={{ fontSize: 16, display: 'block', marginBottom: 4 }}>
-                                {item.title || "Unknown Book"}
+                                <Link to={`/book/${item.bookId || item.book?._id}`} style={{ color: 'inherit' }}>
+                                    {item.title || "Unknown Book"}
+                                </Link>
                              </Text>
                              <div style={{ marginBottom: 8 }}>
                                 <Tag color={isReturn ? "green" : "blue"}>
-                                    {isReturn ? "Returned" : "Borrowed"}
+                                    {isReturn ? t("history.returned") : t("history.borrowing")}
                                 </Tag>
                              </div>
                              <Text type="secondary" style={{ fontSize: 13 }}>

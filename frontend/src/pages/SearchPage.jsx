@@ -173,11 +173,11 @@ const SearchPage = () => {
     
     try {
       await borrowBook(bookId, token);
-      showBorrowSuccessModal(title, "Due in 30 days");
+      showBorrowSuccessModal(t, title);
       fetchData(); // Refresh state
     } catch (error) {
       if (isBorrowLimitError(error)) {
-        showBorrowLimitModal();
+        showBorrowLimitModal(t);
       } else {
         message.error(extractErrorMessage(error));
       }
@@ -392,7 +392,7 @@ const SearchPage = () => {
                           disabled={book.copies <= 0 || userBorrowedBooks.has(book._id || book.id)}
                           onClick={() => handleBorrow(book._id || book.id, book.title, book.copies)}
                         >
-                          {book.copies <= 0 ? "Out of Stock" : userBorrowedBooks.has(book._id || book.id) ? "Borrowed" : "Borrow"}
+                          {book.copies <= 0 ? t("common.outOfStock") : userBorrowedBooks.has(book._id || book.id) ? t("common.borrowed") : t("common.borrowNow")}
                         </Button>
                       ]}
                       style={{ padding: 16 }}

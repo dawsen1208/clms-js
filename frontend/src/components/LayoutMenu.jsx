@@ -132,14 +132,14 @@ const LayoutMenu = ({ onLogout, children }) => {
   const userMenu = (
     <Menu>
       <Menu.Item key="profile" icon={<UserOutlined />} onClick={() => navigate('/profile')}>
-        Profile
+        {t("common.profile")}
       </Menu.Item>
       <Menu.Item key="settings" icon={<SettingOutlined />} onClick={() => navigate('/settings')}>
-        Settings
+        {t("common.settings")}
       </Menu.Item>
       <Menu.Divider />
       <Menu.Item key="logout" icon={<LogoutOutlined />} danger onClick={onLogout}>
-        Logout
+        {t("common.logout")}
       </Menu.Item>
     </Menu>
   );
@@ -285,7 +285,7 @@ const LayoutMenu = ({ onLogout, children }) => {
                  style={{ width: '100%' }}
                >
                  <Input.Search 
-                   placeholder="Search books..." 
+                   placeholder={t("common.searchBooks")} 
                    allowClear
                    onSearch={(value) => navigate(`/search?q=${value}`)}
                    enterButton

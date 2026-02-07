@@ -23,6 +23,7 @@ import {
   CheckCircleOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import PageContainer from "../components/common/PageContainer";
 import PageHeader from "../components/common/PageHeader";
@@ -140,7 +141,11 @@ const BorrowPage = () => {
       >
         <Row gutter={24} align="middle">
           <Col xs={24} md={12}>
-            <Title level={4} style={{ marginBottom: 4 }}>{book.title}</Title>
+            <Title level={4} style={{ marginBottom: 4 }}>
+              <Link to={`/book/${book._id || book.id}`} style={{ color: 'inherit' }}>
+                {book.title}
+              </Link>
+            </Title>
             <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
               Borrowed on {dayjs(book.borrowDate).format("MMM D, YYYY")}
             </Text>
@@ -199,7 +204,7 @@ const BorrowPage = () => {
       <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
         <Col xs={24} sm={8}>
           <KPIStatCard 
-            title="Active Loans" 
+            title={t("common.activeLoans")} 
             value={stats.total} 
             icon={<ClockCircleOutlined />} 
             color="#1890ff"
@@ -208,7 +213,7 @@ const BorrowPage = () => {
         </Col>
         <Col xs={24} sm={8}>
            <KPIStatCard 
-            title="Pending Requests" 
+            title={t("common.pendingRequests")} 
             value={stats.pending} 
             icon={<SyncOutlined />} 
             color="#faad14"
@@ -217,7 +222,7 @@ const BorrowPage = () => {
         </Col>
         <Col xs={24} sm={8}>
            <KPIStatCard 
-            title="Overdue Books" 
+            title={t("common.overdueBooks")} 
             value={stats.overdue} 
             icon={<ExclamationCircleOutlined />} 
             color="#ff4d4f"
@@ -226,7 +231,7 @@ const BorrowPage = () => {
         </Col>
       </Row>
 
-      <Title level={4} style={{ marginBottom: 16 }}>Current Loans</Title>
+      <Title level={4} style={{ marginBottom: 16 }}>{t("titles.currentBorrowings")}</Title>
       
       {loading ? (
         <Skeleton active paragraph={{ rows: 4 }} />

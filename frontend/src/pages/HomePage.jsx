@@ -156,7 +156,7 @@ const HomePage = () => {
       <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
         <Col xs={24} sm={8}>
           <KPIStatCard 
-            title="Active Loans" 
+            title={t("common.activeLoans")} 
             value={stats.active} 
             icon={<BookOutlined />} 
             color="#1890ff"
@@ -258,17 +258,17 @@ const HomePage = () => {
                     case 'return':
                         actionIcon = <CheckCircleOutlined />;
                         actionColor = '#52c41a';
-                        actionText = 'Returned';
+                        actionText = t("history.returned");
                         break;
                     case 'renew':
                         actionIcon = <SyncOutlined />;
                         actionColor = '#faad14';
-                        actionText = 'Renewed';
+                        actionText = t("history.renewed");
                         break;
                     default: // borrow
                         actionIcon = <BookOutlined />;
                         actionColor = '#1890ff';
-                        actionText = 'Borrowed';
+                        actionText = t("common.borrowed");
                 }
 
                 return (

@@ -8,12 +8,16 @@ export const isBorrowLimitError = (msg) => {
 };
 
 // Show a unified English modal when user exceeds monthly limit
-export const showBorrowLimitModal = () => {
+export const showBorrowLimitModal = (t) => {
   try {
+    const title = t ? t("popular.limitTitle") : "Borrowing Limit Reached";
+    const content = t ? t("popular.limitMsg") : "You have reached the maximum number of borrowed books for the current period. Please return some books before borrowing new ones.";
+    const okText = t ? t("common.confirm") : "OK";
+
     Modal.error({
-      title: "Borrowing Limit Reached",
-      content: "You have reached the maximum number of borrowed books for the current period. Please return some books before borrowing new ones.",
-      okText: "OK",
+      title,
+      content,
+      okText,
       centered: true,
       zIndex: 9999,
       maskClosable: true,
@@ -23,19 +27,23 @@ export const showBorrowLimitModal = () => {
     try { console.warn("Modal.error failed, fallback to message:", e); } catch {}
     // Lazy import to avoid circular
     import("antd").then(({ message }) => {
-      message.error("Borrowing Limit Reached");
+      message.error(t ? t("popular.limitTitle") : "Borrowing Limit Reached");
     }).catch(() => {});
   }
 };
 
 // Show a unified success modal on borrow success
-export const showBorrowSuccessModal = (bookTitle = "") => {
-  const title = bookTitle ? `"${bookTitle}" Borrowed Successfully` : "Borrowed Successfully";
+export const showBorrowSuccessModal = (t, bookTitle = "") => {
+  const defaultTitle = bookTitle ? `"${bookTitle}" Borrowed Successfully` : "Borrowed Successfully";
+  const title = t ? (bookTitle ? t("search.borrowSuccessMsg", { title: bookTitle }) : t("popular.successTitle")) : defaultTitle;
+  const content = t ? t("popular.successMsg") : "Your borrow request has been completed. Enjoy reading!";
+  const okText = t ? t("common.confirm") : "Nice";
+
   try {
     Modal.success({
       title,
-      content: "Your borrow request has been completed. Enjoy reading!",
-      okText: "Nice",
+      content,
+      okText,
       centered: true,
       zIndex: 9999,
       maskClosable: true,

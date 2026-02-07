@@ -21,7 +21,7 @@ import {
 import { blue, gold, purple } from "@ant-design/colors";
 import dayjs from "dayjs";
 import { useLanguage } from "../contexts/LanguageContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   getProfile,
   updateProfile,
@@ -150,6 +150,7 @@ function ProfilePage({ appearance }) {
 
         return {
           key: item._id || index,
+          bookId: item.bookId, // Added for navigation
           title: item.title,
           borrowDate: item.borrowDate,
           dueDate: item.dueDate,
@@ -263,7 +264,11 @@ function ProfilePage({ appearance }) {
       title: t("admin.bookTitle"), 
       dataIndex: "title", 
       key: "title",
-      render: (text) => <Text strong>{text}</Text>
+      render: (text, record) => (
+        <Link to={`/book/${record.bookId}`} style={{ fontWeight: 'bold' }}>
+          {text}
+        </Link>
+      )
     },
     { 
       title: t("admin.borrowDate"), 
@@ -277,7 +282,7 @@ function ProfilePage({ appearance }) {
       dataIndex: "dueDate", 
       key: "dueDate",
       render: (t, record) => {
-        if (record.isReturned) return <Tag color="default">Returned</Tag>;
+        if (record.isReturned) return <Tag color="default">{t("history.returned")}</Tag>;
         const dateStr = t ? dayjs(t).format("YYYY-MM-DD") : "-";
         if (record.dueStatus === "overdue") return <Tag color="error">{dateStr}</Tag>;
         if (record.dueStatus === "warning") return <Tag color="warning">{dateStr}</Tag>;
@@ -285,13 +290,13 @@ function ProfilePage({ appearance }) {
       }
     },
     { 
-      title: "Status", 
+      title: t("admin.status"), 
       key: "status",
       render: (_, record) => {
-        if (record.isReturned) return <Tag icon={<CheckCircleOutlined />} color="success">Returned</Tag>;
-        if (record.isRenewed) return <Tag icon={<SyncOutlined />} color="blue">Renewed</Tag>;
-        if (record.dueStatus === "overdue") return <Tag icon={<ClockCircleOutlined />} color="error">Overdue</Tag>;
-        return <Tag color="processing">Borrowed</Tag>;
+        if (record.isReturned) return <Tag icon={<CheckCircleOutlined />} color="success">{t("history.returned")}</Tag>;
+        if (record.isRenewed) return <Tag icon={<SyncOutlined />} color="blue">{t("history.renewed")}</Tag>;
+        if (record.dueStatus === "overdue") return <Tag icon={<ClockCircleOutlined />} color="error">{t("history.overdue")}</Tag>;
+        return <Tag color="processing">{t("history.borrowing")}</Tag>;
       }
     },
   ];
@@ -366,7 +371,7 @@ function ProfilePage({ appearance }) {
     <PageContainer>
       <PageHeader 
         title={t("profile.myProfile")}
-        subtitle="Manage your account settings and view history"
+        subtitle={t("profile.subtitle")}
         breadcrumbs={[
           { title: t("nav.home"), path: "/" },
           { title: t("profile.myProfile") }
@@ -443,7 +448,7 @@ function ProfilePage({ appearance }) {
             {/* Email Section */}
             <div style={{ marginBottom: 24, textAlign: 'left' }}>
               <Text type="secondary" style={{ fontSize: 12, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                Email Address
+                {t("profile.emailAddress")}
               </Text>
               {emailEditing ? (
                  <Space.Compact style={{ width: '100%', marginTop: 8 }}>
@@ -461,7 +466,7 @@ function ProfilePage({ appearance }) {
                     <MailOutlined style={{ color: themeToken.colorTextSecondary }} />
                     <Text strong>{email || t("profile.notSet")}</Text>
                   </Space>
-                  <Button type="link" size="small" onClick={() => setEmailEditing(true)}>Edit</Button>
+                  <Button type="link" size="small" onClick={() => setEmailEditing(true)}>{t("common.edit")}</Button>
                 </div>
               )}
             </div>
@@ -493,7 +498,7 @@ function ProfilePage({ appearance }) {
             </Col>
             <Col xs={12} sm={8}>
               <KPIStatCard 
-                title="Active Loans" 
+                title={t("common.activeLoans")} 
                 value={stats.active} 
                 icon={<ClockCircleOutlined />} 
                 color={gold[5]} 

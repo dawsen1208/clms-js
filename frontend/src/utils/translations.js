@@ -53,7 +53,11 @@ export const translations = {
       operationGuide: "Operation Guide",
       clickToViewGuide: "Click for Guide",
       clickToBack: "Click to Return",
-      feedback: "Feedback Center"
+      feedback: "Feedback Center",
+      pendingRequests: "Pending Requests",
+      overdueBooks: "Overdue Books",
+      remainingDays: "Due in {days} days",
+      overdueDays: "Overdue by {days} days"
     },
     nav: {
       home: "Home",
@@ -264,7 +268,8 @@ export const translations = {
       historyStats: "History",
       returnedStats: "Returned",
       renewedStats: "Renewed",
-      pendingRequestsStats: "Pending Requests"
+      pendingRequestsStats: "Pending Requests",
+      subtitle: "Manage your account settings and view history"
     },
     bookDetail: {
       author: "Author",
@@ -424,6 +429,7 @@ export const translations = {
       customBackground: "Custom Background (except Home)",
       language: "Language",
       title: "Settings",
+      settingsDesc: "Manage your account and preferences",
       settings: "Settings", // Added for compatibility
       themeMode: "Theme Mode",
       themeColor: "Theme Color",
@@ -1023,7 +1029,12 @@ export const translations = {
       operationGuide: "操作指南",
       clickToViewGuide: "点击查看指南",
       clickToBack: "点击返回",
-      feedback: "反馈中心"
+      feedback: "反馈中心",
+      activeLoans: "当前借阅",
+      pendingRequests: "待处理申请",
+      overdueBooks: "逾期书籍",
+      remainingDays: "剩余 {days} 天",
+      overdueDays: "逾期 {days} 天"
     },
     nav: {
       home: "首页",
@@ -1046,8 +1057,11 @@ export const translations = {
       returnDate: "归还日期",
       status: "状态",
       returned: "已归还",
+      renewed: "已续借",
       overdue: "已逾期",
       borrowing: "借阅中",
+      totalActivities: "活动总数",
+      booksReturned: "已还书籍",
     },
     guide: {
       search: {
@@ -1282,7 +1296,8 @@ export const translations = {
       historyStats: "历史借阅",
       returnedStats: "已归还",
       renewedStats: "已续借",
-      pendingRequestsStats: "待处理申请"
+      pendingRequestsStats: "待处理申请",
+      subtitle: "管理您的账户设置并查看历史记录"
     },
     search: {
       title: "探索藏书",
@@ -1404,6 +1419,7 @@ export const translations = {
       languageDesc: "选择您的首选语言",
       title: "设置",
       settings: "设置", // Added
+      settingsDesc: "管理您的账户和偏好设置",
       themeMode: "主题模式",
       themeModeDesc: "切换明亮与深色模式",
       themeColor: "主题色",
