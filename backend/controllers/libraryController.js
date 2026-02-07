@@ -113,20 +113,33 @@ export const approveRequestLibrary = async (req, res) => {
         }
       }
       
-      // 📝 创建归还历史记录
-      await BorrowHistory.create({
-        userId: request.userId,
-        bookId: request.bookId,
-        bookTitle: request.bookTitle,
-        bookAuthor: request.bookAuthor || record.bookAuthor || "",
-        action: "return",
-        borrowDate: record.borrowedAt,
-        dueDate: record.dueDate,
-        returnDate: new Date(),
-        isRenewed: record.renewed,
-        userName: request.userName,
-        renewCount: record.renewCount,
-      });
+      // 📝 更新或创建归还历史记录
+      const existingHistory = await BorrowHistory.findOne({
+         userId: request.userId,
+         bookId: request.bookId,
+         action: "borrow",
+         returnDate: { $exists: false }
+      }).sort({ createdAt: -1 });
+
+      if (existingHistory) {
+          existingHistory.returnDate = new Date();
+          existingHistory.action = "return"; // 标记为已归还
+          await existingHistory.save();
+      } else {
+          await BorrowHistory.create({
+            userId: request.userId,
+            bookId: request.bookId,
+            bookTitle: request.bookTitle,
+            bookAuthor: request.bookAuthor || record.bookAuthor || "",
+            action: "return",
+            borrowDate: record.borrowedAt,
+            dueDate: record.dueDate,
+            returnDate: new Date(),
+            isRenewed: record.renewed,
+            userName: request.userName,
+            renewCount: record.renewCount,
+          });
+      }
 
       // 🔔 创建归还成功通知
       try {
@@ -250,21 +263,34 @@ export const markBookReturned = async (req, res) => {
         }
     }
 
-    // 4. 创建历史记录
+    // 4. 更新或创建历史记录
     try {
-        await BorrowHistory.create({
+        const existingHistory = await BorrowHistory.findOne({
             userId: record.userId,
             bookId: record.bookId,
-            bookTitle: record.bookTitle,
-            bookAuthor: record.bookAuthor,
-            action: "return",
-            borrowDate: record.borrowedAt,
-            dueDate: record.dueDate,
-            returnDate: now,
-            isRenewed: record.renewed,
-            userName: record.userName,
-            renewCount: record.renewCount
-        });
+            action: "borrow",
+            returnDate: { $exists: false }
+        }).sort({ createdAt: -1 });
+
+        if (existingHistory) {
+            existingHistory.returnDate = now;
+            existingHistory.action = "return";
+            await existingHistory.save();
+        } else {
+            await BorrowHistory.create({
+                userId: record.userId,
+                bookId: record.bookId,
+                bookTitle: record.bookTitle,
+                bookAuthor: record.bookAuthor,
+                action: "return",
+                borrowDate: record.borrowedAt,
+                dueDate: record.dueDate,
+                returnDate: now,
+                isRenewed: record.renewed,
+                userName: record.userName,
+                renewCount: record.renewCount
+            });
+        }
     } catch (histErr) {
         console.error("❌ 创建历史记录失败 (非致命):", histErr);
     }
