@@ -7,7 +7,9 @@ import {
   RightOutlined,
   BookOutlined,
   UserOutlined,
-  CalendarOutlined
+  CalendarOutlined,
+  SyncOutlined,
+  CheckCircleOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -236,26 +238,53 @@ const HomePage = () => {
               loading={loading}
               itemLayout="horizontal"
               dataSource={history}
-              renderItem={(item) => (
-                <List.Item>
-                  <List.Item.Meta
-                    avatar={
-                       <Avatar 
-                         icon={<BookOutlined />} 
-                         style={{ backgroundColor: item.action === 'return' ? '#52c41a' : '#1890ff' }} 
-                       />
-                    }
-                    title={<Text strong>{item.bookTitle}</Text>}
-                    description={
-                      <Space direction="vertical" size={0}>
-                        <Text type="secondary" style={{ fontSize: 12 }}>
-                           {item.action === 'borrow' ? 'Borrowed' : item.action === 'renew' ? 'Renewed' : 'Returned'} on {new Date(item.date).toLocaleDateString()}
-                        </Text>
-                      </Space>
-                    }
-                  />
-                </List.Item>
-              )}
+              renderItem={(item) => {
+                let actionIcon;
+                let actionColor;
+                let actionText;
+
+                switch(item.action) {
+                    case 'return':
+                        actionIcon = <CheckCircleOutlined />;
+                        actionColor = '#52c41a';
+                        actionText = 'Returned';
+                        break;
+                    case 'renew':
+                        actionIcon = <SyncOutlined />;
+                        actionColor = '#faad14';
+                        actionText = 'Renewed';
+                        break;
+                    default: // borrow
+                        actionIcon = <BookOutlined />;
+                        actionColor = '#1890ff';
+                        actionText = 'Borrowed';
+                }
+
+                return (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={
+                         <Avatar 
+                           icon={actionIcon} 
+                           style={{ backgroundColor: actionColor }} 
+                         />
+                      }
+                      title={
+                          <Text strong>
+                              {actionText} <Text type="secondary" strong style={{ color: '#595959' }}>{item.bookTitle}</Text>
+                          </Text>
+                      }
+                      description={
+                        <Space direction="vertical" size={0}>
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                             {new Date(item.date).toLocaleDateString()}
+                          </Text>
+                        </Space>
+                      }
+                    />
+                  </List.Item>
+                );
+              }}
             />
             {history.length === 0 && !loading && (
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
