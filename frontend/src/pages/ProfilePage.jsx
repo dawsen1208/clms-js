@@ -33,6 +33,7 @@ import PageContainer from "../components/common/PageContainer";
 import PageHeader from "../components/common/PageHeader";
 import KPIStatCard from "../components/common/KPIStatCard";
 import { motion } from "framer-motion";
+import { getCleanImageUrl } from "../utils/imageUtils";
 
 const { Title, Text } = Typography;
 
@@ -55,19 +56,6 @@ function ProfilePage({ appearance }) {
   // User Data from Storage
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
   const userLS = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
-
-  const API_BASE = (import.meta.env.VITE_API_BASE?.trim() || window.location.origin).replace(/\/+$/, "");
-  const API_ROOT = API_BASE.replace(/\/api\/?$/, "");
-
-  // Helper: Clean Avatar URL
-  const getCleanAvatarUrl = (url) => {
-    if (!url) return null;
-    if (url.includes("localhost:5000")) {
-      return url.replace(/http(s)?:\/\/localhost:5000/, API_ROOT);
-    }
-    if (url.startsWith("http")) return url;
-    return `${API_ROOT}${url}`;
-  };
 
   // Derived Stats
   const stats = useMemo(() => {
@@ -96,7 +84,7 @@ function ProfilePage({ appearance }) {
       setEmail(u.email || "");
       setName(u.name || t("profile.unnamedUser"));
 
-      const fullAvatar = getCleanAvatarUrl(u.avatar);
+      const fullAvatar = getCleanImageUrl(u.avatar);
       setAvatarUrl(fullAvatar ? `${fullAvatar}?t=${Date.now()}` : null);
 
       const updatedUser = {

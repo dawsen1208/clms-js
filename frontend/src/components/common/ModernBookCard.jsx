@@ -14,6 +14,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { getCleanImageUrl } from '../../utils/imageUtils';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -63,7 +64,7 @@ const ModernBookCard = ({ book, onBorrow, onRenew, isBorrowed, isPending, loadin
   const bookId = _id || id;
   const isAvailable = copies > 0;
   
-  const displayCover = coverUrl || getRandomImage(bookId);
+  const displayCover = getCleanImageUrl(coverUrl) || getRandomImage(bookId);
   const categoryColor = categoryColors[category] || categoryColors["default"];
   const CategoryIcon = categoryIcons[category] || categoryIcons["default"];
 
