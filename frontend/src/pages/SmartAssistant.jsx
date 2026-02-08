@@ -481,7 +481,7 @@ function SmartAssistant() {
                 <Card
                   key={book._id}
                   title={book.title}
-                  style={{ minWidth: 280, borderRadius: 10 }}
+                  style={{ minWidth: 280, borderRadius: 10, cursor: 'move' }}
                   draggable
                   onDragStart={(e) => { e.dataTransfer.setData('text/plain', book._id); }}
                   extra={
