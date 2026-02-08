@@ -32,6 +32,7 @@ function BookDetail() {
   const { t } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
+  const [modal, contextHolder] = Modal.useModal();
   
   // State
   const [book, setBook] = useState(null);
@@ -132,7 +133,7 @@ function BookDetail() {
       return;
     }
     
-    Modal.confirm({
+    modal.confirm({
       title: t("borrow.confirmTitle") || "Confirm Borrow",
       content: t("borrow.confirmContent", { title: book.title }) || `Are you sure you want to borrow "${book.title}"?`,
       okText: t("common.confirm") || "Yes",
@@ -188,6 +189,7 @@ function BookDetail() {
 
   return (
     <PageContainer>
+      {contextHolder}
       <PageHeader 
         title={book.title}
         subtitle={book.author}

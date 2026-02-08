@@ -46,6 +46,7 @@ const { Search } = Input;
 
 const SearchPage = () => {
   const { t } = useLanguage();
+  const [modal, contextHolder] = Modal.useModal();
   const [loading, setLoading] = useState(false);
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
@@ -219,7 +220,7 @@ const SearchPage = () => {
     }
     
     // Add confirmation modal
-    Modal.confirm({
+    modal.confirm({
       title: t("borrow.confirmTitle") || "Confirm Borrow",
       content: t("borrow.confirmContent", { title }) || `Are you sure you want to borrow "${title}"?`,
       okText: t("common.confirm") || "Yes",
@@ -343,6 +344,7 @@ const SearchPage = () => {
 
   return (
     <PageContainer>
+      {contextHolder}
       <PageHeader 
         title="Browse Library"
         subtitle="Find your next great read."
