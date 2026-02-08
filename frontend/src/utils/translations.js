@@ -282,6 +282,7 @@ export const translations = {
       inStock: "In Stock",
       rating: "Rating",
       reviews: "Reviews",
+      actions: "Actions",
       noDescription: "No description available",
       userReviews: "User Reviews",
       stars: "Stars",

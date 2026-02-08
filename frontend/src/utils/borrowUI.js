@@ -15,14 +15,18 @@ export const showBorrowLimitModal = (t) => {
     const okText = t ? t("common.confirm") : "OK";
 
     console.log("Showing borrow limit modal via Modal.error");
-    Modal.error({
-      title,
-      content,
-      okText,
-      centered: true,
-      zIndex: 9999,
-      maskClosable: true,
-    });
+    
+    // Slight delay to ensure any previous confirm modal is closed
+    setTimeout(() => {
+      Modal.error({
+        title,
+        content,
+        okText,
+        centered: true,
+        zIndex: 9999,
+        maskClosable: true,
+      });
+    }, 100);
   } catch (e) {
     console.error("Error showing borrow limit modal:", e);
     // Fallback: ensure user sees something
