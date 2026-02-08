@@ -1221,6 +1221,8 @@ export const translations = {
       applyReturn: "申请归还",
       borrowSuccess: "借阅申请提交成功",
       borrowFailed: "借阅申请提交失败",
+      confirmTitle: "确认借阅",
+      confirmContent: "您确定要借阅“{title}”吗？",
       dueDate: "到期",
       selectDate: "选择新日期",
       requestStatus: "状态",
