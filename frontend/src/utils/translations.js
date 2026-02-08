@@ -223,7 +223,9 @@ export const translations = {
       returnSubmitted: "Return request submitted, awaiting admin approval",
       notFound: "Borrow record not found",
       invalidId: "Invalid book ID",
-      submitFailed: "Failed to submit request, please try again later"
+      submitFailed: "Failed to submit request, please try again later",
+      confirmTitle: "Confirm Borrow",
+      confirmContent: "Are you sure you want to borrow \"{title}\"?"
     },
     profile: {
       myProfile: "My Profile",

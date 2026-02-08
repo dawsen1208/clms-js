@@ -55,7 +55,6 @@ function SmartAssistant() {
   const [loading, setLoading] = useState(false);
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
   // Controlled modals for robust visibility
-  const [limitOpen, setLimitOpen] = useState(false);
   const [successTitle, setSuccessTitle] = useState("");
 
   // 🔤 Normalize backend strategy text based on language
@@ -152,13 +151,13 @@ function SmartAssistant() {
           url: err?.config?.url,
           status: err?.response?.status,
         });
-        setLimitOpen(true);
+        showBorrowLimitModal(t);
         return;
       }
       const backendMsg = extractErrorMessage(err);
       if (isBorrowLimitError(backendMsg)) {
         console.warn("🔴 Borrow limit matched by message", { backendMsg });
-        setLimitOpen(true);
+        showBorrowLimitModal(t);
         return;
       }
       // Fallback: detect by HTTP status and route
@@ -166,7 +165,7 @@ function SmartAssistant() {
       const url = err?.config?.url || "";
       if (status === 400 && url.includes("/library/borrow/")) {
         console.warn("🔴 Borrow limit fallback by status+route", { status, url });
-        setLimitOpen(true);
+        showBorrowLimitModal(t);
         return;
       }
       message.error(backendMsg || t("assistant.borrowFailed"));
