@@ -34,6 +34,7 @@ import {
   BankOutlined,
   BgColorsOutlined
 } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import PageContainer from "../components/common/PageContainer";
 import PageHeader from "../components/common/PageHeader";
@@ -46,6 +47,7 @@ const { Search } = Input;
 
 const SearchPage = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [modal, contextHolder] = Modal.useModal();
   const [loading, setLoading] = useState(false);
   const [books, setBooks] = useState([]);
@@ -447,26 +449,50 @@ const SearchPage = () => {
                 <List
                   itemLayout="horizontal"
                   dataSource={filteredBooks}
-                  renderItem={(book) => (
+                  renderItem={(book) => {
+                    const categoryColor = categoryColors[book.category] || categoryColors["default"];
+                    const CategoryIcon = categoryIcons[book.category] || categoryIcons["default"];
+                    
+                    return (
                     <List.Item 
                       actions={[
                         <Button 
                           type="primary" 
                           disabled={book.copies <= 0 || userBorrowedBooks.has(book._id || book.id)}
-                          onClick={() => handleBorrow(book._id || book.id, book.title, book.copies)}
+                          onClick={(e) => {
+                             e.stopPropagation();
+                             handleBorrow(book._id || book.id, book.title, book.copies);
+                          }}
                         >
                           {book.copies <= 0 ? t("common.outOfStock") : userBorrowedBooks.has(book._id || book.id) ? t("common.borrowed") : t("common.borrowNow")}
                         </Button>
                       ]}
-                      style={{ padding: 16 }}
+                      style={{ padding: 16, cursor: 'pointer' }}
+                      onClick={() => navigate(`/book/${book._id || book.id}`)}
+                      className="list-item-hover"
                     >
                       <List.Item.Meta
-                        avatar={<div style={{ width: 48, height: 64, background: '#f0f0f0', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><BookOutlined /></div>}
-                        title={<Text strong>{book.title}</Text>}
+                        avatar={
+                          <div style={{ 
+                            width: 60, 
+                            height: 80, 
+                            backgroundColor: categoryColor, 
+                            borderRadius: 8, 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            fontSize: 24,
+                            color: '#fff',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+                          }}>
+                            {CategoryIcon}
+                          </div>
+                        }
+                        title={<Text strong style={{ fontSize: 16 }}>{book.title}</Text>}
                         description={
-                          <Space direction="vertical" size={0}>
+                          <Space direction="vertical" size={4}>
                              <Text type="secondary">by {book.author}</Text>
-                             <Tag>{book.category}</Tag>
+                             <Tag color="blue">{book.category}</Tag>
                           </Space>
                         }
                       />
@@ -476,7 +502,8 @@ const SearchPage = () => {
                         </Text>
                       </div>
                     </List.Item>
-                  )}
+                    );
+                  }}
                 />
               </div>
             )
@@ -497,6 +524,14 @@ const SearchPage = () => {
         <FilterPanel />
       </Drawer>
       
+      <style jsx>{`
+        .list-item-hover {
+          transition: background-color 0.3s;
+        }
+        .list-item-hover:hover {
+          background-color: #fafafa;
+        }
+      `}</style>
       <style jsx>{`
         .custom-scroll::-webkit-scrollbar {
           width: 6px;

@@ -158,14 +158,17 @@ function SmartAssistant() {
             
             // Inline Borrow Limit Modal to ensure visibility
             const showLimitModal = () => {
-              Modal.error({
-                title: t("popular.limitTitle"),
-                content: t("popular.limitMsg"),
-                okText: t("common.confirm"),
-                centered: true,
-                zIndex: 9999,
-                maskClosable: true,
-              });
+              // Delay slightly to ensure confirm modal is closed/closing
+              setTimeout(() => {
+                Modal.error({
+                  title: t("popular.limitTitle"),
+                  content: t("popular.limitMsg"),
+                  okText: t("common.confirm"),
+                  centered: true,
+                  zIndex: 9999,
+                  maskClosable: true,
+                });
+              }, 100);
             };
 
             if (err?.__borrowLimit) {
@@ -174,13 +177,13 @@ function SmartAssistant() {
                 status: err?.response?.status,
               });
               showLimitModal();
-              return;
+              return; // Ensure onOk promise resolves
             }
             const backendMsg = extractErrorMessage(err);
             if (isBorrowLimitError(backendMsg)) {
               console.warn("🔴 Borrow limit matched by message", { backendMsg });
               showLimitModal();
-              return;
+              return; // Ensure onOk promise resolves
             }
             // Fallback: detect by HTTP status and route
             const status = err?.response?.status;
@@ -188,7 +191,7 @@ function SmartAssistant() {
             if (status === 400 && url.includes("/library/borrow/")) {
               console.warn("🔴 Borrow limit fallback by status+route", { status, url });
               showLimitModal();
-              return;
+              return; // Ensure onOk promise resolves
             }
             message.error(backendMsg || t("assistant.borrowFailed"));
           }
