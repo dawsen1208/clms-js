@@ -48,11 +48,14 @@ API.interceptors.response.use(
       "Request failed. Please try again later.";
 
     // Borrow-limit detection (flag for downstream handlers)
-    const isBorrowPath = url.includes("/library/borrow/");
-    const isLimitByMsg = /借阅上限|30天内借阅上限|本月借阅数量已达上限|达到同时借阅上限/.test(
-      String(err?.response?.data?.message || "")
-    );
+    // Robust check for borrow endpoint (handling partial/relative paths)
+    const isBorrowPath = url.includes("/borrow/") || url.includes("library/borrow");
+    
+    const rawMsg = err?.response?.data?.message || "";
+    const isLimitByMsg = /借阅上限|30天内借阅上限|本月借阅数量已达上限|达到同时借阅上限/.test(String(rawMsg));
+    
     if ((status === 400 && isBorrowPath) || isLimitByMsg) {
+      console.warn("🚫 Borrow limit detected in interceptor", { url, status, msg: rawMsg });
       err.__borrowLimit = true;
       // Avoid duplicate toast for borrow-limit errors; let page show modal
       return Promise.reject(err);

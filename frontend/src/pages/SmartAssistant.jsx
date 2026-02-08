@@ -426,21 +426,6 @@ function SmartAssistant() {
       >
         <div>{t("assistant.borrowSuccessMsg")}</div>
       </Modal>
-      {/* Controlled Limit Modal to guarantee visibility */}
-      <Modal
-        open={limitOpen}
-        title={t("assistant.borrowLimitTitle")}
-        onOk={() => setLimitOpen(false)}
-        onCancel={() => setLimitOpen(false)}
-        centered
-        maskClosable
-        getContainer={false}
-        zIndex={10000}
-      >
-        <div>
-          {t("assistant.limitContent")}
-        </div>
-      </Modal>
       
       <PageHeader 
         title={t("assistant.title")}
