@@ -33,11 +33,13 @@ import {
   getUserRequestsLibrary, 
   requestRenewLibrary 
 } from "../api";
+import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
 
 const { Title, Text } = Typography;
 
 const BorrowPage = () => {
   const { t } = useLanguage();
+  const [modal, contextHolder] = Modal.useModal();
   const [loading, setLoading] = useState(true);
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -115,7 +117,17 @@ const BorrowPage = () => {
       setRenewModalOpen(false);
       fetchData();
     } catch (error) {
-      message.error("Failed to submit renew request");
+      console.error("Renew error:", error);
+      if (error.__borrowLimit) {
+        showBorrowLimitModal(t, modal);
+        return;
+      }
+      const msg = extractErrorMessage(error);
+      if (isBorrowLimitError(msg)) {
+        showBorrowLimitModal(t, modal);
+      } else {
+        message.error(msg || "Failed to submit renew request");
+      }
     }
   };
 
@@ -195,6 +207,7 @@ const BorrowPage = () => {
 
   return (
     <PageContainer>
+      {contextHolder}
       <PageHeader 
         title="My Library"
         subtitle="Manage your borrowed books and requests."

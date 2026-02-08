@@ -3,22 +3,24 @@ import { Modal, message } from "antd";
 // Detect backend borrow-limit error messages (Chinese variants)
 export const isBorrowLimitError = (msg) => {
   if (!msg) return false;
-  const s = String(msg);
-  return /借阅上限|30天内借阅上限|本月借阅数量已达上限|达到同时借阅上限/.test(s);
+  const s = String(msg).toLowerCase();
+  return /借阅上限|30天内借阅上限|本月借阅数量已达上限|达到同时借阅上限|limit reached|borrowing limit|maximum number|exceeded/.test(s);
 };
 
 // Show a unified English modal when user exceeds monthly limit
-export const showBorrowLimitModal = (t) => {
+export const showBorrowLimitModal = (t, modalInstance) => {
   try {
     const title = t ? t("popular.limitTitle") : "Borrowing Limit Reached";
     const content = t ? t("popular.limitMsg") : "You have reached the maximum number of borrowed books for the current period. Please return some books before borrowing new ones.";
     const okText = t ? t("common.confirm") : "OK";
 
-    console.log("Showing borrow limit modal via Modal.error");
+    console.log("Showing borrow limit modal");
     
+    const show = modalInstance ? modalInstance.error : Modal.error;
+
     // Slight delay to ensure any previous confirm modal is closed
     setTimeout(() => {
-      Modal.error({
+      show({
         title,
         content,
         okText,

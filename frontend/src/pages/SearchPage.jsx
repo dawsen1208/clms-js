@@ -239,7 +239,7 @@ const SearchPage = () => {
           
           if (error.__borrowLimit || isBorrowLimitError(errorMsg)) {
             console.log("Triggering borrow limit modal");
-            showBorrowLimitModal(t);
+            showBorrowLimitModal(t, modal);
           } else {
             message.error(errorMsg);
           }

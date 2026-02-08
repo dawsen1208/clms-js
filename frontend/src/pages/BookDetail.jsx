@@ -149,12 +149,12 @@ function BookDetail() {
         } catch (e) {
           console.error("BookDetail borrow error:", e);
           if (e.__borrowLimit) {
-            showBorrowLimitModal(t);
+            showBorrowLimitModal(t, modal);
             return;
           }
           const errorMsg = extractErrorMessage(e);
           if (isBorrowLimitError(errorMsg)) {
-            showBorrowLimitModal(t);
+            showBorrowLimitModal(t, modal);
           } else {
             message.error(errorMsg);
           }

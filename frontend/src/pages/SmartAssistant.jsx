@@ -47,6 +47,7 @@ const { useBreakpoint } = Grid;
 
 function SmartAssistant() {
   const { t, language } = useLanguage();
+  const [modal, contextHolder] = Modal.useModal();
   /* =========================================================
      🤖 Smart Recommendations
      ========================================================= */
@@ -129,7 +130,7 @@ function SmartAssistant() {
       }
 
       if (available <= 0) {
-        Modal.info({
+        modal.info({
           title: t("assistant.outOfStockTitle"),
           content: t("assistant.outOfStockMsg"),
           okText: t("assistant.gotIt"),
@@ -141,7 +142,7 @@ function SmartAssistant() {
       }
 
       // Confirm before borrowing
-      Modal.confirm({
+      modal.confirm({
         title: t("borrow.confirmTitle"),
         content: t("borrow.confirmContent", { title }),
         okText: t("common.confirm"),
@@ -156,46 +157,23 @@ function SmartAssistant() {
           } catch (err) {
             console.error("❌ Borrow failed:", err);
             
-            // Inline Borrow Limit Modal to ensure visibility
-            const showLimitModal = () => {
-              // Delay slightly to ensure confirm modal is closed/closing
-              setTimeout(() => {
-                Modal.error({
-                  title: t("popular.limitTitle"),
-                  content: t("popular.limitMsg"),
-                  okText: t("common.confirm"),
-                  centered: true,
-                  zIndex: 9999,
-                  maskClosable: true,
-                });
-              }, 100);
-            };
-
             if (err?.__borrowLimit) {
               console.warn("🔴 Borrow limit flagged by interceptor", {
                 url: err?.config?.url,
                 status: err?.response?.status,
               });
-              showLimitModal();
-              return; // Ensure onOk promise resolves
+              showBorrowLimitModal(t, modal);
+              return;
             }
-            const backendMsg = extractErrorMessage(err);
-            if (isBorrowLimitError(backendMsg)) {
-              console.warn("🔴 Borrow limit matched by message", { backendMsg });
-              showLimitModal();
-              return; // Ensure onOk promise resolves
+
+            const msg = extractErrorMessage(err);
+            if (isBorrowLimitError(msg)) {
+              showBorrowLimitModal(t, modal);
+              return;
             }
-            // Fallback: detect by HTTP status and route
-            const status = err?.response?.status;
-            const url = err?.config?.url || "";
-            if (status === 400 && url.includes("/library/borrow/")) {
-              console.warn("🔴 Borrow limit fallback by status+route", { status, url });
-              showLimitModal();
-              return; // Ensure onOk promise resolves
-            }
-            message.error(backendMsg || t("assistant.borrowFailed"));
+            message.error(msg);
           }
-        }
+        },
       });
     } catch (err) {
       console.error("❌ Borrow check failed:", err);
@@ -443,6 +421,7 @@ function SmartAssistant() {
      ========================================================= */
   return (
     <PageContainer>
+      {contextHolder}
       {/* Controlled Success Modal to guarantee visibility */}
       <Modal
         open={!!successTitle}

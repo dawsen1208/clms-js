@@ -52,9 +52,9 @@ API.interceptors.response.use(
     const isBorrowPath = url.includes("/borrow/") || url.includes("library/borrow");
     
     const rawMsg = err?.response?.data?.message || "";
-    const isLimitByMsg = /借阅上限|30天内借阅上限|本月借阅数量已达上限|达到同时借阅上限/.test(String(rawMsg));
+    const isLimitByMsg = /借阅上限|30天内借阅上限|本月借阅数量已达上限|达到同时借阅上限|limit reached|borrowing limit|maximum number|exceeded/i.test(String(rawMsg));
     
-    if ((status === 400 && isBorrowPath) || isLimitByMsg) {
+    if (((status === 400 || status === 403) && isBorrowPath) || isLimitByMsg) {
       console.warn("🚫 Borrow limit detected in interceptor", { url, status, msg: rawMsg });
       err.__borrowLimit = true;
       // Avoid duplicate toast for borrow-limit errors; let page show modal
