@@ -15,7 +15,8 @@ import {
   Radio,
   Empty,
   Badge,
-  Switch
+  Switch,
+  Modal
 } from "antd";
 import {
   SearchOutlined,
@@ -24,7 +25,14 @@ import {
   BarsOutlined,
   SortAscendingOutlined,
   ReloadOutlined,
-  BookOutlined
+  BookOutlined,
+  ReadOutlined,
+  ExperimentOutlined,
+  RocketOutlined,
+  HourglassOutlined,
+  UserOutlined,
+  BankOutlined,
+  BgColorsOutlined
 } from "@ant-design/icons";
 import { useLanguage } from "../contexts/LanguageContext";
 import PageContainer from "../components/common/PageContainer";
