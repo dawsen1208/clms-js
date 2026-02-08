@@ -54,6 +54,7 @@ export const translations = {
       clickToViewGuide: "Click for Guide",
       clickToBack: "Click to Return",
       feedback: "Feedback Center",
+      activeLoans: "Active Loans",
       pendingRequests: "Pending Requests",
       overdueBooks: "Overdue Books",
       remainingDays: "Due in {days} days",
@@ -82,6 +83,8 @@ export const translations = {
       returned: "Returned",
       overdue: "Overdue",
       borrowing: "Borrowing",
+      totalActivities: "Total Activities",
+      booksReturned: "Books Returned",
     },
     guide: {
       search: {
