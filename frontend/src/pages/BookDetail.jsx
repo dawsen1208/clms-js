@@ -147,10 +147,11 @@ function BookDetail() {
           const res = await getBookDetail(id);
           setBook(res?.data);
         } catch (e) {
-          if (isBorrowLimitError(e?.response?.data?.message)) {
+          const errorMsg = extractErrorMessage(e);
+          if (isBorrowLimitError(errorMsg)) {
             showBorrowLimitModal(t);
           } else {
-            message.error(extractErrorMessage(e));
+            message.error(errorMsg);
           }
         } finally {
           // setActionLoading(false);

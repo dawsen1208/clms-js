@@ -231,10 +231,11 @@ const SearchPage = () => {
           message.success(t("borrow.borrowSuccess") || "Borrowed successfully!");
           fetchData(); // Refresh state
         } catch (error) {
-          if (isBorrowLimitError(error)) {
+          const errorMsg = extractErrorMessage(error);
+          if (isBorrowLimitError(errorMsg)) {
             showBorrowLimitModal(t);
           } else {
-            message.error(extractErrorMessage(error));
+            message.error(errorMsg);
           }
         }
       }

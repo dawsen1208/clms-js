@@ -682,7 +682,7 @@ export const translations = {
       successTitle: "Borrowed Successfully",
       successMsg: "Your borrow request has been completed. Enjoy reading!",
       limitTitle: "Borrowing Limit Reached",
-      limitMsg: "You have reached the maximum number of borrowed books for the current period. Please return some books before borrowing new ones.",
+      limitMsg: "You have reached the maximum number of borrowed books limit (5 books). Please return some books before borrowing new ones.",
       typeTitle: "Title",
       typeAuthor: "Author",
       typeCategory: "Category",
@@ -1145,7 +1145,7 @@ export const translations = {
       successTitle: "借阅成功",
       successMsg: "借阅申请已完成，祝您阅读愉快！",
       limitTitle: "达到借阅上限",
-      limitMsg: "您已达到当前周期的最大借阅数量，请先归还部分书籍后再借阅。"
+      limitMsg: "您已达到最大借阅数量限制（5本），请先归还部分书籍后再借阅。"
     },
     error: {
       pageLoad: "页面加载失败，请重新登录。"
