@@ -231,8 +231,12 @@ const SearchPage = () => {
           message.success(t("borrow.borrowSuccess") || "Borrowed successfully!");
           fetchData(); // Refresh state
         } catch (error) {
+          console.error("Borrow error object:", error);
           const errorMsg = extractErrorMessage(error);
-          if (isBorrowLimitError(errorMsg)) {
+          console.log("Extracted error message:", errorMsg);
+          
+          if (error.__borrowLimit || isBorrowLimitError(errorMsg)) {
+            console.log("Triggering borrow limit modal");
             showBorrowLimitModal(t);
           } else {
             message.error(errorMsg);

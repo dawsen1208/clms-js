@@ -4,7 +4,7 @@ import { Modal } from "antd";
 export const isBorrowLimitError = (msg) => {
   if (!msg) return false;
   const s = String(msg);
-  return /借阅上限|30天内借阅上限|本月借阅数量已达上限/.test(s);
+  return /借阅上限|30天内借阅上限|本月借阅数量已达上限|达到同时借阅上限/.test(s);
 };
 
 // Show a unified English modal when user exceeds monthly limit

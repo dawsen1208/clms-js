@@ -49,7 +49,7 @@ API.interceptors.response.use(
 
     // Borrow-limit detection (flag for downstream handlers)
     const isBorrowPath = url.includes("/library/borrow/");
-    const isLimitByMsg = /借阅上限|30天内借阅上限|本月借阅数量已达上限/.test(
+    const isLimitByMsg = /借阅上限|30天内借阅上限|本月借阅数量已达上限|达到同时借阅上限/.test(
       String(err?.response?.data?.message || "")
     );
     if ((status === 400 && isBorrowPath) || isLimitByMsg) {
