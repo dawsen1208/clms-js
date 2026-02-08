@@ -140,35 +140,63 @@ function SmartAssistant() {
         return;
       }
 
-      const res = await borrowBook(bookId, token);
-      setSuccessTitle(title);
-      message.success(res.data.message || t("assistant.borrowSuccessMsg"));
-      fetchRecommendations(); // ✅ Refresh recommendations after borrowing
+      // Confirm before borrowing
+      Modal.confirm({
+        title: t("borrow.confirmTitle"),
+        content: t("borrow.confirmContent", { title }),
+        okText: t("common.confirm"),
+        cancelText: t("common.cancel"),
+        centered: true,
+        onOk: async () => {
+          try {
+            const res = await borrowBook(bookId, token);
+            setSuccessTitle(title);
+            message.success(res.data.message || t("assistant.borrowSuccessMsg"));
+            fetchRecommendations(); // ✅ Refresh recommendations after borrowing
+          } catch (err) {
+            console.error("❌ Borrow failed:", err);
+            
+            // Inline Borrow Limit Modal to ensure visibility
+            const showLimitModal = () => {
+              Modal.error({
+                title: t("popular.limitTitle"),
+                content: t("popular.limitMsg"),
+                okText: t("common.confirm"),
+                centered: true,
+                zIndex: 9999,
+                maskClosable: true,
+              });
+            };
+
+            if (err?.__borrowLimit) {
+              console.warn("🔴 Borrow limit flagged by interceptor", {
+                url: err?.config?.url,
+                status: err?.response?.status,
+              });
+              showLimitModal();
+              return;
+            }
+            const backendMsg = extractErrorMessage(err);
+            if (isBorrowLimitError(backendMsg)) {
+              console.warn("🔴 Borrow limit matched by message", { backendMsg });
+              showLimitModal();
+              return;
+            }
+            // Fallback: detect by HTTP status and route
+            const status = err?.response?.status;
+            const url = err?.config?.url || "";
+            if (status === 400 && url.includes("/library/borrow/")) {
+              console.warn("🔴 Borrow limit fallback by status+route", { status, url });
+              showLimitModal();
+              return;
+            }
+            message.error(backendMsg || t("assistant.borrowFailed"));
+          }
+        }
+      });
     } catch (err) {
-      console.error("❌ Borrow failed:", err);
-      if (err?.__borrowLimit) {
-        console.warn("🔴 Borrow limit flagged by interceptor", {
-          url: err?.config?.url,
-          status: err?.response?.status,
-        });
-        showBorrowLimitModal(t);
-        return;
-      }
-      const backendMsg = extractErrorMessage(err);
-      if (isBorrowLimitError(backendMsg)) {
-        console.warn("🔴 Borrow limit matched by message", { backendMsg });
-        showBorrowLimitModal(t);
-        return;
-      }
-      // Fallback: detect by HTTP status and route
-      const status = err?.response?.status;
-      const url = err?.config?.url || "";
-      if (status === 400 && url.includes("/library/borrow/")) {
-        console.warn("🔴 Borrow limit fallback by status+route", { status, url });
-        showBorrowLimitModal(t);
-        return;
-      }
-      message.error(backendMsg || t("assistant.borrowFailed"));
+      console.error("❌ Borrow check failed:", err);
+      message.error(t("assistant.borrowFailed"));
     }
   };
 

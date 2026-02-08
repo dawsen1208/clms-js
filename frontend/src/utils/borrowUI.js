@@ -1,4 +1,4 @@
-import { Modal } from "antd";
+import { Modal, message } from "antd";
 
 // Detect backend borrow-limit error messages (Chinese variants)
 export const isBorrowLimitError = (msg) => {
@@ -26,11 +26,11 @@ export const showBorrowLimitModal = (t) => {
   } catch (e) {
     console.error("Error showing borrow limit modal:", e);
     // Fallback: ensure user sees something
-    try { console.warn("Modal.error failed, fallback to message:", e); } catch {}
-    // Lazy import to avoid circular
-    import("antd").then(({ message }) => {
+    try { 
       message.error(t ? t("popular.limitTitle") : "Borrowing Limit Reached");
-    }).catch(() => {});
+    } catch (_) {
+      console.warn("Message fallback failed", _);
+    }
   }
 };
 
@@ -51,9 +51,7 @@ export const showBorrowSuccessModal = (t, bookTitle = "") => {
       maskClosable: true,
     });
   } catch (_) {
-    import("antd").then(({ message }) => {
-      message.success(title);
-    }).catch(() => {});
+    message.success(title);
   }
 };
 
