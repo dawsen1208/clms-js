@@ -1,4 +1,3 @@
-// ✅ client/src/pages/SmartAssistant.jsx
 import { useEffect, useMemo, useState } from "react";
 import {
   Card,
@@ -20,8 +19,9 @@ import {
   InputNumber,
   Collapse,
   Radio,
+  Alert,
+  Grid
 } from "antd";
-import { Grid } from "antd";
 import {
   RobotOutlined,
   BookOutlined,
@@ -33,13 +33,17 @@ import {
   getBooks,
   borrowBook,
   getBookDetail,
-} from "../api"; // ✅ 统一封装API调用
-import { getBookComparison, getBooksLibrary } from "../api.js"; // ✅ 统一 API
+} from "../api";
+import { getBookComparison, getBooksLibrary } from "../api.js";
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage, showBorrowSuccessModal } from "../utils/borrowUI";
 import RadarChart from "../components/RadarChart.jsx";
 import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
+import PageContainer from "../components/common/PageContainer";
+import PageHeader from "../components/common/PageHeader";
+
+const { useBreakpoint } = Grid;
 
 function SmartAssistant() {
   const { t, language } = useLanguage();
@@ -139,7 +143,6 @@ function SmartAssistant() {
 
       const res = await borrowBook(bookId, token);
       setSuccessTitle(title);
-      // showBorrowSuccessModal(title); // We use local controlled modal instead
       message.success(res.data.message || t("assistant.borrowSuccessMsg"));
       fetchRecommendations(); // ✅ Refresh recommendations after borrowing
     } catch (err) {
@@ -150,14 +153,12 @@ function SmartAssistant() {
           status: err?.response?.status,
         });
         setLimitOpen(true);
-        // showBorrowLimitModal(); // We use local controlled modal
         return;
       }
       const backendMsg = extractErrorMessage(err);
       if (isBorrowLimitError(backendMsg)) {
         console.warn("🔴 Borrow limit matched by message", { backendMsg });
         setLimitOpen(true);
-        // showBorrowLimitModal();
         return;
       }
       // Fallback: detect by HTTP status and route
@@ -166,7 +167,6 @@ function SmartAssistant() {
       if (status === 400 && url.includes("/library/borrow/")) {
         console.warn("🔴 Borrow limit fallback by status+route", { status, url });
         setLimitOpen(true);
-        // showBorrowLimitModal();
         return;
       }
       message.error(backendMsg || t("assistant.borrowFailed"));
@@ -191,7 +191,6 @@ function SmartAssistant() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
-  const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
   const isMobile = !screens.md;
 
@@ -272,22 +271,7 @@ function SmartAssistant() {
   // ✅ 分页逻辑
   const startIdx = (currentPage - 1) * pageSize;
   const paginatedBooks = filteredBooks.slice(startIdx, startIdx + pageSize);
-  const comparisonData = allBooks.filter((b) => selectedIds.includes(b._id));
-
-
-
-  const comparisonColumns = [
-    { title: t("assistant.book"), dataIndex: "title", key: "title", render: (t) => <b>{t}</b> },
-    { title: t("bookDetail.author"), dataIndex: "author", key: "author" },
-    { title: t("bookDetail.category"), dataIndex: "category", key: "category" },
-    {
-      title: t("assistant.description"),
-      dataIndex: "description",
-      key: "description",
-      render: (text) => (text ? text.slice(0, 50) + (text.length > 50 ? "..." : "") : t("assistant.noDescription")),
-    },
-  ];
-
+  
   // 触发后端比较
   const handleCompare = async () => {
     if (selectedIds.length < 2 || selectedIds.length > 6) {
@@ -428,7 +412,7 @@ function SmartAssistant() {
      🧱 页面布局
      ========================================================= */
   return (
-    <div className="assistant-page" style={{ padding: "1.5rem" }}>
+    <PageContainer>
       {/* Controlled Success Modal to guarantee visibility */}
       <Modal
         open={!!successTitle}
@@ -457,21 +441,34 @@ function SmartAssistant() {
           {t("assistant.limitContent")}
         </div>
       </Modal>
-      <Card
-        title={
-          <div className="page-header">
-            <Typography.Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("assistant.title")}</Typography.Title>
-            <Typography.Text type="secondary">{t("assistant.subTitle")}</Typography.Text>
-            <div className="stats-grid">
-              <Statistic title={t("assistant.recommended")} value={headerStats.recommended} />
-              <Statistic title={t("assistant.selected")} value={headerStats.selected} />
-            </div>
-            <Typography.Text style={{ marginTop: 6 }} type="secondary">{strategy}</Typography.Text>
-          </div>
+      
+      <PageHeader 
+        title={t("assistant.title")}
+        subtitle={t("assistant.subTitle")}
+        extra={
+           <Space size="large">
+             <Statistic title={t("assistant.recommended")} value={headerStats.recommended} prefix={<RobotOutlined />} />
+             <Statistic title={t("assistant.selected")} value={headerStats.selected} prefix={<BarChartOutlined />} />
+           </Space>
         }
+      />
+      
+      {/* Strategy Info */}
+      <Alert
+        message={strategy}
+        type="info"
+        showIcon
+        icon={<RobotOutlined />}
+        style={{ marginBottom: 24, borderRadius: 8, border: 'none', background: '#e6f7ff' }}
+      />
+
+      {/* Recommendations Card */}
+      <Card
+        title={<span><RobotOutlined /> {t("assistant.recommended")}</span>}
+        bordered={false}
         style={{
           borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
           marginBottom: "2rem",
         }}
       >
@@ -512,19 +509,13 @@ function SmartAssistant() {
         )}
       </Card>
 
+      {/* Comparison Card */}
       <Card
-        title={
-          <div className="page-header">
-            <Typography.Title level={2} className="page-modern-title" style={{ margin: 0 }}>{t("titles.bookComparison")}</Typography.Title>
-            <Typography.Text type="secondary">{t("search.title")}</Typography.Text>
-            <div className="stats-grid">
-              <Statistic title={t("common.total")} value={headerStats.selected} />
-            </div>
-          </div>
-        }
+        title={<span><BarChartOutlined /> {t("titles.bookComparison")}</span>}
+        bordered={false}
         style={{
           borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
         }}
       >
         {/* 🔍 搜索栏 */}
@@ -745,7 +736,7 @@ function SmartAssistant() {
           </>
         )}
       </Card>
-    </div>
+    </PageContainer>
   );
 }
 
