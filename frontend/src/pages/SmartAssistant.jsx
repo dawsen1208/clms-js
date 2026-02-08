@@ -552,6 +552,8 @@ function SmartAssistant() {
               <Card
                 title={book.title}
                 size="small"
+                draggable
+                onDragStart={(e) => { e.dataTransfer.setData('text/plain', book._id); }}
                 extra={
                   <Space>
                     <Checkbox
@@ -566,6 +568,7 @@ function SmartAssistant() {
                 style={{
                   borderRadius: "10px",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                  cursor: "move",
                 }}
               >
                 <p>{t("bookDetail.author")}: {book.author || t("common.unknown")}</p>
