@@ -281,9 +281,9 @@ function ProfilePage({ appearance }) {
       title: t("borrow.dueDate"), 
       dataIndex: "dueDate", 
       key: "dueDate",
-      render: (t, record) => {
+      render: (dateValue, record) => {
         if (record.isReturned) return <Tag color="default">{t("history.returned")}</Tag>;
-        const dateStr = t ? dayjs(t).format("YYYY-MM-DD") : "-";
+        const dateStr = dateValue ? dayjs(dateValue).format("YYYY-MM-DD") : "-";
         if (record.dueStatus === "overdue") return <Tag color="error">{dateStr}</Tag>;
         if (record.dueStatus === "warning") return <Tag color="warning">{dateStr}</Tag>;
         return <Text>{dateStr}</Text>;

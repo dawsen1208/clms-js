@@ -284,7 +284,7 @@ function SmartAssistant() {
       title: t("assistant.description"),
       dataIndex: "description",
       key: "description",
-      render: (t) => (t ? t.slice(0, 50) + (t.length > 50 ? "..." : "") : t("assistant.noDescription")),
+      render: (text) => (text ? text.slice(0, 50) + (text.length > 50 ? "..." : "") : t("assistant.noDescription")),
     },
   ];
 
