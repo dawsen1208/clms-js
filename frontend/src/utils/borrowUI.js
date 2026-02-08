@@ -14,6 +14,7 @@ export const showBorrowLimitModal = (t) => {
     const content = t ? t("popular.limitMsg") : "You have reached the maximum number of borrowed books for the current period. Please return some books before borrowing new ones.";
     const okText = t ? t("common.confirm") : "OK";
 
+    console.log("Showing borrow limit modal via Modal.error");
     Modal.error({
       title,
       content,
@@ -23,6 +24,7 @@ export const showBorrowLimitModal = (t) => {
       maskClosable: true,
     });
   } catch (e) {
+    console.error("Error showing borrow limit modal:", e);
     // Fallback: ensure user sees something
     try { console.warn("Modal.error failed, fallback to message:", e); } catch {}
     // Lazy import to avoid circular

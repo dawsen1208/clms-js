@@ -420,8 +420,6 @@ function SmartAssistant() {
         onOk={() => setSuccessTitle("")}
         onCancel={() => setSuccessTitle("")}
         centered
-        maskClosable
-        getContainer={false}
         zIndex={10000}
       >
         <div>{t("assistant.borrowSuccessMsg")}</div>

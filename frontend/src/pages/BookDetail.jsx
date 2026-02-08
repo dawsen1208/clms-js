@@ -147,6 +147,7 @@ function BookDetail() {
           const res = await getBookDetail(id);
           setBook(res?.data);
         } catch (e) {
+          console.error("BookDetail borrow error:", e);
           if (e.__borrowLimit) {
             showBorrowLimitModal(t);
             return;
