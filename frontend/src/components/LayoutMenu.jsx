@@ -39,21 +39,21 @@ const LayoutMenu = ({ onLogout, children }) => {
   // Search AutoComplete State
   const [allBooks, setAllBooks] = useState([]);
   const [searchOptions, setSearchOptions] = useState([]);
+  const [booksLoaded, setBooksLoaded] = useState(false);
 
   useEffect(() => {
     const sessionUser = sessionStorage.getItem("user");
     const localUser = localStorage.getItem("user");
     setUser(JSON.parse(sessionUser || localUser || "{}"));
-    
-    // Fetch books for search suggestions
-    fetchBooks();
   }, []);
 
   const fetchBooks = async () => {
+    if (booksLoaded) return;
     try {
       const res = await getBooks();
       if (res && res.data) {
         setAllBooks(res.data);
+        setBooksLoaded(true);
       }
     } catch (error) {
       console.error("Failed to load books for search suggestions", error);
@@ -61,6 +61,10 @@ const LayoutMenu = ({ onLogout, children }) => {
   };
 
   const handleSearch = (value) => {
+    if (!booksLoaded) {
+       fetchBooks();
+    }
+    
     if (!value) {
       setSearchOptions([]);
       return;
@@ -282,6 +286,7 @@ const LayoutMenu = ({ onLogout, children }) => {
                  options={searchOptions}
                  onSelect={onSelect}
                  onSearch={handleSearch}
+                 onFocus={fetchBooks}
                  style={{ width: '100%' }}
                >
                  <Input.Search 

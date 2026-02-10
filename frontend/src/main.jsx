@@ -22,37 +22,45 @@ import {
   useLocation
 } from "react-router-dom";
 
+import { Spin } from "antd";
+
 // ✅ Global Components
-import LayoutMenu from "./components/LayoutMenu";
-import AdminMenu from "./components/AdminMenu";
-import SettingsPage from "./pages/SettingsPage";
+const LayoutMenu = React.lazy(() => import("./components/LayoutMenu"));
+const AdminMenu = React.lazy(() => import("./components/AdminMenu"));
+const SettingsPage = React.lazy(() => import("./pages/SettingsPage"));
 
 // ✅ Auth Pages
-import LoginPage from "./pages/LoginPage";
-import RegisterReader from "./pages/RegisterReader";
-import RegisterAdmin from "./pages/RegisterAdmin";
+const LoginPage = React.lazy(() => import("./pages/LoginPage"));
+const RegisterReader = React.lazy(() => import("./pages/RegisterReader"));
+const RegisterAdmin = React.lazy(() => import("./pages/RegisterAdmin"));
 
 // ✅ User Pages
-import HomePage from "./pages/HomePage";
-import SearchPage from "./pages/SearchPage";
-import BorrowPage from "./pages/BorrowPage";
-import ReturnPage from "./pages/ReturnPage";
-import ProfilePage from "./pages/ProfilePage";
-import SmartAssistant from "./pages/SmartAssistant";
-import BookDetail from "./pages/BookDetail";
-import FeedbackPage from "./pages/FeedbackPage";
-import NotificationPage from "./pages/NotificationPage";
+const HomePage = React.lazy(() => import("./pages/HomePage"));
+const SearchPage = React.lazy(() => import("./pages/SearchPage"));
+const BorrowPage = React.lazy(() => import("./pages/BorrowPage"));
+const ReturnPage = React.lazy(() => import("./pages/ReturnPage"));
+const ProfilePage = React.lazy(() => import("./pages/ProfilePage"));
+const SmartAssistant = React.lazy(() => import("./pages/SmartAssistant"));
+const BookDetail = React.lazy(() => import("./pages/BookDetail"));
+const FeedbackPage = React.lazy(() => import("./pages/FeedbackPage"));
+const NotificationPage = React.lazy(() => import("./pages/NotificationPage"));
 
 // ✅ Admin Pages
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminBookPage from "./pages/AdminBookPage";
-import AdminBorrowPage from "./pages/AdminBorrowPage";
-import AdminRequestPage from "./pages/AdminRequestPage";
-import AdminBorrowHistory from "./pages/AdminBorrowHistory";
-import AdminUserManagePage from "./pages/AdminUserManagePage";
-import AdminFeedbackPage from "./pages/AdminFeedbackPage";
-import AdminProfilePage from "./pages/AdminProfilePage";
-import AdminSettingsPage from "./pages/AdminSettingsPage";
+const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
+const AdminBookPage = React.lazy(() => import("./pages/AdminBookPage"));
+const AdminBorrowPage = React.lazy(() => import("./pages/AdminBorrowPage"));
+const AdminRequestPage = React.lazy(() => import("./pages/AdminRequestPage"));
+const AdminBorrowHistory = React.lazy(() => import("./pages/AdminBorrowHistory"));
+const AdminUserManagePage = React.lazy(() => import("./pages/AdminUserManagePage"));
+const AdminFeedbackPage = React.lazy(() => import("./pages/AdminFeedbackPage"));
+const AdminProfilePage = React.lazy(() => import("./pages/AdminProfilePage"));
+const AdminSettingsPage = React.lazy(() => import("./pages/AdminSettingsPage"));
+
+const PageLoading = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    <Spin size="large" tip="Loading..." />
+  </div>
+);
 
 console.log("✅ main.jsx loaded - Version: 2025-01-30 Fix Double Provider & HandleUpdate");
 
@@ -302,8 +310,9 @@ function App() {
 
   return (
     <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={enUS} theme={{ token: themeTokens, algorithm, cssVar: true }}>
-      <Routes>
-        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+      <React.Suspense fallback={<PageLoading />}>
+        <Routes>
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/register" element={<RegisterReader />} />
           <Route path="/register-admin" element={<RegisterAdmin />} />
 
@@ -345,7 +354,8 @@ function App() {
               )
             }
         />
-      </Routes>
+        </Routes>
+      </React.Suspense>
     </ConfigProvider>
   );
 }
