@@ -90,7 +90,7 @@ function LoginPage({ onLogin }) {
 
     // ✅ 如果未勾选“记住我”，只使用 sessionStorage（关闭浏览器后自动失效）
     if (!remember) {
-      console.log("ℹ️ 临时登录：关闭浏览器后自动登出");
+      console.log("ℹ️ Temporary login: auto-logout on browser close");
     }
     
     // ✅ 更新全局状态

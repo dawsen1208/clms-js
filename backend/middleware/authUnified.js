@@ -11,7 +11,7 @@ export const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ 
-        message: "未提供认证令牌，请先登录",
+        message: "No auth token provided, please login first.",
         code: "NO_TOKEN"
       });
     }
@@ -19,7 +19,7 @@ export const authMiddleware = (req, res, next) => {
     const token = authHeader.split(" ")[1];
     if (!token) {
       return res.status(401).json({ 
-        message: "认证令牌格式错误",
+        message: "Invalid auth token format.",
         code: "INVALID_TOKEN_FORMAT"
       });
     }
@@ -39,7 +39,7 @@ export const authMiddleware = (req, res, next) => {
     // 验证必要字段
     if (!req.user.id || !req.user.userId || !req.user.role) {
       return res.status(401).json({ 
-        message: "认证令牌数据不完整",
+        message: "Incomplete auth token data.",
         code: "INCOMPLETE_TOKEN_DATA"
       });
     }
@@ -48,14 +48,14 @@ export const authMiddleware = (req, res, next) => {
   } catch (error) {
     console.error("❌ 认证中间件错误:", error.message);
     
-    let errorMessage = "认证失败";
+    let errorMessage = "Authentication failed.";
     let errorCode = "AUTH_FAILED";
     
     if (error.name === "JsonWebTokenError") {
-      errorMessage = "无效的认证令牌";
+      errorMessage = "Invalid auth token.";
       errorCode = "INVALID_TOKEN";
     } else if (error.name === "TokenExpiredError") {
-      errorMessage = "认证令牌已过期，请重新登录";
+      errorMessage = "Auth token expired, please login again.";
       errorCode = "TOKEN_EXPIRED";
     }
     
@@ -73,7 +73,7 @@ export const authMiddleware = (req, res, next) => {
 export const requireAdmin = (req, res, next) => {
   if (req.user.role !== "Administrator") {
     return res.status(403).json({ 
-      message: "需要管理员权限",
+      message: "Admin privileges required.",
       code: "INSUFFICIENT_PRIVILEGES"
     });
   }
@@ -87,7 +87,7 @@ export const requireAdmin = (req, res, next) => {
 export const requireReader = (req, res, next) => {
   if (req.user.role !== "Reader") {
     return res.status(403).json({ 
-      message: "需要读者权限",
+      message: "Reader privileges required.",
       code: "INSUFFICIENT_PRIVILEGES"
     });
   }

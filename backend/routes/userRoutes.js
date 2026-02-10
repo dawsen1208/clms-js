@@ -61,11 +61,11 @@ router.post("/send-auth-code", authMiddleware, async (req, res) => {
     const userId = req.user.userId;
 
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      return res.status(400).json({ message: "请输入有效的邮箱地址" });
+      return res.status(400).json({ message: "Please enter a valid email address." });
     }
 
     const user = await User.findOne({ userId });
-    if (!user) return res.status(404).json({ message: "用户不存在" });
+    if (!user) return res.status(404).json({ message: "User not found." });
 
     // 生成6位数字验证码
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -78,14 +78,14 @@ router.post("/send-auth-code", authMiddleware, async (req, res) => {
     // 发送邮件 (Mock)
     sendEmailMock(
       email,
-      "【CLMS】邮箱绑定验证码",
-      `您的验证码/授权码是：${code}。\n请在页面输入此代码以完成绑定。\n此代码也将作为您开启双重认证后的登录授权码，请妥善保管。`
+      "[CLMS] Email Verification Code",
+      `Your verification/auth code is: ${code}.\nPlease enter this code on the page to complete binding.\nThis code will also serve as your login auth code after enabling 2FA, please keep it safe.`
     );
 
-    res.json({ message: "验证码已生成 (模拟模式)", code });
+    res.json({ message: "Verification code sent (mock mode)", code });
   } catch (err) {
     console.error("❌ 发送验证码失败:", err);
-    res.status(500).json({ message: "发送验证码失败" });
+    res.status(500).json({ message: "Failed to send verification code." });
   }
 });
 
@@ -95,10 +95,10 @@ router.post("/bind-email", authMiddleware, async (req, res) => {
     const { email, code } = req.body;
     const userId = req.user.userId;
 
-    if (!code) return res.status(400).json({ message: "请输入验证码" });
+    if (!code) return res.status(400).json({ message: "Please enter verification code." });
 
     const user = await User.findOne({ userId });
-    if (!user) return res.status(404).json({ message: "用户不存在" });
+    if (!user) return res.status(404).json({ message: "User not found." });
 
     // 验证代码
     if (
@@ -107,7 +107,7 @@ router.post("/bind-email", authMiddleware, async (req, res) => {
       !user.tempAuthCodeExpires || 
       user.tempAuthCodeExpires < new Date()
     ) {
-      return res.status(400).json({ message: "验证码无效或已过期" });
+      return res.status(400).json({ message: "Invalid or expired verification code." });
     }
 
     // 绑定成功
@@ -122,10 +122,10 @@ router.post("/bind-email", authMiddleware, async (req, res) => {
     
     await user.save();
 
-    res.json({ message: "邮箱绑定成功，授权码已保存", email: user.email });
+    res.json({ message: "Email bound successfully, auth code saved.", email: user.email });
   } catch (err) {
     console.error("❌ 绑定邮箱失败:", err);
-    res.status(500).json({ message: "绑定邮箱失败" });
+    res.status(500).json({ message: "Failed to bind email." });
   }
 });
 
@@ -136,18 +136,18 @@ router.post("/toggle-2fa", authMiddleware, async (req, res) => {
     const userId = req.user.userId;
 
     const user = await User.findOne({ userId });
-    if (!user) return res.status(404).json({ message: "用户不存在" });
+    if (!user) return res.status(404).json({ message: "User not found." });
 
     if (enabled && !user.authCode) {
-      return res.status(400).json({ message: "请先绑定邮箱并获取授权码" });
+      return res.status(400).json({ message: "Please bind email and get auth code first." });
     }
 
     user.twoFactorEnabled = enabled;
     await user.save();
 
-    res.json({ message: `双重认证已${enabled ? "开启" : "关闭"}`, twoFactorEnabled: user.twoFactorEnabled });
+    res.json({ message: `2FA ${enabled ? "enabled" : "disabled"}`, twoFactorEnabled: user.twoFactorEnabled });
   } catch (err) {
-    res.status(500).json({ message: "设置失败" });
+    res.status(500).json({ message: "Setup failed." });
   }
 });
 
@@ -156,21 +156,21 @@ router.post("/login/2fa", async (req, res) => {
   try {
     const { userId, code } = req.body;
     
-    if (!userId || !code) return res.status(400).json({ message: "参数缺失" });
+    if (!userId || !code) return res.status(400).json({ message: "Missing parameters." });
 
     const user = await User.findOne({ userId });
-    if (!user) return res.status(404).json({ message: "用户不存在" });
+    if (!user) return res.status(404).json({ message: "User not found." });
 
     // 🚫 检查黑名单
     if (user.isBlacklisted) {
       return res.status(403).json({ 
-        message: "您的账号已被列入黑名单，禁止登录。原因: " + (user.blacklistReason || "无") 
+        message: "Your account is blacklisted. Reason: " + (user.blacklistReason || "None") 
       });
     }
 
     // 验证授权码
     if (user.authCode !== code) {
-      return res.status(401).json({ message: "授权码错误" });
+      return res.status(401).json({ message: "Invalid auth code." });
     }
 
     // 登录成功，颁发 Token
@@ -196,7 +196,7 @@ router.post("/login/2fa", async (req, res) => {
     );
 
     res.json({
-      message: "登录成功",
+      message: "Login successful.",
       token,
       user: {
         id: user._id,
@@ -211,7 +211,7 @@ router.post("/login/2fa", async (req, res) => {
 
   } catch (err) {
     console.error("❌ 2FA登录失败:", err);
-    res.status(500).json({ message: "验证失败" });
+    res.status(500).json({ message: "Verification failed." });
   }
 });
 
@@ -223,7 +223,7 @@ router.post("/register", async (req, res) => {
     const { name, email, password, role, authCode } = req.body;
 
     if (!name || !password)
-      return res.status(400).json({ message: "请填写姓名和密码" });
+      return res.status(400).json({ message: "Please provide name and password." });
 
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters." });
@@ -231,15 +231,15 @@ router.post("/register", async (req, res) => {
 
     const nameStr = String(name).trim();
     const valid = /^(?!\d+$)[A-Za-z][A-Za-z0-9_ ]*$/.test(nameStr);
-    if (!valid) return res.status(400).json({ message: "用户名不合法：需以字母开头，仅允许字母、数字、下划线、空格，且不能为纯数字" });
+    if (!valid) return res.status(400).json({ message: "Invalid username: Must start with a letter, contain only letters, numbers, underscores, spaces, and cannot be purely numeric." });
     const exists = await User.findOne({ name: nameStr }).lean();
-    if (exists) return res.status(400).json({ message: "用户名已存在，请更换" });
+    if (exists) return res.status(400).json({ message: "Username already exists, please choose another." });
 
     let finalRole = role;
     if (role === "Administrator") {
       const adminCode = process.env.ADMIN_REGISTER_CODE || "admin";
       if (authCode?.trim().toLowerCase() !== adminCode.toLowerCase()) {
-        return res.status(403).json({ message: "管理员注册授权码错误" });
+        return res.status(403).json({ message: "Invalid admin registration code." });
       }
     } else {
       finalRole = "Reader";
@@ -260,16 +260,16 @@ router.post("/register", async (req, res) => {
     console.log(`✅ 成功注册: ${userId} (${finalRole})`);
 
     res.json({
-      message: "注册成功",
+      message: "Registration successful.",
       user: { userId, name, role: finalRole },
     });
   } catch (err) {
     if (err.code === 11000) {
       const field = Object.keys(err.keyPattern || {})[0];
-      return res.status(400).json({ message: `该${field}已被使用，请更换后重试` });
+      return res.status(400).json({ message: `This ${field} is already taken, please try another.` });
     }
     console.error("❌ 注册失败详细信息:", err);
-    res.status(500).json({ message: "服务器内部错误", error: err.message });
+    res.status(500).json({ message: "Internal server error.", error: err.message });
   }
 });
 
@@ -280,28 +280,28 @@ router.post("/login", async (req, res) => {
   try {
     const { userId, password } = req.body;
     if (!userId || !password)
-      return res.status(400).json({ message: "请输入用户ID和密码" });
+      return res.status(400).json({ message: "Please enter User ID and password." });
 
     const user = await User.findOne({ userId });
-    if (!user) return res.status(404).json({ message: "用户不存在" });
+    if (!user) return res.status(404).json({ message: "User not found." });
 
     // 验证当前密码
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "密码错误" });
+    if (!isMatch) return res.status(401).json({ message: "Incorrect password." });
 
     // 🚫 检查黑名单
     if (user.isBlacklisted) {
       return res.status(403).json({ 
-        message: "您的账号已被列入黑名单，禁止登录。原因: " + (user.blacklistReason || "无") 
+        message: "Your account is blacklisted. Reason: " + (user.blacklistReason || "None") 
       });
     }
 
     // ⏳ 检查审核状态
     if (user.status === "PENDING") {
-      return res.status(403).json({ message: "账号审核中，请耐心等待管理员批准" });
+      return res.status(403).json({ message: "Account pending approval, please wait for admin." });
     }
     if (user.status === "REJECTED") {
-      return res.status(403).json({ message: "账号审核未通过，请联系管理员" });
+      return res.status(403).json({ message: "Account rejected, please contact admin." });
     }
 
     // 🔐 检查双重认证 (2FA)
@@ -309,7 +309,7 @@ router.post("/login", async (req, res) => {
       return res.json({
         require2FA: true,
         userId: user.userId,
-        message: "请输入双重认证授权码"
+        message: "Please enter 2FA auth code."
       });
     }
 
@@ -345,7 +345,7 @@ router.post("/login", async (req, res) => {
     console.log(`✅ 登录成功：${user.userId} (${user.role})`);
 
     res.json({
-      message: "登录成功",
+      message: "Login successful.",
       token,
       user: {
         id: user._id,
@@ -357,7 +357,7 @@ router.post("/login", async (req, res) => {
     });
   } catch (err) {
     console.error("❌ 登录失败:", err);
-    res.status(500).json({ message: "登录失败", error: err.message });
+    res.status(500).json({ message: "Login failed.", error: err.message });
   }
 });
 
@@ -367,11 +367,11 @@ router.post("/login", async (req, res) => {
 router.get("/profile", authMiddleware, async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.user.userId }).select("-password");
-    if (!user) return res.status(404).json({ message: "用户不存在" });
+    if (!user) return res.status(404).json({ message: "User not found." });
     res.json(user);
   } catch (err) {
     console.error("❌ 获取用户信息失败:", err);
-    res.status(500).json({ message: "获取用户信息失败" });
+    res.status(500).json({ message: "Failed to fetch user info." });
   }
 });
 
@@ -384,7 +384,7 @@ router.put("/profile", authMiddleware, async (req, res) => {
     const userId = req.user.userId;
 
     if (!name && email === undefined && !preferences)
-      return res.status(400).json({ message: "没有需要更新的字段" });
+      return res.status(400).json({ message: "No fields to update." });
 
     const updateData = {};
     if (name) updateData.name = name;
@@ -405,12 +405,12 @@ router.put("/profile", authMiddleware, async (req, res) => {
       { new: true, runValidators: true }
     ).select("-password");
 
-    if (!updated) return res.status(404).json({ message: "用户不存在" });
+    if (!updated) return res.status(404).json({ message: "User not found." });
 
-    res.json({ message: "用户信息更新成功", user: updated });
+    res.json({ message: "User info updated successfully.", user: updated });
   } catch (err) {
     console.error("❌ 更新用户信息失败:", err);
-    res.status(500).json({ message: "更新用户信息失败" });
+    res.status(500).json({ message: "Failed to update user info." });
   }
 });
 
@@ -446,7 +446,7 @@ const storage = multer.diskStorage({
       } catch (e) {
         console.error(`❌ Multer mkdir failed: ${e.message}`);
         // 如果是 Azure，可能因为父目录不存在，尝试逐级创建或忽略（如果已挂载）
-        return cb(new Error("无法创建上传目录: " + e.message));
+        return cb(new Error("Cannot create upload dir: " + e.message));
       }
     }
     cb(null, uploadDir);
@@ -462,7 +462,7 @@ const upload = multer({ storage });
 router.post("/avatar", authMiddleware, upload.single("avatar"), async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.user.userId });
-    if (!user) return res.status(404).json({ message: "用户不存在" });
+    if (!user) return res.status(404).json({ message: "User not found." });
 
     // 使用相对路径，确保在本地与公网同源下都能加载
     const avatarUrl = `/uploads/${req.file.filename}`;
@@ -475,10 +475,10 @@ router.post("/avatar", authMiddleware, upload.single("avatar"), async (req, res)
     user.avatar = avatarUrl;
     await user.save();
 
-    res.json({ message: "头像更新成功", avatarUrl });
+    res.json({ message: "Avatar updated successfully.", avatarUrl });
   } catch (err) {
     console.error("❌ 头像上传失败:", err);
-    res.status(500).json({ message: "头像上传失败" });
+    res.status(500).json({ message: "Avatar upload failed." });
   }
 });
 
@@ -491,26 +491,26 @@ router.put("/approve/:targetUserId", authMiddleware, requireAdmin, async (req, r
     const { status } = req.body;
 
     if (!["APPROVED", "REJECTED", "PENDING"].includes(status)) {
-      return res.status(400).json({ message: "无效的状态" });
+      return res.status(400).json({ message: "Invalid status." });
     }
 
     const user = await User.findOne({ userId: targetUserId });
-    if (!user) return res.status(404).json({ message: "用户不存在" });
+    if (!user) return res.status(404).json({ message: "User not found." });
 
     if (user.role === "Administrator") {
-      return res.status(400).json({ message: "管理员账号无需审核" });
+      return res.status(400).json({ message: "Admin account does not require approval." });
     }
 
     user.status = status;
     await user.save();
 
     res.json({ 
-      message: `用户状态已更新为 ${status}`,
+      message: `User status updated to ${status}`,
       user: { userId: user.userId, status: user.status }
     });
   } catch (err) {
     console.error("❌ 审核操作失败:", err);
-    res.status(500).json({ message: "操作失败" });
+    res.status(500).json({ message: "Operation failed." });
   }
 });
 
@@ -523,10 +523,10 @@ router.put("/blacklist/:targetUserId", authMiddleware, requireAdmin, async (req,
     const { isBlacklisted, reason } = req.body;
 
     const user = await User.findOne({ userId: targetUserId });
-    if (!user) return res.status(404).json({ message: "用户不存在" });
+    if (!user) return res.status(404).json({ message: "User not found." });
 
     if (user.role === "Administrator") {
-      return res.status(400).json({ message: "无法拉黑管理员账号" });
+      return res.status(400).json({ message: "Cannot blacklist admin account." });
     }
 
     user.isBlacklisted = isBlacklisted;
@@ -535,12 +535,12 @@ router.put("/blacklist/:targetUserId", authMiddleware, requireAdmin, async (req,
     await user.save();
 
     res.json({ 
-      message: isBlacklisted ? "已将用户加入黑名单" : "已解除用户黑名单",
+      message: isBlacklisted ? "User blacklisted" : "User removed from blacklist",
       user: { userId: user.userId, isBlacklisted, blacklistReason: user.blacklistReason }
     });
   } catch (err) {
     console.error("❌ 黑名单操作失败:", err);
-    res.status(500).json({ message: "操作失败" });
+    res.status(500).json({ message: "Operation failed." });
   }
 });
 
