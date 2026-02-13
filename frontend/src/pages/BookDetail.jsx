@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { 
   Card, Typography, Tag, List, Empty, Spin, Button, message, Tooltip, 
-  Row, Col, Space, Divider, Avatar, Rate, Modal 
+  Row, Col, Space, Divider, Avatar, Rate, Modal, Badge, Affix 
 } from "antd";
 import { 
   BookOutlined, 
@@ -14,16 +14,18 @@ import {
   RollbackOutlined,
   EditOutlined,
   CheckCircleOutlined,
-  SyncOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined,
+  HeartOutlined,
+  ShareAltOutlined,
+  CopyOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { getBookDetail, getBorrowHistory, borrowBook, getBorrowedBooksLibrary, getUserRequestsLibrary } from "../api";
 import ReviewModal from "../components/ReviewModal";
 import { useLanguage } from "../contexts/LanguageContext";
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
-import PageContainer from "../components/common/PageContainer";
-import PageHeader from "../components/common/PageHeader";
+import PageShell from "../components/common/PageShell";
+import Section from "../components/common/Section";
 import KPIStatCard from "../components/common/KPIStatCard";
 
 const { Title, Text, Paragraph } = Typography;
@@ -44,7 +46,7 @@ function BookDetail() {
   
   // Borrow/Return Logic State
   const [isBorrowed, setIsBorrowed] = useState(false);
-  const [pendingType, setPendingType] = useState(null); // 'borrow' | 'return' | null
+  const [pendingType, setPendingType] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -129,187 +131,180 @@ function BookDetail() {
     const token = sessionStorage.getItem("token") || localStorage.getItem("token");
     if (!token) {
       message.warning(t("common.loginFirst"));
-      navigate("/login");
       return;
     }
     
     modal.confirm({
       title: t("borrow.confirmTitle") || "Confirm Borrow",
-      content: t("borrow.confirmContent", { title: book.title }) || `Are you sure you want to borrow "${book.title}"?`,
-      okText: t("common.confirm") || "Yes",
-      cancelText: t("common.cancel") || "No",
+      content: t("borrow.confirmContent", { title: book.title }),
+      okText: t("common.confirm"),
+      cancelText: t("common.cancel"),
       onOk: async () => {
+        setActionLoading(true);
         try {
-          // setActionLoading(true); // Modal handles loading state
           await borrowBook(id, token);
-          message.success(t("borrow.borrowSuccess") || "Borrowed successfully!");
+          message.success(t("borrow.borrowSuccess"));
+          // Refresh state
           setIsBorrowed(true);
-          const res = await getBookDetail(id);
-          setBook(res?.data);
-        } catch (e) {
-          console.error("BookDetail borrow error:", e);
-          if (e.__borrowLimit) {
-            showBorrowLimitModal(t, modal);
-            return;
-          }
-          const errorMsg = extractErrorMessage(e);
-          if (isBorrowLimitError(errorMsg)) {
+          setBook(prev => ({ ...prev, copies: prev.copies - 1 }));
+        } catch (error) {
+          const errorMsg = extractErrorMessage(error);
+          if (error.__borrowLimit || isBorrowLimitError(errorMsg)) {
             showBorrowLimitModal(t, modal);
           } else {
             message.error(errorMsg);
           }
         } finally {
-          // setActionLoading(false);
+          setActionLoading(false);
         }
       }
     });
   };
 
   if (loading) return (
-    <PageContainer>
-      <div style={{ textAlign: 'center', marginTop: 100 }}>
+    <PageShell>
+      <div style={{ textAlign: 'center', padding: 100 }}>
         <Spin size="large" />
       </div>
-    </PageContainer>
+    </PageShell>
   );
 
   if (error) return (
-    <PageContainer>
+    <PageShell>
       <Empty description={t("bookDetail.failedToLoad").replace("{error}", error)} />
-    </PageContainer>
+    </PageShell>
   );
 
   if (!book) return (
-    <PageContainer>
+    <PageShell>
       <Empty description={t("bookDetail.notFound")} />
-    </PageContainer>
+    </PageShell>
   );
 
-  // Derived state for UI
   const canReview = eligible && !hasReviewed;
-  const reviewReason = !eligible
-    ? t("bookDetail.reviewOnlyAfterReturn")
-    : hasReviewed
-    ? t("bookDetail.youHaveReviewed")
-    : "";
 
   return (
-    <PageContainer>
+    <PageShell
+      title="Book Details"
+      breadcrumbItems={[
+        { title: t("nav.home"), path: "/" },
+        { title: t("nav.search"), path: "/search" },
+        { title: book.title }
+      ]}
+      extra={
+        <Space>
+           <Button icon={<ShareAltOutlined />} onClick={() => {
+             navigator.clipboard.writeText(window.location.href);
+             message.success("Link copied to clipboard!");
+           }}>Share</Button>
+        </Space>
+      }
+    >
       {contextHolder}
-      <PageHeader 
-        title={book.title}
-        subtitle={book.author}
-        breadcrumbs={[
-          { title: t("nav.home"), path: "/" },
-          { title: t("nav.search"), path: "/search" },
-          { title: book.title }
-        ]}
-        extra={
-          <Button icon={<RollbackOutlined />} onClick={() => navigate(-1)}>
-            {t("bookDetail.back")}
-          </Button>
-        }
-      />
-
-      <Row gutter={[24, 24]}>
-        {/* Left Column: Details */}
+      
+      <Row gutter={[32, 32]}>
+        {/* Left Column: Book Info */}
         <Col xs={24} lg={16}>
           <Card 
-            className="card-shadow" 
             bordered={false} 
             style={{ borderRadius: 16, marginBottom: 24 }}
           >
-            <Space size="middle" style={{ marginBottom: 16 }}>
-              <Tag color="blue" icon={<UserOutlined />}>{book.author}</Tag>
-              <Tag color="purple" icon={<TagsOutlined />}>{book.category}</Tag>
-              <Tag color="gold" icon={<StarOutlined />}>{book.rating || 0} / 5</Tag>
-            </Space>
-            
-            <Divider orientation="left" style={{ margin: '24px 0 16px' }}>
-              <Text type="secondary" style={{ fontSize: 14 }}>{t("bookDetail.description")}</Text>
-            </Divider>
-            
-            <Paragraph style={{ fontSize: 16, lineHeight: 1.8, color: 'var(--text-color)' }}>
-              {book.description || t("bookDetail.noDescription")}
-            </Paragraph>
+            <div style={{ display: 'flex', gap: 24, flexDirection: 'column' }}>
+               <div>
+                  <Space wrap size="small" style={{ marginBottom: 16 }}>
+                    <Tag color="blue">{book.category}</Tag>
+                    {book.publishDate && <Tag>{dayjs(book.publishDate).format('YYYY')}</Tag>}
+                    {book.rating > 4.5 && <Tag color="gold">Top Rated</Tag>}
+                  </Space>
+                  
+                  <Title level={2} style={{ marginTop: 0, marginBottom: 8 }}>{book.title}</Title>
+                  <Text type="secondary" style={{ fontSize: 16 }}>by {book.author}</Text>
+               </div>
+
+               <Divider style={{ margin: '12px 0' }} />
+               
+               <div>
+                 <Title level={5}>Description</Title>
+                 <Paragraph style={{ fontSize: 16, lineHeight: 1.8, color: '#595959' }}>
+                   {book.description || t("bookDetail.noDescription")}
+                 </Paragraph>
+               </div>
+            </div>
           </Card>
 
           {/* Reviews Section */}
-          <Card 
-            title={
-              <Space>
-                <CommentOutlined />
-                {t("bookDetail.userReviews")}
-                <Tag>{Array.isArray(book.reviews) ? book.reviews.length : 0}</Tag>
-              </Space>
-            }
-            className="card-shadow"
-            bordered={false}
-            style={{ borderRadius: 16 }}
-            extra={
-              canReview ? (
+          <Section 
+             title={t("bookDetail.reviews") + ` (${Array.isArray(book.reviews) ? book.reviews.length : 0})`}
+             extra={
+               canReview ? (
                 <Button type="primary" onClick={() => setReviewOpen(true)} icon={<EditOutlined />}>
                   {t("bookDetail.writeReview")}
                 </Button>
-              ) : (
-                <Tooltip title={reviewReason}>
-                  <Button disabled icon={<EditOutlined />}>
-                    {t("bookDetail.writeReview")}
-                  </Button>
-                </Tooltip>
-              )
-            }
+              ) : null
+             }
           >
-            {Array.isArray(book.reviews) && book.reviews.length > 0 ? (
-              <List
-                itemLayout="horizontal"
-                dataSource={book.reviews}
-                renderItem={(rev) => (
-                  <List.Item>
-                    <List.Item.Meta
-                      avatar={<Avatar icon={<UserOutlined />} style={{ backgroundColor: '#87d068' }} />}
-                      title={
-                        <Space>
-                          <Rate disabled defaultValue={rev.rating} style={{ fontSize: 14 }} />
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            {dayjs(rev.createdAt).format("YYYY-MM-DD HH:mm")}
-                          </Text>
-                        </Space>
-                      }
-                      description={
-                        <Text style={{ fontSize: 15 }}>{rev.comment || t("bookDetail.noComment")}</Text>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
-            ) : (
-              <Empty description={t("bookDetail.noReviews")} image={Empty.PRESENTED_IMAGE_SIMPLE} />
-            )}
-          </Card>
+            <Card bordered={false} style={{ borderRadius: 16 }}>
+              {Array.isArray(book.reviews) && book.reviews.length > 0 ? (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={book.reviews}
+                  renderItem={(rev) => (
+                    <List.Item>
+                      <List.Item.Meta
+                        avatar={<Avatar style={{ backgroundColor: '#1677FF' }}>{rev.userId?.name?.[0] || 'U'}</Avatar>}
+                        title={
+                          <Space>
+                            <Rate disabled defaultValue={rev.rating} style={{ fontSize: 14 }} />
+                            <Text type="secondary" style={{ fontSize: 12 }}>
+                              {dayjs(rev.createdAt).format("YYYY-MM-DD")}
+                            </Text>
+                          </Space>
+                        }
+                        description={
+                          <Text style={{ fontSize: 15 }}>{rev.comment || t("bookDetail.noComment")}</Text>
+                        }
+                      />
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <Empty description={t("bookDetail.noReviews")} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              )}
+            </Card>
+          </Section>
         </Col>
 
-        {/* Right Column: Stats & Actions */}
+        {/* Right Column: Actions & Stats */}
         <Col xs={24} lg={8}>
-          <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            {/* Action Card */}
-            <Card 
-              className="card-shadow" 
-              bordered={false} 
-              style={{ borderRadius: 16, textAlign: 'center' }}
-            >
-              <Title level={4} style={{ marginTop: 0 }}>{t("bookDetail.actions")}</Title>
-              <div style={{ padding: '20px 0' }}>
+          <div style={{ position: 'sticky', top: 24 }}>
+             <Card bordered={false} style={{ borderRadius: 16, marginBottom: 24, textAlign: 'center' }}>
+                <div style={{ marginBottom: 24 }}>
+                   {book.coverImage ? (
+                     <img src={book.coverImage} alt={book.title} style={{ width: '100%', maxWidth: 200, borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.1)' }} />
+                   ) : (
+                     <div style={{ width: 140, height: 200, background: '#f5f5f5', borderRadius: 8, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <BookOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />
+                     </div>
+                   )}
+                </div>
+
+                <div style={{ marginBottom: 24 }}>
+                   <div style={{ fontSize: 24, fontWeight: 'bold', color: book.copies > 0 ? '#52c41a' : '#ff4d4f' }}>
+                      {book.copies > 0 ? 'In Stock' : 'Out of Stock'}
+                   </div>
+                   <Text type="secondary">{book.copies} copies available</Text>
+                </div>
+
                 {isBorrowed ? (
                   <Button 
-                    type="default" 
                     size="large"
                     disabled
                     block
                     icon={<CheckCircleOutlined />}
-                    style={{ height: 48, borderRadius: 12, backgroundColor: '#f6ffed', borderColor: '#b7eb8f', color: '#52c41a' }}
+                    className="action-btn-borrowed"
+                    style={{ background: '#f6ffed', borderColor: '#b7eb8f', color: '#52c41a' }}
                   >
-                    {t("borrow.borrowed") || "Borrowed"}
+                    Borrowed
                   </Button>
                 ) : (
                   <Button 
@@ -319,74 +314,72 @@ function BookDetail() {
                     disabled={book.copies <= 0 || pendingType === 'borrow'}
                     onClick={handleBorrow}
                     block
-                    icon={<BookOutlined />}
-                    style={{ height: 48, borderRadius: 12 }}
+                    icon={pendingType === 'borrow' ? <ClockCircleOutlined /> : <BookOutlined />}
                   >
                     {pendingType === 'borrow' 
-                        ? t("borrow.borrowPending") 
-                        : (book.copies > 0 ? t("borrow.applyBorrow") : t("borrow.outOfStock"))}
+                        ? "Request Pending" 
+                        : (book.copies > 0 ? "Borrow Now" : "Notify When Available")}
                   </Button>
                 )}
-              </div>
-              {book.copies <= 0 && !isBorrowed && (
-                <Text type="danger" style={{ display: 'block' }}>
-                  <StockOutlined /> {t("borrow.outOfStock")}
-                </Text>
-              )}
-            </Card>
+             </Card>
 
-            {/* KPI Stats */}
-            <Row gutter={[16, 16]}>
-              <Col span={24}>
-                <KPIStatCard 
-                  title={t("bookDetail.inStock")} 
-                  value={book.copies || 0} 
-                  icon={<StockOutlined />} 
-                  color={book.copies > 0 ? "#52c41a" : "#ff4d4f"} 
-                />
-              </Col>
-              <Col span={12}>
-                <KPIStatCard 
-                  title={t("bookDetail.rating")} 
-                  value={book.rating || 0} 
-                  icon={<StarOutlined />} 
-                  color="#faad14"
-                  suffix="/ 5" 
-                />
-              </Col>
-              <Col span={12}>
-                <KPIStatCard 
-                  title={t("bookDetail.reviews")} 
-                  value={book.reviewCount || (Array.isArray(book.reviews) ? book.reviews.length : 0)} 
-                  icon={<CommentOutlined />} 
-                  color="#3b82f6" 
-                />
-              </Col>
-            </Row>
-          </Space>
+             <Card bordered={false} style={{ borderRadius: 16 }}>
+                <Title level={5} style={{ marginTop: 0, marginBottom: 16 }}>Ratings</Title>
+                <Row gutter={[16, 16]}>
+                   <Col span={24} style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 48, fontWeight: 'bold', lineHeight: 1 }}>{book.rating || 0}</div>
+                      <Rate disabled allowHalf value={book.rating || 0} />
+                      <div style={{ marginTop: 8 }}><Text type="secondary">out of 5</Text></div>
+                   </Col>
+                </Row>
+             </Card>
+          </div>
         </Col>
       </Row>
 
-      {/* Review Modal */}
-      {book && (
-        <ReviewModal
-          open={reviewOpen}
-          onClose={() => setReviewOpen(false)}
-          bookId={book._id}
-          bookTitle={book.title}
-          token={sessionStorage.getItem("token") || localStorage.getItem("token")}
-          onSubmitted={async () => {
-            try {
-              const res = await getBookDetail(id);
-              setBook(res?.data);
-              setHasReviewed(true);
-              setReviewOpen(false);
-              message.success(t("bookDetail.reviewSubmitted"));
-            } catch (e) {}
-          }}
-        />
-      )}
-    </PageContainer>
+      {/* Mobile Sticky Action Bar */}
+      <div className="mobile-sticky-action-bar mobile-only-block">
+        <div style={{ flex: 1 }}>
+           <Text strong style={{ display: 'block' }} ellipsis>{book.title}</Text>
+           <Text type="secondary" style={{ fontSize: 12 }}>
+             {book.copies > 0 ? <span style={{ color: '#52c41a' }}>In Stock</span> : <span style={{ color: '#ff4d4f' }}>Out of Stock</span>}
+           </Text>
+        </div>
+        <Button 
+          type="primary" 
+          disabled={book.copies <= 0 || isBorrowed || pendingType === 'borrow'}
+          onClick={handleBorrow}
+          loading={actionLoading}
+        >
+          {isBorrowed ? "Borrowed" : "Borrow"}
+        </Button>
+      </div>
+
+      <ReviewModal
+        open={reviewOpen}
+        onClose={() => setReviewOpen(false)}
+        bookId={book._id}
+        bookTitle={book.title}
+        token={sessionStorage.getItem("token") || localStorage.getItem("token")}
+        onSubmitted={async () => {
+          try {
+            const res = await getBookDetail(id);
+            setBook(res?.data);
+            setHasReviewed(true);
+            setReviewOpen(false);
+            message.success(t("bookDetail.reviewSubmitted"));
+          } catch (e) {}
+        }}
+      />
+      
+      <style jsx>{`
+        @media (min-width: 769px) {
+          .mobile-only-block {
+            display: none !important;
+          }
+        }
+      `}</style>
+    </PageShell>
   );
 }
 

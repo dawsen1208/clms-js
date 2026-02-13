@@ -29,8 +29,7 @@ import {
 import dayjs from "dayjs";
 import { useLanguage } from "../contexts/LanguageContext";
 import { getAllFeedback, replyFeedback } from "../api";
-import PageContainer from "../components/common/PageContainer";
-import PageHeader from "../components/common/PageHeader";
+import PageShell from "../components/common/PageShell";
 import KPIStatCard from "../components/common/KPIStatCard";
 
 const { Text: AntText, Paragraph } = Typography;
@@ -202,16 +201,15 @@ function AdminFeedbackPage() {
   };
 
   return (
-    <PageContainer>
-      <PageHeader
-        title={t("feedback.adminTitle") || "Feedback Management"}
-        subtitle={t("feedback.subtitle") || "View and reply to user feedback and inquiries"}
-        extra={
-          <Button icon={<SyncOutlined />} onClick={fetchFeedbacks} loading={loading}>
-            {t("admin.refresh")}
-          </Button>
-        }
-      />
+    <PageShell
+      title={t("feedback.adminTitle") || "Feedback Management"}
+      subtitle={t("feedback.subtitle") || "View and reply to user feedback and inquiries"}
+      extra={
+        <Button icon={<SyncOutlined />} onClick={fetchFeedbacks} loading={loading}>
+          {t("admin.refresh")}
+        </Button>
+      }
+    >
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={8}>
@@ -307,7 +305,7 @@ function AdminFeedbackPage() {
           </Space>
         )}
       </Modal>
-    </PageContainer>
+    </PageShell>
   );
 }
 

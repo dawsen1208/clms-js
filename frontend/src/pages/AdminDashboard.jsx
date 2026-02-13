@@ -3,8 +3,7 @@ import { Card, Row, Col, Typography, Divider, Button, Tag, Spin, Modal, Table, t
 import { BookOutlined, ClockCircleOutlined, ReloadOutlined, AlertOutlined, TeamOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import { getBooksLibrary, getAllRequestsLibrary, getUserAnalytics, getBorrowedBooksLibrary, getBorrowHistoryLibrary, getBorrowHistoryAllLibrary, getBooks, getLibraryStats } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageContainer from "../components/common/PageContainer";
-import PageHeader from "../components/common/PageHeader";
+import PageShell from "../components/common/PageShell";
 import KPIStatCard from "../components/common/KPIStatCard";
 
 const { Title, Text: AntText } = Typography;
@@ -114,21 +113,20 @@ const AdminDashboard = ({ appearance }) => {
   useEffect(() => { refresh(); }, [t]);
   
   return (
-    <PageContainer>
-      <PageHeader
-        title={t("admin.dashboard")}
-        subtitle={t("admin.dashboardOverview") || "System overview and statistics"}
-        extra={
-          <Button 
-            type="primary" 
-            icon={<ReloadOutlined />}
-            onClick={refresh}
-            loading={loading}
-          >
-            {t("admin.refresh")}
-          </Button>
-        }
-      />
+    <PageShell
+      title={t("admin.dashboard")}
+      subtitle={t("admin.dashboardOverview") || "System overview and statistics"}
+      extra={
+        <Button 
+          type="primary" 
+          icon={<ReloadOutlined />}
+          onClick={refresh}
+          loading={loading}
+        >
+          {t("admin.refresh")}
+        </Button>
+      }
+    >
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={8} lg={6}>
@@ -314,7 +312,7 @@ const AdminDashboard = ({ appearance }) => {
         <div style={{ marginBottom: 8 }}><Tag color={selectedAnn?.color}>{selectedAnn?.tag}</Tag> <span style={{ color: token.colorTextDescription }}>{selectedAnn?.date}</span></div>
         <Typography.Paragraph style={{ whiteSpace: 'pre-wrap' }}>{selectedAnn?.content}</Typography.Paragraph>
       </Modal>
-    </PageContainer>
+    </PageShell>
   );
 };
 

@@ -30,8 +30,7 @@ import {
 } from "@ant-design/icons";
 import { getBooks, addBook, deleteBook } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageContainer from "../components/common/PageContainer";
-import PageHeader from "../components/common/PageHeader";
+import PageShell from "../components/common/PageShell";
 import KPIStatCard from "../components/common/KPIStatCard";
 
 const { Text: AntText } = Typography;
@@ -164,20 +163,19 @@ function AdminBookPage() {
   ];
 
   return (
-    <PageContainer>
-      <PageHeader
-        title={t("admin.bookManage")}
-        subtitle={t("admin.bookManageSubtitle") || "Manage library collection and inventory"}
-        extra={
-          <Button 
-            icon={<ReloadOutlined />} 
-            onClick={fetchBooks}
-            loading={loading}
-          >
-            {t("admin.refresh")}
-          </Button>
-        }
-      />
+    <PageShell
+      title={t("admin.bookManage")}
+      subtitle={t("admin.bookManageSubtitle") || "Manage library collection and inventory"}
+      extra={
+        <Button 
+          icon={<ReloadOutlined />} 
+          onClick={fetchBooks}
+          loading={loading}
+        >
+          {t("admin.refresh")}
+        </Button>
+      }
+    >
       
       {/* 📊 统计卡片 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
@@ -372,7 +370,7 @@ function AdminBookPage() {
           </Form.Item>
         </Form>
       </Modal>
-    </PageContainer>
+    </PageShell>
   );
 }
 

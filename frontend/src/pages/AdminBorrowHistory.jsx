@@ -28,8 +28,7 @@ import {
 import { getBorrowHistoryAllLibrary } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import dayjs from "dayjs";
-import PageContainer from "../components/common/PageContainer";
-import PageHeader from "../components/common/PageHeader";
+import PageShell from "../components/common/PageShell";
 import KPIStatCard from "../components/common/KPIStatCard";
 
 const { RangePicker } = DatePicker;
@@ -177,16 +176,15 @@ function AdminBorrowHistory() {
   ];
 
   return (
-    <PageContainer>
-      <PageHeader
-        title={t("admin.history")}
-        subtitle={t("admin.historyOverview")}
-        extra={
-          <Button icon={<ReloadOutlined />} onClick={fetchRecords} loading={loading}>
-            {t("admin.refresh")}
-          </Button>
-        }
-      />
+    <PageShell
+      title={t("admin.history")}
+      subtitle={t("admin.historyOverview")}
+      extra={
+        <Button icon={<ReloadOutlined />} onClick={fetchRecords} loading={loading}>
+          {t("admin.refresh")}
+        </Button>
+      }
+    >
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={6}>
@@ -311,7 +309,7 @@ function AdminBorrowHistory() {
           />
         )}
       </Card>
-    </PageContainer>
+    </PageShell>
   );
 }
 

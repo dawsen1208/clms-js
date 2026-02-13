@@ -16,7 +16,12 @@ import {
   Empty,
   Badge,
   Switch,
-  Modal
+  Modal,
+  AutoComplete,
+  Card,
+  Divider,
+  Layout,
+  Menu
 } from "antd";
 import {
   SearchOutlined,
@@ -32,41 +37,54 @@ import {
   HourglassOutlined,
   UserOutlined,
   BankOutlined,
-  BgColorsOutlined
+  BgColorsOutlined,
+  CloseOutlined
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageContainer from "../components/common/PageContainer";
-import PageHeader from "../components/common/PageHeader";
+import PageShell from "../components/common/PageShell";
+import Section from "../components/common/Section";
+import EmptyState from "../components/common/EmptyState";
 import ModernBookCard from "../components/common/ModernBookCard";
 import { getBooks, borrowBook, getBorrowedBooks, getUserRequestsLibrary } from "../api";
-import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage, showBorrowSuccessModal } from "../utils/borrowUI";
+import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
 
 const { Title, Text } = Typography;
-const { Search } = Input;
+const { Sider, Content } = Layout;
 
 const SearchPage = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
   const [modal, contextHolder] = Modal.useModal();
   const [loading, setLoading] = useState(false);
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
   
-  // Filters
+  // Filter States
   const [searchText, setSearchText] = useState("");
+  const [searchOptions, setSearchOptions] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [sortBy, setSortBy] = useState("newest");
+  const [viewMode, setViewMode] = useState("grid");
   
-  // UI State
-  const [viewMode, setViewMode] = useState("list"); // grid | list
+  // UI States
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   
-  // User State for Borrow Logic
+  // User Data
   const [userBorrowedBooks, setUserBorrowedBooks] = useState(new Set());
   const [pendingRequests, setPendingRequests] = useState(new Set());
   
+  // Parse URL query params
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('q');
+    const sort = params.get('sort');
+    if (q) setSearchText(q);
+    if (sort) setSortBy(sort);
+  }, [location.search]);
+
   // Derived Data
   const categories = useMemo(() => {
     const cats = new Set(books.map(b => b.category).filter(Boolean));
@@ -101,23 +119,28 @@ const SearchPage = () => {
     setLoading(true);
     try {
       const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-      const [booksRes, borrowedRes, requestsRes] = await Promise.allSettled([
-        getBooks(),
-        getBorrowedBooks(token),
-        getUserRequestsLibrary(token)
-      ]);
+      const promises = [getBooks()];
+      if (token) {
+        promises.push(getBorrowedBooks(token));
+        promises.push(getUserRequestsLibrary(token));
+      }
 
-      if (booksRes.status === 'fulfilled') {
-        setBooks(booksRes.value.data);
+      const results = await Promise.allSettled(promises);
+      
+      // Books
+      if (results[0].status === 'fulfilled') {
+        setBooks(results[0].value.data);
       }
       
-      if (borrowedRes.status === 'fulfilled') {
-        const borrowedIds = new Set(borrowedRes.value.data.map(b => b._id || b.id));
+      // Borrowed
+      if (token && results[1].status === 'fulfilled') {
+        const borrowedIds = new Set(results[1].value.data.map(b => b._id || b.bookId?._id || b.bookId));
         setUserBorrowedBooks(borrowedIds);
       }
 
-      if (requestsRes.status === 'fulfilled') {
-         const pendingIds = new Set(requestsRes.value.data.filter(r => r.status === 'pending').map(r => r.bookId));
+      // Pending
+      if (token && results[2].status === 'fulfilled') {
+         const pendingIds = new Set(results[2].value.data.filter(r => r.status === 'pending').map(r => r.bookId));
          setPendingRequests(pendingIds);
       }
 
@@ -132,7 +155,6 @@ const SearchPage = () => {
   const applyFilters = () => {
     let result = [...books];
 
-    // Text Search
     if (searchText) {
       const lower = searchText.toLowerCase();
       result = result.filter(b => 
@@ -142,20 +164,17 @@ const SearchPage = () => {
       );
     }
 
-    // Category Filter
     if (selectedCategories.length > 0) {
       result = result.filter(b => selectedCategories.includes(b.category));
     }
 
-    // Availability Filter
     if (showAvailableOnly) {
       result = result.filter(b => b.copies > 0);
     }
 
-    // Sorting
     switch (sortBy) {
       case "newest":
-        // Assuming _id roughly correlates to creation or if there's a date field
+        // Assuming _id is somewhat chronological or use publishDate if available
         result.sort((a, b) => (b._id || "").localeCompare(a._id || "")); 
         break;
       case "title":
@@ -165,8 +184,7 @@ const SearchPage = () => {
         result.sort((a, b) => a.author.localeCompare(b.author));
         break;
       case "popular":
-        // Mock logic if borrowCount not available
-        result.sort((a, b) => (b.copies < 5 ? 1 : -1)); 
+        result.sort((a, b) => (b.borrowCount || 0) < (a.borrowCount || 0) ? 1 : -1); 
         break;
       default:
         break;
@@ -175,43 +193,21 @@ const SearchPage = () => {
     setFilteredBooks(result);
   };
 
-  const BOOK_IMAGES = [
-    "/books/art.jpg",
-    "/books/cleancode.jpg",
-    "/books/design.jpg",
-    "/books/habits.jpg",
-    "/books/investor.jpg",
-    "/books/psychology.jpg",
-    "/books/sapiens.jpg",
-    "/books/app.jpg"
-  ];
-
-  const getRandomImage = (id) => {
-    if (!id) return BOOK_IMAGES[0];
-    const index = id.toString().charCodeAt(0) % BOOK_IMAGES.length;
-    return BOOK_IMAGES[index];
-  };
-
-  const categoryColors = {
-    "Fiction": "#1890ff",
-    "Science": "#722ed1",
-    "Technology": "#13c2c2",
-    "History": "#faad14",
-    "Biography": "#eb2f96",
-    "Business": "#52c41a",
-    "Art": "#fa541c",
-    "default": "#8c8c8c"
-  };
-
-  const categoryIcons = {
-    "Fiction": <ReadOutlined />,
-    "Science": <ExperimentOutlined />,
-    "Technology": <RocketOutlined />,
-    "History": <HourglassOutlined />,
-    "Biography": <UserOutlined />,
-    "Business": <BankOutlined />,
-    "Art": <BgColorsOutlined />,
-    "default": <BookOutlined />
+  const handleSearch = (value) => {
+    setSearchText(value);
+    if (!value) {
+      setSearchOptions([]);
+      return;
+    }
+    
+    // Auto-complete logic
+    const lower = value.toLowerCase();
+    const suggestions = books
+      .filter(b => b.title.toLowerCase().includes(lower))
+      .slice(0, 5)
+      .map(b => ({ value: b.title, label: b.title }));
+    
+    setSearchOptions(suggestions);
   };
 
   const handleBorrow = async (bookId, title, copies) => {
@@ -221,7 +217,6 @@ const SearchPage = () => {
       return;
     }
     
-    // Add confirmation modal
     modal.confirm({
       title: t("borrow.confirmTitle") || "Confirm Borrow",
       content: t("borrow.confirmContent", { title }) || `Are you sure you want to borrow "${title}"?`,
@@ -231,14 +226,10 @@ const SearchPage = () => {
         try {
           await borrowBook(bookId, token);
           message.success(t("borrow.borrowSuccess") || "Borrowed successfully!");
-          fetchData(); // Refresh state
+          fetchData(); // Refresh data
         } catch (error) {
-          console.error("Borrow error object:", error);
           const errorMsg = extractErrorMessage(error);
-          console.log("Extracted error message:", errorMsg);
-          
           if (error.__borrowLimit || isBorrowLimitError(errorMsg)) {
-            console.log("Triggering borrow limit modal");
             showBorrowLimitModal(t, modal);
           } else {
             message.error(errorMsg);
@@ -248,48 +239,46 @@ const SearchPage = () => {
     });
   };
 
-  const FilterPanel = () => (
-    <div style={{ padding: '0 4px' }}>
-      <style>
-        {`
-          .category-item:hover {
-            background-color: #fafafa;
-          }
-          .category-item.selected:hover {
-            background-color: #e6f7ff;
-          }
-        `}
-      </style>
-      
-      {/* Availability Section */}
-      <div style={{ 
-        marginBottom: 24, 
-        padding: '16px 20px', 
-        background: '#fff', 
-        border: '1px solid #f0f0f0',
-        borderRadius: 16,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{ 
-            width: 36, height: 36, borderRadius: 12, background: '#e6f7ff', 
-            display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: 12
-          }}>
-             <FilterOutlined style={{ color: '#1890ff', fontSize: 18 }} />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <Text strong style={{ fontSize: 14, lineHeight: 1.2 }}>In Stock</Text>
-            <Text type="secondary" style={{ fontSize: 11 }}>Hide unavailable</Text>
-          </div>
+  const FilterPanel = ({ mobile = false }) => (
+    <div style={{ padding: mobile ? 0 : '0 8px' }}>
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: 16
+        }}>
+          <Title level={5} style={{ margin: 0 }}>Availability</Title>
         </div>
-        <Switch checked={showAvailableOnly} onChange={setShowAvailableOnly} />
+        <div style={{ 
+          background: '#fff', 
+          border: '1px solid #f0f0f0',
+          borderRadius: 12,
+          padding: '12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer'
+        }} onClick={() => setShowAvailableOnly(!showAvailableOnly)}>
+          <Text>In Stock Only</Text>
+          <Switch checked={showAvailableOnly} onChange={setShowAvailableOnly} size="small" />
+        </div>
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <Title level={5} style={{ marginBottom: 16, paddingLeft: 4, fontSize: 15 }}>Categories</Title>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: 16
+        }}>
+          <Title level={5} style={{ margin: 0 }}>Categories</Title>
+          {selectedCategories.length > 0 && (
+            <Button type="link" size="small" onClick={() => setSelectedCategories([])} style={{ padding: 0 }}>
+              Clear
+            </Button>
+          )}
+        </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {categories.map(cat => {
             const isSelected = selectedCategories.includes(cat);
@@ -297,147 +286,164 @@ const SearchPage = () => {
               <div 
                 key={cat}
                 onClick={() => toggleCategory(cat)}
-                className={`category-item ${isSelected ? 'selected' : ''}`}
                 style={{
-                  padding: '12px 16px',
-                  borderRadius: 12,
+                  padding: '8px 12px',
+                  borderRadius: 8,
                   cursor: 'pointer',
-                  background: isSelected ? '#e6f7ff' : 'transparent',
+                  background: isSelected ? '#E6F7FF' : 'transparent',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   transition: 'all 0.2s',
+                  color: isSelected ? '#1677FF' : 'inherit'
                 }}
               >
-                 <Text style={{ 
-                   color: isSelected ? '#1890ff' : '#434343', 
-                   fontWeight: isSelected ? 600 : 400,
-                   fontSize: 14
-                 }}>
-                   {cat}
-                 </Text>
-                 <Tag style={{ 
-                   marginRight: 0, 
-                   background: isSelected ? '#1890ff' : '#f5f5f5', 
-                   color: isSelected ? '#fff' : '#8c8c8c',
-                   border: 'none',
-                   borderRadius: 12,
-                   fontSize: 11,
-                   padding: '0 8px',
-                   height: 22,
-                   lineHeight: '22px'
-                 }}>
-                   {categoryCounts[cat] || 0}
-                 </Tag>
+                 <Space>
+                   <Checkbox checked={isSelected} style={{ pointerEvents: 'none' }} />
+                   <Text style={{ color: isSelected ? '#1677FF' : 'inherit' }}>{cat}</Text>
+                 </Space>
+                 <Text type="secondary" style={{ fontSize: 12 }}>{categoryCounts[cat]}</Text>
               </div>
             );
           })}
         </div>
       </div>
-      
-      <Button block icon={<ReloadOutlined />} onClick={() => {
+
+      <Button block onClick={() => {
         setSearchText("");
         setSelectedCategories([]);
         setShowAvailableOnly(false);
         setSortBy("newest");
-      }}
-      style={{ borderRadius: 12, height: 42, border: '1px dashed #d9d9d9', color: '#8c8c8c' }}
-      type="text"
-      >
-        Reset Filters
+      }}>
+        Reset All Filters
       </Button>
     </div>
   );
 
   return (
-    <PageContainer>
+    <PageShell
+      title="Browse Library"
+      subtitle="Discover your next favorite book from our collection"
+      breadcrumbItems={[
+        { title: 'Home', path: '/home' },
+        { title: 'Browse' }
+      ]}
+      extra={
+        <Button 
+          icon={<FilterOutlined />} 
+          onClick={() => setFilterDrawerOpen(true)}
+          className="mobile-only-block"
+          style={{ display: 'none' }} 
+        >
+          Filters
+        </Button>
+      }
+    >
       {contextHolder}
-      <PageHeader 
-        title="Browse Library"
-        subtitle="Find your next great read."
-        extra={
-          <Button 
-            icon={<FilterOutlined />} 
-            onClick={() => setFilterDrawerOpen(true)}
-            className="mobile-filter-btn" // Hide on desktop via CSS
-            style={{ display: 'none' }} 
-          >
-            Filters
-          </Button>
-        }
-      />
-
-      <Row gutter={[32, 32]}>
-        {/* Sidebar Filters - Desktop */}
-        <Col xs={0} md={6}>
-           <div className="card-shadow custom-scroll" style={{ 
-             background: '#fff', 
-             padding: 24, 
-             borderRadius: 14, 
-             position: 'sticky', 
-             top: 88,
-             maxHeight: 'calc(100vh - 110px)',
-             overflowY: 'auto'
-           }}>
+      
+      <Layout style={{ background: 'transparent' }}>
+        <Sider 
+          width={280} 
+          theme="light" 
+          style={{ 
+            background: 'transparent', 
+            marginRight: 24, 
+            display: 'none' // Hidden on mobile via CSS usually, but here explicit check needed for responsiveness if not using Grid
+          }}
+          className="desktop-only-block"
+          breakpoint="lg"
+          collapsedWidth="0"
+          trigger={null}
+        >
+          <div style={{ position: 'sticky', top: 24 }}>
              <FilterPanel />
-           </div>
-        </Col>
-
-        {/* Main Content */}
-        <Col xs={24} md={18}>
-          {/* Search & Sort Bar */}
-          <div style={{ marginBottom: 24, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            <Input 
-              placeholder="Search by title, author, or ISBN..." 
-              prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
-              size="large"
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              allowClear
-              style={{ flex: 1, minWidth: 280, borderRadius: 8 }}
-            />
-            
-            <Select 
-              value={sortBy} 
-              onChange={setSortBy} 
-              size="large"
-              style={{ width: 160 }}
-              options={[
-                { label: "Newest Arrivals", value: "newest" },
-                { label: "Title (A-Z)", value: "title" },
-                { label: "Author (A-Z)", value: "author" },
-                // { label: "Popularity", value: "popular" },
-              ]}
-            />
-            
-            <Radio.Group value={viewMode} onChange={e => setViewMode(e.target.value)} size="large">
-              <Radio.Button value="grid"><AppstoreOutlined /></Radio.Button>
-              <Radio.Button value="list"><BarsOutlined /></Radio.Button>
-            </Radio.Group>
           </div>
+        </Sider>
 
-          {/* Results Info */}
-          <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between' }}>
-            <Text strong>{filteredBooks.length} results found</Text>
-            {(searchText || selectedCategories.length > 0) && (
-              <Tag color="blue" closable onClose={() => { setSearchText(""); setSelectedCategories([]); }}>
-                Clear Filters
-              </Tag>
+        <Content>
+          <div style={{ marginBottom: 24 }}>
+            <Row gutter={[16, 16]} align="middle">
+              <Col flex="auto">
+                <AutoComplete
+                  options={searchOptions}
+                  style={{ width: '100%' }}
+                  onSelect={setSearchText}
+                  onSearch={handleSearch}
+                  value={searchText}
+                >
+                  <Input.Search 
+                    placeholder="Search by title, author, or ISBN..." 
+                    size="large"
+                    allowClear
+                    enterButton={<Button type="primary" icon={<SearchOutlined />}>Search</Button>}
+                    style={{ width: '100%' }}
+                  />
+                </AutoComplete>
+              </Col>
+              <Col>
+                <Select 
+                  value={sortBy} 
+                  onChange={setSortBy} 
+                  size="large"
+                  style={{ width: 180 }}
+                  options={[
+                    { label: "Newest Arrivals", value: "newest" },
+                    { label: "Title (A-Z)", value: "title" },
+                    { label: "Author (A-Z)", value: "author" },
+                    { label: "Most Popular", value: "popular" },
+                  ]}
+                />
+              </Col>
+              <Col>
+                 <Radio.Group value={viewMode} onChange={e => setViewMode(e.target.value)} size="large" buttonStyle="solid">
+                  <Radio.Button value="grid"><AppstoreOutlined /></Radio.Button>
+                  <Radio.Button value="list"><BarsOutlined /></Radio.Button>
+                </Radio.Group>
+              </Col>
+            </Row>
+
+            {/* Active Filters Tags */}
+            {(searchText || selectedCategories.length > 0 || showAvailableOnly) && (
+              <div style={{ marginTop: 16 }}>
+                <Space wrap>
+                  <Text type="secondary">Active Filters:</Text>
+                  {searchText && (
+                    <Tag closable onClose={() => setSearchText("")}>Search: {searchText}</Tag>
+                  )}
+                  {showAvailableOnly && (
+                    <Tag closable onClose={() => setShowAvailableOnly(false)} color="blue">In Stock Only</Tag>
+                  )}
+                  {selectedCategories.map(cat => (
+                    <Tag key={cat} closable onClose={() => toggleCategory(cat)} color="cyan">{cat}</Tag>
+                  ))}
+                  <Button type="link" size="small" onClick={() => {
+                    setSearchText("");
+                    setSelectedCategories([]);
+                    setShowAvailableOnly(false);
+                  }} style={{ padding: 0 }}>
+                    Clear All
+                  </Button>
+                </Space>
+              </div>
             )}
           </div>
 
-          {/* Book List/Grid */}
           {loading ? (
-             <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Loading books..." />
+             <EmptyState 
+                title="Loading Library..." 
+                description="Please wait while we fetch the books." 
+                icon={<LoadingIcon />}
+             />
           ) : filteredBooks.length > 0 ? (
             viewMode === 'grid' ? (
-              <Row gutter={[16, 16]}>
+              <Row gutter={[24, 24]}>
                 {filteredBooks.map(book => (
-                  <Col xs={24} sm={12} lg={12} xl={8} key={book._id || book.id}>
+                  <Col xs={24} sm={12} md={12} lg={8} xl={6} key={book._id || book.id}>
                     <ModernBookCard 
                       book={book} 
                       variant="search"
                       onBorrow={handleBorrow}
+                      onView={() => navigate(`/book/${book._id || book.id}`)}
                       isBorrowed={userBorrowedBooks.has(book._id || book.id)}
                       isPending={pendingRequests.has(book._id || book.id)}
                     />
@@ -445,112 +451,100 @@ const SearchPage = () => {
                 ))}
               </Row>
             ) : (
-              <div style={{ background: '#fff', borderRadius: 14, overflow: 'hidden' }} className="card-shadow">
+              <div style={{ background: '#fff', borderRadius: 16, padding: 8 }}>
                 <List
-                  itemLayout="horizontal"
+                  itemLayout="vertical"
+                  size="large"
+                  pagination={{
+                    onChange: (page) => {
+                      console.log(page);
+                    },
+                    pageSize: 10,
+                  }}
                   dataSource={filteredBooks}
-                  renderItem={(book) => {
-                    const categoryColor = categoryColors[book.category] || categoryColors["default"];
-                    const CategoryIcon = categoryIcons[book.category] || categoryIcons["default"];
-                    
-                    return (
-                    <List.Item 
-                      actions={[
-                        <Button 
-                          type="primary" 
-                          disabled={book.copies <= 0 || userBorrowedBooks.has(book._id || book.id)}
-                          onClick={(e) => {
-                             e.stopPropagation();
-                             handleBorrow(book._id || book.id, book.title, book.copies);
-                          }}
-                        >
-                          {book.copies <= 0 ? t("common.outOfStock") : userBorrowedBooks.has(book._id || book.id) ? t("common.borrowed") : t("common.borrowNow")}
-                        </Button>
-                      ]}
-                      style={{ padding: 16, cursor: 'pointer' }}
+                  renderItem={(book) => (
+                    <List.Item
+                      key={book._id || book.id}
+                      extra={
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 16 }}>
+                          <Button 
+                            type="primary" 
+                            disabled={book.copies <= 0 || userBorrowedBooks.has(book._id || book.id)}
+                            onClick={() => handleBorrow(book._id || book.id, book.title, book.copies)}
+                          >
+                             {userBorrowedBooks.has(book._id || book.id) ? "Borrowed" : book.copies <= 0 ? "Out of Stock" : "Borrow Now"}
+                          </Button>
+                          <Text type="secondary">{book.copies} copies left</Text>
+                        </div>
+                      }
                       onClick={() => navigate(`/book/${book._id || book.id}`)}
-                      className="list-item-hover"
+                      style={{ cursor: 'pointer' }}
                     >
                       <List.Item.Meta
-                        avatar={
-                          <div style={{ 
-                            width: 60, 
-                            height: 80, 
-                            backgroundColor: categoryColor, 
-                            borderRadius: 8, 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            fontSize: 24,
-                            color: '#fff',
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
-                          }}>
-                            {CategoryIcon}
-                          </div>
-                        }
-                        title={<Text strong style={{ fontSize: 16 }}>{book.title}</Text>}
+                        avatar={<div style={{ width: 60, height: 80, background: '#f0f0f0', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><BookOutlined style={{ fontSize: 24, color: '#bfbfbf' }} /></div>}
+                        title={<a onClick={(e) => { e.preventDefault(); navigate(`/book/${book._id || book.id}`); }}>{book.title}</a>}
                         description={
                           <Space direction="vertical" size={4}>
                              <Text type="secondary">by {book.author}</Text>
-                             <Tag color="blue">{book.category}</Tag>
+                             <Space>
+                               <Tag>{book.category}</Tag>
+                               <Tag color="gold">★ {book.rating}</Tag>
+                             </Space>
                           </Space>
                         }
                       />
-                      <div style={{ marginRight: 24 }}>
-                        <Text type={book.copies > 0 ? "success" : "danger"}>
-                          {book.copies > 0 ? `${book.copies} available` : "Out of stock"}
-                        </Text>
-                      </div>
+                      {book.description && (
+                        <Paragraph ellipsis={{ rows: 2 }} type="secondary" style={{ marginBottom: 0 }}>
+                          {book.description}
+                        </Paragraph>
+                      )}
                     </List.Item>
-                    );
-                  }}
+                  )}
                 />
               </div>
             )
           ) : (
-            <Empty description="No books found matching your criteria" />
+            <EmptyState 
+              title="No Books Found" 
+              description="Try adjusting your search or filters to find what you're looking for." 
+              actionText="Clear Filters"
+              onAction={() => {
+                setSearchText("");
+                setSelectedCategories([]);
+                setShowAvailableOnly(false);
+              }}
+            />
           )}
-        </Col>
-      </Row>
+        </Content>
+      </Layout>
 
-      {/* Mobile Filter Drawer */}
       <Drawer
         title="Filter Books"
         placement="right"
         onClose={() => setFilterDrawerOpen(false)}
         open={filterDrawerOpen}
-        width={280}
+        width={320}
       >
-        <FilterPanel />
+        <FilterPanel mobile />
       </Drawer>
-      
+
       <style jsx>{`
-        .list-item-hover {
-          transition: background-color 0.3s;
+        .desktop-only-block {
+          display: block !important;
         }
-        .list-item-hover:hover {
-          background-color: #fafafa;
-        }
-      `}</style>
-      <style jsx>{`
-        .custom-scroll::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scroll::-webkit-scrollbar-thumb {
-          background-color: #d9d9d9;
-          border-radius: 4px;
-        }
-        .custom-scroll::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        @media (max-width: 768px) {
-          .mobile-filter-btn {
+        @media (max-width: 992px) {
+          .desktop-only-block {
+            display: none !important;
+          }
+          .mobile-only-block {
             display: inline-flex !important;
           }
         }
       `}</style>
-    </PageContainer>
+    </PageShell>
   );
 };
+
+const LoadingIcon = () => <Spin size="large" />;
 
 export default SearchPage;

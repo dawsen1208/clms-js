@@ -1,21 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col, Typography, Button, Carousel, List, Tag, Skeleton, Avatar, Space } from "antd";
+import { Row, Col, Typography, Button, Skeleton, Space, Card, Statistic, Avatar } from "antd";
 import { 
   FireOutlined, 
   ReadOutlined, 
-  HistoryOutlined, 
-  RightOutlined,
-  BookOutlined,
-  UserOutlined,
-  CalendarOutlined,
-  SyncOutlined,
-  CheckCircleOutlined
+  BookOutlined, 
+  ArrowRightOutlined,
+  SearchOutlined,
+  CompassOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageContainer from "../components/common/PageContainer";
-import PageHeader from "../components/common/PageHeader";
-import KPIStatCard from "../components/common/KPIStatCard";
+import PageShell from "../components/common/PageShell";
+import Section from "../components/common/Section";
 import ModernBookCard from "../components/common/ModernBookCard";
 import { getBooks, getRecommendations, getBorrowedBooks, getBorrowHistory } from "../api";
 
@@ -27,14 +23,13 @@ const HomePage = () => {
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
   
-  const [books, setBooks] = useState([]);
   const [trending, setTrending] = useState([]);
   const [activeBorrows, setActiveBorrows] = useState([]);
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState({
     active: 0,
     total: 0,
-    overdue: 0
+    pending: 0
   });
 
   useEffect(() => {
@@ -51,7 +46,6 @@ const HomePage = () => {
     try {
       const token = sessionStorage.getItem("token") || localStorage.getItem("token");
       
-      // Parallel fetching
       const [allBooksRes, recommendRes, borrowedRes, historyRes] = await Promise.allSettled([
         getBooks(),
         getRecommendations(token),
@@ -59,71 +53,30 @@ const HomePage = () => {
         getBorrowHistory(token)
       ]);
 
-      // Process Books & Recommendations
-      let recommendedBooks = [];
-      
+      // Process Recommendations (Mocking "Trending" logic if API returns generic list)
       if (allBooksRes.status === 'fulfilled') {
         const allBooks = allBooksRes.value.data;
-        const targetTitles = [
-          "sapiens", 
-          "clean code", 
-          "the intelligent investor", 
-          "atomic habits"
-        ];
-        
-        // Filter for specific books and remove duplicates by title
-        const uniqueTitles = new Set();
-        recommendedBooks = allBooks.filter(b => {
-            const lowerTitle = b.title.toLowerCase();
-            const isTarget = targetTitles.some(t => lowerTitle.includes(t));
-            if (!isTarget) return false;
-            
-            // Deduplicate logic: use a normalized title key
-            // e.g. "Clean Code" vs "clean code" -> "clean code"
-            if (uniqueTitles.has(lowerTitle)) {
-                return false;
-            }
-            uniqueTitles.add(lowerTitle);
-            return true;
-        });
-        
-        // Enforce specific covers and ensure order if needed (optional)
-        recommendedBooks = recommendedBooks.map(b => {
-             let cover = b.coverUrl;
-             const lowerTitle = b.title.toLowerCase();
-             if (lowerTitle.includes("sapiens")) cover = "/books/sapiens.jpg";
-             else if (lowerTitle.includes("clean code")) cover = "/books/cleancode.jpg";
-             else if (lowerTitle.includes("investor")) cover = "/books/investor.jpg";
-             else if (lowerTitle.includes("atomic habits")) cover = "/books/habits.jpg";
-             return { ...b, coverUrl: cover };
-        });
-
-        // If we found fewer than 4, fallback or keep as is.
-        // If we found more (duplicates), slice.
-        recommendedBooks = recommendedBooks.slice(0, 4);
+        // Simple logic: take first 4 as trending for demo, or shuffle
+        setTrending(allBooks.slice(0, 4));
       }
 
-      setTrending(recommendedBooks);
-
-
-      // Process Active Borrows
-      let currentActive = 0;
+      // Stats
+      let activeCount = 0;
       if (borrowedRes.status === 'fulfilled') {
         setActiveBorrows(borrowedRes.value.data);
-        currentActive = borrowedRes.value.data.length;
+        activeCount = borrowedRes.value.data.length;
       }
-
-      // Process History
-      let totalRead = 0;
+      
+      let historyCount = 0;
       if (historyRes.status === 'fulfilled') {
-        setHistory(historyRes.value.data.slice(0, 5)); // Last 5
-        totalRead = historyRes.value.data.length;
+        setHistory(historyRes.value.data.slice(0, 5));
+        historyCount = historyRes.value.data.length;
       }
 
       setStats({
-        active: currentActive,
-        total: totalRead,
-        overdue: 0 // Mock for now, logic needs due date calc
+        active: activeCount,
+        total: historyCount,
+        pending: 0 // Mock pending
       });
 
     } catch (error) {
@@ -141,173 +94,177 @@ const HomePage = () => {
   };
 
   return (
-    <PageContainer>
-      <PageHeader 
-        title={`${getGreeting()}, ${user.name || 'Reader'}!`}
-        subtitle="Welcome back to your digital library."
-        extra={
-          <Button type="primary" size="large" onClick={() => navigate('/search')}>
-            Browse Library
-          </Button>
-        }
-      />
+    <PageShell 
+      noPadding
+      breadcrumbItems={[{ title: 'Library' }, { title: 'Home' }]}
+    >
+      {/* Hero Section */}
+      <div style={{
+        background: 'linear-gradient(135deg, #E6F7FF 0%, #F0F5FF 100%)',
+        borderRadius: 16,
+        padding: '40px 32px',
+        marginBottom: 32,
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <Row align="middle" gutter={[24, 24]}>
+          <Col xs={24} md={16}>
+            <Title level={1} style={{ marginBottom: 16, color: '#003eb3' }}>
+              {getGreeting()}, {user.name || 'Reader'}
+            </Title>
+            <Paragraph style={{ fontSize: 16, color: '#597ef7', maxWidth: 600 }}>
+              Explore our vast collection of books, manage your loans, and discover your next favorite read with our smart assistant.
+            </Paragraph>
+            <Space size="middle" style={{ marginTop: 16 }}>
+              <Button type="primary" size="large" icon={<SearchOutlined />} onClick={() => navigate('/search')} shape="round">
+                Start Exploring
+              </Button>
+              <Button size="large" icon={<BookOutlined />} onClick={() => navigate('/borrow')} shape="round">
+                My Loans
+              </Button>
+            </Space>
+          </Col>
+          <Col xs={0} md={8} style={{ textAlign: 'right' }}>
+            <CompassOutlined style={{ fontSize: 120, color: 'rgba(22, 119, 255, 0.1)' }} />
+          </Col>
+        </Row>
+      </div>
 
-      {/* Stats Row */}
-      <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
-        <Col xs={24} sm={8}>
-          <KPIStatCard 
-            title={t("common.activeLoans")} 
-            value={stats.active} 
-            icon={<BookOutlined />} 
-            color="#1890ff"
-            loading={loading}
-            suffix="books"
-          />
-        </Col>
-        <Col xs={24} sm={8}>
-          <KPIStatCard 
-            title="Total Read" 
-            value={stats.total} 
-            icon={<ReadOutlined />} 
-            color="#52c41a"
-            trend="up"
-            trendValue="12%"
-            loading={loading}
-          />
-        </Col>
-        <Col xs={24} sm={8}>
-          <KPIStatCard 
-            title="Recommended" 
-            value={trending.length} 
-            icon={<FireOutlined />} 
-            color="#ff4d4f"
-            loading={loading}
-            suffix="new picks"
-          />
-        </Col>
-      </Row>
-
-      <Row gutter={[32, 32]}>
-        {/* Left Column: Main Content */}
-        <Col xs={24} lg={16}>
-          {/* Trending / Recommended Section */}
-          <div style={{ marginBottom: 32 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Title level={3} style={{ margin: 0 }}>
-                <FireOutlined style={{ color: '#ff4d4f', marginRight: 8 }} />
-                Recommended for You
-              </Title>
-              <Button type="link" onClick={() => navigate('/search')}>View All <RightOutlined /></Button>
-            </div>
-            
-            {loading ? (
-              <Skeleton active paragraph={{ rows: 4 }} />
-            ) : (
-              <div className="trending-scroll-container">
-                 {trending.length > 0 ? (
-                   <Row gutter={[16, 16]}>
-                     {trending.map(book => (
-                       <Col span={24} key={book._id || book.id}>
-                         <ModernBookCard 
-                           book={book} 
-                           variant="horizontal"
-                           onBorrow={() => navigate(`/book/${book._id || book.id}`)} 
-                         />
-                       </Col>
-                     ))}
-                   </Row>
-                 ) : (
-                   <Text type="secondary">No recommendations available.</Text>
-                 )}
-              </div>
-            )}
-          </div>
-        </Col>
-
-        {/* Right Column: Sidebar Info */}
-        <Col xs={24} lg={8}>
-          {/* Quick Actions Card */}
-          <div className="card-shadow" style={{ background: '#fff', borderRadius: 14, padding: 24, marginBottom: 24 }}>
-             <Title level={4} style={{ marginTop: 0 }}>Quick Actions</Title>
-             <Space direction="vertical" style={{ width: '100%' }} size={12}>
-               <Button block icon={<BookOutlined />} onClick={() => navigate('/borrow')} style={{ textAlign: 'left', height: 44 }}>
-                 Manage My Loans
-               </Button>
-               <Button block icon={<HistoryOutlined />} onClick={() => navigate('/return')} style={{ textAlign: 'left', height: 44 }}>
-                 Return Books
-               </Button>
-               <Button block icon={<UserOutlined />} onClick={() => navigate('/profile')} style={{ textAlign: 'left', height: 44 }}>
-                 Update Profile
-               </Button>
-             </Space>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="card-shadow" style={{ background: '#fff', borderRadius: 14, padding: 24 }}>
-            <Title level={4} style={{ marginTop: 0 }}>Recent Activity</Title>
-            <List
-              loading={loading}
-              itemLayout="horizontal"
-              dataSource={history}
-              renderItem={(item) => {
-                let actionIcon;
-                let actionColor;
-                let actionText;
-
-                switch(item.action) {
-                    case 'return':
-                        actionIcon = <CheckCircleOutlined />;
-                        actionColor = '#52c41a';
-                        actionText = t("history.returned");
-                        break;
-                    case 'renew':
-                        actionIcon = <SyncOutlined />;
-                        actionColor = '#faad14';
-                        actionText = t("history.renewed");
-                        break;
-                    default: // borrow
-                        actionIcon = <BookOutlined />;
-                        actionColor = '#1890ff';
-                        actionText = t("common.borrowed");
-                }
-
-                return (
-                  <List.Item>
-                    <List.Item.Meta
-                      avatar={
-                         <Avatar 
-                           icon={actionIcon} 
-                           style={{ backgroundColor: actionColor }} 
-                         />
-                      }
-                      title={
-                          <Text strong>{actionText}</Text>
-                      }
-                      description={
-                        <Space direction="vertical" size={0}>
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                             {item.title || item.bookTitle}
-                          </Text>
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                             {new Date(item.date).toLocaleDateString()}
-                          </Text>
-                        </Space>
-                      }
-                    />
-                  </List.Item>
-                );
-              }}
+      {/* Stats Overview */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 40 }}>
+        <Col xs={12} sm={6}>
+          <Card bordered={false} hoverable>
+            <Statistic 
+              title="Active Loans" 
+              value={stats.active} 
+              prefix={<BookOutlined style={{ color: '#1677FF' }} />} 
+              valueStyle={{ color: '#1677FF', fontWeight: 'bold' }}
             />
-            {history.length === 0 && !loading && (
-              <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <Text type="secondary">No recent activity</Text>
-              </div>
-            )}
-          </div>
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card bordered={false} hoverable>
+            <Statistic 
+              title="Pending Requests" 
+              value={stats.pending} 
+              prefix={<HistoryOutlined style={{ color: '#FAAD14' }} />} 
+              valueStyle={{ fontWeight: 'bold' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card bordered={false} hoverable>
+            <Statistic 
+              title="Total Read" 
+              value={stats.total} 
+              prefix={<ReadOutlined style={{ color: '#52C41A' }} />} 
+              valueStyle={{ fontWeight: 'bold' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card bordered={false} hoverable onClick={() => navigate('/assistant')} style={{ cursor: 'pointer', background: '#F9F0FF' }}>
+            <Statistic 
+              title="Smart Assistant" 
+              value="Ask AI" 
+              prefix={<FireOutlined style={{ color: '#722ED1' }} />} 
+              valueStyle={{ color: '#722ED1', fontSize: 20 }}
+            />
+          </Card>
         </Col>
       </Row>
-    </PageContainer>
+
+      {/* Trending Books */}
+      <Section 
+        title="Trending Now" 
+        onViewAll={() => navigate('/search')}
+        extra={<Tag color="volcano">Hot</Tag>}
+      >
+        {loading ? (
+          <Row gutter={[16, 16]}>
+            {[1, 2, 3, 4].map(i => (
+              <Col key={i} xs={24} sm={12} md={6}>
+                <Skeleton active />
+              </Col>
+            ))}
+          </Row>
+        ) : (
+          <Row gutter={[24, 24]}>
+            {trending.map(book => (
+              <Col key={book._id || book.id} xs={24} sm={12} md={6}>
+                <ModernBookCard 
+                  book={book} 
+                  onBorrow={() => navigate(`/book/${book._id || book.id}`)}
+                />
+              </Col>
+            ))}
+          </Row>
+        )}
+      </Section>
+
+      {/* Recent Activity Section */}
+      <Row gutter={[24, 24]}>
+        <Col xs={24} md={12}>
+           <Section title="Recent Activity">
+             <Card bordered={false}>
+               {history.length > 0 ? (
+                 <Space direction="vertical" style={{ width: '100%' }} size={16}>
+                   {history.map((item, idx) => (
+                     <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12, borderBottom: '1px solid #f0f0f0' }}>
+                       <Space>
+                         <Avatar icon={<ReadOutlined />} style={{ backgroundColor: '#E6F7FF', color: '#1677FF' }} />
+                         <div>
+                           <Text strong style={{ display: 'block' }}>{item.title || item.bookTitle}</Text>
+                           <Text type="secondary" style={{ fontSize: 12 }}>{new Date(item.date).toLocaleDateString()}</Text>
+                         </div>
+                       </Space>
+                       <Tag color={item.action === 'return' ? 'green' : 'blue'}>
+                         {item.action === 'return' ? 'Returned' : 'Borrowed'}
+                       </Tag>
+                     </div>
+                   ))}
+                 </Space>
+               ) : (
+                 <div style={{ textAlign: 'center', padding: 20 }}>
+                   <Text type="secondary">No recent activity found.</Text>
+                   <br/>
+                   <Button type="link" onClick={() => navigate('/search')}>Start Reading</Button>
+                 </div>
+               )}
+             </Card>
+           </Section>
+        </Col>
+        
+        <Col xs={24} md={12}>
+           <Section title="New Arrivals">
+             <div style={{ 
+               background: '#FFF7E6', 
+               padding: 24, 
+               borderRadius: 16, 
+               height: '100%',
+               display: 'flex',
+               flexDirection: 'column',
+               justifyContent: 'center',
+               alignItems: 'center',
+               textAlign: 'center'
+             }}>
+                <FireOutlined style={{ fontSize: 40, color: '#FAAD14', marginBottom: 16 }} />
+                <Title level={4}>Discover New Books</Title>
+                <Paragraph type="secondary">We update our collection every week. Check out what's new in the library.</Paragraph>
+                <Button type="primary" ghost style={{ borderColor: '#FAAD14', color: '#FAAD14' }} onClick={() => navigate('/search?sort=newest')}>
+                  Browse New Arrivals
+                </Button>
+             </div>
+           </Section>
+        </Col>
+      </Row>
+
+    </PageShell>
   );
 };
+
+// Missing imports fix
+import { HistoryOutlined } from "@ant-design/icons";
+import { Tag } from "antd";
 
 export default HomePage;

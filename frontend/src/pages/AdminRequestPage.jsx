@@ -32,8 +32,7 @@ import {
   approveRequestLibrary as approveRequest,
 } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageContainer from "../components/common/PageContainer";
-import PageHeader from "../components/common/PageHeader";
+import PageShell from "../components/common/PageShell";
 import KPIStatCard from "../components/common/KPIStatCard";
 
 const { Option } = Select;
@@ -484,21 +483,20 @@ function AdminRequestPage({ appearance }) {
      🧱 页面渲染
      ========================================================= */
   return (
-    <PageContainer>
+    <PageShell
+      title={t("admin.applicationManagement") || "Application Management"}
+      subtitle={t("admin.manageBorrowReturnRequests")}
+      extra={
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={fetchRequests}
+            loading={loading}
+          >
+            {t("admin.refresh")}
+          </Button>
+      }
+    >
       {contextHolder}
-      <PageHeader
-        title={t("admin.applicationManagement") || "Application Management"}
-        subtitle={t("admin.manageBorrowReturnRequests")}
-        extra={
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={fetchRequests}
-              loading={loading}
-            >
-              {t("admin.refresh")}
-            </Button>
-        }
-      />
       
       {/* 📊 Statistics Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
@@ -599,7 +597,7 @@ function AdminRequestPage({ appearance }) {
           }}
         />
       </Card>
-    </PageContainer>
+    </PageShell>
   );
 }
 

@@ -1,33 +1,27 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { 
   Typography, 
-  Button, 
-  Card, 
   Row, 
   Col, 
-  Tag, 
-  Progress, 
-  Space, 
   Modal, 
   message,
-  Empty,
   Skeleton,
-  DatePicker
+  theme
 } from "antd";
 import { 
   ClockCircleOutlined, 
   SyncOutlined, 
-  RollbackOutlined, 
-  CalendarOutlined,
   ExclamationCircleOutlined,
-  CheckCircleOutlined
+  BookOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageContainer from "../components/common/PageContainer";
-import PageHeader from "../components/common/PageHeader";
+import PageShell from "../components/common/PageShell";
+import Section from "../components/common/Section";
+import LoanCard from "../components/common/LoanCard";
 import KPIStatCard from "../components/common/KPIStatCard";
+import EmptyState from "../components/common/EmptyState";
 import { 
   getBorrowedBooks, 
   getUserRequestsLibrary, 
@@ -35,11 +29,14 @@ import {
 } from "../api";
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const BorrowPage = () => {
   const { t } = useLanguage();
+  const { token } = theme.useToken();
+  const navigate = useNavigate();
   const [modal, contextHolder] = Modal.useModal();
+  
   const [loading, setLoading] = useState(true);
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -47,7 +44,6 @@ const BorrowPage = () => {
   // Modals
   const [renewModalOpen, setRenewModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
-  const [renewDate, setRenewDate] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -57,13 +53,17 @@ const BorrowPage = () => {
     setLoading(true);
     try {
       const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+      if (!token) {
+        navigate('/login');
+        return;
+      }
       const [borrowedRes, requestsRes] = await Promise.all([
         getBorrowedBooks(token),
         getUserRequestsLibrary(token)
       ]);
       
-      setBorrowedBooks(borrowedRes.data);
-      setPendingRequests(requestsRes.data);
+      setBorrowedBooks(borrowedRes.data || []);
+      setPendingRequests(requestsRes.data || []);
     } catch (error) {
       console.error("Error fetching borrow data:", error);
       message.error("Failed to load borrowed books");
@@ -74,23 +74,9 @@ const BorrowPage = () => {
 
   const getDaysLeft = (borrowDate, dueDate) => {
     if (!borrowDate) return 0;
-    // Fallback if no dueDate (assume 30 days)
     const due = dueDate ? dayjs(dueDate) : dayjs(borrowDate).add(30, 'day');
     const now = dayjs();
     return due.diff(now, 'day');
-  };
-
-  const getProgressPercent = (borrowDate, dueDate) => {
-    if (!borrowDate) return 0;
-    const start = dayjs(borrowDate);
-    const end = dueDate ? dayjs(dueDate) : start.add(30, 'day');
-    const now = dayjs();
-    const totalDuration = end.diff(start, 'hour');
-    const elapsed = now.diff(start, 'hour');
-    
-    if (totalDuration === 0) return 0;
-    const percent = (elapsed / totalDuration) * 100;
-    return Math.min(Math.max(percent, 0), 100);
   };
 
   const getRequestStatus = (bookId) => {
@@ -138,80 +124,16 @@ const BorrowPage = () => {
     return { total, pending, overdue };
   }, [borrowedBooks, pendingRequests]);
 
-  const BorrowCard = ({ book }) => {
-    const daysLeft = getDaysLeft(book.borrowDate, book.dueDate);
-    const progress = getProgressPercent(book.borrowDate, book.dueDate);
-    const pendingType = getRequestStatus(book._id || book.id);
-    const isOverdue = daysLeft < 0;
-    
-    return (
-      <Card 
-        className="card-shadow"
-        bordered={false}
-        style={{ marginBottom: 16, borderRadius: 14 }}
-        bodyStyle={{ padding: 24 }}
-      >
-        <Row gutter={24} align="middle">
-          <Col xs={24} md={12}>
-            <Title level={4} style={{ marginBottom: 4 }}>
-              <Link to={`/book/${book._id || book.id}`} style={{ color: 'inherit' }}>
-                {book.title}
-              </Link>
-            </Title>
-            <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
-              Borrowed on {dayjs(book.borrowDate).format("MMM D, YYYY")}
-            </Text>
-            
-            <Space size={16} style={{ marginBottom: 16 }}>
-               <Tag icon={<ClockCircleOutlined />} color={isOverdue ? "error" : daysLeft < 5 ? "warning" : "success"} style={{ fontSize: 14, padding: '4px 8px' }}>
-                 {isOverdue ? `${Math.abs(daysLeft)} Days Overdue` : `${daysLeft} Days Left`}
-               </Tag>
-               {pendingType && (
-                 <Tag color="processing" icon={<SyncOutlined spin />}>
-                   {pendingType === 'renew' ? 'Renew Pending' : 'Pending'}
-                 </Tag>
-               )}
-            </Space>
-          </Col>
-          
-          <Col xs={24} md={6}>
-            <div style={{ marginBottom: 8 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>Loan Progress</Text>
-                <Text type="secondary" style={{ fontSize: 12 }}>{Math.round(progress)}%</Text>
-              </div>
-              <Progress 
-                percent={progress} 
-                showInfo={false} 
-                strokeColor={isOverdue ? "#ff4d4f" : { '0%': '#1890ff', '100%': '#52c41a' }} 
-              />
-            </div>
-            <Text style={{ fontSize: 12 }} type="secondary">
-              Due: {book.dueDate ? dayjs(book.dueDate).format("MMM D, YYYY") : "N/A"}
-            </Text>
-          </Col>
-          
-          <Col xs={24} md={6} style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-            <Button 
-              icon={<SyncOutlined />} 
-              disabled={!!pendingType || isOverdue}
-              onClick={() => handleRenewClick(book)}
-            >
-              Renew
-            </Button>
-          </Col>
-        </Row>
-      </Card>
-    );
-  };
-
   return (
-    <PageContainer>
+    <PageShell
+      title="My Library"
+      subtitle="Manage your borrowed books and track due dates."
+      breadcrumbItems={[
+        { title: t("nav.home"), path: "/" },
+        { title: t("nav.myBooks") }
+      ]}
+    >
       {contextHolder}
-      <PageHeader 
-        title="My Library"
-        subtitle="Manage your borrowed books and requests."
-      />
 
       {/* Stats Row */}
       <Row gutter={[24, 24]} style={{ marginBottom: 32 }}>
@@ -219,8 +141,8 @@ const BorrowPage = () => {
           <KPIStatCard 
             title={t("common.activeLoans")} 
             value={stats.total} 
-            icon={<ClockCircleOutlined />} 
-            color="#1890ff"
+            icon={<BookOutlined />} 
+            color={token.colorPrimary}
             loading={loading}
           />
         </Col>
@@ -229,7 +151,7 @@ const BorrowPage = () => {
             title={t("common.pendingRequests")} 
             value={stats.pending} 
             icon={<SyncOutlined />} 
-            color="#faad14"
+            color={token.colorWarning}
             loading={loading}
           />
         </Col>
@@ -238,28 +160,39 @@ const BorrowPage = () => {
             title={t("common.overdueBooks")} 
             value={stats.overdue} 
             icon={<ExclamationCircleOutlined />} 
-            color="#ff4d4f"
+            color={token.colorError}
             loading={loading}
           />
         </Col>
       </Row>
 
-      <Title level={4} style={{ marginBottom: 16 }}>{t("titles.currentBorrowings")}</Title>
-      
-      {loading ? (
-        <Skeleton active paragraph={{ rows: 4 }} />
-      ) : borrowedBooks.length > 0 ? (
-        borrowedBooks.map(book => (
-          <BorrowCard key={book._id || book.id} book={book} />
-        ))
-      ) : (
-        <Empty 
-          image={Empty.PRESENTED_IMAGE_SIMPLE} 
-          description="You haven't borrowed any books yet." 
-        >
-          <Button type="primary" href="/search">Browse Books</Button>
-        </Empty>
-      )}
+      <Section title={t("titles.currentBorrowings") || "Active Loans"}>
+        {loading ? (
+          <Skeleton active paragraph={{ rows: 4 }} />
+        ) : borrowedBooks.length > 0 ? (
+          <Row gutter={[24, 24]}>
+            {borrowedBooks.map(book => (
+              <Col span={24} key={book._id || book.id}>
+                <LoanCard 
+                  book={{
+                    ...book,
+                    pendingType: getRequestStatus(book._id || book.id)
+                  }}
+                  onRenew={handleRenewClick}
+                />
+              </Col>
+            ))}
+          </Row>
+        ) : (
+          <EmptyState 
+            title="No Active Loans" 
+            description="You haven't borrowed any books yet. Explore our collection to find something new!" 
+            actionText="Browse Books"
+            onAction={() => navigate('/search')}
+            icon={<BookOutlined style={{ fontSize: 48, color: token.colorTextQuaternary }} />}
+          />
+        )}
+      </Section>
 
       {/* Renew Modal */}
       <Modal
@@ -268,11 +201,12 @@ const BorrowPage = () => {
         onOk={submitRenew}
         onCancel={() => setRenewModalOpen(false)}
         okText="Confirm Renewal"
+        centered
       >
         <p>Would you like to request a renewal for <strong>{selectedBook?.title}</strong>?</p>
         <p>This will extend the due date by 7 days pending approval.</p>
       </Modal>
-    </PageContainer>
+    </PageShell>
   );
 };
 

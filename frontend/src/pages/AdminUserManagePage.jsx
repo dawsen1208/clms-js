@@ -40,8 +40,7 @@ import {
   Legend,
 } from "recharts";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageContainer from "../components/common/PageContainer";
-import PageHeader from "../components/common/PageHeader";
+import PageShell from "../components/common/PageShell";
 import KPIStatCard from "../components/common/KPIStatCard";
 
 const { Paragraph } = Typography;
@@ -322,20 +321,19 @@ const AdminUserManagePage = () => {
   ];
 
   return (
-    <PageContainer>
-      <PageHeader
-        title={t("admin.userManage")}
-        subtitle={t("admin.persona") || "User Analytics & Management"}
-        extra={
-            <Button
-                icon={<ReloadOutlined />}
-                onClick={fetchUsers}
-                loading={loading}
-            >
-                {t("admin.refresh")}
-            </Button>
-        }
-      />
+    <PageShell
+      title={t("admin.userManage")}
+      subtitle={t("admin.persona") || "User Analytics & Management"}
+      extra={
+          <Button
+              icon={<ReloadOutlined />}
+              onClick={fetchUsers}
+              loading={loading}
+          >
+              {t("admin.refresh")}
+          </Button>
+      }
+    >
       
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={8} lg={4}>
@@ -567,7 +565,7 @@ const AdminUserManagePage = () => {
           </ResponsiveContainer>
         )}
       </Modal>
-    </PageContainer>
+    </PageShell>
   );
 };
 
