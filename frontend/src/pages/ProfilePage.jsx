@@ -41,7 +41,7 @@ import KPIStatCard from "../components/common/KPIStatCard";
 import { 
   getBorrowHistory, 
   getUserRequestsLibrary, 
-  updateUserProfile, 
+  updateProfile, 
   uploadAvatar 
 } from "../api";
 
@@ -133,7 +133,6 @@ function ProfilePage() {
       sessionStorage.setItem("user", JSON.stringify(updatedUser));
       if (localStorage.getItem("user")) localStorage.setItem("user", JSON.stringify(updatedUser));
       
-      setEditing(false);
       message.success(t("profile.updateSuccess"));
     } catch (error) {
       message.error(t("profile.updateFailed"));
@@ -305,7 +304,7 @@ function ProfilePage() {
                       columns={requestColumns} 
                       rowKey={record => record._id || Math.random()}
                       pagination={{ pageSize: 5 }}
-                    />
+                      />
                   )
                 }
               ]}

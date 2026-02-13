@@ -10,9 +10,12 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageShell from "../components/common/PageShell";
-import Section from "../components/common/Section";
-import ModernBookCard from "../components/common/ModernBookCard";
+import EditorialPageShell from "../components/common/EditorialPageShell";
+import HeroEditorial from "../components/common/HeroEditorial";
+import MagazineBentoGrid from "../components/common/MagazineBentoGrid";
+import EditorialSectionHeader from "../components/common/EditorialSectionHeader";
+import BookCoverPro from "../components/common/BookCoverPro";
+import KPIStatCardPro from "../components/common/KPIStatCardPro";
 import { getBooks, getRecommendations, getBorrowedBooks, getBorrowHistory } from "../api";
 
 const { Title, Text, Paragraph } = Typography;
@@ -36,7 +39,8 @@ const HomePage = () => {
     const sessionUser = sessionStorage.getItem("user");
     const localUser = localStorage.getItem("user");
     if (sessionUser || localUser) {
-      setUser(JSON.parse(sessionUser || localUser));
+      const userData = JSON.parse(sessionUser || localUser);
+      setUser(userData);
     }
     fetchData();
   }, []);
@@ -56,21 +60,23 @@ const HomePage = () => {
       // Process Recommendations (Mocking "Trending" logic if API returns generic list)
       if (allBooksRes.status === 'fulfilled') {
         const allBooks = allBooksRes.value.data;
-        // Simple logic: take first 4 as trending for demo, or shuffle
-        setTrending(allBooks.slice(0, 4));
+        // Simple logic: take first 5 as trending for demo, or shuffle
+        setTrending(allBooks.slice(0, 5));
       }
 
       // Stats
       let activeCount = 0;
       if (borrowedRes.status === 'fulfilled') {
-        setActiveBorrows(borrowedRes.value.data);
-        activeCount = borrowedRes.value.data.length;
+        const borrowed = borrowedRes.value.data || [];
+        setActiveBorrows(borrowed);
+        activeCount = borrowed.length;
       }
       
       let historyCount = 0;
       if (historyRes.status === 'fulfilled') {
-        setHistory(historyRes.value.data.slice(0, 5));
-        historyCount = historyRes.value.data.length;
+        const hist = historyRes.value.data || [];
+        setHistory(hist.slice(0, 5));
+        historyCount = hist.length;
       }
 
       setStats({
@@ -93,178 +99,157 @@ const HomePage = () => {
     return "Good Evening";
   };
 
+  // Transform books for Bento Grid
+  const bentoItems = trending.map((book, index) => ({
+    id: book.id,
+    title: book.title,
+    description: book.author,
+    category: book.category || 'Fiction',
+    meta: `${book.total_copies - book.available_copies} borrowed`,
+    // If no cover image, we'll use a generated one or placeholder logic
+    coverImage: book.cover_image, 
+    // If no cover image, render custom component (handled by BentoGrid check, or we pass a render prop)
+    action: (
+      <Button 
+        shape="circle" 
+        icon={<ArrowRightOutlined />} 
+        onClick={() => navigate(`/book/${book.id}`)}
+      />
+    ),
+    // Layout logic: First item big (2x2), next two wide (2x1), rest small (1x1)
+    colSpan: index === 0 ? 6 : (index === 1 || index === 2) ? 6 : 4,
+    rowSpan: index === 0 ? 2 : 1,
+    background: index === 0 ? '#FAF9F6' : '#fff'
+  }));
+
   return (
-    <PageShell 
+    <EditorialPageShell 
+      fullWidth
       noPadding
-      breadcrumbItems={[{ title: 'Library' }, { title: 'Home' }]}
+      breadcrumbItems={[]}
     >
       {/* Hero Section */}
-      <div style={{
-        background: 'linear-gradient(135deg, #E6F7FF 0%, #F0F5FF 100%)',
-        borderRadius: 16,
-        padding: '40px 32px',
-        marginBottom: 32,
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        <Row align="middle" gutter={[24, 24]}>
-          <Col xs={24} md={16}>
-            <Title level={1} style={{ marginBottom: 16, color: '#003eb3' }}>
-              {getGreeting()}, {user.name || 'Reader'}
-            </Title>
-            <Paragraph style={{ fontSize: 16, color: '#597ef7', maxWidth: 600 }}>
-              Explore our vast collection of books, manage your loans, and discover your next favorite read with our smart assistant.
-            </Paragraph>
-            <Space size="middle" style={{ marginTop: 16 }}>
-              <Button type="primary" size="large" icon={<SearchOutlined />} onClick={() => navigate('/search')} shape="round">
-                Start Exploring
-              </Button>
-              <Button size="large" icon={<BookOutlined />} onClick={() => navigate('/borrow')} shape="round">
-                My Loans
-              </Button>
-            </Space>
-          </Col>
-          <Col xs={0} md={8} style={{ textAlign: 'right' }}>
-            <CompassOutlined style={{ fontSize: 120, color: 'rgba(22, 119, 255, 0.1)' }} />
-          </Col>
-        </Row>
-      </div>
-
-      {/* Stats Overview */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 40 }}>
-        <Col xs={12} sm={6}>
-          <Card bordered={false} hoverable>
-            <Statistic 
-              title="Active Loans" 
-              value={stats.active} 
-              prefix={<BookOutlined style={{ color: '#1677FF' }} />} 
-              valueStyle={{ color: '#1677FF', fontWeight: 'bold' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card bordered={false} hoverable>
-            <Statistic 
-              title="Pending Requests" 
-              value={stats.pending} 
-              prefix={<HistoryOutlined style={{ color: '#FAAD14' }} />} 
-              valueStyle={{ fontWeight: 'bold' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card bordered={false} hoverable>
-            <Statistic 
-              title="Total Read" 
-              value={stats.total} 
-              prefix={<ReadOutlined style={{ color: '#52C41A' }} />} 
-              valueStyle={{ fontWeight: 'bold' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card bordered={false} hoverable onClick={() => navigate('/assistant')} style={{ cursor: 'pointer', background: '#F9F0FF' }}>
-            <Statistic 
-              title="Smart Assistant" 
-              value="Ask AI" 
-              prefix={<FireOutlined style={{ color: '#722ED1' }} />} 
-              valueStyle={{ color: '#722ED1', fontSize: 20 }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Trending Books */}
-      <Section 
-        title="Trending Now" 
-        onViewAll={() => navigate('/search')}
-        extra={<Tag color="volcano">Hot</Tag>}
-      >
-        {loading ? (
-          <Row gutter={[16, 16]}>
-            {[1, 2, 3, 4].map(i => (
-              <Col key={i} xs={24} sm={12} md={6}>
-                <Skeleton active />
-              </Col>
-            ))}
-          </Row>
-        ) : (
-          <Row gutter={[24, 24]}>
-            {trending.map(book => (
-              <Col key={book._id || book.id} xs={24} sm={12} md={6}>
-                <ModernBookCard 
-                  book={book} 
-                  onBorrow={() => navigate(`/book/${book._id || book.id}`)}
-                />
-              </Col>
-            ))}
-          </Row>
-        )}
-      </Section>
-
-      {/* Recent Activity Section */}
-      <Row gutter={[24, 24]}>
-        <Col xs={24} md={12}>
-           <Section title="Recent Activity">
-             <Card bordered={false}>
-               {history.length > 0 ? (
-                 <Space direction="vertical" style={{ width: '100%' }} size={16}>
-                   {history.map((item, idx) => (
-                     <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12, borderBottom: '1px solid #f0f0f0' }}>
-                       <Space>
-                         <Avatar icon={<ReadOutlined />} style={{ backgroundColor: '#E6F7FF', color: '#1677FF' }} />
-                         <div>
-                           <Text strong style={{ display: 'block' }}>{item.title || item.bookTitle}</Text>
-                           <Text type="secondary" style={{ fontSize: 12 }}>{new Date(item.date).toLocaleDateString()}</Text>
-                         </div>
-                       </Space>
-                       <Tag color={item.action === 'return' ? 'green' : 'blue'}>
-                         {item.action === 'return' ? 'Returned' : 'Borrowed'}
-                       </Tag>
-                     </div>
-                   ))}
-                 </Space>
-               ) : (
-                 <div style={{ textAlign: 'center', padding: 20 }}>
-                   <Text type="secondary">No recent activity found.</Text>
-                   <br/>
-                   <Button type="link" onClick={() => navigate('/search')}>Start Reading</Button>
-                 </div>
-               )}
-             </Card>
-           </Section>
-        </Col>
-        
-        <Col xs={24} md={12}>
-           <Section title="New Arrivals">
+      <HeroEditorial 
+        title={`${getGreeting()}, ${user.name || 'Reader'}.`}
+        subtitle="Explore our curated collection of knowledge and imagination. Your next favorite book is waiting."
+        ctaText="Browse Collection"
+        onCtaClick={() => navigate('/search')}
+        illustration={
+          <div style={{ position: 'relative', width: 300, height: 400 }}>
+             <BookCoverPro 
+                title="The Design of Everyday Things" 
+                author="Don Norman" 
+                style="swiss" 
+                width={280} 
+                height={380} 
+                className="floating-book"
+             />
+             {/* Decorative circle behind */}
              <div style={{ 
-               background: '#FFF7E6', 
-               padding: 24, 
-               borderRadius: 16, 
-               height: '100%',
-               display: 'flex',
-               flexDirection: 'column',
-               justifyContent: 'center',
-               alignItems: 'center',
-               textAlign: 'center'
-             }}>
-                <FireOutlined style={{ fontSize: 40, color: '#FAAD14', marginBottom: 16 }} />
-                <Title level={4}>Discover New Books</Title>
-                <Paragraph type="secondary">We update our collection every week. Check out what's new in the library.</Paragraph>
-                <Button type="primary" ghost style={{ borderColor: '#FAAD14', color: '#FAAD14' }} onClick={() => navigate('/search?sort=newest')}>
-                  Browse New Arrivals
-                </Button>
-             </div>
-           </Section>
-        </Col>
-      </Row>
+               position: 'absolute', 
+               top: '50%', 
+               left: '50%', 
+               transform: 'translate(-50%, -50%)', 
+               width: 350, 
+               height: 350, 
+               borderRadius: '50%', 
+               background: '#A65D57', 
+               opacity: 0.1, 
+               zIndex: -1 
+             }} />
+          </div>
+        }
+      />
 
-    </PageShell>
+      <div style={{ padding: '0 48px 64px' }}>
+        
+        {/* Stats Section (if logged in) */}
+        {user.email && (
+          <div style={{ marginTop: -40, position: 'relative', zIndex: 2, marginBottom: 64 }}>
+            <div className="editorial-grid">
+              <div className="col-span-4">
+                <KPIStatCardPro 
+                  title="Books Reading" 
+                  value={stats.active} 
+                  trendType="up"
+                  trendValue="Active"
+                  data={[1, 2, 2, 3, stats.active]} // Mock trend
+                />
+              </div>
+              <div className="col-span-4">
+                <KPIStatCardPro 
+                  title="Total Read" 
+                  value={stats.total} 
+                  trendType="up"
+                  trendValue="+2 this month"
+                  data={[stats.total - 2, stats.total - 1, stats.total]} // Mock trend
+                  color="#6B8E23"
+                />
+              </div>
+              <div className="col-span-4">
+                <Card 
+                  bordered={false} 
+                  hoverable
+                  style={{ 
+                    height: '100%', 
+                    borderRadius: 16, 
+                    background: 'linear-gradient(135deg, #2C3E50 0%, #000000 100%)',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => navigate('/search')}
+                >
+                  <Space direction="vertical" align="center">
+                    <CompassOutlined style={{ fontSize: 32, color: '#A65D57' }} />
+                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: 500 }}>Discover New Books</Text>
+                  </Space>
+                </Card>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Trending Section */}
+        <EditorialSectionHeader 
+          title="Curated for You" 
+          subtitle="Trending books and recommended reads based on your history."
+          actionText="View All Books"
+          onActionClick={() => navigate('/search')}
+        />
+
+        {loading ? (
+          <Skeleton active paragraph={{ rows: 4 }} />
+        ) : (
+          <MagazineBentoGrid items={bentoItems} />
+        )}
+
+        {/* Categories / Explore Section */}
+        <EditorialSectionHeader 
+          title="Explore Categories" 
+          subtitle="Dive into specific topics and genres."
+        />
+        
+        <div className="editorial-grid" style={{ marginBottom: 64 }}>
+          {['Fiction', 'Science', 'History', 'Technology'].map((cat, i) => (
+            <div key={cat} className="col-span-3">
+              <Card 
+                hoverable 
+                bordered={false}
+                style={{ height: 120, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FAF9F6' }}
+                onClick={() => navigate(`/search?category=${cat}`)}
+              >
+                <Title level={4} style={{ margin: 0, fontFamily: "'Literata', serif" }}>{cat}</Title>
+              </Card>
+            </div>
+          ))}
+        </div>
+
+      </div>
+    </EditorialPageShell>
   );
 };
-
-// Missing imports fix
-import { HistoryOutlined } from "@ant-design/icons";
-import { Tag } from "antd";
 
 export default HomePage;
