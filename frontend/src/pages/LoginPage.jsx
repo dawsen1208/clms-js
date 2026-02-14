@@ -1,6 +1,6 @@
 // ✅ client/src/pages/LoginPage.jsx
 import React, { useState } from "react";
-import { Form, Input, Button, Checkbox, Typography, message, theme, Grid, Layout } from "antd";
+import { Form, Input, Button, Checkbox, Typography, message, theme, Grid, Layout, Space } from "antd";
 import { UserOutlined, LockOutlined, ArrowRightOutlined, GlobalOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -11,7 +11,7 @@ const { useBreakpoint } = Grid;
 
 const LoginPage = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState("");
+  const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   
@@ -22,23 +22,30 @@ const LoginPage = ({ onLogin }) => {
 
   const handleLogin = async () => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      if (email && password) {
-        // Mock login logic
-        const user = {
-          name: email.split('@')[0],
-          role: email.includes('admin') ? 'Admin' : 'Reader',
-          avatar: `https://api.dicebear.com/7.x/miniavs/svg?seed=${email}`
-        };
-        onLogin(user);
-        message.success("Welcome back to CLMS");
-        navigate(user.role === 'Admin' ? "/admin/dashboard" : "/home");
-      } else {
-        message.error("Please enter email and password");
-      }
+    try {
+      setTimeout(() => {
+        if (userId && password) {
+          const isAdmin = /^a/i.test(userId);
+          const role = isAdmin ? "Administrator" : "Reader";
+          const token = `mock-token-${userId}-${Date.now()}`;
+          const user = {
+            userId,
+            name: userId,
+            role,
+            avatar: `https://api.dicebear.com/7.x/miniavs/svg?seed=${encodeURIComponent(userId)}`
+          };
+          onLogin(token, user);
+          message.success("Welcome back to CLMS");
+          navigate(isAdmin ? "/admin/dashboard" : "/home");
+        } else {
+          message.error("Please enter ID and password");
+        }
+        setLoading(false);
+      }, 800);
+    } catch (e) {
       setLoading(false);
-    }, 1500);
+      message.error(e?.message || "Login failed");
+    }
   };
 
   const toggleLanguage = () => {
@@ -196,12 +203,12 @@ const LoginPage = ({ onLogin }) => {
             size="large"
             requiredMark={false}
           >
-            <Form.Item label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Email</span>} required>
+            <Form.Item label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>User ID</span>} required>
               <Input 
                 prefix={<UserOutlined style={{ color: token.colorTextQuaternary }} />} 
-                placeholder="reader@example.com" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="r12345 或 a10001" 
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
                 style={{ borderRadius: 8, height: 48, background: "#fff" }}
               />
             </Form.Item>
@@ -253,20 +260,40 @@ const LoginPage = ({ onLogin }) => {
           </Form>
 
           <div style={{ marginTop: "32px", textAlign: "center" }}>
-            <Text type="secondary">Don't have an account? </Text>
-            <a 
-              onClick={() => navigate("/register")} 
-              style={{ 
-                color: token.colorTextHeading, 
-                fontWeight: 600, 
-                cursor: "pointer",
-                marginLeft: "4px",
-                textDecoration: "underline",
-                textDecorationColor: token.colorPrimary
-              }}
-            >
-              Create account
-            </a>
+            <Space direction="vertical" style={{ width: "100%" }}>
+              <div>
+                <Text type="secondary">Need an account? </Text>
+                <a 
+                  onClick={() => navigate("/register")} 
+                  style={{ 
+                    color: token.colorTextHeading, 
+                    fontWeight: 600, 
+                    cursor: "pointer",
+                    marginLeft: "4px",
+                    textDecoration: "underline",
+                    textDecorationColor: token.colorPrimary
+                  }}
+                >
+                  Register Reader
+                </a>
+              </div>
+              <div>
+                <Text type="secondary">Admin onboarding? </Text>
+                <a 
+                  onClick={() => navigate("/register-admin")} 
+                  style={{ 
+                    color: token.colorTextHeading, 
+                    fontWeight: 600, 
+                    cursor: "pointer",
+                    marginLeft: "4px",
+                    textDecoration: "underline",
+                    textDecorationColor: token.colorPrimary
+                  }}
+                >
+                  Register Administrator
+                </a>
+              </div>
+            </Space>
           </div>
         </div>
         
