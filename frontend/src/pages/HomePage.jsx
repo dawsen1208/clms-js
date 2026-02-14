@@ -125,28 +125,28 @@ const HomePage = () => {
       title: 'Clean Code',
       author: 'Robert C. Martin',
       category: 'Technology',
-      cover_image: '/book/clean-code.jpg'
+      cover_image: '/books/cleancode.jpg'
     },
     {
       id: 'atomic-habits',
       title: 'Atomic Habits',
       author: 'James Clear',
       category: 'Self-Help',
-      cover_image: '/book/atomic-habits.jpg'
+      cover_image: '/books/habits.jpg'
     },
     {
       id: 'intelligent-investor',
       title: 'The Intelligent Investor',
       author: 'Benjamin Graham',
       category: 'Business',
-      cover_image: '/book/intelligent-investor.jpg'
+      cover_image: '/books/investor.jpg'
     },
     {
       id: 'sapiens',
       title: 'Sapiens',
       author: 'Yuval Noah Harari',
       category: 'History',
-      cover_image: '/book/sapiens.jpg'
+      cover_image: '/books/sapiens.jpg'
     }
   ];
 
