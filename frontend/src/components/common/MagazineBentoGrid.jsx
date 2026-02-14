@@ -46,11 +46,14 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
               }}
             >
               {item.coverImage ? (
-                <div style={{ 
-                  flex: isFeatured ? 2 : 1, 
-                  background: `url(${item.coverImage}) center/cover no-repeat`,
-                  minHeight: isFeatured ? '60%' : '50%'
-                }} />
+                <div style={{ flex: isFeatured ? 2 : 1, minHeight: isFeatured ? '60%' : '50%', overflow: 'hidden' }}>
+                  <img 
+                    src={item.coverImage} 
+                    alt={item.title} 
+                    loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+                  />
+                </div>
               ) : item.coverNode ? (
                 <div style={{ 
                   flex: isFeatured ? 2 : 1, 
@@ -76,14 +79,21 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
                   <Text type="secondary" style={{ fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                     {item.category}
                   </Text>
-                  <Title level={isFeatured ? 2 : 4} style={{ 
-                    fontFamily: "'Literata', serif", 
+                  <div style={{
+                    fontFamily: "'Literata', serif",
+                    fontWeight: isFeatured ? 600 : 500,
+                    fontSize: isFeatured ? 24 : 18,
                     margin: '8px 0 12px',
-                    lineHeight: 1.3
+                    lineHeight: 1.3,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: isFeatured ? 2 : 2,
+                    WebkitBoxOrient: 'vertical'
                   }}>
                     {item.title}
-                  </Title>
-                  <Text style={{ color: token.colorTextSecondary }} ellipsis={{ rows: 2 }}>
+                  </div>
+                  <Text style={{ color: token.colorTextSecondary }} ellipsis={{ rows: 2, tooltip: item.description }}>
                     {item.description}
                   </Text>
                 </div>

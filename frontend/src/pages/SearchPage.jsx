@@ -164,16 +164,24 @@ const SearchPage = () => {
     setSearchText(value);
   };
 
-  // Transform to Bento Grid Items
-  const bentoItems = filteredBooks.map((book, index) => {
+  // Pagination
+  const isMobile = !screens.md;
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = isMobile ? 8 : 12;
+  const pageStart = (currentPage - 1) * pageSize;
+  const pageEnd = pageStart + pageSize;
+  const paginatedBooks = useMemo(() => filteredBooks.slice(pageStart, pageEnd), [filteredBooks, pageStart, pageEnd]);
+
+  // Transform to Bento Grid Items (memoized)
+  const bentoItems = useMemo(() => paginatedBooks.map((book, index) => {
     // Generate fallback cover if image missing
     const hasImage = !!book.cover_image;
     const coverNode = !hasImage ? (
       <BookCoverPro 
         title={book.title} 
         author={book.author} 
-        width="100%" 
-        height="100%" 
+        width={160} 
+        height={220} 
         style={index % 2 === 0 ? "swiss" : "serif"}
         baseColor={stringToWarmColor(book.title)}
       />
@@ -199,7 +207,7 @@ const SearchPage = () => {
       rowSpan: 1,
       background: token.colorBgContainer
     };
-  });
+  }), [paginatedBooks, navigate, token]);
 
   return (
     <EditorialPageShell 
@@ -300,7 +308,18 @@ const SearchPage = () => {
       {/* Results */}
       <div style={{ padding: screens.md ? '0 48px' : '0 16px' }}>
         {filteredBooks.length > 0 ? (
-           <MagazineBentoGrid items={bentoItems} />
+           <>
+             <MagazineBentoGrid items={bentoItems} />
+             <div style={{ textAlign: 'center', marginTop: 16, marginBottom: 24 }}>
+               <Pagination 
+                 current={currentPage} 
+                 total={filteredBooks.length} 
+                 pageSize={pageSize} 
+                 onChange={setCurrentPage}
+                 showSizeChanger={false}
+               />
+             </div>
+           </>
         ) : (
           <EmptyStateIllustration 
             title="No books found" 

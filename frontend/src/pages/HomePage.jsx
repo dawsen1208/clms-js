@@ -125,7 +125,17 @@ const HomePage = () => {
     description: book.author,
     category: book.category || 'Fiction',
     meta: `${(book.total_copies || 0) - (book.available_copies || 0)} borrowed`,
-    coverImage: book.cover_image, 
+    coverImage: book.cover_image,
+    coverNode: !book.cover_image ? (
+      <BookCoverPro 
+        title={book.title} 
+        author={book.author} 
+        width={160} 
+        height={220} 
+        style={index % 2 === 0 ? "swiss" : "serif"}
+        baseColor={token.colorPrimary}
+      />
+    ) : null,
     action: (
       <Button 
         shape="circle" 
