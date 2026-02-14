@@ -50,6 +50,13 @@ const bookSchema = new mongoose.Schema(
 
     // 📷 封面图片URL
     coverImage: { type: String, default: "" },
+    
+    // 📷 多尺寸封面（用于前端 srcset）
+    coverImageSet: {
+      w160: { type: String, default: "" },
+      w240: { type: String, default: "" },
+      w360: { type: String, default: "" },
+    },
 
     // 📖 书籍状态
     status: { 

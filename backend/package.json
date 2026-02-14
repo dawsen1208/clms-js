@@ -12,7 +12,11 @@
     "seed:demo": "node seedDemoData.js",
     "fix:book-titles": "node fixBookTitles.js",
     "enrich:descriptions": "node scripts/enrichDescriptions.js",
-    "covers:openlibrary": "node scripts/populateCoversFromOpenLibrary.js"
+    "covers:openlibrary": "node scripts/populateCoversFromOpenLibrary.js",
+    "covers:download": "node scripts/downloadAndProcessCovers.js",
+    "covers:report-missing": "node scripts/reportMissingCovers.js",
+    "covers:import-manual": "node scripts/importManualCovers.js",
+    "covers:second-pass": "node scripts/fillCoversSecondPass.js"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +26,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "sharp": "^0.33.5",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.0",

@@ -239,19 +239,39 @@ function BookDetail() {
               onMouseEnter={e => e.currentTarget.style.transform = 'rotate(0deg) scale(1.02)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'rotate(-2deg)'}
               >
-                {book.coverImage ? (
-                  <img src={book.coverImage} alt={book.title} style={{ width: '100%', display: 'block' }} />
-                ) : (
-                  <BookCoverPro 
-                    title={book.title} 
-                    author={book.author} 
-                    width={400} 
-                    height={600} 
-                    style="serif"
-                    baseColor={token.colorPrimary}
-                    className="w-full h-auto"
-                  />
-                )}
+                <div style={{ position: 'relative', width: '100%', height: 'auto' }}>
+                  <div style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
+                    <BookCoverPro 
+                      title={book.title} 
+                      author={book.author} 
+                      width={400} 
+                      height={600} 
+                      style="serif"
+                      baseColor={token.colorPrimary}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                  {book.coverImage ? (
+                    <img
+                      src={book.coverImage}
+                      alt={book.title}
+                      loading="lazy"
+                      decoding="async"
+                      srcSet={
+                        book.coverImageSet
+                          ? [
+                              book.coverImageSet.w160 ? `${book.coverImageSet.w160} 160w` : null,
+                              book.coverImageSet.w240 ? `${book.coverImageSet.w240} 240w` : null,
+                              book.coverImageSet.w360 ? `${book.coverImageSet.w360} 360w` : null
+                            ].filter(Boolean).join(', ')
+                          : undefined
+                      }
+                      sizes="(min-width: 1200px) 400px, (min-width: 768px) 320px, 60vw"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      style={{ width: '100%', height: 'auto', display: 'block', position: 'relative', zIndex: 1 }}
+                    />
+                  ) : null}
+                </div>
               </div>
             </div>
 

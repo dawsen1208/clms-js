@@ -200,6 +200,12 @@ const SearchPage = () => {
         : `stock: ${(book.available_copies ?? book.copies ?? 0)}`,
       coverImage: coverImageUrl,
       coverNode: coverNode,
+      coverSrcSet: book.coverImageSet ? [
+        book.coverImageSet.w160 ? `${book.coverImageSet.w160} 160w` : null,
+        book.coverImageSet.w240 ? `${book.coverImageSet.w240} 240w` : null,
+        book.coverImageSet.w360 ? `${book.coverImageSet.w360} 360w` : null,
+      ].filter(Boolean).join(', ') : undefined,
+      coverSizes: "(min-width: 992px) 200px, (min-width: 576px) 160px, 45vw",
       action: (
         <Button 
           shape="circle" 

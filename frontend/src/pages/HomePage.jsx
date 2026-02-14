@@ -167,14 +167,25 @@ const HomePage = () => {
   // Transform books for Bento Grid (use Popular List)
   const bentoItems = popularList.map((book, index) => {
     const target = resolveTargetPath(book);
+    const matched = (allBooks || []).find(b => (b.title || '').toLowerCase().trim() === (book.title || '').toLowerCase().trim());
+    const coverImage = matched?.coverImage || book.cover_image;
+    const coverImageSet = matched?.coverImageSet;
+    const coverSrcSet = coverImageSet ? [
+      coverImageSet.w160 ? `${coverImageSet.w160} 160w` : null,
+      coverImageSet.w240 ? `${coverImageSet.w240} 240w` : null,
+      coverImageSet.w360 ? `${coverImageSet.w360} 360w` : null,
+    ].filter(Boolean).join(', ') : undefined;
+    const coverSizes = "(min-width: 992px) 220px, (min-width: 576px) 180px, 45vw";
     return {
       id: book.id,
       title: book.title,
       description: book.author,
       category: book.category,
       meta: 'Popular',
-      coverImage: book.cover_image,
-      coverNode: !book.cover_image ? (
+      coverImage,
+      coverSrcSet,
+      coverSizes,
+      coverNode: !coverImage ? (
         <BookCoverPro 
           title={book.title} 
           author={book.author} 
@@ -192,7 +203,6 @@ const HomePage = () => {
         />
       ),
       onClick: () => navigate(target),
-      // Layout logic
       colSpan: isMobile ? 12 : (index === 0 ? 6 : (index === 1 || index === 2) ? 6 : 4),
       rowSpan: isMobile ? 1 : (index === 0 ? 2 : 1),
       background: index === 0 ? token.colorPrimaryBg : token.colorBgContainer
