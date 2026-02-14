@@ -46,28 +46,28 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
               }}
             >
               {(item.coverImage || item.coverNode) ? (
-                <div style={{ padding: 16 }}>
-                  <div style={{ 
-                    width: '100%', 
-                    aspectRatio: '3 / 4', 
-                    borderRadius: 12, 
-                    overflow: 'hidden',
-                    background: token.colorFillTertiary,
-                    boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
-                  }}>
-                    {item.coverImage ? (
-                      <img 
-                        src={item.coverImage} 
-                        alt={item.title} 
-                        loading="lazy"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} 
-                      />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {item.coverNode}
-                      </div>
-                    )}
-                  </div>
+                <div style={{ 
+                  width: isFeatured ? '48%' : '62%', 
+                  maxWidth: isFeatured ? 280 : 180,
+                  margin: `${isFeatured ? 16 : 24}px auto 0`,
+                  aspectRatio: '3 / 4',
+                  borderRadius: 12, 
+                  overflow: 'hidden',
+                  background: token.colorFillTertiary,
+                  boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
+                }}>
+                  {item.coverImage ? (
+                    <img 
+                      src={item.coverImage} 
+                      alt={item.title} 
+                      loading="lazy"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} 
+                    />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%' }}>
+                      {item.coverNode}
+                    </div>
+                  )}
                 </div>
               ) : null}
               
@@ -78,15 +78,15 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
                 flexDirection: 'column', 
                 justifyContent: 'space-between' 
               }}>
-                <div>
+                <div style={{ marginTop: isFeatured ? 8 : 4 }}>
                   <Text type="secondary" style={{ fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                     {item.category}
                   </Text>
                   <div style={{
                     fontFamily: "'Literata', serif",
                     fontWeight: isFeatured ? 600 : 500,
-                    fontSize: isFeatured ? 24 : 18,
-                    margin: '8px 0 12px',
+                    fontSize: isFeatured ? 22 : 18,
+                    margin: '6px 0 10px',
                     lineHeight: 1.3,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',

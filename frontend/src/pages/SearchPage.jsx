@@ -193,7 +193,9 @@ const SearchPage = () => {
       title: book.title,
       description: book.author,
       category: book.category || 'General',
-      meta: book.available_copies > 0 ? `${book.available_copies} Available` : 'Out of Stock',
+      meta: (typeof book.total_copies === 'number')
+        ? `库存：${book.available_copies ?? 0}/${book.total_copies}`
+        : `库存：${book.available_copies ?? 0}`,
       coverImage: book.cover_image,
       coverNode: coverNode,
       action: (
