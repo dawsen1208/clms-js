@@ -118,13 +118,45 @@ const HomePage = () => {
     return "Good Evening";
   };
 
-  // Transform books for Bento Grid
-  const bentoItems = trending.map((book, index) => ({
-    id: book.id || book._id,
+  // Curated Popular List (static)
+  const popularList = [
+    {
+      id: 'clean-code',
+      title: 'Clean Code',
+      author: 'Robert C. Martin',
+      category: 'Technology',
+      cover_image: '/book/clean-code.jpg'
+    },
+    {
+      id: 'atomic-habits',
+      title: 'Atomic Habits',
+      author: 'James Clear',
+      category: 'Self-Help',
+      cover_image: '/book/atomic-habits.jpg'
+    },
+    {
+      id: 'intelligent-investor',
+      title: 'The Intelligent Investor',
+      author: 'Benjamin Graham',
+      category: 'Business',
+      cover_image: '/book/intelligent-investor.jpg'
+    },
+    {
+      id: 'sapiens',
+      title: 'Sapiens',
+      author: 'Yuval Noah Harari',
+      category: 'History',
+      cover_image: '/book/sapiens.jpg'
+    }
+  ];
+
+  // Transform books for Bento Grid (use Popular List)
+  const bentoItems = popularList.map((book, index) => ({
+    id: book.id,
     title: book.title,
     description: book.author,
-    category: book.category || 'Fiction',
-    meta: `${(book.total_copies || 0) - (book.available_copies || 0)} borrowed`,
+    category: book.category,
+    meta: 'Popular',
     coverImage: book.cover_image,
     coverNode: !book.cover_image ? (
       <BookCoverPro 
@@ -140,7 +172,7 @@ const HomePage = () => {
       <Button 
         shape="circle" 
         icon={<ArrowRightOutlined />} 
-        onClick={() => navigate(`/book/${book.id || book._id}`)}
+        onClick={() => navigate(`/book/${book.id}`)}
       />
     ),
     // Layout logic: First item big (2x2), next two wide (2x1), rest small (1x1)
@@ -244,7 +276,7 @@ const HomePage = () => {
 
         {/* Trending Section */}
         <EditorialSectionHeader 
-          title="Curated for You" 
+          title="Popular List" 
           subtitle="Trending books and recommended reads based on your history."
           actionText="View All Books"
           onActionClick={() => navigate('/search')}
