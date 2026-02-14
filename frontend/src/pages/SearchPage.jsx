@@ -181,8 +181,8 @@ const SearchPage = () => {
       <BookCoverPro 
         title={book.title} 
         author={book.author} 
-        width={160} 
-        height={220} 
+        width="100%" 
+        height="100%" 
         style={index % 2 === 0 ? "swiss" : "serif"}
         baseColor={stringToWarmColor(book.title)}
       />

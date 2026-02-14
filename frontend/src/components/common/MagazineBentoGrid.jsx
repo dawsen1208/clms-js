@@ -45,26 +45,29 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
                 flexDirection: 'column' 
               }}
             >
-              {item.coverImage ? (
-                <div style={{ flex: isFeatured ? 2 : 1, minHeight: isFeatured ? '60%' : '50%', overflow: 'hidden' }}>
-                  <img 
-                    src={item.coverImage} 
-                    alt={item.title} 
-                    loading="lazy"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
-                  />
-                </div>
-              ) : item.coverNode ? (
-                <div style={{ 
-                  flex: isFeatured ? 2 : 1, 
-                  minHeight: isFeatured ? '60%' : '50%',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: token.colorFillTertiary
-                }}>
-                  {item.coverNode}
+              {(item.coverImage || item.coverNode) ? (
+                <div style={{ padding: 16 }}>
+                  <div style={{ 
+                    width: '100%', 
+                    aspectRatio: '3 / 4', 
+                    borderRadius: 12, 
+                    overflow: 'hidden',
+                    background: token.colorFillTertiary,
+                    boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
+                  }}>
+                    {item.coverImage ? (
+                      <img 
+                        src={item.coverImage} 
+                        alt={item.title} 
+                        loading="lazy"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} 
+                      />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {item.coverNode}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : null}
               
