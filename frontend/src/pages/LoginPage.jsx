@@ -209,7 +209,7 @@ const LoginPage = ({ onLogin }) => {
             <Form.Item label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>User ID</span>} required>
               <Input 
                 prefix={<UserOutlined style={{ color: token.colorTextQuaternary }} />} 
-                placeholder="r12345 或 a10001" 
+                placeholder="r123456 / a123456" 
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
                 style={{ borderRadius: 8, height: 48, background: "#fff" }}
