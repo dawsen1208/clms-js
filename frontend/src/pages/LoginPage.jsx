@@ -4,6 +4,7 @@ import { Form, Input, Button, Checkbox, Typography, message, theme, Grid, Layout
 import { UserOutlined, LockOutlined, ArrowRightOutlined, GlobalOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
+import { login as apiLogin } from "../api";
 
 const { Title, Paragraph, Text } = Typography;
 const { useToken } = theme;
@@ -23,28 +24,30 @@ const LoginPage = ({ onLogin }) => {
   const handleLogin = async () => {
     setLoading(true);
     try {
-      setTimeout(() => {
-        if (userId && password) {
-          const isAdmin = /^a/i.test(userId);
-          const role = isAdmin ? "Administrator" : "Reader";
-          const token = `mock-token-${userId}-${Date.now()}`;
-          const user = {
-            userId,
-            name: userId,
-            role,
-            avatar: `https://api.dicebear.com/7.x/miniavs/svg?seed=${encodeURIComponent(userId)}`
-          };
-          onLogin(token, user);
-          message.success("Welcome back to CLMS");
-          navigate(isAdmin ? "/admin/dashboard" : "/home");
-        } else {
-          message.error("Please enter ID and password");
-        }
+      if (!userId || !password) {
+        message.error("Please enter ID and password");
         setLoading(false);
-      }, 800);
-    } catch (e) {
+        return;
+      }
+      const res = await apiLogin(userId, password);
+      const data = res?.data || {};
+      const tokenStr = data.token || data.accessToken || data.jwt || "";
+      const rawUser = data.user || {};
+      const normalizedUser = {
+        ...rawUser,
+        role: rawUser.role === "Admin" ? "Administrator" : rawUser.role
+      };
+      if (!tokenStr || !normalizedUser) {
+        throw new Error(data.message || "Invalid server response");
+      }
+      onLogin(tokenStr, normalizedUser);
+      message.success("Welcome back to CLMS");
+      navigate(normalizedUser.role === "Administrator" ? "/admin/dashboard" : "/home");
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Login failed";
+      message.error(msg);
+    } finally {
       setLoading(false);
-      message.error(e?.message || "Login failed");
     }
   };
 
