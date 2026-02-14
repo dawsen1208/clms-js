@@ -20,6 +20,9 @@
     "covers:fix-invalid": "node scripts/fixInvalidOpenLibraryCovers.js",
     "covers:purge-no-cover": "node scripts/purgeBooksWithoutCover.js"
   },
+  "scripts": {
+    "users:approve-pending": "node scripts/approvePendingUsers.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
