@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Button, message, Modal, Grid, Typography, theme } from "antd";
-import { CopyOutlined, UserOutlined, MailOutlined, LockOutlined, KeyOutlined, CheckCircleFilled } from "@ant-design/icons";
+import { CopyOutlined, UserOutlined, MailOutlined, LockOutlined, KeyOutlined, CheckCircleFilled, GlobalOutlined } from "@ant-design/icons";
 import { register } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 
