@@ -11,7 +11,8 @@
     "seed:books": "node seedBooks.js",
     "seed:demo": "node seedDemoData.js",
     "fix:book-titles": "node fixBookTitles.js",
-    "enrich:descriptions": "node scripts/enrichDescriptions.js"
+    "enrich:descriptions": "node scripts/enrichDescriptions.js",
+    "covers:openlibrary": "node scripts/populateCoversFromOpenLibrary.js"
   },
   "keywords": [],
   "author": "",

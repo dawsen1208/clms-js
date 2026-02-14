@@ -175,8 +175,10 @@ const SearchPage = () => {
 
   // Transform to Bento Grid Items (memoized)
   const bentoItems = useMemo(() => paginatedBooks.map((book, index) => {
+    // Prefer camelCase coverImage, fallback to snake_case
+    const coverImageUrl = book.coverImage || book.cover_image || "";
     // Generate fallback cover if image missing
-    const hasImage = !!book.cover_image;
+    const hasImage = !!coverImageUrl;
     const coverNode = !hasImage ? (
       <BookCoverPro 
         title={book.title} 
@@ -196,7 +198,7 @@ const SearchPage = () => {
       meta: (typeof book.total_copies === 'number' || typeof book.totalCopies === 'number' || typeof book.total === 'number')
         ? `stock: ${(book.available_copies ?? book.copies ?? 0)}/${book.total_copies ?? book.totalCopies ?? book.total ?? book.copies ?? 0}`
         : `stock: ${(book.available_copies ?? book.copies ?? 0)}`,
-      coverImage: book.cover_image,
+      coverImage: coverImageUrl,
       coverNode: coverNode,
       action: (
         <Button 
