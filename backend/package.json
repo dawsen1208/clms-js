@@ -16,7 +16,9 @@
     "covers:download": "node scripts/downloadAndProcessCovers.js",
     "covers:report-missing": "node scripts/reportMissingCovers.js",
     "covers:import-manual": "node scripts/importManualCovers.js",
-    "covers:second-pass": "node scripts/fillCoversSecondPass.js"
+    "covers:second-pass": "node scripts/fillCoversSecondPass.js",
+    "covers:fix-invalid": "node scripts/fixInvalidOpenLibraryCovers.js",
+    "covers:purge-no-cover": "node scripts/purgeBooksWithoutCover.js"
   },
   "keywords": [],
   "author": "",
