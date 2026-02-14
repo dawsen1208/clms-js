@@ -36,7 +36,8 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
                 overflow: 'hidden',
                 background: item.background || token.colorBgContainer,
                 boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
+                transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                cursor: item.onClick ? 'pointer' : 'default'
               }}
               bodyStyle={{ 
                 height: '100%', 
@@ -44,12 +45,13 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
                 display: 'flex', 
                 flexDirection: 'column' 
               }}
+              onClick={item.onClick}
             >
               {(item.coverImage || item.coverNode) ? (
                 <div style={{ 
-                  width: isFeatured ? '48%' : '62%', 
-                  maxWidth: isFeatured ? 280 : 180,
-                  margin: `${isFeatured ? 16 : 24}px auto 0`,
+                  width: isFeatured ? '60%' : '64%', 
+                  maxWidth: isFeatured ? 300 : 200,
+                  margin: `${isFeatured ? 12 : 16}px auto 0`,
                   aspectRatio: '3 / 4',
                   borderRadius: 12, 
                   overflow: 'hidden',

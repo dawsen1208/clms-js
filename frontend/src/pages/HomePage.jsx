@@ -28,6 +28,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   
   const [trending, setTrending] = useState([]);
+  const [allBooks, setAllBooks] = useState([]);
   const [activeBorrows, setActiveBorrows] = useState([]);
   const [stats, setStats] = useState({
     active: 0,
@@ -63,10 +64,11 @@ const HomePage = () => {
 
       // Process Recommendations
       if (allBooksRes.status === 'fulfilled') {
-        const allBooks = allBooksRes.value.data;
+        const allBooksData = allBooksRes.value.data || [];
+        setAllBooks(allBooksData);
         // TODO: Replace with real trending algorithm
         // Mock Data: Shuffling for demo purposes
-        setTrending(allBooks.slice(0, 5));
+        setTrending(allBooksData.slice(0, 5));
       } else {
         // TODO: Mock Data Fallback if API fails
         setTrending([
@@ -150,36 +152,52 @@ const HomePage = () => {
     }
   ];
 
+  // Resolve navigation target for popular list
+  const resolveTargetPath = (book) => {
+    const match = (allBooks || []).find(b => 
+      (b.title || '').toLowerCase().trim() === (book.title || '').toLowerCase().trim()
+    );
+    if (match && (match._id || match.id)) {
+      return `/book/${match._id || match.id}`;
+    }
+    const q = encodeURIComponent(book.title || '');
+    return `/search?query=${q}`;
+  };
+
   // Transform books for Bento Grid (use Popular List)
-  const bentoItems = popularList.map((book, index) => ({
-    id: book.id,
-    title: book.title,
-    description: book.author,
-    category: book.category,
-    meta: 'Popular',
-    coverImage: book.cover_image,
-    coverNode: !book.cover_image ? (
-      <BookCoverPro 
-        title={book.title} 
-        author={book.author} 
-        width={180} 
-        height={240} 
-        style={index % 2 === 0 ? "swiss" : "serif"}
-        baseColor={token.colorPrimary}
-      />
-    ) : null,
-    action: (
-      <Button 
-        shape="circle" 
-        icon={<ArrowRightOutlined />} 
-        onClick={() => navigate(`/book/${book.id}`)}
-      />
-    ),
-    // Layout logic: First item big (2x2), next two wide (2x1), rest small (1x1)
-    colSpan: isMobile ? 12 : (index === 0 ? 6 : (index === 1 || index === 2) ? 6 : 4),
-    rowSpan: isMobile ? 1 : (index === 0 ? 2 : 1),
-    background: index === 0 ? token.colorPrimaryBg : token.colorBgContainer
-  }));
+  const bentoItems = popularList.map((book, index) => {
+    const target = resolveTargetPath(book);
+    return {
+      id: book.id,
+      title: book.title,
+      description: book.author,
+      category: book.category,
+      meta: 'Popular',
+      coverImage: book.cover_image,
+      coverNode: !book.cover_image ? (
+        <BookCoverPro 
+          title={book.title} 
+          author={book.author} 
+          width={180} 
+          height={240} 
+          style={index % 2 === 0 ? "swiss" : "serif"}
+          baseColor={token.colorPrimary}
+        />
+      ) : null,
+      action: (
+        <Button 
+          shape="circle" 
+          icon={<ArrowRightOutlined />} 
+          onClick={(e) => { e.stopPropagation(); navigate(target); }}
+        />
+      ),
+      onClick: () => navigate(target),
+      // Layout logic
+      colSpan: isMobile ? 12 : (index === 0 ? 6 : (index === 1 || index === 2) ? 6 : 4),
+      rowSpan: isMobile ? 1 : (index === 0 ? 2 : 1),
+      background: index === 0 ? token.colorPrimaryBg : token.colorBgContainer
+    };
+  });
 
   return (
     <EditorialPageShell 
