@@ -47,67 +47,133 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
               }}
               onClick={item.onClick}
             >
-              {(item.coverImage || item.coverNode) ? (
-                <div style={{ 
-                  width: isFeatured ? '60%' : '64%', 
-                  maxWidth: isFeatured ? 300 : 200,
-                  margin: `${isFeatured ? 12 : 16}px auto 0`,
-                  aspectRatio: '3 / 4',
-                  borderRadius: 12, 
-                  overflow: 'hidden',
-                  background: token.colorFillTertiary,
-                  boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
-                }}>
-                  {item.coverImage ? (
-                    <img 
-                      src={item.coverImage} 
-                      alt={item.title} 
-                      loading="lazy"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} 
-                    />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%' }}>
-                      {item.coverNode}
+              {(isWide && !isFeatured) ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, height: '100%' }}>
+                  {(item.coverImage || item.coverNode) ? (
+                    <div style={{ 
+                      flex: '0 0 36%',
+                      maxWidth: 220,
+                      marginLeft: 24,
+                      aspectRatio: '3 / 4',
+                      borderRadius: 12, 
+                      overflow: 'hidden',
+                      background: token.colorFillTertiary,
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
+                    }}>
+                      {item.coverImage ? (
+                        <img 
+                          src={item.coverImage} 
+                          alt={item.title} 
+                          loading="lazy"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} 
+                        />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%' }}>
+                          {item.coverNode}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              ) : null}
-              
-              <div style={{ 
-                padding: 24, 
-                flex: 1, 
-                display: 'flex', 
-                flexDirection: 'column', 
-                justifyContent: 'space-between' 
-              }}>
-                <div style={{ marginTop: isFeatured ? 8 : 4 }}>
-                  <Text type="secondary" style={{ fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                    {item.category}
-                  </Text>
-                  <div style={{
-                    fontFamily: "'Literata', serif",
-                    fontWeight: isFeatured ? 600 : 500,
-                    fontSize: isFeatured ? 22 : 18,
-                    margin: '6px 0 10px',
-                    lineHeight: 1.3,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    display: '-webkit-box',
-                    WebkitLineClamp: isFeatured ? 2 : 2,
-                    WebkitBoxOrient: 'vertical'
+                  ) : null}
+                  <div style={{ 
+                    padding: 24, 
+                    flex: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    justifyContent: 'space-between' 
                   }}>
-                    {item.title}
+                    <div>
+                      <Text type="secondary" style={{ fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                        {item.category}
+                      </Text>
+                      <div style={{
+                        fontFamily: "'Literata', serif",
+                        fontWeight: 600,
+                        fontSize: 20,
+                        margin: '6px 0 10px',
+                        lineHeight: 1.3,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical'
+                      }}>
+                        {item.title}
+                      </div>
+                      <Text style={{ color: token.colorTextSecondary }} ellipsis={{ rows: 2, tooltip: item.description }}>
+                        {item.description}
+                      </Text>
+                    </div>
+                    <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Text style={{ fontSize: 12, color: token.colorTextTertiary }}>{item.meta}</Text>
+                      {item.action}
+                    </div>
                   </div>
-                  <Text style={{ color: token.colorTextSecondary }} ellipsis={{ rows: 2, tooltip: item.description }}>
-                    {item.description}
-                  </Text>
                 </div>
-                
-                <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 12, color: token.colorTextTertiary }}>{item.meta}</Text>
-                  {item.action}
-                </div>
-              </div>
+              ) : (
+                <>
+                  {(item.coverImage || item.coverNode) ? (
+                    <div style={{ 
+                      width: isFeatured ? '60%' : '64%', 
+                      maxWidth: isFeatured ? 300 : 200,
+                      margin: `${isFeatured ? 12 : 16}px auto 0`,
+                      aspectRatio: '3 / 4',
+                      borderRadius: 12, 
+                      overflow: 'hidden',
+                      background: token.colorFillTertiary,
+                      boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
+                    }}>
+                      {item.coverImage ? (
+                        <img 
+                          src={item.coverImage} 
+                          alt={item.title} 
+                          loading="lazy"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} 
+                        />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%' }}>
+                          {item.coverNode}
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                  
+                  <div style={{ 
+                    padding: 24, 
+                    flex: 1, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    justifyContent: 'space-between' 
+                  }}>
+                    <div style={{ marginTop: isFeatured ? 8 : 4 }}>
+                      <Text type="secondary" style={{ fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                        {item.category}
+                      </Text>
+                      <div style={{
+                        fontFamily: "'Literata', serif",
+                        fontWeight: isFeatured ? 600 : 500,
+                        fontSize: isFeatured ? 22 : 18,
+                        margin: '6px 0 10px',
+                        lineHeight: 1.3,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: isFeatured ? 2 : 2,
+                        WebkitBoxOrient: 'vertical'
+                      }}>
+                        {item.title}
+                      </div>
+                      <Text style={{ color: token.colorTextSecondary }} ellipsis={{ rows: 2, tooltip: item.description }}>
+                        {item.description}
+                      </Text>
+                    </div>
+                    
+                    <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Text style={{ fontSize: 12, color: token.colorTextTertiary }}>{item.meta}</Text>
+                      {item.action}
+                    </div>
+                  </div>
+                </>
+              )}
             </Card>
           </div>
         );
