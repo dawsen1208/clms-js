@@ -17,7 +17,7 @@ import {
   EditOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { getBookDetail, borrowBook } from "../api";
+import { getBookDetail, borrowBook, getBorrowedBooks } from "../api";
 import ReviewModal from "../components/ReviewModal";
 import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
@@ -63,6 +63,16 @@ function BookDetail() {
         const data = res?.data;
         setBook(data);
 
+        // Check if user already borrowed this book
+        if (tokenVal && (data?._id || data?.id)) {
+          try {
+            const br = await getBorrowedBooks(tokenVal);
+            const borrowedIds = (br?.data || []).map(b => String(b.book_id || b.bookId || b._id || b.id));
+            const thisId = String(data?._id || data?.id);
+            setIsBorrowed(borrowedIds.includes(thisId));
+          } catch (e) {}
+        }
+
         // 2. Check Review Eligibility
         try {
           const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
@@ -79,10 +89,7 @@ function BookDetail() {
           console.error("Eligibility check failed", e);
         }
 
-        // 3. Check Borrow Status (Mock Logic for demo if API doesn't support)
-        // In a real app, this would come from an API endpoint checking user's current loans
-        // For now, we rely on what we can infer or just default to false
-        setIsBorrowed(false); 
+        // Borrow status handled above
 
       } catch (err) {
         if (mounted) {
@@ -106,9 +113,16 @@ function BookDetail() {
         return;
       }
       
-      await borrowBook(book._id, tokenVal);
-      message.success("Book request submitted successfully!");
-      setPendingType("borrow");
+      // Prevent duplicate borrow
+      if (isBorrowed) {
+        message.info("Already borrowed");
+        return;
+      }
+
+      await borrowBook(book._id || book.id, tokenVal);
+      message.success("Borrowed");
+      setIsBorrowed(true);
+      setPendingType(null);
       // Refresh book data to update copies count if needed
       const res = await getBookDetail(id);
       setBook(res?.data);
@@ -186,6 +200,9 @@ function BookDetail() {
         }} />
 
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ marginBottom: 16 }}>
+            <Button onClick={() => navigate('/search')}>{t("nav.back") || "Back to Library"}</Button>
+          </div>
           <div className="editorial-grid" style={{ alignItems: 'start' }}>
             {/* Left: Book Cover */}
             <div className="col-span-4" style={{ position: 'relative', zIndex: 1 }}>
@@ -254,7 +271,7 @@ function BookDetail() {
                   <Rate disabled allowHalf value={book.rating || 0} style={{ color: token.colorWarning, fontSize: 20 }} />
                   <Divider type="vertical" />
                   <Space>
-                    <ReadOutlined /> <Text>{book.copies} Copies</Text>
+                    <ReadOutlined /> <Text>{`stock: ${(book.available_copies ?? book.copies ?? 0)}/${book.total_copies ?? book.totalCopies ?? book.total ?? book.copies ?? 0}`}</Text>
                   </Space>
                   <Divider type="vertical" />
                   <Space>
@@ -287,12 +304,8 @@ function BookDetail() {
                 }}>
                    <div>
                       <Text type="secondary" style={{ display: 'block', fontSize: 12 }}>Availability</Text>
-                      <div style={{ 
-                        fontSize: 18, 
-                        fontWeight: 600, 
-                        color: book.copies > 0 ? token.colorSuccess : token.colorError 
-                      }}>
-                         {book.copies > 0 ? 'In Stock' : 'Out of Stock'}
+                      <div style={{ fontSize: 18, fontWeight: 600 }}>
+                        {`stock: ${(book.available_copies ?? book.copies ?? 0)}/${book.total_copies ?? book.totalCopies ?? book.total ?? book.copies ?? 0}`}
                       </div>
                    </div>
                    
@@ -321,19 +334,17 @@ function BookDetail() {
                           type="primary" 
                           size="large"
                           loading={actionLoading}
-                          disabled={book.copies <= 0 || pendingType === 'borrow'}
+                          disabled={(book.copies ?? book.available_copies ?? 0) <= 0}
                           onClick={handleBorrow}
                           style={{ 
                             minWidth: 180, 
                             height: 48, 
                             fontSize: 16,
-                            background: book.copies > 0 ? token.colorPrimary : token.colorBorder
+                            background: (book.copies ?? book.available_copies ?? 0) > 0 ? token.colorPrimary : token.colorBorder
                           }}
-                          icon={pendingType === 'borrow' ? <ClockCircleOutlined /> : <BookOutlined />}
+                          icon={<BookOutlined />}
                         >
-                          {pendingType === 'borrow' 
-                              ? "Request Pending" 
-                              : (book.copies > 0 ? "Borrow Now" : "Notify Me")}
+                          {(book.copies ?? book.available_copies ?? 0) > 0 ? "Borrow Now" : "Out of Stock"}
                         </Button>
                       )}
                    </div>

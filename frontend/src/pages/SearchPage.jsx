@@ -181,8 +181,8 @@ const SearchPage = () => {
       <BookCoverPro 
         title={book.title} 
         author={book.author} 
-        width="100%" 
-        height="100%" 
+        width={180} 
+        height={240} 
         style={index % 2 === 0 ? "swiss" : "serif"}
         baseColor={stringToWarmColor(book.title)}
       />
@@ -193,9 +193,9 @@ const SearchPage = () => {
       title: book.title,
       description: book.author,
       category: book.category || 'General',
-      meta: (typeof book.total_copies === 'number')
-        ? `库存：${book.available_copies ?? 0}/${book.total_copies}`
-        : `库存：${book.available_copies ?? 0}`,
+      meta: (typeof book.total_copies === 'number' || typeof book.totalCopies === 'number' || typeof book.total === 'number')
+        ? `stock: ${(book.available_copies ?? book.copies ?? 0)}/${book.total_copies ?? book.totalCopies ?? book.total ?? book.copies ?? 0}`
+        : `stock: ${(book.available_copies ?? book.copies ?? 0)}`,
       coverImage: book.cover_image,
       coverNode: coverNode,
       action: (
