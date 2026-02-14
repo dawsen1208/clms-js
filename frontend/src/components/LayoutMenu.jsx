@@ -76,9 +76,12 @@ const LayoutMenu = ({ onLogout, children }) => {
   const [booksLoaded, setBooksLoaded] = useState(false);
 
   useEffect(() => {
-    const sessionUser = sessionStorage.getItem("user");
-    const localUser = localStorage.getItem("user");
-    setUser(JSON.parse(sessionUser || localUser || "{}"));
+    try {
+      const raw = sessionStorage.getItem("user") || localStorage.getItem("user");
+      setUser(raw ? JSON.parse(raw) : {});
+    } catch {
+      setUser({});
+    }
   }, []);
 
   // Responsive check

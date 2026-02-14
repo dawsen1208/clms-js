@@ -38,11 +38,13 @@ const HomePage = () => {
   const isMobile = !screens.md;
 
   useEffect(() => {
-    const sessionUser = sessionStorage.getItem("user");
-    const localUser = localStorage.getItem("user");
-    if (sessionUser || localUser) {
-      const userData = JSON.parse(sessionUser || localUser);
-      setUser(userData);
+    try {
+      const raw = sessionStorage.getItem("user") || localStorage.getItem("user");
+      if (raw) {
+        setUser(JSON.parse(raw));
+      }
+    } catch {
+      // ignore parse error and keep default user
     }
     fetchData();
   }, []);

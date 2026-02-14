@@ -102,9 +102,14 @@ function App() {
   const [token, setToken] = useState(
     sessionStorage.getItem("token") || localStorage.getItem("token")
   );
-  const [user, setUser] = useState(
-    JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}")
-  );
+  const [user, setUser] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem("user") || localStorage.getItem("user");
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
 
   const [appearance, setAppearance] = useState(() => {
     const fallback = {
