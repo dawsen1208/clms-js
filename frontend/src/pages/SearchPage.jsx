@@ -18,17 +18,13 @@ import {
   Layout,
   Row,
   Col,
-  Checkbox
+  Checkbox,
+  theme,
+  Grid
 } from "antd";
 import {
   SearchOutlined,
   FilterOutlined,
-  AppstoreOutlined,
-  BarsOutlined,
-  SortAscendingOutlined,
-  ReloadOutlined,
-  BookOutlined,
-  CloseOutlined,
   ArrowRightOutlined
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -36,15 +32,20 @@ import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
 import MagazineBentoGrid from "../components/common/MagazineBentoGrid";
 import EmptyStateIllustration from "../components/common/EmptyStateIllustration";
+import BookCoverPro from "../components/common/BookCoverPro";
+import { stringToWarmColor } from "../utils/hashColor";
 import { getBooks, borrowBook, getBorrowedBooks, getUserRequestsLibrary } from "../api";
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
 
 const { Title, Text } = Typography;
+const { useBreakpoint } = Grid;
 
 const SearchPage = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
+  const { token } = theme.useToken();
+  const screens = useBreakpoint();
   const [modal, contextHolder] = Modal.useModal();
   const [loading, setLoading] = useState(false);
   const [books, setBooks] = useState([]);
@@ -164,32 +165,48 @@ const SearchPage = () => {
   };
 
   // Transform to Bento Grid Items
-  const bentoItems = filteredBooks.map((book, index) => ({
-    id: book.id,
-    title: book.title,
-    description: book.author,
-    category: book.category || 'General',
-    meta: book.available_copies > 0 ? `${book.available_copies} Available` : 'Out of Stock',
-    coverImage: book.cover_image,
-    action: (
-      <Button 
-        shape="circle" 
-        icon={<ArrowRightOutlined />} 
-        onClick={() => navigate(`/book/${book.id}`)}
+  const bentoItems = filteredBooks.map((book, index) => {
+    // Generate fallback cover if image missing
+    const hasImage = !!book.cover_image;
+    const coverNode = !hasImage ? (
+      <BookCoverPro 
+        title={book.title} 
+        author={book.author} 
+        width="100%" 
+        height="100%" 
+        style={index % 2 === 0 ? "swiss" : "serif"}
+        baseColor={stringToWarmColor(book.title)}
       />
-    ),
-    // Standard grid for search results
-    colSpan: 4, 
-    rowSpan: 1,
-    background: '#fff'
-  }));
+    ) : null;
+
+    return {
+      id: book.id || book._id, // Handle both id formats
+      title: book.title,
+      description: book.author,
+      category: book.category || 'General',
+      meta: book.available_copies > 0 ? `${book.available_copies} Available` : 'Out of Stock',
+      coverImage: book.cover_image,
+      coverNode: coverNode,
+      action: (
+        <Button 
+          shape="circle" 
+          icon={<ArrowRightOutlined />} 
+          onClick={() => navigate(`/book/${book.id || book._id}`)}
+        />
+      ),
+      // Standard grid for search results
+      colSpan: 4, 
+      rowSpan: 1,
+      background: token.colorBgContainer
+    };
+  });
 
   return (
     <EditorialPageShell 
       title="Search Library" 
       subtitle="Find your next read from our extensive collection."
       fullWidth
-      extra={
+      headerAction={
         <Space>
            <Text>Showing {filteredBooks.length} results</Text>
         </Space>
@@ -200,24 +217,24 @@ const SearchPage = () => {
       {/* Search Strip */}
       <div style={{ 
         marginBottom: 48, 
-        padding: '0 48px',
+        padding: screens.md ? '0 48px' : '0 16px',
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        background: 'rgba(250, 249, 246, 0.95)',
+        background: token.colorBgLayout,
         backdropFilter: 'blur(10px)',
         paddingTop: 16,
         paddingBottom: 16,
         marginLeft: -24,
         marginRight: -24,
-        borderBottom: '1px solid rgba(0,0,0,0.05)'
+        borderBottom: `1px solid ${token.colorBorderSecondary}`
       }}>
         <div className="editorial-grid" style={{ alignItems: 'center' }}>
           <div className="col-span-8">
             <Input 
               size="large" 
               placeholder="Search by title, author, or ISBN..." 
-              prefix={<SearchOutlined style={{ color: '#A65D57' }} />} 
+              prefix={<SearchOutlined style={{ color: token.colorPrimary }} />} 
               bordered={false}
               style={{ 
                 fontSize: 24, 
@@ -281,7 +298,7 @@ const SearchPage = () => {
       </div>
 
       {/* Results */}
-      <div style={{ padding: '0 48px' }}>
+      <div style={{ padding: screens.md ? '0 48px' : '0 16px' }}>
         {filteredBooks.length > 0 ? (
            <MagazineBentoGrid items={bentoItems} />
         ) : (

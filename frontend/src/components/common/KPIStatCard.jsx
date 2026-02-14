@@ -1,10 +1,11 @@
 import React from 'react';
-import { Card, Statistic, Typography } from 'antd';
+import { Card, Statistic, Typography, theme } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 
 const { Text } = Typography;
 
 const KPIStatCard = ({ title, value, prefix, suffix, trend, trendValue, icon, color, loading }) => {
+  const { token } = theme.useToken();
   return (
     <Card 
       bordered={false} 
@@ -17,8 +18,8 @@ const KPIStatCard = ({ title, value, prefix, suffix, trend, trendValue, icon, co
         <Text type="secondary" style={{ fontSize: 14, fontWeight: 500 }}>{title}</Text>
         {icon && (
           <div style={{ 
-            color: color || '#1890ff', 
-            background: color ? `${color}15` : '#1890ff15', 
+            color: color || token.colorInfo, 
+            background: color ? `${color}15` : token.colorInfoBg, 
             padding: 8, 
             borderRadius: 12,
             fontSize: 18,
@@ -41,7 +42,7 @@ const KPIStatCard = ({ title, value, prefix, suffix, trend, trendValue, icon, co
       {trend && (
         <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', fontSize: 13 }}>
           <span style={{ 
-            color: trend === 'up' ? '#52c41a' : '#ff4d4f', 
+            color: trend === 'up' ? token.colorSuccess : token.colorError, 
             display: 'flex', 
             alignItems: 'center', 
             marginRight: 8,

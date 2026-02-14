@@ -35,27 +35,44 @@ const PageShell = ({
   };
 
   return (
-    <div className="page-wrapper" style={{ paddingTop: 24 }}>
+    <div className="page-wrapper" style={{ 
+      paddingTop: 24,
+      maxWidth: 1400,
+      margin: '0 auto',
+      width: '100%'
+    }}>
       {/* Page Header Area */}
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 32, padding: '0 12px' }}>
         <Breadcrumb items={generateBreadcrumbs()} style={{ marginBottom: 16 }} />
         
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', flexWrap: 'wrap', gap: 16 }}>
-          <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ maxWidth: 800 }}>
             {title && (
-              <Title level={2} style={{ margin: 0, fontWeight: 700 }}>
+              <Title level={2} style={{ 
+                margin: 0, 
+                fontWeight: 700,
+                fontFamily: "'Literata', serif",
+                fontSize: 32,
+                color: token.colorTextHeading
+              }}>
                 {title}
               </Title>
             )}
             {subtitle && (
-              <Text type="secondary" style={{ fontSize: 14, marginTop: 4, display: 'block' }}>
+              <Text type="secondary" style={{ 
+                fontSize: 16, 
+                marginTop: 8, 
+                display: 'block',
+                maxWidth: 600,
+                lineHeight: 1.6
+              }}>
                 {subtitle}
               </Text>
             )}
           </div>
           
           {extra && (
-            <Space size="middle">
+            <Space size="middle" align="center">
               {extra}
             </Space>
           )}
@@ -66,7 +83,8 @@ const PageShell = ({
       <div style={{ 
         background: noPadding ? 'transparent' : 'transparent',
         borderRadius: token.borderRadiusLG,
-        minHeight: 280
+        minHeight: 280,
+        position: 'relative'
       }}>
         {children}
       </div>

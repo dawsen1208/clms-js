@@ -1,78 +1,32 @@
 import React from 'react';
-import { Typography, Button } from 'antd';
+import { theme } from 'antd';
 
-const { Title, Text } = Typography;
-
-const EmptyStateIllustration = ({ 
-  title = "No Data Found", 
-  description = "We couldn't find what you're looking for.", 
-  action,
-  width = 200,
-  height = 160,
-  color = '#A65D57' // Default to primary theme color
-}) => {
+const EmptyStateIllustration = ({ style }) => {
+  const { token } = theme.useToken();
+  const primary = token.colorPrimary;
+  const secondary = token.colorBorder;
+  
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center',
-      padding: '48px 24px',
-      textAlign: 'center'
-    }}>
-      <svg 
-        width={width} 
-        height={height} 
-        viewBox="0 0 200 160" 
-        fill="none" 
-        xmlns="http://www.w3.org/2000/svg"
-        style={{ marginBottom: 24, opacity: 0.8 }}
-      >
-        {/* Abstract Box/Shelf */}
-        <path 
-          d="M40 120H160M40 80H160M40 40H160" 
-          stroke="#E0E0E0" 
-          strokeWidth="2" 
-          strokeLinecap="round"
-        />
-        
-        {/* Floating Abstract Shape (Book/Paper) */}
-        <path 
-          d="M80 60C80 50 90 40 100 40C110 40 120 50 120 60V100C120 110 110 120 100 120C90 120 80 110 80 100V60Z" 
-          fill="white" 
-          stroke={color} 
-          strokeWidth="2"
-        />
-        
-        {/* Decorative Elements */}
-        <circle cx="60" cy="50" r="4" fill="#DAA520" opacity="0.6" />
-        <circle cx="140" cy="110" r="6" fill="#6B8E23" opacity="0.6" />
-        <path 
-          d="M130 30L140 40" 
-          stroke="#333" 
-          strokeWidth="1.5" 
-          strokeLinecap="round"
-        />
-      </svg>
+    <svg width="200" height="160" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg" style={style}>
+      {/* Background shape */}
+      <path d="M100 130C140 130 170 120 170 100C170 80 140 70 100 70C60 70 30 80 30 100C30 120 60 130 100 130Z" fill={primary} fillOpacity="0.05"/>
       
-      <Title level={4} style={{ 
-        fontFamily: "'Literata', serif", 
-        marginBottom: 8,
-        color: '#2C3E50'
-      }}>
-        {title}
-      </Title>
+      {/* Books stack */}
+      <rect x="70" y="90" width="60" height="12" rx="2" fill="white" stroke={secondary} strokeWidth="2"/>
+      <rect x="65" y="78" width="70" height="12" rx="2" fill="white" stroke={secondary} strokeWidth="2"/>
+      <rect x="75" y="66" width="50" height="12" rx="2" fill="white" stroke={secondary} strokeWidth="2"/>
       
-      <Text type="secondary" style={{ 
-        maxWidth: 300, 
-        marginBottom: action ? 24 : 0,
-        display: 'block'
-      }}>
-        {description}
-      </Text>
+      {/* Floating elements */}
+      <circle cx="50" cy="50" r="4" fill={primary} fillOpacity="0.3"/>
+      <circle cx="150" cy="60" r="6" fill={primary} fillOpacity="0.2"/>
+      <circle cx="130" cy="30" r="3" fill={primary} fillOpacity="0.4"/>
       
-      {action}
-    </div>
+      {/* Search glass */}
+      <g transform="translate(110, 50) rotate(15)">
+        <circle cx="0" cy="0" r="16" stroke={primary} strokeWidth="2" fill="white" fillOpacity="0.5"/>
+        <line x1="10" y1="10" x2="20" y2="20" stroke={primary} strokeWidth="2" strokeLinecap="round"/>
+      </g>
+    </svg>
   );
 };
 

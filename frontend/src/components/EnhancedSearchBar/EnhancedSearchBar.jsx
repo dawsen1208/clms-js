@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { AutoComplete, Input, Typography, Button, Tooltip, Tag } from "antd";
 import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
-import { theme } from "../../styles/theme";
+import { theme } from "antd";
 import { useLanguage } from "../../contexts/LanguageContext";
 import "./EnhancedSearchBar.css";
 
@@ -211,7 +211,7 @@ function EnhancedSearchBar({
           notFoundContent={searchValue && searchValue.length >= 2 ? t("search.noMatching") : t("search.enterTwoChars")}
         >
           <Search
-            prefix={<SearchOutlined style={{ color: theme.colors.neutral.darkGray }} aria-hidden="true" />}
+            prefix={<SearchOutlined style={{ color: theme.useToken().token.colorTextSecondary }} aria-hidden="true" />}
             enterButton={t("common.search")}
             size="large"
             loading={loading}
@@ -219,10 +219,9 @@ function EnhancedSearchBar({
             aria-label={t("common.search")}
             style={{
               borderRadius: '8px',
-              background: theme.colors.neutral.white,
-              border: `1px solid ${theme.colors.neutral.gray}`,
-              fontFamily: theme.typography.fontFamily.primary,
-              fontSize: theme.typography.fontSize.md
+              background: theme.useToken().token.colorBgContainer,
+              border: `1px solid ${theme.useToken().token.colorBorderSecondary}`,
+              fontSize: theme.useToken().token.fontSize
             }}
           />
       </AutoComplete>
@@ -234,14 +233,13 @@ function EnhancedSearchBar({
               className={`type-button ${searchType === option.value ? 'active' : ''}`}
               onClick={() => onSearchTypeChange && onSearchTypeChange(option.value)}
               style={{
-                backgroundColor: searchType === option.value ? theme.colors.primary.main : 'transparent',
-                color: searchType === option.value ? 'white' : theme.colors.neutral.darkGray,
-                border: `1px solid ${searchType === option.value ? theme.colors.primary.main : theme.colors.neutral.lightGray}`,
-                borderRadius: theme.borderRadius.md,
+                backgroundColor: searchType === option.value ? theme.useToken().token.colorPrimary : 'transparent',
+                color: searchType === option.value ? '#fff' : theme.useToken().token.colorTextSecondary,
+                border: `1px solid ${searchType === option.value ? theme.useToken().token.colorPrimary : theme.useToken().token.colorBorder}`,
+                borderRadius: theme.useToken().token.borderRadius,
                 padding: '8px 16px',
-                fontFamily: theme.typography.fontFamily.primary,
-                fontSize: theme.typography.fontSize.sm,
-                fontWeight: theme.typography.fontWeight.medium,
+                fontSize: theme.useToken().token.fontSizeSM,
+                fontWeight: 500,
                 cursor: 'pointer',
                 transition: 'all 0.3s ease'
               }}
@@ -256,7 +254,7 @@ function EnhancedSearchBar({
             type="default"
             icon={<ReloadOutlined />}
             onClick={() => (onRefresh ? onRefresh() : window.location.reload())}
-            style={{ borderColor: theme.colors.primary.main, color: theme.colors.primary.main }}
+            style={{ borderColor: theme.useToken().token.colorPrimary, color: theme.useToken().token.colorPrimary }}
           />
         </Tooltip>
       </div>
@@ -266,7 +264,7 @@ function EnhancedSearchBar({
           {categoriesList.slice(0, 12).map((cat, idx) => (
             <Tag
               key={`quick-cat-${idx}`}
-              color={theme.colors.primary.main}
+              color={theme.useToken().token.colorPrimary}
               className="quick-cat-tag"
               onClick={() => {
                 onSearchTypeChange && onSearchTypeChange('category');

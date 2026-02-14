@@ -1,4 +1,5 @@
 import React from 'react';
+import { theme } from 'antd';
 
 const ShimmerSkeleton = ({ 
   width = '100%', 
@@ -7,6 +8,7 @@ const ShimmerSkeleton = ({
   className = '',
   style = {} 
 }) => {
+  const { token } = theme.useToken();
   return (
     <div 
       className={`shimmer-skeleton ${className}`}
@@ -14,8 +16,8 @@ const ShimmerSkeleton = ({
         width,
         height,
         borderRadius,
-        backgroundColor: '#f0f0f0',
-        backgroundImage: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+        backgroundColor: token.colorFillTertiary,
+        backgroundImage: `linear-gradient(90deg, ${token.colorFillTertiary} 25%, ${token.colorFillQuaternary} 50%, ${token.colorFillTertiary} 75%)`,
         backgroundSize: '200% 100%',
         animation: 'shimmer 1.5s infinite linear',
         ...style

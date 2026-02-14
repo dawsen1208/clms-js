@@ -32,8 +32,8 @@ import {
   approveRequestLibrary as approveRequest,
 } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageShell from "../components/common/PageShell";
-import KPIStatCard from "../components/common/KPIStatCard";
+import EditorialPageShell from "../components/common/EditorialPageShell";
+import StatCard from "../components/cards/StatCard";
 
 const { Option } = Select;
 const { Title, Text: AntText } = Typography;
@@ -483,53 +483,52 @@ function AdminRequestPage({ appearance }) {
      🧱 页面渲染
      ========================================================= */
   return (
-    <PageShell
+    <EditorialPageShell
       title={t("admin.applicationManagement") || "Application Management"}
       subtitle={t("admin.manageBorrowReturnRequests")}
-      extra={
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={fetchRequests}
-            loading={loading}
-          >
-            {t("admin.refresh")}
-          </Button>
+      headerAction={
+        <Button
+          icon={<ReloadOutlined />}
+          onClick={fetchRequests}
+          loading={loading}
+        >
+          {t("admin.refresh")}
+        </Button>
       }
     >
       {contextHolder}
       
-      {/* 📊 Statistics Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={8} lg={6}>
-            <KPIStatCard
-                title={t("admin.totalRequests")}
-                value={stats.total}
-                icon={<BookOutlined />}
-                color={token.colorInfo}
+            <StatCard
+              title={t("admin.totalRequests")}
+              value={stats.total}
+              color={token.colorInfo}
+              trend={0}
             />
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-            <KPIStatCard
-                title={t("admin.pending")}
-                value={stats.pending}
-                icon={<ClockCircleOutlined />}
-                color={token.colorWarning}
+            <StatCard
+              title={t("admin.pending")}
+              value={stats.pending}
+              color={token.colorWarning}
+              trend={0}
             />
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-            <KPIStatCard
-                title={t("admin.approved")}
-                value={stats.approved}
-                icon={<CheckCircleOutlined />}
-                color={token.colorSuccess}
+            <StatCard
+              title={t("admin.approved")}
+              value={stats.approved}
+              color={token.colorSuccess}
+              trend={0}
             />
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-            <KPIStatCard
-                title={t("admin.rejected")}
-                value={stats.rejected}
-                icon={<CloseCircleOutlined />}
-                color={token.colorError}
+            <StatCard
+              title={t("admin.rejected")}
+              value={stats.rejected}
+              color={token.colorError}
+              trend={0}
             />
         </Col>
       </Row>
@@ -597,7 +596,7 @@ function AdminRequestPage({ appearance }) {
           }}
         />
       </Card>
-    </PageShell>
+    </EditorialPageShell>
   );
 }
 

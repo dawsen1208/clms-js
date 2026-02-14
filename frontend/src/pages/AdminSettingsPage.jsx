@@ -193,7 +193,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                        <Card hoverable onClick={() => setThemeModeModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
-                              <BgColorsOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
+                              <BgColorsOutlined style={{ fontSize: 24, color: token.colorInfo }} />
                               <div>
                                   <AntText strong style={{ display: 'block' }}>{t("settings.themeMode")}</AntText>
                                   <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.themeModeDesc")}</AntText>
@@ -202,7 +202,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                        </Card>
                        <Card hoverable onClick={() => setThemeColorModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
-                              <FormatPainterOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                              <FormatPainterOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
                               <div>
                                   <AntText strong style={{ display: 'block' }}>{t("settings.themeColor")}</AntText>
                                   <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.themeColorDesc")}</AntText>
@@ -220,7 +220,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                        </Card>
                        <Card hoverable onClick={() => setBgModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
-                              <PictureOutlined style={{ fontSize: 24, color: '#eb2f96' }} />
+                              <PictureOutlined style={{ fontSize: 24, color: token.colorWarning }} />
                               <div>
                                   <AntText strong style={{ display: 'block' }}>{t("settings.customBackground")}</AntText>
                                   <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.customBackgroundDesc")}</AntText>
@@ -327,7 +327,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                       </Card>
                       <Card hoverable onClick={() => { setDevicesModalOpen(true); fetchSessions(); }} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                         <Space align="start">
-                            <DesktopOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                            <DesktopOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
                             <div>
                                 <AntText strong style={{ display: 'block' }}>{t("settings.deviceManagement")}</AntText>
                                 <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.deviceManagementDesc")}</AntText>
@@ -478,9 +478,9 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setBulkActionModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
+                      <Card hoverable onClick={() => setBulkActionModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
-                              <BuildOutlined style={{ fontSize: 24, color: '#722ed1' }} />
+                             <BuildOutlined style={{ fontSize: 24, color: token.colorPrimary }} />
                               <div>
                                   <AntText strong style={{ display: 'block' }}>{t("settings.defaultBulkAction")}</AntText>
                                   <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.bulkActionDesc")}</AntText>
@@ -526,7 +526,7 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                        <Card hoverable onClick={() => setRolesModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
                           <Space align="start">
-                              <TeamOutlined style={{ fontSize: 24, color: '#13c2c2' }} />
+                              <TeamOutlined style={{ fontSize: 24, color: token.colorInfo }} />
                               <div>
                                   <AntText strong style={{ display: 'block' }}>{t("settings.manageRoles")}</AntText>
                                   <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.manageRolesDesc")}</AntText>

@@ -1,111 +1,69 @@
 import React from 'react';
-import { Breadcrumb, Typography, Space, theme } from 'antd';
-import { useLocation, Link } from 'react-router-dom';
+import { Layout, Typography, theme, Breadcrumb } from 'antd';
 
+const { Content, Header } = Layout;
 const { Title, Text } = Typography;
 
-/**
- * EditorialPageShell - Warm Magazine Style Page Container
- * 
- * Features:
- * - Editorial Typography (Literata for headings)
- * - 12-column grid layout support
- * - Generous whitespace and "breathing room"
- * - Optional breadcrumbs
- * - Right-side action area
- */
 const EditorialPageShell = ({ 
   title, 
   subtitle, 
-  extra, 
-  children, 
-  breadcrumbItems,
+  headerAction, 
+  children,
   noPadding = false,
-  fullWidth = false,
-  className = ''
+  maxWidth = 1400 // Magazine layout often uses wider containers
 }) => {
   const { token } = theme.useToken();
-  const location = useLocation();
-
-  // Generate breadcrumbs if not provided
-  const breadcrumbs = breadcrumbItems || [
-    { title: <Link to="/">Home</Link> },
-    ...location.pathname.split('/').filter(i => i).map((path, index, arr) => ({
-      title: <Link to={`/${arr.slice(0, index + 1).join('/')}`}>{path.charAt(0).toUpperCase() + path.slice(1)}</Link>
-    }))
-  ];
 
   return (
-    <div className={`editorial-page-shell ${className}`} style={{ 
-      width: '100%', 
-      maxWidth: fullWidth ? '100%' : '1440px', 
+    <div style={{ 
+      minHeight: '100%', 
+      display: 'flex', 
+      flexDirection: 'column',
+      maxWidth: maxWidth,
       margin: '0 auto',
-      padding: noPadding ? 0 : '0 24px 48px',
-      minHeight: '80vh'
+      width: '100%'
     }}>
-      {/* Editorial Header Section */}
-      <div className="editorial-header" style={{ 
-        marginBottom: 48, 
-        paddingTop: 32,
-        position: 'relative'
+      {/* Editorial Header */}
+      <div style={{ 
+        padding: '32px 0 48px 0', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'flex-end',
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        marginBottom: 32
       }}>
-        <div style={{ marginBottom: 16 }}>
-          <Breadcrumb items={breadcrumbs} separator="·" />
-        </div>
-
-        <div className="editorial-grid" style={{ alignItems: 'end' }}>
-          <div className="col-span-8">
-            {title && (
-              <Title level={1} style={{ 
-                margin: 0, 
-                fontFamily: "'Literata', serif", 
-                fontWeight: 600,
-                fontSize: '2.5rem',
-                lineHeight: 1.2,
-                color: token.colorTextHeading
-              }}>
-                {title}
-              </Title>
-            )}
-            {subtitle && (
-              <Text type="secondary" style={{ 
-                fontSize: '1.1rem', 
-                marginTop: 12, 
-                display: 'block',
-                maxWidth: '600px',
-                lineHeight: 1.6,
-                fontFamily: "'Inter', sans-serif"
-              }}>
-                {subtitle}
-              </Text>
-            )}
-          </div>
-
-          <div className="col-span-4" style={{ 
-            display: 'flex', 
-            justifyContent: 'flex-end', 
-            alignItems: 'center',
-            height: '100%'
+        <div>
+          {/* Breadcrumb could go here if needed */}
+          <Title level={1} style={{ 
+            margin: '0 0 8px 0', 
+            fontFamily: "'Literata', serif",
+            fontSize: 42,
+            fontWeight: 600,
+            color: token.colorTextHeading
           }}>
-            {extra && (
-              <Space size="middle">
-                {extra}
-              </Space>
-            )}
-          </div>
+            {title}
+          </Title>
+          {subtitle && (
+            <Text type="secondary" style={{ 
+              fontSize: 18, 
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: 300,
+              maxWidth: 600,
+              display: 'block'
+            }}>
+              {subtitle}
+            </Text>
+          )}
         </div>
-        
-        {/* Decorative underline/separator */}
-        <div style={{ 
-          marginTop: 32, 
-          height: 1, 
-          background: 'linear-gradient(90deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.02) 100%)',
-          width: '100%'
-        }} />
+        {headerAction && (
+          <div style={{ paddingBottom: 8 }}>
+            {headerAction}
+          </div>
+        )}
       </div>
 
-      {/* Main Content Area */}
-      <div className="editorial-content">
+      {/* Main Content */}
+      <div style={{ flex: 1, paddingBottom: 48 }}>
         {children}
       </div>
     </div>

@@ -1,11 +1,12 @@
 // ✅ client/src/pages/RegisterReader.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Form, Input, Button, message, Modal, theme, Grid } from "antd";
-import { CopyOutlined } from "@ant-design/icons";
-import { blue, cyan } from "@ant-design/colors";
-import { register } from "../api"; // ✅ Use unified register API
+import { Form, Input, Button, message, Modal, theme, Grid, Typography } from "antd";
+import { CopyOutlined, UserOutlined, MailOutlined, LockOutlined, ArrowRightOutlined, CheckCircleFilled } from "@ant-design/icons";
+import { register } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
+
+const { Title, Text, Paragraph } = Typography;
 
 function RegisterReader() {
   const navigate = useNavigate();
@@ -17,18 +18,12 @@ function RegisterReader() {
   const [assignedId, setAssignedId] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Auto-read .env API base, support LAN access
-  const API_BASE = (
-    import.meta.env.VITE_API_BASE?.trim() || window.location.origin
-  ).replace(/\/$/, "");
-
   /** 📘 Reader registration logic */
   const handleReaderRegister = async (values) => {
     try {
       setLoading(true);
       const { name, email, password } = values;
 
-      // ✅ Use unified register() helper (no authCode for Reader)
       const res = await register(name, email || "", password, "Reader");
       const id = res.data?.user?.userId;
 
@@ -58,7 +53,6 @@ function RegisterReader() {
     }
   };
 
-  // ✅ Reusable clipboard helper at component scope
   const copyToClipboard = async (text) => {
     try {
       if (navigator.clipboard?.writeText) {
@@ -68,6 +62,7 @@ function RegisterReader() {
     } catch (e) {
       console.warn("clipboard.writeText failed, fallback:", e);
     }
+    // Fallback
     try {
       const textarea = document.createElement("textarea");
       textarea.value = String(text);
@@ -80,12 +75,10 @@ function RegisterReader() {
       document.body.removeChild(textarea);
       return ok;
     } catch (e) {
-      console.warn("Fallback copy failed:", e);
       return false;
     }
   };
 
-  /** ✅ Modal: click OK to go to login */
   const handleModalOk = () => {
     setModalVisible(false);
     message.info(t("register.redirectLogin"));
@@ -98,181 +91,256 @@ function RegisterReader() {
     <div style={{
       minHeight: "100vh",
       display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: `linear-gradient(135deg, ${token.colorInfo}, ${token.blue})`,
-      padding: screens.md ? "2rem" : "1rem"
+      alignItems: "stretch",
+      background: token.colorBgLayout,
+      overflow: "hidden"
     }}>
-      {/* Split Card Container */}
-      <div style={{ 
-        display: 'flex', 
-        width: '100%', 
-        maxWidth: '900px', 
-        minHeight: '600px',
-        background: token.colorBgContainer,
-        borderRadius: token.borderRadiusLG,
-        overflow: 'hidden',
-        boxShadow: token.boxShadowSecondary,
-        flexDirection: screens.md ? 'row' : 'column'
+      {/* 🖼️ Left Side - Editorial Visual */}
+      <div style={{
+        flex: screens.md ? "0 0 50%" : "0 0 0",
+        background: "#E8F5E9", // Soft Sage Green background
+        position: "relative",
+        display: screens.md ? "flex" : "none",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+        padding: "80px",
+        overflow: "hidden"
       }}>
-        {/* Left Side - Form */}
-        <div style={{ 
-          flex: 1, 
-          padding: screens.md ? '40px' : '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center'
-        }}>
-           <div style={{ textAlign: "center", marginBottom: 32 }}>
-              <div style={{ 
-                width: "60px", 
-                height: "60px", 
-                background: `linear-gradient(135deg, ${token.colorInfo}, ${blue[5]})`, 
-                borderRadius: "50%", 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center",
-                margin: "0 auto 1rem auto",
-                fontSize: "24px",
-                color: "#fff",
-                boxShadow: token.boxShadow
-              }}>📖</div>
-              <div style={{ fontSize: "24px", fontWeight: 700, color: token.colorTextHeading }}>{t("titles.registerReader")}</div>
-              <div style={{ fontSize: "14px", color: token.colorTextSecondary, marginTop: "4px" }}>{t("register.readerDesc")}</div>
-            </div>
-
-            <Form layout="vertical" onFinish={handleReaderRegister} size="large">
-              <Form.Item
-                name="name"
-                label={t("register.name")}
-                rules={[
-                  { required: true, message: t("register.enterName") },
-                  { pattern: /^(?!\d+$)[A-Za-z][A-Za-z0-9_ ]*$/, message: t("register.nameInvalid") }
-                ]}
-              >
-                <Input
-                  placeholder={t("register.namePlaceholder")}
-                  style={{ borderRadius: token.borderRadius }}
-                />
-              </Form.Item>
-
-              <Form.Item name="email" label={t("register.email")}>
-                <Input
-                  placeholder={t("register.emailPlaceholder")}
-                  style={{ borderRadius: token.borderRadius }}
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="password"
-                label={t("register.password")}
-                rules={[
-                  { required: true, message: t("register.enterPass") },
-                  { min: 8, message: t("register.passwordRequirements") }
-                ]}
-              >
-                <Input.Password
-                  placeholder={t("register.passwordPlaceholder")}
-                  style={{ borderRadius: token.borderRadius }}
-                />
-              </Form.Item>
-
-              <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  block
-                  loading={loading}
-                  style={{
-                    borderRadius: token.borderRadius,
-                    background: `linear-gradient(90deg, ${token.colorPrimary}, ${cyan[5]})`,
-                    border: 'none',
-                    height: 48,
-                    fontSize: 16,
-                    fontWeight: 'bold',
-                    boxShadow: `0 4px 10px ${token.colorPrimary}4D`,
-                  }}
-                >
-                  {t("register.registerReaderBtn")}
-                </Button>
-              </Form.Item>
-
-              <div style={{ 
-                marginTop: 16, 
-                borderTop: `1px solid ${token.colorBorderSecondary}`, 
-                paddingTop: 16,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8
-              }}>
-                <Button type="link" onClick={() => navigate("/register-admin")} style={{ color: "purple" }}>
-                  👉 {t("register.registerAdminBtn")}
-                </Button>
-                <Button type="link" onClick={() => navigate("/login")} style={{ color: token.colorTextSecondary }}>
-                  🔐 {t("register.backToLogin")}
-                </Button>
-              </div>
-            </Form>
-        </div>
-
-        {/* Right Side - Illustration (Hidden on mobile) */}
-        {screens.md && (
+         {/* Abstract Background Shapes */}
+         <div style={{
+          position: "absolute",
+          top: "-15%",
+          left: "-15%",
+          width: "70%",
+          paddingBottom: "70%",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(76, 175, 80, 0.1) 0%, transparent 70%)",
+        }} />
+        
+        {/* Content */}
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 480 }}>
           <div style={{ 
-            width: '45%', 
-            background: `linear-gradient(135deg, ${token.colorInfo}1A, ${blue.primary}1A)`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            borderLeft: `1px solid ${token.colorBorderSecondary}`
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "8px 16px",
+            background: "rgba(255,255,255,0.6)",
+            backdropFilter: "blur(10px)",
+            borderRadius: "30px",
+            color: token.colorTextSecondary,
+            marginBottom: "32px",
+            fontFamily: token.fontFamilyCode,
+            fontSize: "12px",
+            letterSpacing: "1px",
+            border: `1px solid ${token.colorBorderSecondary}`,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.03)"
           }}>
-             <img
-                src="/icons/app-icon-512.png"
-                alt="app logo"
-                onError={(e) => {
-                  e.currentTarget.src = "/icons/manifest-icon-512.maskable.png";
-                  e.currentTarget.onerror = null;
-                }}
-                style={{ width: '80%', maxWidth: 280, filter: `drop-shadow(0 10px 20px ${token.colorInfo}4D)` }}
-              />
+            <span style={{ width: 8, height: 8, background: "#4CAF50", borderRadius: "50%" }} />
+            JOIN THE COMMUNITY
           </div>
-        )}
+          <Title level={1} style={{ 
+            fontFamily: "'Literata', serif", 
+            fontSize: "3.5rem", 
+            color: "#1B5E20", // Dark green text
+            lineHeight: 1.1,
+            marginBottom: 24,
+            fontWeight: 400
+          }}>
+            Your next great idea <br/> starts here.
+          </Title>
+          <Paragraph style={{ 
+            fontFamily: "'Inter', sans-serif",
+            fontSize: "1.125rem",
+            color: token.colorTextSecondary,
+            lineHeight: 1.6,
+            maxWidth: 400
+          }}>
+            Create an account to track your reading, reserve books, and get personalized recommendations.
+          </Paragraph>
+        </div>
       </div>
 
-      {/* ✅ Registration success modal */}
+      {/* 📝 Right Side - Registration Form */}
+      <div style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: screens.md ? "80px" : "24px",
+        position: "relative",
+        background: token.colorBgLayout
+      }}>
+        <div style={{ 
+          width: "100%", 
+          maxWidth: "480px",
+          background: "rgba(255,255,255,0.6)",
+          backdropFilter: "blur(20px)",
+          padding: screens.md ? "56px" : "32px",
+          borderRadius: "24px",
+          boxShadow: "0 20px 40px rgba(0,0,0,0.04)",
+          border: `1px solid ${token.colorBorderSecondary}`
+        }}>
+           {/* Header */}
+           <div style={{ marginBottom: "40px", textAlign: "center" }}>
+            <Title level={2} style={{ 
+              margin: "0 0 8px 0", 
+              fontFamily: "'Literata', serif",
+              color: token.colorTextHeading,
+              fontWeight: 600
+            }}>
+              Create Account
+            </Title>
+            <Text type="secondary" style={{ fontSize: "16px", fontFamily: "'Inter', sans-serif" }}>
+              Join thousands of readers today
+            </Text>
+          </div>
+
+          <Form 
+            layout="vertical" 
+            size="large"
+            onFinish={handleReaderRegister}
+            requiredMark={false}
+          >
+            <Form.Item 
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Full Name</span>}
+              name="name" 
+              rules={[{ required: true, message: t("register.nameReq") }]}
+            >
+              <Input 
+                prefix={<UserOutlined style={{ color: token.colorTextQuaternary }} />} 
+                placeholder="John Doe" 
+                style={{ borderRadius: 8, height: 48, background: "#fff" }}
+              />
+            </Form.Item>
+
+            <Form.Item 
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Email (Optional)</span>}
+              name="email"
+              rules={[{ type: 'email', message: 'Please enter a valid email' }]}
+            >
+              <Input 
+                prefix={<MailOutlined style={{ color: token.colorTextQuaternary }} />} 
+                placeholder="john@example.com" 
+                style={{ borderRadius: 8, height: 48, background: "#fff" }}
+              />
+            </Form.Item>
+
+            <Form.Item 
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Password</span>}
+              name="password" 
+              rules={[{ required: true, message: t("register.pwdReq") }]}
+            >
+              <Input.Password 
+                prefix={<LockOutlined style={{ color: token.colorTextQuaternary }} />} 
+                placeholder="Create a strong password" 
+                style={{ borderRadius: 8, height: 48, background: "#fff" }}
+              />
+            </Form.Item>
+
+            <Button 
+              type="primary" 
+              htmlType="submit"
+              block 
+              size="large"
+              loading={loading}
+              style={{ 
+                height: 52, 
+                borderRadius: 26, 
+                fontSize: 16, 
+                fontWeight: 600,
+                marginTop: "16px",
+                background: "#4CAF50", // Green for reader registration
+                boxShadow: "0 8px 20px rgba(76, 175, 80, 0.25)",
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px"
+              }}
+            >
+              Create Account <ArrowRightOutlined />
+            </Button>
+          </Form>
+
+          <div style={{ marginTop: "32px", textAlign: "center" }}>
+            <Text type="secondary">Already have an account? </Text>
+            <a 
+              onClick={() => navigate("/login")} 
+              style={{ 
+                color: "#4CAF50", 
+                fontWeight: 600, 
+                cursor: "pointer",
+                marginLeft: "4px"
+              }}
+            >
+              Sign In
+            </a>
+          </div>
+        </div>
+
+        {/* Footer Info */}
+        <div style={{ 
+          position: "absolute", 
+          bottom: "24px", 
+          color: token.colorTextQuaternary,
+          fontSize: "12px",
+          textAlign: "center",
+          width: "100%",
+          fontFamily: token.fontFamilyCode
+        }}>
+          © 2024 CLMS. Terms & Privacy.
+        </div>
+      </div>
+
+      {/* Success Modal */}
       <Modal
-        title={t("register.regSuccessTitle")}
         open={modalVisible}
         onOk={handleModalOk}
-        onCancel={() => setModalVisible(false)}
-        cancelText={t("register.cancel")}
-        okText={t("register.goToLogin")}
+        onCancel={handleModalOk}
+        footer={[
+          <Button key="login" type="primary" onClick={handleModalOk} size="large" block>
+            Proceed to Login
+          </Button>
+        ]}
         centered
+        width={400}
+        closable={false}
       >
-        <div style={{ textAlign: "center" }}>
-          <p>{t("register.assignedId")}</p>
-          <p
-            style={{
-              fontSize: "1.3rem",
-              fontWeight: "bold",
-              color: token.colorPrimary,
-              userSelect: "text",
+        <div style={{ textAlign: 'center', padding: '24px 0' }}>
+          <CheckCircleFilled style={{ fontSize: 64, color: token.colorSuccess, marginBottom: 24 }} />
+          <Title level={3} style={{ fontFamily: "'Literata', serif", marginBottom: 8 }}>
+            Account Created!
+          </Title>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
+            Please save your User ID, you will need it to login.
+          </Text>
+          
+          <div style={{ 
+            background: token.colorBgLayout, 
+            padding: '16px', 
+            borderRadius: '12px',
+            border: `1px solid ${token.colorBorderSecondary}`,
+            marginBottom: '8px'
+          }}>
+            <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>
+              YOUR USER ID
+            </Text>
+            <Title level={2} style={{ margin: 0, color: token.colorPrimary, fontFamily: 'monospace' }}>
+              {assignedId}
+            </Title>
+          </div>
+          
+          <Button 
+            type="text" 
+            icon={<CopyOutlined />} 
+            onClick={() => {
+                copyToClipboard(assignedId);
+                message.success(t("register.copySuccess"));
             }}
           >
-            {assignedId}
-            <CopyOutlined
-              style={{ marginLeft: 10, color: token.colorPrimary, cursor: "pointer" }}
-              onClick={async () => {
-                const ok = await copyToClipboard(assignedId);
-                if (ok) message.success(t("register.copySuccess"));
-                else message.warning(t("register.manualCopyFail"));
-              }}
-            />
-          </p>
-          <p style={{ color: token.colorWarning, marginTop: 10 }}>
-            {t("register.pendingApproval") || "Your account is pending approval. Please wait for an administrator to approve your registration."}
-          </p>
-          <p>{t("register.idCopiedMsg")}</p>
+            Copy User ID
+          </Button>
         </div>
       </Modal>
     </div>

@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { Layout, Menu, Button, Dropdown, Avatar, Input, Badge, Space, Drawer, Typography, theme, AutoComplete } from "antd";
+import React, { useState, useEffect, useRef } from "react";
+import { Layout, Menu, Button, Dropdown, Avatar, Input, Space, Drawer, Typography, theme, AutoComplete, Grid } from "antd";
 import {
   HomeOutlined,
   SearchOutlined,
   BookOutlined,
-  RollbackOutlined,
   UserOutlined,
   LogoutOutlined,
   RobotOutlined,
   SettingOutlined,
   MessageOutlined,
-  BellOutlined,
   MenuOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -19,22 +17,58 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import GlobalNotifier from "./GlobalNotifier";
-import { motion } from "framer-motion";
 import { getBooks } from "../api";
 import "./LayoutMenu.css";
 
 const { Sider, Content, Header } = Layout;
-const { Title, Text } = Typography;
+const { Text } = Typography;
+const { useBreakpoint } = Grid;
 
 const LayoutMenu = ({ onLogout, children }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const { token } = theme.useToken();
+  const screens = useBreakpoint();
   
   const [collapsed, setCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [user, setUser] = useState({});
+  const [hideMobileNav, setHideMobileNav] = useState(false);
+  const menuBtnRef = useRef(null);
+  const drawerContainerRef = useRef(null);
+  const drawerDescId = 'mobile-drawer-desc';
+
+  useEffect(() => {
+    if (!mobileDrawerOpen) return;
+    const root = drawerContainerRef.current?.closest('.ant-drawer-body') || drawerContainerRef.current;
+    if (!root) return;
+    const focusableSelectors = [
+      'a[href]', 'button:not([disabled])', 'input:not([disabled])',
+      'select:not([disabled])', 'textarea:not([disabled])',
+      '[tabindex]:not([tabindex="-1"])'
+    ].join(',');
+    const handleKeyDown = (e) => {
+      if (e.key !== 'Tab') return;
+      const nodes = Array.from(root.querySelectorAll(focusableSelectors)).filter(el => el.offsetParent !== null);
+      if (nodes.length === 0) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    root.addEventListener('keydown', handleKeyDown);
+    return () => root.removeEventListener('keydown', handleKeyDown);
+  }, [mobileDrawerOpen]);
   
   // Search AutoComplete State
   const [allBooks, setAllBooks] = useState([]);
@@ -46,6 +80,43 @@ const LayoutMenu = ({ onLogout, children }) => {
     const localUser = localStorage.getItem("user");
     setUser(JSON.parse(sessionUser || localUser || "{}"));
   }, []);
+
+  // Responsive check
+  // screens.md is true for desktop (>= 768px)
+  const isMobile = !screens.md;
+
+  useEffect(() => {
+    const handleFocusIn = (e) => {
+      if (!isMobile) return;
+      const el = e.target;
+      const tag = (el?.tagName || '').toUpperCase();
+      const editable = el?.isContentEditable;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || editable) {
+        setHideMobileNav(true);
+      }
+    };
+    const handleFocusOut = () => {
+      if (!isMobile) return;
+      setHideMobileNav(false);
+    };
+    const handleVVResize = () => {
+      if (!isMobile || !window.visualViewport) return;
+      const ratio = window.visualViewport.height / window.innerHeight;
+      setHideMobileNav(ratio < 0.75);
+    };
+    document.addEventListener('focusin', handleFocusIn);
+    document.addEventListener('focusout', handleFocusOut);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleVVResize);
+    }
+    return () => {
+      document.removeEventListener('focusin', handleFocusIn);
+      document.removeEventListener('focusout', handleFocusOut);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleVVResize);
+      }
+    };
+  }, [isMobile]);
 
   const fetchBooks = async () => {
     if (booksLoaded) return;
@@ -86,7 +157,7 @@ const LayoutMenu = ({ onLogout, children }) => {
                <Text strong style={{ fontSize: 14 }}>{book.title}</Text>
                <Text type="secondary" style={{ fontSize: 12 }}>{book.author}</Text>
             </div>
-            {book.category && <span style={{ fontSize: 11, color: '#bfbfbf', marginLeft: 8 }}>{book.category}</span>}
+            {book.category && <span style={{ fontSize: 11, color: token.colorTextQuaternary, marginLeft: 8 }}>{book.category}</span>}
           </div>
         ),
         bookId: book._id || book.id
@@ -124,6 +195,14 @@ const LayoutMenu = ({ onLogout, children }) => {
     return "home";
   };
 
+  // Mobile Bottom Nav Items
+  const mobileNavItems = [
+    { key: "home", icon: <HomeOutlined />, label: t("nav.home") || "Home" },
+    { key: "search", icon: <SearchOutlined />, label: t("nav.books") || "Search" },
+    { key: "borrow", icon: <BookOutlined />, label: t("nav.myBooks") || "My Books" },
+    { key: "profile", icon: <UserOutlined />, label: t("common.profile") || "Profile" },
+  ];
+
   const handleMenuClick = ({ key }) => {
     setMobileDrawerOpen(false);
     if (key === "logout") {
@@ -155,20 +234,38 @@ const LayoutMenu = ({ onLogout, children }) => {
       alignItems: 'center', 
       justifyContent: collapsed ? 'center' : 'flex-start',
       padding: collapsed ? 0 : '0 24px',
-      borderBottom: '1px solid rgba(0,0,0,0.06)'
+      borderBottom: `1px solid ${token.colorBorderSecondary}`,
+      background: 'transparent',
     }}>
-      <img 
-        src="/icons/app-icon-192.png" 
-        alt="Logo" 
-        style={{ 
-          width: 32, 
-          height: 32, 
-          borderRadius: 8,
-          objectFit: 'contain'
-        }} 
-      />
+      <div style={{
+        width: 32,
+        height: 32,
+        borderRadius: 8,
+        background: `linear-gradient(135deg, ${token.colorPrimary}, ${token.colorWarning})`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: token.colorWhite,
+        fontWeight: 'bold',
+        fontSize: 18,
+        fontFamily: "'Literata', serif",
+        flexShrink: 0,
+        boxShadow: token.boxShadowSecondary
+      }}>
+        C
+      </div>
       {!collapsed && (
-        <span style={{ marginLeft: 12, fontWeight: 700, fontSize: 18, color: '#1f1f1f' }}>
+        <span style={{ 
+          marginLeft: 12, 
+          fontWeight: 700, 
+          fontSize: 20, 
+          color: token.colorTextHeading,
+          fontFamily: "'Literata', serif",
+          letterSpacing: '-0.02em',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }}>
           CLMS
         </span>
       )}
@@ -176,153 +273,325 @@ const LayoutMenu = ({ onLogout, children }) => {
   );
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: "100vh", background: 'transparent' }}>
       {/* Desktop Sidebar */}
-      <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        width={260}
-        theme="light"
-        className="desktop-sider"
-        style={{
-          borderRight: '1px solid rgba(0,0,0,0.06)',
-          position: 'fixed',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          zIndex: 100,
-          display: { xs: 'none', md: 'block' } // Handled by CSS media query
-        }}
-      >
-        <Logo />
-        <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100% - 64px)' }}>
-          <div style={{ flex: 1, padding: '16px 0', overflowY: 'auto' }}>
-            <Menu
-              mode="inline"
-              selectedKeys={[getSelectedKey()]}
-              items={menuItems}
-              onClick={handleMenuClick}
-              style={{ border: 'none' }}
-              className="custom-menu"
-            />
+      {!isMobile && (
+        <Sider
+          id="app-sider"
+          trigger={null}
+          collapsible
+          collapsed={collapsed}
+          width={280}
+          theme="light"
+          style={{
+            borderRight: `1px solid ${token.colorBorderSecondary}`,
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            zIndex: 100,
+            background: token.colorBgContainer,
+            backdropFilter: 'blur(20px)',
+            boxShadow: token.boxShadowTertiary
+          }}
+        >
+          <Logo />
+          <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100% - 64px)' }}>
+            <div style={{ flex: 1, padding: '24px 0', overflowY: 'auto' }}>
+              <Menu
+                mode="inline"
+                selectedKeys={[getSelectedKey()]}
+                items={menuItems}
+                onClick={handleMenuClick}
+                className="custom-menu"
+              />
+            </div>
+            
+            {/* User Profile Snippet in Sidebar (Desktop) */}
+            <div style={{ 
+              padding: 20, 
+              borderTop: `1px solid ${token.colorBorderSecondary}`,
+              background: token.colorBgContainer
+            }}>
+               <div style={{ display: 'flex', alignItems: 'center', marginBottom: collapsed ? 0 : 16, justifyContent: collapsed ? 'center' : 'flex-start' }}>
+                  <Avatar 
+                    src={user.avatar} 
+                    icon={<UserOutlined />} 
+                    size={collapsed ? 32 : 40}
+                    style={{ backgroundColor: token.colorPrimary, cursor: 'pointer' }} 
+                    onClick={() => navigate('/profile')}
+                  />
+                  {!collapsed && (
+                    <div style={{ marginLeft: 12, overflow: 'hidden' }}>
+                      <Text strong style={{ display: 'block', fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {user.name || 'Reader'}
+                      </Text>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {user.role || 'Member'}
+                      </Text>
+                    </div>
+                  )}
+               </div>
+               
+               {!collapsed && (
+                  <Button 
+                    block 
+                    icon={<LogoutOutlined />} 
+                    onClick={onLogout}
+                    type="text"
+                    danger
+                    style={{ textAlign: 'left', borderRadius: 8 }}
+                  >
+                    {t("common.logout") || "Logout"}
+                  </Button>
+               )}
+            </div>
           </div>
-          <div style={{ padding: 16, borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-             {!collapsed ? (
-                <Button 
-                  block 
-                  icon={<LogoutOutlined />} 
-                  onClick={onLogout}
-                  type="text"
-                  danger
-                  style={{ textAlign: 'left' }}
-                >
-                  Logout
-                </Button>
-             ) : (
-               <Button 
-                  type="text" 
-                  danger 
-                  icon={<LogoutOutlined />} 
-                  onClick={onLogout} 
-                  style={{ width: '100%', display: 'flex', justifyContent: 'center' }} 
-               />
-             )}
-          </div>
-        </div>
-      </Sider>
+        </Sider>
+      )}
 
       {/* Mobile Drawer */}
       <Drawer
         placement="left"
         onClose={() => setMobileDrawerOpen(false)}
         open={mobileDrawerOpen}
+        aria-labelledby="mobile-drawer-title"
+        aria-describedby={drawerDescId}
+        afterOpenChange={(open) => {
+          if (open) {
+            setTimeout(() => {
+              try {
+                const root = drawerContainerRef.current;
+                if (!root) return;
+                const selected = root.querySelector('.ant-menu-item-selected');
+                const first = root.querySelector('.ant-menu-item');
+                (selected || first)?.focus?.();
+              } catch {}
+            }, 0);
+          } else if (menuBtnRef.current) {
+            try { menuBtnRef.current.focus(); } catch {}
+          }
+        }}
         styles={{ body: { padding: 0 } }}
-        width={260}
+        width={280}
+        title={<Logo />}
       >
-        <Logo />
-        <Menu
-          mode="inline"
-          selectedKeys={[getSelectedKey()]}
-          items={menuItems}
-          onClick={handleMenuClick}
-          style={{ border: 'none' }}
-        />
+        <h2 id="mobile-drawer-title" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(1px,1px,1px,1px)' }}>
+          {t("common.mobileMenuTitle") || "Main Menu"}
+        </h2>
+        <p id={drawerDescId} style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(1px,1px,1px,1px)' }}>
+          {(t("common.mobileNav") || "Bottom Navigation") + ". " + (t("common.drawerInstructions") || "Use Tab to navigate, Enter to activate, Esc to close.")}
+        </p>
+        <div ref={drawerContainerRef}>
+          <Menu
+            mode="inline"
+            selectedKeys={[getSelectedKey()]}
+            items={menuItems}
+            onClick={handleMenuClick}
+            className="custom-menu"
+            style={{ border: 'none' }}
+          />
+        </div>
+        <div style={{ padding: 20, borderTop: `1px solid ${token.colorBorderSecondary}`, marginTop: 'auto' }}>
+           <Button 
+             block 
+             icon={<LogoutOutlined />} 
+             onClick={onLogout}
+             danger
+             style={{ borderRadius: 20 }}
+           >
+             {t("common.logout")}
+           </Button>
+        </div>
       </Drawer>
 
-      <Layout style={{ marginLeft: collapsed ? 80 : 260, transition: 'margin-left 0.2s' }} className="site-layout">
+      <Layout style={{ 
+        marginLeft: isMobile ? 0 : (collapsed ? 80 : 280), 
+        transition: 'margin-left 0.2s', 
+        background: 'transparent',
+        minHeight: '100vh'
+      }}>
         <Header style={{ 
-          padding: '0 24px', 
-          background: '#fff', 
+          padding: isMobile ? '0 16px' : '0 32px', 
+          background: token.colorBgElevated,
+          backdropFilter: 'blur(12px)',
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'space-between',
           position: 'sticky',
           top: 0,
           zIndex: 99,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+          height: isMobile ? 64 : 72,
+          borderBottom: `1px solid ${token.colorBorderSecondary}`
         }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              style={{ fontSize: '16px', width: 48, height: 48, marginRight: 16 }}
-              className="trigger-btn"
-            />
-            
-            {/* Mobile Trigger */}
-            <Button
-              type="text"
-              icon={<MenuOutlined />}
-              onClick={() => setMobileDrawerOpen(true)}
-              style={{ fontSize: '16px', width: 48, height: 48, marginRight: 16, display: 'none' }} // Visible on mobile via CSS
-              className="mobile-trigger-btn"
-            />
-            
-            {/* Global Search */}
-            <div className="header-search" style={{ width: 300 }}>
-               <AutoComplete
-                 options={searchOptions}
-                 onSelect={onSelect}
-                 onSearch={handleSearch}
-                 onFocus={fetchBooks}
-                 style={{ width: '100%' }}
-               >
-                 <Input.Search 
-                   placeholder={t("common.searchBooks")} 
-                   allowClear
-                   onSearch={(value) => navigate(`/search?q=${value}`)}
-                   enterButton
-                 />
-               </AutoComplete>
-            </div>
-          </div>
-
-          <Space size={24}>
-            <GlobalNotifier />
-            <Dropdown overlay={userMenu} placement="bottomRight">
-              <div style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                <Avatar 
-                  src={user.avatar} 
-                  icon={<UserOutlined />} 
-                  style={{ backgroundColor: token.colorPrimary }} 
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {isMobile ? (
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Button
+                  type="text"
+                  icon={<MenuOutlined />}
+                  onClick={() => setMobileDrawerOpen(true)}
+                  aria-label={t("common.openMenu") || "Open Menu"}
+                  title={t("common.openMenu") || "Open Menu"}
+                  ref={menuBtnRef}
+                  style={{ fontSize: '18px', width: 40, height: 40, marginRight: 8 }}
                 />
-                <span style={{ marginLeft: 8, fontWeight: 500, display: 'none', md: 'block' }} className="username-text">
-                  {user.name || 'User'}
+                <span style={{ 
+                  fontWeight: 700, 
+                  fontSize: 18, 
+                  fontFamily: "'Literata', serif",
+                  color: token.colorTextHeading
+                }}>
+                  CLMS
                 </span>
               </div>
-            </Dropdown>
-          </Space>
+            ) : (
+              <Button
+                type="text"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+                aria-label={t("common.toggleSidebar") || "Toggle Sidebar"}
+                aria-controls="app-sider"
+                aria-expanded={!collapsed}
+                title={t("common.toggleSidebar") || "Toggle Sidebar"}
+                style={{ fontSize: '18px', width: 40, height: 40, color: token.colorTextSecondary }}
+              />
+            )}
+            
+            {!isMobile && (
+              <Text strong style={{ 
+                fontSize: 18, 
+                fontFamily: "'Literata', serif",
+                color: token.colorTextHeading 
+              }}>
+                {menuItems.find(item => item.key === getSelectedKey())?.label || "Library"}
+              </Text>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            {!isMobile && (
+              <div style={{ width: 300 }}>
+                 <AutoComplete
+                   options={searchOptions}
+                   onSelect={onSelect}
+                   onSearch={handleSearch}
+                   onFocus={fetchBooks}
+                   style={{ width: '100%' }}
+                 >
+                   <Input.Search 
+                     placeholder={t("common.searchBooks")} 
+                     aria-label={t("common.searchBooks") || "Search books"}
+                     allowClear
+                     onSearch={(value) => navigate(`/search?q=${value}`)}
+                     style={{ borderRadius: 20 }}
+                     className="glass-search"
+                   />
+                 </AutoComplete>
+              </div>
+            )}
+
+            <Space size={16}>
+              {isMobile && (
+                 <Button 
+                   type="text" 
+                   icon={<SearchOutlined />} 
+                   onClick={() => navigate('/search')} 
+                   shape="circle" 
+                   aria-label={t("common.search") || "Search"}
+                   title={t("common.search") || "Search"}
+                 />
+              )}
+              <GlobalNotifier />
+              {isMobile && (
+                <Dropdown overlay={userMenu} placement="bottomRight">
+                  <Avatar 
+                    src={user.avatar} 
+                    icon={<UserOutlined />} 
+                    style={{ backgroundColor: token.colorPrimary, cursor: 'pointer' }} 
+                  />
+                </Dropdown>
+              )}
+            </Space>
+          </div>
         </Header>
         
-        <Content style={{ 
-          padding: 0, // Let PageContainer handle padding
+        <Content role="main" id="main-content" style={{ 
+          padding: 0, 
           minHeight: 280, 
-          overflow: 'initial' 
+          overflow: 'initial',
+          paddingBottom: isMobile ? (hideMobileNav ? 0 : 80) : 'env(safe-area-inset-bottom)' 
         }}>
           {children}
         </Content>
+
+        {isMobile && !hideMobileNav && (
+          <div className="mobile-bottom-nav" role="navigation" aria-label={t("common.mobileNav") || "Bottom Navigation"} aria-controls="main-content" style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 64,
+            background: token.colorBgElevated,
+            backdropFilter: 'blur(16px)',
+            borderTop: `1px solid ${token.colorBorderSecondary}`,
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            zIndex: 1000,
+            paddingBottom: 'env(safe-area-inset-bottom)',
+            boxShadow: token.boxShadowTertiary
+          }}>
+            <ul style={{ listStyle: 'none', display: 'flex', margin: 0, padding: 0, width: '100%', height: '100%' }}>
+            {mobileNavItems.map(item => {
+              const isActive = getSelectedKey() === item.key;
+              return (
+                <li key={item.key} style={{ flex: 1, height: '100%' }}>
+                  <button
+                    onClick={() => navigate(`/${item.key}`)}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                      height: '100%',
+                      cursor: 'pointer',
+                      color: isActive ? token.colorPrimary : token.colorTextQuaternary,
+                      transition: 'all 0.25s ease',
+                      borderTop: isActive ? `2px solid ${token.colorPrimary}` : '2px solid transparent',
+                      background: isActive ? token.colorPrimaryBg : 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      padding: 0
+                    }}
+                    role="link"
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-label={item.label}
+                  >
+                    <span aria-hidden="true" style={{ 
+                      fontSize: 22, 
+                      marginBottom: 2,
+                      transform: isActive ? 'translateY(-2px) scale(1.02)' : 'none',
+                      transition: 'transform 0.25s ease'
+                    }}>
+                      {item.icon}
+                    </span>
+                    <span style={{ 
+                      fontSize: 10, 
+                      fontWeight: isActive ? 600 : 400,
+                      fontFamily: "'Inter', sans-serif",
+                      letterSpacing: 0.2
+                    }}>
+                      {item.label}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+            </ul>
+          </div>
+        )}
       </Layout>
     </Layout>
   );

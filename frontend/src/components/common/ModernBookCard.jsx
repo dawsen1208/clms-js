@@ -23,10 +23,14 @@ const ModernBookCard = ({
   
   const isAvailable = book.copies > 0;
   
-  // Generate a consistent color based on category
+  // Generate a consistent color based on category using theme tokens
   const getCategoryColor = (category) => {
     const colors = [
-      '#1677FF', '#52C41A', '#FAAD14', '#F5222D', '#722ED1', '#13C2C2', '#EB2F96'
+      token.colorPrimary,
+      token.colorSuccess,
+      token.colorWarning,
+      token.colorError,
+      token.colorInfo
     ];
     let hash = 0;
     const str = category || 'default';

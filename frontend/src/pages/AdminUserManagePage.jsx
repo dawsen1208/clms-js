@@ -40,8 +40,8 @@ import {
   Legend,
 } from "recharts";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageShell from "../components/common/PageShell";
-import KPIStatCard from "../components/common/KPIStatCard";
+import EditorialPageShell from "../components/common/EditorialPageShell";
+import StatCard from "../components/cards/StatCard";
 
 const { Paragraph } = Typography;
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8854d0"];
@@ -321,71 +321,72 @@ const AdminUserManagePage = () => {
   ];
 
   return (
-    <PageShell
+    <EditorialPageShell
       title={t("admin.userManage")}
       subtitle={t("admin.persona") || "User Analytics & Management"}
-      extra={
-          <Button
-              icon={<ReloadOutlined />}
-              onClick={fetchUsers}
-              loading={loading}
-          >
-              {t("admin.refresh")}
-          </Button>
+      headerAction={
+        <Button
+          icon={<ReloadOutlined />}
+          onClick={fetchUsers}
+          loading={loading}
+        >
+          {t("admin.refresh")}
+        </Button>
       }
     >
       
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={8} lg={4}>
-            <KPIStatCard
-                title={t("admin.totalUsers")}
-                value={stats.total}
-                icon={<UserOutlined />}
-                color={token.colorPrimary}
+            <StatCard
+              title={t("admin.totalUsers")}
+              value={stats.total}
+              color={token.colorPrimary}
+              trend={0}
             />
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
-            <KPIStatCard
-                title={t("admin.admins")}
-                value={stats.admins}
-                icon={<SafetyCertificateOutlined />}
-                color={token.purple}
+            <StatCard
+              title={t("admin.admins")}
+              value={stats.admins}
+              color={token.colorInfo}
+              trend={0}
             />
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
-            <KPIStatCard
-                title={t("admin.overdueUsers")}
-                value={stats.overdueUsers}
-                icon={<AlertOutlined />}
-                color={token.colorError}
+            <StatCard
+              title={t("admin.overdueUsers")}
+              value={stats.overdueUsers}
+              color={token.colorError}
+              trend={0}
             />
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
-            <KPIStatCard
-                title={t("admin.avgOnTime")}
-                value={stats.avgOnTime}
-                suffix="%"
-                icon={<CheckCircleOutlined />}
-                color={token.colorSuccess}
+            <StatCard
+              title={t("admin.avgOnTime")}
+              value={stats.avgOnTime}
+              suffix="%"
+              color={token.colorSuccess}
+              trend={0}
             />
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
-            <KPIStatCard
-                title={t("admin.personaTypes")}
-                value={stats.personaKinds}
-                icon={<TagsOutlined />}
-                color={token.colorWarning}
+            <StatCard
+              title={t("admin.personaTypes")}
+              value={stats.personaKinds}
+              color={token.colorWarning}
+              trend={0}
             />
         </Col>
         <Col xs={24} sm={12} md={8} lg={4}>
-            <KPIStatCard
+            <div onClick={() => setDistOpen(true)} style={{ cursor: 'pointer' }}>
+              <StatCard
                 title={t("admin.personaDistribution")}
-                value={t("admin.view") || "View"}
-                icon={<PieChartOutlined />}
-                color={token.geekblue}
-                onClick={() => setDistOpen(true)}
-                hoverable
-            />
+                value={0}
+                explanation={t("admin.view") || "View"}
+                color={token.colorInfo}
+                trend={0}
+              />
+            </div>
         </Col>
       </Row>
 
@@ -565,7 +566,7 @@ const AdminUserManagePage = () => {
           </ResponsiveContainer>
         )}
       </Modal>
-    </PageShell>
+    </EditorialPageShell>
   );
 };
 

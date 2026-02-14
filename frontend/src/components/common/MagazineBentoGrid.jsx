@@ -1,9 +1,11 @@
 import React from 'react';
-import { Card, Typography } from 'antd';
+import { Card, Typography, theme } from 'antd';
 
 const { Title, Text } = Typography;
+const { useToken } = theme;
 
 const MagazineBentoGrid = ({ items = [], className = '' }) => {
+  const { token } = useToken();
   return (
     <div className={`magazine-bento-grid editorial-grid ${className}`} style={{ gap: 24 }}>
       {items.map((item, index) => {
@@ -32,7 +34,7 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
                 height: '100%', 
                 borderRadius: 16, 
                 overflow: 'hidden',
-                background: item.background || '#fff',
+                background: item.background || token.colorBgContainer,
                 boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
                 transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
               }}
@@ -43,13 +45,25 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
                 flexDirection: 'column' 
               }}
             >
-              {item.coverImage && (
+              {item.coverImage ? (
                 <div style={{ 
                   flex: isFeatured ? 2 : 1, 
                   background: `url(${item.coverImage}) center/cover no-repeat`,
                   minHeight: isFeatured ? '60%' : '50%'
                 }} />
-              )}
+              ) : item.coverNode ? (
+                <div style={{ 
+                  flex: isFeatured ? 2 : 1, 
+                  minHeight: isFeatured ? '60%' : '50%',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: token.colorFillTertiary
+                }}>
+                  {item.coverNode}
+                </div>
+              ) : null}
               
               <div style={{ 
                 padding: 24, 
@@ -69,13 +83,13 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
                   }}>
                     {item.title}
                   </Title>
-                  <Text type="secondary" ellipsis={{ rows: 2 }}>
+                  <Text style={{ color: token.colorTextSecondary }} ellipsis={{ rows: 2 }}>
                     {item.description}
                   </Text>
                 </div>
                 
                 <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 12, color: '#999' }}>{item.meta}</Text>
+                  <Text style={{ fontSize: 12, color: token.colorTextTertiary }}>{item.meta}</Text>
                   {item.action}
                 </div>
               </div>

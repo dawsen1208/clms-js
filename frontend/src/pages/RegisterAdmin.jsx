@@ -1,29 +1,25 @@
-// ✅ client/src/pages/RegisterAdmin.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Form, Input, Button, message, Modal, theme, Grid } from "antd";
-import { CopyOutlined } from "@ant-design/icons";
-import { purple } from "@ant-design/colors";
-import { register } from "../api"; // ✅ 统一使用 API 封装
-import axios from "axios"; // 保留 axios 用于认证码扩展（可选）
+import { Form, Input, Button, message, Modal, Grid, Typography, theme } from "antd";
+import { CopyOutlined, UserOutlined, MailOutlined, LockOutlined, KeyOutlined, CheckCircleFilled } from "@ant-design/icons";
+import { register } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
+
+const { Title, Text, Paragraph } = Typography;
+const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 function RegisterAdmin() {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { token } = theme.useToken();
-  const screens = Grid.useBreakpoint();
+  const { token } = useToken();
+  const screens = useBreakpoint();
   
   const [modalVisible, setModalVisible] = useState(false);
   const [assignedId, setAssignedId] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ 自动读取 .env 环境变量，兼容手机访问
-  const API_BASE = (
-    import.meta.env.VITE_API_BASE?.trim() || window.location.origin
-  ).replace(/\/$/, "");
-
-  /** 🧩 管理员注册逻辑 */
+  /** 🧩 Admin registration logic */
   const handleAdminRegister = async (values) => {
     const { name, email, password, authCode } = values;
     if (!name || !password || !authCode) {
@@ -32,17 +28,15 @@ function RegisterAdmin() {
 
     try {
       setLoading(true);
-      // ✅ 调用统一注册接口（管理员需传入 authCode）
+      // Admin registration requires authCode
       const res = await register(name, email || "", password, "Administrator", authCode);
       const id = res.data?.user?.userId;
 
       if (!id) throw new Error(t("register.noId"));
       console.log("🟩 Administrator system-assigned ID:", id);
 
-      // ✅ 存储预填 ID
       localStorage.setItem("prefillUserId", id);
 
-      // ✅ 自动复制到剪贴板（带降级兜底）
       const copied = await copyToClipboard(id);
       if (copied) {
         message.success(t("register.copySuccess"));
@@ -50,7 +44,6 @@ function RegisterAdmin() {
         message.warning(t("register.copyFail"));
       }
 
-      // ✅ 显示注册成功弹窗
       setAssignedId(id);
       setModalVisible(true);
     } catch (err) {
@@ -65,7 +58,6 @@ function RegisterAdmin() {
     }
   };
 
-  // ✅ 复用的复制函数（clipboard API + execCommand 降级）
   const copyToClipboard = async (text) => {
     try {
       if (navigator.clipboard?.writeText) {
@@ -92,7 +84,6 @@ function RegisterAdmin() {
     }
   };
 
-  /** ✅ Modal: go to login */
   const handleModalOk = () => {
     setModalVisible(false);
     message.info(t("register.redirectLogin"));
@@ -105,193 +96,323 @@ function RegisterAdmin() {
     <div style={{
       minHeight: "100vh",
       display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: `linear-gradient(135deg, ${token.colorPrimary}, ${purple[5]})`,
-      padding: screens.md ? "2rem" : "1rem"
+      alignItems: "stretch",
+      background: "#FAF9F6", // Warm paper background
+      fontFamily: "'Inter', sans-serif",
+      overflow: "hidden"
     }}>
-      {/* Split Card Container */}
-      <div style={{ 
-        display: 'flex', 
-        width: '100%', 
-        maxWidth: '900px', 
-        minHeight: '600px',
-        background: token.colorBgContainer,
-        borderRadius: token.borderRadiusLG,
-        overflow: 'hidden',
-        boxShadow: token.boxShadowSecondary,
-        flexDirection: screens.md ? 'row' : 'column'
+      {/* 🖼️ Left Side - Editorial Visual for Admin */}
+      <div style={{
+        flex: screens.md ? "0 0 45%" : "0 0 0",
+        background: "#2C3E50", // Deep slate for admin authority
+        position: "relative",
+        display: screens.md ? "flex" : "none",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+        padding: "80px",
+        overflow: "hidden"
       }}>
-        {/* Left Side - Form */}
-        <div style={{ 
-          flex: 1, 
-          padding: screens.md ? '40px' : '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center'
-        }}>
-           <div style={{ textAlign: "center", marginBottom: 32 }}>
-              <div style={{ 
-                width: "60px", 
-                height: "60px", 
-                background: `linear-gradient(135deg, ${token.colorPrimary}, ${purple[5]})`, 
-                borderRadius: "50%", 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center",
-                margin: "0 auto 1rem auto",
-                fontSize: "24px",
-                color: "#fff",
-                boxShadow: token.boxShadow
-              }}>🛡️</div>
-              <div style={{ fontSize: "24px", fontWeight: 700, color: token.colorTextHeading }}>{t("titles.registerAdmin")}</div>
-              <div style={{ fontSize: "14px", color: token.colorTextSecondary, marginTop: "4px" }}>{t("register.adminDesc")}</div>
-            </div>
+        {/* Background Image / Texture */}
+        <div style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')", // Tech/Admin feel
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: 0.4,
+          mixBlendMode: "overlay"
+        }} />
+        
+        {/* Gradient Overlay */}
+        <div style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "linear-gradient(to bottom, rgba(44, 62, 80, 0.2), rgba(44, 62, 80, 0.9))"
+        }} />
+        
+        {/* Content */}
+        <div style={{ position: "relative", zIndex: 1, maxWidth: 480 }}>
+          <div style={{ 
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "8px 16px",
+            background: "rgba(255,255,255,0.1)",
+            backdropFilter: "blur(10px)",
+            borderRadius: "30px",
+            color: "rgba(255,255,255,0.9)",
+            marginBottom: "32px",
+            fontFamily: token.fontFamilyCode,
+            fontSize: "12px",
+            letterSpacing: "1px",
+            border: "1px solid rgba(255,255,255,0.1)"
+          }}>
+            <span style={{ width: 8, height: 8, background: "#4CAF50", borderRadius: "50%" }} />
+            ADMINISTRATION
+          </div>
+          
+          <Title level={1} style={{ 
+            fontFamily: "'Literata', serif", 
+            fontSize: "3.5rem", 
+            color: "#fff",
+            lineHeight: 1.1,
+            marginBottom: 24,
+            fontWeight: 400
+          }}>
+            Curate the <br/> knowledge.
+          </Title>
+          <Paragraph style={{ 
+            fontSize: "1.125rem", 
+            color: "rgba(255,255,255,0.8)", 
+            lineHeight: 1.6,
+            fontFamily: "'Inter', sans-serif",
+            maxWidth: 400
+          }}>
+            Manage the library ecosystem, curate collections, and ensure a seamless experience for all readers.
+          </Paragraph>
+        </div>
+      </div>
 
-            <Form layout="vertical" onFinish={handleAdminRegister} size="large">
-              <Form.Item
-                name="name"
-                label={t("register.name")}
-                rules={[
-                  { required: true, message: t("register.enterName") },
-                  { pattern: /^(?!\d+$)[A-Za-z][A-Za-z0-9_ ]*$/, message: t("register.nameInvalid") }
-                ]}
-              >
-                <Input
-                  placeholder={t("register.namePlaceholder")}
-                  style={{ borderRadius: token.borderRadius }}
-                />
-              </Form.Item>
-
-              <Form.Item name="email" label={t("register.email")}>
-                <Input
-                  placeholder={t("register.emailPlaceholder")}
-                  style={{ borderRadius: token.borderRadius }}
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="password"
-                label={t("register.password")}
-                rules={[
-                  { required: true, message: t("register.enterPass") },
-                  { min: 8, message: t("register.passwordRequirements") }
-                ]}
-              >
-                <Input.Password
-                  placeholder={t("register.passwordPlaceholder")}
-                  style={{ borderRadius: token.borderRadius }}
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="authCode"
-                label={t("register.authCode")}
-                rules={[{ required: true, message: t("register.enterAuth") }]}
-              >
-                <Input
-                  placeholder={t("register.authCodePlaceholder")}
-                  style={{ borderRadius: token.borderRadius }}
-                />
-              </Form.Item>
-
-              <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  block
-                  loading={loading}
-                  style={{
-                    borderRadius: token.borderRadius,
-                    background: `linear-gradient(90deg, ${token.colorPrimary}, ${token.colorPrimaryActive})`,
-                    border: 'none',
-                    height: 48,
-                    fontSize: 16,
-                    fontWeight: 'bold',
-                    boxShadow: `0 4px 10px ${token.colorPrimary}4D`,
-                  }}
-                >
-                  {t("register.registerAdminBtn")}
-                </Button>
-              </Form.Item>
-
-              <div style={{ 
-                marginTop: 16, 
-                borderTop: `1px solid ${token.colorBorderSecondary}`, 
-                paddingTop: 16,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8
-              }}>
-                <Button type="link" onClick={() => navigate("/register")} style={{ color: token.colorInfo }}>
-                  👈 {t("register.backToReader")}
-                </Button>
-                <Button type="link" onClick={() => navigate("/login")} style={{ color: token.colorTextSecondary }}>
-                  🔐 {t("register.backToLogin")}
-                </Button>
-              </div>
-            </Form>
+      {/* 📝 Right Side - Registration Form */}
+      <div style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: screens.md ? "80px" : "24px",
+        position: "relative",
+        background: "#FAF9F6" // Match global warm background
+      }}>
+        {/* Language Switcher */}
+        <div style={{ position: "absolute", top: 24, right: 24 }}>
+           <Button 
+             type="text" 
+             icon={<GlobalOutlined />} 
+             // Toggle language logic assumed to be handled by context/header elsewhere or added here if needed
+             style={{ color: token.colorTextSecondary }}
+           >
+             {/* Simple placeholder as logic is external */}
+             <GlobalOutlined />
+           </Button>
         </div>
 
-        {/* Right Side - Illustration (Hidden on mobile) */}
-        {screens.md && (
-          <div style={{ 
-            width: '45%', 
-            background: `linear-gradient(135deg, ${token.colorPrimary}1A, ${purple.primary}1A)`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            borderLeft: `1px solid ${token.colorBorderSecondary}`
-          }}>
-             <img
-                src="/icons/app-icon-512.png"
-                alt="app logo"
-                onError={(e) => {
-                  e.currentTarget.src = "/icons/manifest-icon-512.maskable.png";
-                  e.currentTarget.onerror = null;
-                }}
-                style={{ width: '80%', maxWidth: 280, filter: `drop-shadow(0 10px 20px ${token.colorPrimary}4D)` }}
-              />
+        {/* Mobile Header */}
+        {!screens.md && (
+          <div style={{ marginBottom: 32, textAlign: "center" }}>
+            <Title level={3} style={{ fontFamily: "'Literata', serif", margin: 0 }}>CLMS Admin</Title>
           </div>
         )}
+
+        <div style={{ 
+          width: "100%", 
+          maxWidth: "480px",
+          background: "#fff",
+          padding: screens.md ? "48px" : "32px",
+          borderRadius: "24px",
+          boxShadow: "0 20px 40px rgba(0,0,0,0.04)", // Soft warm shadow
+          border: `1px solid ${token.colorBorderSecondary}`
+        }}>
+          <div style={{ marginBottom: 32, textAlign: "center" }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              background: `linear-gradient(135deg, ${token.colorTextHeading}, ${token.colorPrimary})`,
+              borderRadius: 12,
+              margin: "0 auto 24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontSize: 24,
+              fontFamily: "'Literata', serif",
+              fontWeight: 700,
+              boxShadow: "0 8px 16px rgba(0, 0, 0, 0.1)"
+            }}>
+              A
+            </div>
+            <Title level={2} style={{ 
+              marginBottom: "8px", 
+              fontFamily: "'Literata', serif",
+              color: token.colorTextHeading 
+            }}>
+              {t("register.registerAdminBtn")}
+            </Title>
+            <Text type="secondary" style={{ fontSize: "16px" }}>
+              {t("register.adminDesc") || "Create your administrative account"}
+            </Text>
+          </div>
+
+          <Form 
+            layout="vertical" 
+            onFinish={handleAdminRegister} 
+            size="large"
+            requiredMark={false}
+          >
+            <Form.Item
+              name="name"
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.name")}</span>}
+              rules={[
+                { required: true, message: t("register.enterName") },
+                { pattern: /^(?!\d+$)[A-Za-z][A-Za-z0-9_ ]*$/, message: t("register.nameInvalid") }
+              ]}
+            >
+              <Input
+                prefix={<UserOutlined style={{ color: token.colorTextQuaternary }} />}
+                placeholder={t("register.namePlaceholder")}
+                style={{ borderRadius: 8, height: 48, background: "#fff" }}
+              />
+            </Form.Item>
+            
+            <Form.Item 
+              name="email" 
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.email")}</span>}
+            >
+              <Input
+                prefix={<MailOutlined style={{ color: token.colorTextQuaternary }} />}
+                placeholder={t("register.emailPlaceholder")}
+                style={{ borderRadius: 8, height: 48, background: "#fff" }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.password")}</span>}
+              rules={[
+                { required: true, message: t("register.enterPass") },
+                { min: 8, message: t("register.passwordRequirements") }
+              ]}
+            >
+              <Input.Password
+                prefix={<LockOutlined style={{ color: token.colorTextQuaternary }} />}
+                placeholder={t("register.passwordPlaceholder")}
+                style={{ borderRadius: 8, height: 48, background: "#fff" }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="authCode"
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.authCode")}</span>}
+              rules={[{ required: true, message: t("register.enterAuth") }]}
+              style={{ marginBottom: 32 }}
+            >
+              <Input.Password
+                prefix={<KeyOutlined style={{ color: token.colorTextQuaternary }} />}
+                placeholder={t("register.authCodePlaceholder")}
+                style={{ borderRadius: 8, height: 48, background: "#fff" }}
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                loading={loading}
+                style={{
+                  height: 52, 
+                  borderRadius: 26, 
+                  fontSize: 16, 
+                  fontWeight: 600,
+                  background: "#2C3E50", // Match admin theme
+                  boxShadow: "0 8px 20px rgba(44, 62, 80, 0.25)",
+                  border: "none"
+                }}
+              >
+                {t("register.registerAdminBtn")}
+              </Button>
+            </Form.Item>
+
+            <div style={{ 
+              marginTop: 24, 
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              textAlign: 'center'
+            }}>
+              <Button type="link" onClick={() => navigate("/register")} style={{ color: token.colorTextSecondary }}>
+                {t("register.backToReader")}
+              </Button>
+              <Text type="secondary">
+                 Already have an account? <Button type="link" onClick={() => navigate("/login")} style={{ padding: 0, fontWeight: 600, color: "#2C3E50" }}>{t("register.backToLogin")}</Button>
+              </Text>
+            </div>
+          </Form>
+        </div>
       </div>
 
       {/* ✅ Registration success modal */}
       <Modal
-        title={t("register.regSuccessTitle")}
+        title={null}
         open={modalVisible}
         onOk={handleModalOk}
         onCancel={() => setModalVisible(false)}
-        cancelText={t("register.cancel")}
-        okText={t("register.goToLogin")}
+        footer={null}
         centered
+        width={420}
+        bodyStyle={{ padding: "40px 32px", textAlign: "center" }}
       >
-        <div style={{ textAlign: "center" }}>
-          <p>{t("register.assignedAdminId")}</p>
-          <p
-            style={{
-              fontSize: "1.3rem",
-              fontWeight: "bold",
-              color: token.colorPrimary,
-              userSelect: "text",
-            }}
-          >
-            {assignedId}
-            <CopyOutlined
-              style={{ marginLeft: 10, color: token.colorPrimary, cursor: "pointer" }}
-              onClick={async () => {
-                const ok = await copyToClipboard(assignedId);
-                if (ok) message.success(t("register.copySuccess"));
-                else message.error(t("register.manualCopyFail"));
-              }}
-            />
-          </p>
-          <p style={{ color: token.colorWarning, marginTop: 10 }}>
-            {t("register.pendingApproval") || "Your account is pending approval. Please wait for an administrator to approve your registration."}
-          </p>
-          <p>{t("register.idCopiedMsg")}</p>
+        <div style={{ 
+          width: 80, 
+          height: 80, 
+          borderRadius: "50%", 
+          background: "#E8F5E9", 
+          color: "#4CAF50", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center", 
+          fontSize: 40,
+          margin: "0 auto 24px auto"
+        }}>
+          <CheckCircleFilled />
         </div>
+        <Title level={3} style={{ fontFamily: "'Literata', serif", marginBottom: 16 }}>
+          {t("register.regSuccessTitle")}
+        </Title>
+        <Paragraph style={{ color: token.colorTextSecondary, marginBottom: 32 }}>
+          {t("register.pendingApproval") || "Your account is pending approval. Please save your Admin ID below."}
+        </Paragraph>
+        
+        <div style={{ 
+          background: token.colorFillAlter, 
+          padding: "20px", 
+          borderRadius: 12, 
+          marginBottom: 32,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 16,
+          border: `1px dashed ${token.colorBorder}`
+        }}>
+          <Text copyable={{ text: assignedId, tooltips: ['Copy', 'Copied!'] }} style={{ 
+            fontSize: "1.75rem", 
+            fontWeight: "bold", 
+            color: "#2C3E50", 
+            fontFamily: token.fontFamilyCode 
+          }}>
+            {assignedId}
+          </Text>
+        </div>
+        
+        <Button 
+          type="primary" 
+          onClick={handleModalOk}
+          block
+          size="large"
+          style={{ 
+            height: 48, 
+            borderRadius: 24,
+            background: "#2C3E50" 
+          }}
+        >
+          {t("register.goToLogin")}
+        </Button>
       </Modal>
     </div>
   );

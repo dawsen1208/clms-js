@@ -28,8 +28,8 @@ import {
   markBookReturned
 } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageShell from "../components/common/PageShell";
-import KPIStatCard from "../components/common/KPIStatCard";
+import EditorialPageShell from "../components/common/EditorialPageShell";
+import StatCard from "../components/cards/StatCard";
 
 const { Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
@@ -272,14 +272,14 @@ function AdminBorrowPage({ appearance }) {
   }, []);
 
   return (
-    <PageShell
+    <EditorialPageShell
       title={t("admin.borrowManagement") || "Borrow Management"}
       subtitle={t("admin.manageActiveBorrows") || "Manage active loans and process returns"}
-      extra={
+      headerAction={
         <div style={{ display: "flex", gap: 8 }}>
           {isBatchMode ? (
             <>
-               <Button onClick={exitBatchMode} icon={<CloseSquareOutlined />}>
+              <Button onClick={exitBatchMode} icon={<CloseSquareOutlined />}>
                 {t("admin.cancelBulkMode")}
               </Button>
               <Button type="primary" onClick={executeBulkProcess} icon={<CheckSquareOutlined />}>
@@ -287,9 +287,9 @@ function AdminBorrowPage({ appearance }) {
               </Button>
             </>
           ) : (
-             <Button onClick={enterBatchMode} icon={<CheckSquareOutlined />}>
-               {t("admin.bulkProcess") || "Bulk Process"}
-             </Button>
+            <Button onClick={enterBatchMode} icon={<CheckSquareOutlined />}>
+              {t("admin.bulkProcess") || "Bulk Process"}
+            </Button>
           )}
           <Button
             icon={<ReloadOutlined />}
@@ -303,24 +303,23 @@ function AdminBorrowPage({ appearance }) {
     >
       {contextHolder}
             
-      {/* 📊 Statistic Cards */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <KPIStatCard
+          <StatCard
             title={t("admin.activeBorrows") || "Active Borrows"}
             value={activeCount}
-            icon={<BookOutlined />}
             color={token.colorPrimary}
             loading={loading}
+            trend={0}
           />
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <KPIStatCard
+          <StatCard
             title={t("admin.overdueBooks") || "Overdue Books"}
             value={overdueCount}
-            icon={<ExclamationCircleOutlined />}
             color={token.colorError}
             loading={loading}
+            trend={0}
           />
         </Col>
       </Row>
@@ -350,7 +349,7 @@ function AdminBorrowPage({ appearance }) {
           }}
         />
       </Card>
-    </PageShell>
+    </EditorialPageShell>
   );
 }
 

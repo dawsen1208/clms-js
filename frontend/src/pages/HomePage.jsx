@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col, Typography, Button, Skeleton, Space, Card, Statistic, Avatar } from "antd";
+import { Typography, Button, Skeleton, Space, Card, Grid, theme, Badge } from "antd";
 import { 
-  FireOutlined, 
-  ReadOutlined, 
-  BookOutlined, 
   ArrowRightOutlined,
-  SearchOutlined,
-  CompassOutlined
+  CompassOutlined,
+  ReadOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -15,25 +12,30 @@ import HeroEditorial from "../components/common/HeroEditorial";
 import MagazineBentoGrid from "../components/common/MagazineBentoGrid";
 import EditorialSectionHeader from "../components/common/EditorialSectionHeader";
 import BookCoverPro from "../components/common/BookCoverPro";
-import KPIStatCardPro from "../components/common/KPIStatCardPro";
+import StatCard from "../components/cards/StatCard";
 import { getBooks, getRecommendations, getBorrowedBooks, getBorrowHistory } from "../api";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
+const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 const HomePage = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const screens = useBreakpoint();
+  const { token } = useToken();
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
   
   const [trending, setTrending] = useState([]);
   const [activeBorrows, setActiveBorrows] = useState([]);
-  const [history, setHistory] = useState([]);
   const [stats, setStats] = useState({
     active: 0,
     total: 0,
     pending: 0
   });
+
+  const isMobile = !screens.md;
 
   useEffect(() => {
     const sessionUser = sessionStorage.getItem("user");
@@ -57,11 +59,21 @@ const HomePage = () => {
         getBorrowHistory(token)
       ]);
 
-      // Process Recommendations (Mocking "Trending" logic if API returns generic list)
+      // Process Recommendations
       if (allBooksRes.status === 'fulfilled') {
         const allBooks = allBooksRes.value.data;
-        // Simple logic: take first 5 as trending for demo, or shuffle
+        // TODO: Replace with real trending algorithm
+        // Mock Data: Shuffling for demo purposes
         setTrending(allBooks.slice(0, 5));
+      } else {
+        // TODO: Mock Data Fallback if API fails
+        setTrending([
+          { id: 'mock1', title: 'The Design of Everyday Things', author: 'Don Norman', category: 'Design', total_copies: 5, available_copies: 2 },
+          { id: 'mock2', title: 'Refactoring UI', author: 'Adam Wathan', category: 'Design', total_copies: 3, available_copies: 1 },
+          { id: 'mock3', title: 'Clean Code', author: 'Robert C. Martin', category: 'Tech', total_copies: 8, available_copies: 5 },
+          { id: 'mock4', title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', category: 'Psychology', total_copies: 4, available_copies: 0 },
+          { id: 'mock5', title: 'Zero to One', author: 'Peter Thiel', category: 'Business', total_copies: 6, available_copies: 6 },
+        ]);
       }
 
       // Stats
@@ -70,19 +82,24 @@ const HomePage = () => {
         const borrowed = borrowedRes.value.data || [];
         setActiveBorrows(borrowed);
         activeCount = borrowed.length;
+      } else {
+        // TODO: Mock Data for development
+        activeCount = 3; 
       }
       
       let historyCount = 0;
       if (historyRes.status === 'fulfilled') {
         const hist = historyRes.value.data || [];
-        setHistory(hist.slice(0, 5));
         historyCount = hist.length;
+      } else {
+        // TODO: Mock Data for development
+        historyCount = 12;
       }
 
       setStats({
         active: activeCount,
         total: historyCount,
-        pending: 0 // Mock pending
+        pending: 0 // TODO: Implement pending requests count
       });
 
     } catch (error) {
@@ -101,25 +118,23 @@ const HomePage = () => {
 
   // Transform books for Bento Grid
   const bentoItems = trending.map((book, index) => ({
-    id: book.id,
+    id: book.id || book._id,
     title: book.title,
     description: book.author,
     category: book.category || 'Fiction',
-    meta: `${book.total_copies - book.available_copies} borrowed`,
-    // If no cover image, we'll use a generated one or placeholder logic
+    meta: `${(book.total_copies || 0) - (book.available_copies || 0)} borrowed`,
     coverImage: book.cover_image, 
-    // If no cover image, render custom component (handled by BentoGrid check, or we pass a render prop)
     action: (
       <Button 
         shape="circle" 
         icon={<ArrowRightOutlined />} 
-        onClick={() => navigate(`/book/${book.id}`)}
+        onClick={() => navigate(`/book/${book.id || book._id}`)}
       />
     ),
     // Layout logic: First item big (2x2), next two wide (2x1), rest small (1x1)
-    colSpan: index === 0 ? 6 : (index === 1 || index === 2) ? 6 : 4,
-    rowSpan: index === 0 ? 2 : 1,
-    background: index === 0 ? '#FAF9F6' : '#fff'
+    colSpan: isMobile ? 12 : (index === 0 ? 6 : (index === 1 || index === 2) ? 6 : 4),
+    rowSpan: isMobile ? 1 : (index === 0 ? 2 : 1),
+    background: index === 0 ? token.colorPrimaryBg : token.colorBgContainer
   }));
 
   return (
@@ -135,7 +150,7 @@ const HomePage = () => {
         ctaText="Browse Collection"
         onCtaClick={() => navigate('/search')}
         illustration={
-          <div style={{ position: 'relative', width: 300, height: 400 }}>
+          <div style={{ position: 'relative', width: 300, height: 400, display: isMobile ? 'none' : 'block' }}>
              <BookCoverPro 
                 title="The Design of Everyday Things" 
                 author="Don Norman" 
@@ -143,6 +158,7 @@ const HomePage = () => {
                 width={280} 
                 height={380} 
                 className="floating-book"
+                baseColor={token.colorPrimary}
              />
              {/* Decorative circle behind */}
              <div style={{ 
@@ -153,58 +169,60 @@ const HomePage = () => {
                width: 350, 
                height: 350, 
                borderRadius: '50%', 
-               background: '#A65D57', 
-               opacity: 0.1, 
+               background: token.colorPrimary, 
+               opacity: 0.12, 
                zIndex: -1 
              }} />
           </div>
         }
       />
 
-      <div style={{ padding: '0 48px 64px' }}>
+      <div style={{ padding: isMobile ? '0 24px 64px' : '0 48px 64px' }}>
         
         {/* Stats Section (if logged in) */}
         {user.email && (
           <div style={{ marginTop: -40, position: 'relative', zIndex: 2, marginBottom: 64 }}>
-            <div className="editorial-grid">
-              <div className="col-span-4">
-                <KPIStatCardPro 
+            <div className="editorial-grid" style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gap: 24 }}>
+              <div className={isMobile ? "" : "col-span-4"}>
+                <StatCard 
                   title="Books Reading" 
                   value={stats.active} 
-                  trendType="up"
-                  trendValue="Active"
-                  data={[1, 2, 2, 3, stats.active]} // Mock trend
+                  trend={15}
+                  trendLabel="vs last month"
+                  explanation="You're reading more than usual! Keep it up."
+                color={token.colorPrimary}
                 />
               </div>
-              <div className="col-span-4">
-                <KPIStatCardPro 
+              <div className={isMobile ? "" : "col-span-4"}>
+                <StatCard 
                   title="Total Read" 
                   value={stats.total} 
-                  trendType="up"
-                  trendValue="+2 this month"
-                  data={[stats.total - 2, stats.total - 1, stats.total]} // Mock trend
-                  color="#6B8E23"
+                  trend={5}
+                  trendLabel="this year"
+                  explanation="Total books completed in your reading journey."
+                color={token.colorSuccess}
                 />
               </div>
-              <div className="col-span-4">
+              <div className={isMobile ? "" : "col-span-4"}>
                 <Card 
                   bordered={false} 
                   hoverable
                   style={{ 
                     height: '100%', 
                     borderRadius: 16, 
-                    background: 'linear-gradient(135deg, #2C3E50 0%, #000000 100%)',
+                  background: `linear-gradient(135deg, ${token.colorBgContainer} 0%, ${token.colorBgLayout} 100%)`,
                     color: '#fff',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    minHeight: 200
                   }}
                   onClick={() => navigate('/search')}
                 >
                   <Space direction="vertical" align="center">
-                    <CompassOutlined style={{ fontSize: 32, color: '#A65D57' }} />
-                    <Text style={{ color: '#fff', fontSize: 16, fontWeight: 500 }}>Discover New Books</Text>
+                  <CompassOutlined style={{ fontSize: 32, color: token.colorPrimary }} />
+                  <Text style={{ color: token.colorText, fontSize: 16, fontWeight: 500 }}>Discover New Books</Text>
                   </Space>
                 </Card>
               </div>
@@ -232,16 +250,25 @@ const HomePage = () => {
           subtitle="Dive into specific topics and genres."
         />
         
-        <div className="editorial-grid" style={{ marginBottom: 64 }}>
-          {['Fiction', 'Science', 'History', 'Technology'].map((cat, i) => (
-            <div key={cat} className="col-span-3">
+        <div className="editorial-grid" style={{ marginBottom: 64, display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gap: 16 }}>
+          {['Fiction', 'Science', 'History', 'Technology', 'Design', 'Business', 'Philosophy', 'Art'].map((cat, i) => (
+            <div key={cat} className={isMobile ? "" : "col-span-3"}>
               <Card 
                 hoverable 
                 bordered={false}
-                style={{ height: 120, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FAF9F6' }}
+                style={{ 
+                  height: 120, 
+                  borderRadius: 12, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  background: token.colorBgLayout,
+                  border: `1px solid ${token.colorBorderSecondary}`,
+                  transition: 'all 0.3s ease'
+                }}
                 onClick={() => navigate(`/search?category=${cat}`)}
               >
-                <Title level={4} style={{ margin: 0, fontFamily: "'Literata', serif" }}>{cat}</Title>
+                <Title level={4} style={{ margin: 0, fontFamily: "'Literata', serif", fontWeight: 400 }}>{cat}</Title>
               </Card>
             </div>
           ))}

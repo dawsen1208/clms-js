@@ -30,8 +30,8 @@ import {
 } from "@ant-design/icons";
 import { getBooks, addBook, deleteBook } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
-import PageShell from "../components/common/PageShell";
-import KPIStatCard from "../components/common/KPIStatCard";
+import EditorialPageShell from "../components/common/EditorialPageShell";
+import StatCard from "../components/cards/StatCard";
 
 const { Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
@@ -163,10 +163,10 @@ function AdminBookPage() {
   ];
 
   return (
-    <PageShell
+    <EditorialPageShell
       title={t("admin.bookManage")}
       subtitle={t("admin.bookManageSubtitle") || "Manage library collection and inventory"}
-      extra={
+      headerAction={
         <Button 
           icon={<ReloadOutlined />} 
           onClick={fetchBooks}
@@ -180,39 +180,39 @@ function AdminBookPage() {
       {/* 📊 统计卡片 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <KPIStatCard
+          <StatCard
             title={t("admin.totalBooks")}
             value={stats.total}
-            icon={<BookOutlined />}
             color={token.colorPrimary}
             loading={loading}
+            trend={0}
           />
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <KPIStatCard
+          <StatCard
             title={t("admin.inStock")}
             value={stats.inStock}
-            icon={<CheckCircleOutlined />}
             color={token.colorSuccess}
             loading={loading}
+            trend={0}
           />
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <KPIStatCard
+          <StatCard
             title={t("admin.outOfStock")}
             value={stats.outOfStock}
-            icon={<CloseCircleOutlined />}
             color={token.colorError}
             loading={loading}
+            trend={0}
           />
         </Col>
         <Col xs={24} sm={12} md={8} lg={6}>
-          <KPIStatCard
+          <StatCard
             title={t("admin.category")}
             value={stats.categories}
-            icon={<TagsOutlined />}
             color={token.colorWarning}
             loading={loading}
+            trend={0}
           />
         </Col>
       </Row>
@@ -370,7 +370,7 @@ function AdminBookPage() {
           </Form.Item>
         </Form>
       </Modal>
-    </PageShell>
+    </EditorialPageShell>
   );
 }
 

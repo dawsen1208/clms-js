@@ -28,8 +28,8 @@ import {
 import { getBorrowHistoryAllLibrary } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import dayjs from "dayjs";
-import PageShell from "../components/common/PageShell";
-import KPIStatCard from "../components/common/KPIStatCard";
+import EditorialPageShell from "../components/common/EditorialPageShell";
+import StatCard from "../components/cards/StatCard";
 
 const { RangePicker } = DatePicker;
 const { Text: AntText } = Typography;
@@ -176,10 +176,10 @@ function AdminBorrowHistory() {
   ];
 
   return (
-    <PageShell
+    <EditorialPageShell
       title={t("admin.history")}
       subtitle={t("admin.historyOverview")}
-      extra={
+      headerAction={
         <Button icon={<ReloadOutlined />} onClick={fetchRecords} loading={loading}>
           {t("admin.refresh")}
         </Button>
@@ -188,39 +188,39 @@ function AdminBorrowHistory() {
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} md={6}>
-          <KPIStatCard
+          <StatCard
             title={t("admin.total")}
             value={stats.total}
-            icon={<BookOutlined />}
             color={token.colorPrimary}
             loading={loading}
+            trend={0}
           />
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <KPIStatCard
+          <StatCard
             title={t("admin.renewed")}
             value={stats.renewedYes}
-            icon={<SyncOutlined spin={loading} />}
-            color={token.colorWarning} // Use warning color for renewals
+            color={token.colorWarning}
             loading={loading}
+            trend={0}
           />
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <KPIStatCard
+          <StatCard
             title={t("admin.returned")}
             value={stats.returnedYes}
-            icon={<CheckCircleOutlined />}
             color={token.colorSuccess}
             loading={loading}
+            trend={0}
           />
         </Col>
         <Col xs={24} sm={12} md={6}>
-          <KPIStatCard
+          <StatCard
             title={t("admin.notReturned")}
             value={stats.notReturned}
-            icon={<CloseCircleOutlined />}
             color={token.colorError}
             loading={loading}
+            trend={0}
           />
         </Col>
       </Row>
@@ -309,7 +309,7 @@ function AdminBorrowHistory() {
           />
         )}
       </Card>
-    </PageShell>
+    </EditorialPageShell>
   );
 }
 

@@ -9,7 +9,7 @@ import "antd/dist/reset.css";
 import "./assets/responsive.css";
 import "./styles/mobile.css";
 import "./styles/global.css";
-import { theme } from "./theme";
+import { appTheme } from "./theme";
 import { ConfigProvider, message, Grid, theme as antdTheme } from "antd";
 import enUS from "antd/locale/en_US";
 import zhCN from "antd/locale/zh_CN";
@@ -168,11 +168,11 @@ function App() {
 
   const resolvePrimary = () => {
     switch (appearance.themeColor) {
-      case "blue": return "#1677FF";
+      case "blue": return "#BC6C25"; // Default Warm Bronze
       case "purple": return "#722ED1";
-      case "green": return "#52C41A";
-      case "custom": return appearance.customColor || "#1677FF";
-      default: return "#1677FF";
+      case "green": return "#606C38"; // Warm Olive
+      case "custom": return appearance.customColor || "#BC6C25";
+      default: return "#BC6C25";
     }
   };
 
@@ -210,38 +210,38 @@ function App() {
   }, [baseFontSize, appearance.highContrast]);
 
   const themeTokens = {
-    ...theme.token,
+    ...appTheme.token,
     // ♿ High Contrast: Force Black BG + Yellow/White Text regardless of Light/Dark mode
     colorPrimary: appearance.highContrast ? '#FFFF00' : resolvePrimary(),
     colorInfo: appearance.highContrast ? '#FFFF00' : resolvePrimary(),
-    colorSuccess: appearance.highContrast ? '#00FF00' : '#52C41A',
-    colorWarning: appearance.highContrast ? '#FFA500' : '#FAAD14',
-    colorError: appearance.highContrast ? '#FF0000' : '#FF4D4F',
+    colorSuccess: appearance.highContrast ? '#00FF00' : '#52B788', // Muted Green
+    colorWarning: appearance.highContrast ? '#FFA500' : '#E9C46A', // Muted Gold
+    colorError: appearance.highContrast ? '#FF0000' : '#E76F51', // Muted Terra Cotta
     
     // Force Dark High Contrast Colors
-    colorText: appearance.highContrast ? '#FFFFFF' : (isDark ? '#E6E6E6' : '#1F2937'),
-    colorTextSecondary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#CFCFCF' : '#6B7280'),
-    colorTextTertiary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#BFBFBF' : '#9CA3AF'),
-    colorTextQuaternary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#A6A6A6' : '#D1D5DB'),
-    colorTextPlaceholder: appearance.highContrast ? '#D1D5DB' : (isDark ? '#6B7280' : '#9CA3AF'),
+    colorText: appearance.highContrast ? '#FFFFFF' : (isDark ? '#E6E6E6' : '#1C1917'), // Warm Black
+    colorTextSecondary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#CFCFCF' : '#4A4845'), // Warm Gray
+    colorTextTertiary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#BFBFBF' : '#9C9893'),
+    colorTextQuaternary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#A6A6A6' : '#E6E2DD'),
+    colorTextPlaceholder: appearance.highContrast ? '#D1D5DB' : (isDark ? '#6B7280' : '#9C9893'),
     
     colorBgContainer: appearance.highContrast ? '#000000' : (isDark ? '#141414' : '#FFFFFF'),
-    colorBgLayout: appearance.highContrast ? '#000000' : (customBg || (isDark ? '#0b0b0b' : '#F6F7FB')),
+    colorBgLayout: appearance.highContrast ? '#000000' : (customBg || (isDark ? '#0b0b0b' : '#FDFBF7')), // Warm Paper
     colorBgElevated: appearance.highContrast ? '#000000' : (isDark ? '#1f1f1f' : '#FFFFFF'),
-    colorBgSpotlight: appearance.highContrast ? '#000000' : (isDark ? '#1f1f1f' : '#000000'),
+    colorBgSpotlight: appearance.highContrast ? '#000000' : (isDark ? '#1f1f1f' : '#1C1917'),
     
-    colorBorder: appearance.highContrast ? '#FFFFFF' : '#E5EAF2',
+    colorBorder: appearance.highContrast ? '#FFFFFF' : '#E6E2DD', // Warm Border
     colorBorderSecondary: appearance.highContrast ? '#FFFFFF' : '#F0F0F0',
     colorSplit: appearance.highContrast ? '#FFFFFF' : 'rgba(5, 5, 5, 0.06)',
     
-    controlItemBgActive: appearance.highContrast ? '#333333' : (isDark ? '#111b26' : '#e6f7ff'),
-    controlItemBgHover: appearance.highContrast ? '#1f1f1f' : (isDark ? '#303030' : '#f5f5f5'),
+    controlItemBgActive: appearance.highContrast ? '#333333' : (isDark ? '#111b26' : '#FEFAE0'), // Paper Gold for active
+    controlItemBgHover: appearance.highContrast ? '#1f1f1f' : (isDark ? '#303030' : '#F5F5F5'),
     
-    colorIcon: appearance.highContrast ? '#FFFFFF' : (isDark ? '#E6E6E6' : '#1F2937'),
-    colorIconHover: appearance.highContrast ? '#FFFF00' : (isDark ? '#FFFFFF' : '#000000'),
+    colorIcon: appearance.highContrast ? '#FFFFFF' : (isDark ? '#E6E6E6' : '#4A4845'),
+    colorIconHover: appearance.highContrast ? '#FFFF00' : (isDark ? '#FFFFFF' : '#1C1917'),
 
-    borderRadius: appearance.highContrast ? 0 : 14, // New Radius 14px
-    boxShadow: appearance.highContrast ? 'none' : '0 4px 12px rgba(0, 0, 0, 0.05)',
+    borderRadius: appearance.highContrast ? 0 : 8,
+    boxShadow: appearance.highContrast ? 'none' : '0 4px 12px rgba(188, 108, 37, 0.08)', // Warm Shadow
     controlHeight: isMobile ? 32 : 40,
     controlPaddingHorizontal: isMobile ? 10 : 12,
     paddingXS: isMobile ? 6 : 8,
@@ -250,7 +250,8 @@ function App() {
     paddingLG: isMobile ? 18 : 20,
     fontSize: baseFontSize,
     lineHeight: typeof appearance.fontSize === 'number' ? 1.5 : (appearance.fontSize === 'large' ? (isMobile ? 1.6 : 1.7) : (isMobile ? 1.5 : 1.6)),
-    fontFamily: "'Segoe UI', 'Inter', sans-serif",
+    fontFamily: "'Literata', 'Inter', 'Segoe UI', sans-serif",
+    fontFamilyCode: "'Fira Code', monospace",
   };
 
   const locale = language === 'zh' ? zhCN : enUS;

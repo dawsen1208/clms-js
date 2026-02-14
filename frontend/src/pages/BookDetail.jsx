@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { 
   Card, Typography, Tag, List, Empty, Button, message, 
-  Row, Col, Space, Divider, Avatar, Rate, Modal, Progress, Tooltip, theme 
+  Row, Col, Space, Divider, Avatar, Rate, Modal, Progress, Tooltip, theme, Grid 
 } from "antd";
 import { 
   BookOutlined, 
@@ -23,14 +23,17 @@ import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
 import EditorialSectionHeader from "../components/common/EditorialSectionHeader";
 import BookCoverPro from "../components/common/BookCoverPro";
-import KPIStatCardPro from "../components/common/KPIStatCardPro";
+import StatCard from "../components/cards/StatCard";
 import ShimmerSkeleton from "../components/common/ShimmerSkeleton";
 
 const { Title, Text, Paragraph } = Typography;
 
+const { useBreakpoint } = Grid;
+
 function BookDetail() {
   const { t } = useLanguage();
   const { token } = theme.useToken();
+  const screens = useBreakpoint();
   const { id } = useParams();
   const navigate = useNavigate();
   const [modal, contextHolder] = Modal.useModal();
@@ -139,9 +142,10 @@ function BookDetail() {
 
   const canReview = eligible && !hasReviewed;
 
-  // Mock Data for "Community Reading Progress" (Bonus Package)
-   // TODO: Replace with real API data aggregation
-   const readingStats = {
+  // TODO: Mock Data for "Community Reading Progress" (Bonus Package)
+  // This data is currently hardcoded for visual demonstration of the magazine style.
+  // In a real implementation, this should be aggregated from real user reading logs.
+  const readingStats = {
     readersNow: Math.floor(Math.random() * 50) + 10,
     avgFinishTime: "4.5 days",
     completionRate: 85,
@@ -214,7 +218,10 @@ function BookDetail() {
             </div>
 
             {/* Right: Info & Actions */}
-            <div className="col-span-8" style={{ paddingLeft: 48, paddingTop: 24 }}>
+            <div className="col-span-8" style={{ 
+              paddingLeft: screens.md ? 48 : 0, 
+              paddingTop: screens.md ? 24 : 32 
+            }}>
               <Space direction="vertical" size={24} style={{ width: '100%' }}>
                 <div>
                   <Space wrap size="small" style={{ marginBottom: 16 }}>
@@ -228,13 +235,13 @@ function BookDetail() {
                     fontSize: '3.5rem', 
                     margin: 0, 
                     lineHeight: 1.1,
-                    color: '#2C3E50'
+                    color: token.colorTextHeading
                   }}>
                     {book.title}
                   </Title>
                   <Text style={{ 
                     fontSize: '1.25rem', 
-                    color: '#666', 
+                    color: token.colorTextSecondary, 
                     display: 'block', 
                     marginTop: 12,
                     fontFamily: "'Inter', sans-serif" 
@@ -244,7 +251,7 @@ function BookDetail() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                  <Rate disabled allowHalf value={book.rating || 0} style={{ color: '#E8B86D', fontSize: 20 }} />
+                  <Rate disabled allowHalf value={book.rating || 0} style={{ color: token.colorWarning, fontSize: 20 }} />
                   <Divider type="vertical" />
                   <Space>
                     <ReadOutlined /> <Text>{book.copies} Copies</Text>
@@ -258,7 +265,7 @@ function BookDetail() {
                 <Paragraph style={{ 
                   fontSize: '1.1rem', 
                   lineHeight: 1.8, 
-                  color: '#444', 
+                  color: token.colorText, 
                   maxWidth: '800px',
                   fontFamily: "'Literata', serif"
                 }} ellipsis={{ rows: 4, expandable: true, symbol: 'Read more' }}>
@@ -280,7 +287,11 @@ function BookDetail() {
                 }}>
                    <div>
                       <Text type="secondary" style={{ display: 'block', fontSize: 12 }}>Availability</Text>
-                      <div style={{ fontSize: 18, fontWeight: 600, color: book.copies > 0 ? '#52c41a' : '#ff4d4f' }}>
+                      <div style={{ 
+                        fontSize: 18, 
+                        fontWeight: 600, 
+                        color: book.copies > 0 ? token.colorSuccess : token.colorError 
+                      }}>
                          {book.copies > 0 ? 'In Stock' : 'Out of Stock'}
                       </div>
                    </div>
@@ -296,7 +307,12 @@ function BookDetail() {
                           size="large"
                           disabled
                           icon={<CheckCircleOutlined />}
-                          style={{ background: '#f6ffed', borderColor: '#b7eb8f', color: '#52c41a', minWidth: 160 }}
+                          style={{ 
+                            background: `${token.colorSuccess}15`, 
+                            borderColor: `${token.colorSuccess}40`, 
+                            color: token.colorSuccess, 
+                            minWidth: 160 
+                          }}
                         >
                           Borrowed
                         </Button>
@@ -311,7 +327,7 @@ function BookDetail() {
                             minWidth: 180, 
                             height: 48, 
                             fontSize: 16,
-                            background: book.copies > 0 ? token.colorPrimary : '#d9d9d9'
+                            background: book.copies > 0 ? token.colorPrimary : token.colorBorder
                           }}
                           icon={pendingType === 'borrow' ? <ClockCircleOutlined /> : <BookOutlined />}
                         >
@@ -384,13 +400,13 @@ function BookDetail() {
            <div className="col-span-4">
               <div style={{ position: 'sticky', top: 32 }}>
                  <div style={{ marginBottom: 32 }}>
-                    <KPIStatCardPro 
-                       title="Community Reading" 
-                       value={`${readingStats.completionRate}%`} 
-                       trendType="up"
-                       trendValue="Completion Rate"
-                       data={[60, 65, 70, 75, 80, 85]}
-                       color="#52c41a"
+                    <StatCard
+                      title="Community Reading"
+                      value={readingStats.completionRate}
+                      suffix="%"
+                      explanation="Completion Rate"
+                      color={token.colorSuccess}
+                      trend={0}
                     />
                  </div>
 

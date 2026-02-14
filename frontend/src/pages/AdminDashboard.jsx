@@ -1,27 +1,29 @@
 import React, { useMemo, useEffect, useState } from "react";
-import { Card, Row, Col, Typography, Divider, Button, Tag, Spin, Modal, Table, theme } from "antd";
-import { BookOutlined, ClockCircleOutlined, ReloadOutlined, AlertOutlined, TeamOutlined, CheckCircleOutlined, RiseOutlined } from "@ant-design/icons";
-import { getBooksLibrary, getAllRequestsLibrary, getUserAnalytics, getBorrowedBooksLibrary, getBorrowHistoryLibrary, getBorrowHistoryAllLibrary, getBooks, getLibraryStats } from "../api.js";
+import { Typography, Button, Spin, theme, Row, Col, Empty } from "antd";
+import { 
+  BookOutlined, 
+  ClockCircleOutlined, 
+  ReloadOutlined, 
+  AlertOutlined, 
+  TeamOutlined, 
+  CheckCircleOutlined, 
+  RiseOutlined,
+  ArrowRightOutlined,
+  ReadOutlined
+} from "@ant-design/icons";
+import { getBooksLibrary, getAllRequestsLibrary, getUserAnalytics, getBorrowedBooksLibrary, getBorrowHistoryAllLibrary, getBooks, getLibraryStats } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
-import KPIStatCardPro from "../components/common/KPIStatCardPro";
 import EditorialSectionHeader from "../components/common/EditorialSectionHeader";
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar
-} from "recharts";
+import StatCard from "../components/cards/StatCard";
+import InsightCard from "../components/cards/InsightCard";
+import ActionCard from "../components/cards/ActionCard";
+import ListCard from "../components/cards/ListCard";
 
-const { Title, Text: AntText } = Typography;
+const { Title, Text } = Typography;
 const { useToken } = theme;
 
-const AdminDashboard = ({ appearance }) => {
+const AdminDashboard = () => {
   const { t } = useLanguage();
   const { token } = useToken();
   const [loading, setLoading] = useState(false);
@@ -34,19 +36,29 @@ const AdminDashboard = ({ appearance }) => {
     activeReaders: 0,
     onTimeRate: 0,
   });
-  const [chartData, setChartData] = useState({ trend30d: [], categoryPie: [], userGrowth: [] });
+  
+  const [chartData, setChartData] = useState({ 
+    trend30d: [], 
+    categoryPie: [], 
+    userGrowth: [] 
+  });
+  
+  const [recentRequests, setRecentRequests] = useState([]);
 
   const refresh = async () => {
     try {
       setLoading(true);
       const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
+      
+      // Mock data handling if API fails or for development
+      // TODO: Remove mock fallbacks when backend is fully ready
       const [booksRes, reqRes, borrowedRes, usersRes, historyAllRes, statsRes] = await Promise.all([
-        getBooksLibrary().catch(() => getBooks()).catch(() => ({ data: [] })),
-        authToken ? getAllRequestsLibrary(authToken) : Promise.resolve({ data: [] }),
-        authToken ? getBorrowedBooksLibrary(authToken) : Promise.resolve({ data: [] }),
-        authToken ? getUserAnalytics(authToken) : Promise.resolve({ data: [] }),
-        authToken ? getBorrowHistoryAllLibrary(authToken) : Promise.resolve({ data: [] }),
-        authToken ? getLibraryStats(authToken) : Promise.resolve({ data: null }),
+        getBooksLibrary().catch(() => ({ data: [] })),
+        authToken ? getAllRequestsLibrary(authToken).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+        authToken ? getBorrowedBooksLibrary(authToken).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+        authToken ? getUserAnalytics(authToken).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+        authToken ? getBorrowHistoryAllLibrary(authToken).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+        authToken ? getLibraryStats(authToken).catch(() => ({ data: null })) : Promise.resolve({ data: null }),
       ]);
 
       const books = booksRes.data || [];
@@ -58,32 +70,43 @@ const AdminDashboard = ({ appearance }) => {
       const pendingRequests = requests.filter((r) => (r.status || "").toLowerCase() === "pending").length;
       const overdueBooks = borrowed.filter((r) => new Date(r.dueDate) < new Date()).length;
       
-      const stats = statsRes?.data || null;
-
-      // Fallback metrics
-      const historyActiveBorrowed = Array.isArray(history) ? history.filter((r) => r.returned === false).length : 0;
-      const historyOverdue = Array.isArray(history) ? history.filter((r) => r.returned === false && new Date(r.dueDate) < new Date()).length : 0;
-      const historyActiveReaders = Array.isArray(history) ? new Set(history.map((r) => String(r.userId))).size : 0;
-      
-      const onTimeRate = stats?.onTimeRate || 85; // Mock/Fallback
+      const activeReaders = new Set(borrowed.map(b => b.userId)).size;
 
       setMetrics({
-        books: stats?.totalBooks ?? books.length,
-        totalBorrowed: stats?.totalBorrowed ?? historyActiveBorrowed,
-        pendingRequests: stats?.pendingRequests ?? pendingRequests,
-        overdueBooks: stats?.overdueBooks ?? historyOverdue,
-        activeReaders: stats?.activeReaders ?? historyActiveReaders,
-        onTimeRate: onTimeRate,
+        books: books.length,
+        totalBorrowed: borrowed.length,
+        pendingRequests,
+        overdueBooks,
+        activeReaders,
+        onTimeRate: 92, // Mock for now
       });
+      
+      setRecentRequests(requests.slice(0, 5));
 
-      // TODO: Replace with real API data aggregation
+      // Mock Chart Data - TODO: Replace with real aggregation
       setChartData({
-        trend30d: Array.from({length: 30}, (_, i) => ({ day: i + 1, value: Math.floor(Math.random() * 20) + 10 })),
-        userGrowth: Array.from({length: 12}, (_, i) => ({ month: i + 1, value: Math.floor(Math.random() * 50) + 100 })),
+        trend30d: [
+          { name: 'Week 1', value: 12 },
+          { name: 'Week 2', value: 19 },
+          { name: 'Week 3', value: 15 },
+          { name: 'Week 4', value: 25 },
+        ],
+        categoryPie: [
+          { name: 'Fiction', value: 45 },
+          { name: 'Sci-Fi', value: 25 },
+          { name: 'History', value: 20 },
+          { name: 'Tech', value: 10 },
+        ],
+        userGrowth: [
+          { month: 'Jan', value: 10 },
+          { month: 'Feb', value: 25 },
+          { month: 'Mar', value: 40 },
+          { month: 'Apr', value: 55 },
+        ]
       });
 
-    } catch (error) {
-      console.error("Dashboard refresh error", error);
+    } catch (err) {
+      console.error("Failed to load dashboard data", err);
     } finally {
       setLoading(false);
     }
@@ -94,106 +117,143 @@ const AdminDashboard = ({ appearance }) => {
   }, []);
 
   return (
-    <EditorialPageShell 
-      title="Dashboard" 
-      subtitle="Overview of library performance and activities."
-      extra={<Button icon={<ReloadOutlined />} onClick={refresh}>Refresh Data</Button>}
-      fullWidth
+    <EditorialPageShell
+      title={t("titles.dashboard")}
+      subtitle="Overview of library performance and activities"
+      headerAction={
+        <Button 
+          icon={<ReloadOutlined />} 
+          onClick={refresh} 
+          loading={loading}
+          shape="circle"
+        />
+      }
     >
-      <div className="editorial-grid" style={{ marginBottom: 48 }}>
+      <div className="editorial-grid">
+        {/* 1. Key Metrics Row - Bento Style */}
         <div className="col-span-3">
-          <KPIStatCardPro 
-            title="Total Books" 
-            value={metrics.books} 
-            trendType="up"
-            trendValue="+12%"
-            data={[10, 15, 13, 18, 20, 25, metrics.books]}
+          <StatCard 
+            title={t("dashboard.totalBooks")}
+            value={metrics.books}
+            icon={<BookOutlined />}
+            trend={5.2}
+            trendLabel="new titles"
+            color={token.colorPrimary}
           />
         </div>
         <div className="col-span-3">
-          <KPIStatCardPro 
-            title="Active Loans" 
-            value={metrics.totalBorrowed} 
-            trendType="up"
-            trendValue="High Activity"
-            data={[5, 8, 12, 10, 15, metrics.totalBorrowed]}
-            color="#6B8E23"
+          <StatCard 
+            title={t("dashboard.borrowed")}
+            value={metrics.totalBorrowed}
+            icon={<ReadOutlined />}
+            trend={12.5}
+            color={token.colorWarning}
           />
         </div>
         <div className="col-span-3">
-          <KPIStatCardPro 
-            title="Overdue" 
-            value={metrics.overdueBooks} 
-            trendType="down"
-            trendValue="Needs Attention"
-            data={[2, 3, 5, 8, metrics.overdueBooks]}
-            color="#A65D57"
+          <StatCard 
+            title={t("dashboard.pendingReq")}
+            value={metrics.pendingRequests}
+            icon={<ClockCircleOutlined />}
+            trend={-2.1}
+            trendLabel="wait time"
+            color={token.colorInfo}
           />
         </div>
         <div className="col-span-3">
-          <KPIStatCardPro 
-            title="Pending Requests" 
-            value={metrics.pendingRequests} 
-            trendType="up"
-            trendValue="Processing"
-            data={[1, 0, 2, 1, metrics.pendingRequests]}
-            color="#DAA520"
+          <StatCard 
+            title={t("dashboard.overdue")}
+            value={metrics.overdueBooks}
+            icon={<AlertOutlined />}
+            trend={-15} // Negative is good for overdue
+            trendLabel="vs last month"
+            color={token.colorError}
           />
         </div>
-      </div>
 
-      {/* Data Story Section */}
-      <EditorialSectionHeader title="Library Analytics" subtitle="Borrowing trends and user engagement." />
-      
-      <div className="editorial-grid" style={{ marginBottom: 48 }}>
+        {/* 2. Main Visuals - Bento Layout */}
         <div className="col-span-8">
-          <Card title="Borrowing Activity (30 Days)" bordered={false} style={{ height: 400, borderRadius: 16 }}>
-             <ResponsiveContainer width="100%" height="100%">
-               <AreaChart data={chartData.trend30d}>
-                 <defs>
-                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                     <stop offset="5%" stopColor="#A65D57" stopOpacity={0.8}/>
-                     <stop offset="95%" stopColor="#A65D57" stopOpacity={0}/>
-                   </linearGradient>
-                 </defs>
-                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                 <XAxis dataKey="day" axisLine={false} tickLine={false} />
-                 <YAxis axisLine={false} tickLine={false} />
-                 <Tooltip contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                 <Area type="monotone" dataKey="value" stroke="#A65D57" fillOpacity={1} fill="url(#colorValue)" />
-               </AreaChart>
-             </ResponsiveContainer>
-          </Card>
+          <InsightCard 
+            title="Borrowing Activity" 
+            subtitle="Monthly trends in book circulation"
+            data={chartData.trend30d}
+            type="area"
+            height={360}
+          />
         </div>
         <div className="col-span-4">
-          <Card title="User Growth" bordered={false} style={{ height: 400, borderRadius: 16 }}>
-            <ResponsiveContainer width="100%" height="100%">
-               <BarChart data={chartData.userGrowth}>
-                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                 <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                 <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: 8, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                 <Bar dataKey="value" fill="#6B8E23" radius={[4, 4, 0, 0]} />
-               </BarChart>
-             </ResponsiveContainer>
-          </Card>
+          <div className="editorial-card" style={{ padding: 24, height: 360, display: 'flex', flexDirection: 'column' }}>
+            <Title level={4} style={{ margin: "0 0 16px 0", fontFamily: "'Literata', serif" }}>
+              Quick Actions
+            </Title>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, flex: 1 }}>
+              <ActionCard 
+                icon={<BookOutlined />} 
+                title="Add Book" 
+                onClick={() => {}} // TODO: Navigate
+                variant="minimal"
+              />
+              <ActionCard 
+                icon={<TeamOutlined />} 
+                title="Users" 
+                onClick={() => {}} // TODO: Navigate
+                variant="minimal"
+              />
+              <ActionCard 
+                icon={<CheckCircleOutlined />} 
+                title="Approvals" 
+                onClick={() => {}} // TODO: Navigate
+                variant="minimal"
+              />
+              <ActionCard 
+                icon={<RiseOutlined />} 
+                title="Reports" 
+                onClick={() => {}} // TODO: Navigate
+                variant="minimal"
+              />
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div className="editorial-grid">
-         <div className="col-span-12">
-           <Card bordered={false} style={{ borderRadius: 16, background: '#FAF9F6' }}>
-             <Row align="middle" justify="space-between">
-               <Col>
-                 <Title level={4} style={{ margin: 0, fontFamily: "'Literata', serif" }}>Quick Actions</Title>
-                 <AntText type="secondary">Manage your library efficiently</AntText>
-               </Col>
-               <Col>
-                 <Button type="primary" size="large" icon={<BookOutlined />} style={{ marginRight: 16 }}>Manage Books</Button>
-                 <Button size="large" icon={<TeamOutlined />}>Manage Users</Button>
-               </Col>
-             </Row>
-           </Card>
-         </div>
+        {/* 3. Detailed Lists & Secondary Charts */}
+        <div className="col-span-6">
+          <div className="editorial-card" style={{ padding: 24, height: '100%', minHeight: 400 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <Title level={4} style={{ margin: 0, fontFamily: "'Literata', serif" }}>Recent Requests</Title>
+              <Button type="link">View All</Button>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {recentRequests.length > 0 ? (
+                recentRequests.map((req, idx) => (
+                  <ListCard 
+                    key={idx}
+                    title={req.bookTitle || "Unknown Book"}
+                    subtitle={`by ${req.userName || "Unknown User"}`}
+                    status={req.status}
+                    date={new Date(req.requestDate).toLocaleDateString()}
+                    actionLabel="Review"
+                    onAction={() => {}}
+                  />
+                ))
+              ) : (
+                 <Empty description="No pending requests" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="col-span-6">
+          <InsightCard 
+            title="User Growth" 
+            subtitle="New member registrations this year"
+            data={chartData.userGrowth}
+            type="bar"
+            xAxisKey="month"
+            height={400} // Match height of neighbor
+            color={token.colorSuccess}
+          />
+        </div>
       </div>
     </EditorialPageShell>
   );

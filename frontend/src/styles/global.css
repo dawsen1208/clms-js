@@ -1,146 +1,147 @@
+/* Global CSS with Warm Editorial Style */
+
+/* 1. Import Google Fonts (Backup if index.html fails) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Literata:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
 :root {
-  /* Layout & Spacing */
-  --max-content-width: 1280px;
-  --header-height: 72px;
-  --page-padding: 32px; /* Spacious */
-  --grid-gap: 24px;
+  /* Editorial Color Palette Variables for CSS usage */
+  --color-dried-rose: #A65D57;
+  --color-olive: #6B705C;
+  --color-paper-gold: #D4A373;
+  --color-muted-blue: #8D99AE;
+  --color-warm-bg: #F7F5F3;
+  --color-paper-white: #FFFFFF;
+  --color-text-primary: #2C2C2C;
+  --color-text-secondary: #595959;
   
-  /* Warm Editorial Colors */
-  --color-paper-bg: #FAF9F6;
-  --color-primary: #A65D57;
-  --color-text-main: #2C2C2C; /* Softer black */
-  --color-text-secondary: #66605B; /* Warm grey */
-  --color-text-tertiary: #99908A;
-  --color-accent-gold: #DAA520;
-  --color-border-subtle: #EBE9E4;
+  /* Layout */
+  --max-width-container: 1280px;
+  --header-height: 64px;
   
-  /* Typography */
-  --font-serif: 'Literata', serif;
-  --font-sans: 'Inter', sans-serif;
-  
-  /* Texture */
-  --paper-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  /* Animation */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 2. Body & Background Texture */
 body {
   margin: 0;
-  font-family: var(--font-sans);
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--color-warm-bg);
+  color: var(--color-text-primary);
   -webkit-font-smoothing: antialiased;
-  background-color: var(--color-paper-bg);
-  color: var(--color-text-main);
-  background-image: var(--paper-noise); /* Subtle texture */
-  line-height: 1.6; /* Editorial line height */
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Paper Texture Overlay */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
-/* Typography Classes */
+/* 3. Typography Overrides */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-serif) !important;
-  font-weight: 600 !important;
-  color: var(--color-text-main);
-  letter-spacing: -0.02em; /* Tight editorial headings */
+  font-family: 'Literata', 'Playfair Display', serif !important;
+  color: var(--color-text-primary);
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-.font-serif { font-family: var(--font-serif); }
-.font-sans { font-family: var(--font-sans); }
-
-/* Global Layout Rules */
-.page-wrapper {
-  max-width: var(--max-content-width);
+/* 4. Layout Utilities */
+.container {
+  max-width: var(--max-width-container);
   margin: 0 auto;
-  padding: 0 var(--page-padding) 64px var(--page-padding);
-  width: 100%;
-  box-sizing: border-box;
+  padding: 0 24px;
 }
 
-/* Card Enhancements - Minimalist */
-.ant-card {
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border: 1px solid rgba(0,0,0,0.02) !important; /* Extremely subtle border */
-}
-
-.ant-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(140, 130, 120, 0.12) !important;
-}
-
-/* Editorial Grid System (CSS Grid) */
+/* 5. Editorial Grid System (Bento Grid) */
 .editorial-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: var(--grid-gap);
+  gap: 24px;
   width: 100%;
 }
 
+/* Responsive Grid Spans */
 .col-span-12 { grid-column: span 12; }
-.col-span-8 { grid-column: span 8; }
-.col-span-6 { grid-column: span 6; }
-.col-span-4 { grid-column: span 4; }
-.col-span-3 { grid-column: span 3; }
+.col-span-8  { grid-column: span 8; }
+.col-span-6  { grid-column: span 6; }
+.col-span-4  { grid-column: span 4; }
+.col-span-3  { grid-column: span 3; }
 
-/* Mobile Responsiveness */
+/* Responsive adjustments */
 @media (max-width: 992px) {
   .col-span-8, .col-span-6, .col-span-4, .col-span-3 {
-    grid-column: span 12; /* Stack on mobile/tablet */
+    grid-column: span 6;
   }
 }
 
 @media (max-width: 768px) {
-  :root {
-    --page-padding: 20px;
-    --header-height: 60px;
+  .editorial-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
   
-  h1 { font-size: 28px !important; }
-  h2 { font-size: 24px !important; }
+  .col-span-12, .col-span-8, .col-span-6, .col-span-4, .col-span-3 {
+    grid-column: span 1;
+  }
 }
 
-/* Shimmer Effect */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+/* 6. Card Base Styles (for custom components not using Antd Card) */
+.editorial-card {
+  background: var(--color-paper-white);
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.03);
 }
 
-.shimmer-bg {
-  background: linear-gradient(90deg, #f0f0f0 25%, #f7f7f7 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite ease-in-out;
+.editorial-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.06);
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #D8D4CF;
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #A65D57;
-}
-
-/* Utility */
-.text-warm-grey { color: var(--color-text-secondary); }
-.text-accent { color: var(--color-primary); }
-.bg-paper { background-color: var(--color-paper-bg); }
-
-/* Animation Utils */
-.fade-in-up {
-  animation: fadeInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-  opacity: 0;
-  transform: translateY(12px);
-}
-
+/* 7. Animation Utilities */
 @keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
+.animate-fade-in {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.animate-delay-1 { animation-delay: 0.1s; }
+.animate-delay-2 { animation-delay: 0.2s; }
+.animate-delay-3 { animation-delay: 0.3s; }
+
+/* 8. Scrollbar Styling */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}

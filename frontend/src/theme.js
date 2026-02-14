@@ -1,86 +1,101 @@
-export const theme = {
+import { theme } from 'antd';
+
+export const appTheme = {
+  algorithm: theme.defaultAlgorithm,
   token: {
-    // Brand Colors (Warm Editorial)
-    colorPrimary: '#A65D57', // Dried Rose / Clay (Warm, sophisticated)
-    colorInfo: '#A65D57',
-    colorSuccess: '#6B8E23', // Olive Green (Natural)
-    colorWarning: '#DAA520', // Goldenrod (Brass-like)
-    colorError: '#BC4B51',   // Muted Red
+    // Colors (Warm Editorial Palette)
+    colorPrimary: '#A65D57', // Dried Rose - Main Brand Color
+    colorSuccess: '#6B705C', // Olive Green
+    colorWarning: '#D4A373', // Paper Gold
+    colorError: '#BC4749',   // Muted Red
+    colorInfo: '#8D99AE',    // Muted Blue
     
-    // Backgrounds (Paper / Warm)
-    colorBgLayout: '#FAF9F6', // Off-white / Cream
-    colorBgContainer: '#FFFFFF',
-    colorBorderSecondary: '#EBE9E4', // Warm grey
+    // Backgrounds
+    colorBgLayout: '#F7F5F3', // Warm Off-White
+    colorBgContainer: '#FFFFFF', // Paper White
+    colorBgElevated: '#FFFFFF',
+    
+    // Text
+    colorText: '#2C2C2C', // Soft Black
+    colorTextSecondary: '#595959', // Warm Dark Gray
+    colorTextTertiary: '#8C8C8C',
+    
+    // Borders
+    colorBorder: '#E6E3E0', // Warm Light Gray
+    colorBorderSecondary: '#F0EEEB',
+    
+    // Shape & Sizes
+    borderRadius: 8,
+    borderRadiusLG: 16,
+    borderRadiusSM: 4,
+    
+    controlHeight: 36,
+    controlHeightLG: 44,
+    controlHeightSM: 28,
     
     // Typography
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    fontFamilyCode: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace",
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    fontSizeHeading1: 38,
+    fontSizeHeading2: 30,
+    fontSizeHeading3: 24,
+    fontSizeHeading4: 20,
+    fontSizeHeading5: 16,
     
-    fontSizeHeading1: 40, // Editorial Scale
-    fontSizeHeading2: 28,
-    fontSizeHeading3: 22,
-    fontSizeHeading4: 18,
-    fontSize: 15, // Slightly larger body for readability
+    // Spacing
+    marginLG: 24,
+    marginMD: 16,
+    marginSM: 12,
+    marginXS: 8,
     
-    // Spacing & Radius
-    borderRadius: 6, // Sharper, more print-like
-    borderRadiusLG: 12,
+    paddingLG: 24,
+    paddingMD: 16,
+    paddingSM: 12,
+    paddingXS: 8,
     
-    // Shadows (Soft, diffused)
-    boxShadow: '0 6px 24px rgba(140, 130, 120, 0.08)',
-    boxShadowSecondary: '0 2px 8px rgba(140, 130, 120, 0.06)',
-    
-    controlHeight: 44, // Taller inputs/buttons
-    controlHeightLG: 52,
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)',
+    boxShadowSecondary: '0 6px 16px rgba(0, 0, 0, 0.06)',
+    boxShadowTertiary: '0 8px 24px rgba(0, 0, 0, 0.08)',
   },
   components: {
-    Layout: {
-      bodyBg: '#FAF9F6',
-      headerBg: '#FAF9F6', // Seamless header
-      siderBg: '#FAF9F6',
-    },
-    Typography: {
-      fontFamilyHeading: "'Literata', serif", // Serif for headings
-      titleMarginBottom: '0.8em',
-      fontWeightStrong: 600,
+    Button: {
+      borderRadius: 8,
+      controlHeight: 36,
+      controlHeightLG: 44,
+      boxShadow: '0 2px 0 rgba(0, 0, 0, 0.02)',
+      fontWeight: 500,
     },
     Card: {
-      colorBgContainer: '#FFFFFF',
-      borderRadiusLG: 12,
-      boxShadowTertiary: '0 4px 20px rgba(140, 130, 120, 0.04)', // Very subtle paper shadow
-      paddingLG: 32, // Spacious padding
+      borderRadiusLG: 20,
+      paddingLG: 24,
+      boxShadowTertiary: '0 8px 24px rgba(0, 0, 0, 0.04)', // Softer shadow for cards
     },
-    Button: {
-      fontWeight: 500,
-      borderRadius: 6,
-      primaryShadow: '0 4px 12px rgba(166, 93, 87, 0.25)', // Colored shadow for primary
-      defaultBorderColor: '#D8D4CF',
-      defaultColor: '#4A4A4A',
-    },
-    Input: {
-      colorBgContainer: '#FFFFFF',
-      activeBorderColor: '#A65D57',
-      hoverBorderColor: '#C48B86',
-      borderRadius: 6,
-      paddingBlock: 8, // Taller inputs
+    Typography: {
+      fontFamilyCode: "'Fira Code', monospace",
+      fontFamilyHeading: "'Literata', 'Playfair Display', serif", // Editorial Headings
     },
     Table: {
-      headerBg: 'transparent', // Minimalist headers
-      headerColor: '#666',
+      borderRadiusLG: 12,
+      headerBg: '#FAFAFA',
       headerSplitColor: 'transparent',
-      borderColor: '#F0EFE9',
-      rowHoverBg: '#F7F5F0',
     },
-    Tag: {
-      borderRadius: 4,
-      defaultBg: '#F5F3EF',
-      defaultColor: '#5C5C5C',
+    Tabs: {
+      itemSelectedColor: '#A65D57',
+      inkBarColor: '#A65D57',
+    },
+    Input: {
+      controlHeight: 36,
+      controlHeightLG: 44,
+      borderRadius: 8,
+      activeBorderColor: '#A65D57',
+      hoverBorderColor: '#CB997E',
     },
     Menu: {
       itemSelectedColor: '#A65D57',
-      itemSelectedBg: '#F2EBEB', // Very light pink/clay tint
-      itemHoverBg: 'transparent', // Text-only hover effect often looks better in editorial
-      activeBarBorderWidth: 0, // No border strip
+      itemSelectedBg: '#FFF0F0', // Very light dried rose
+    },
+    Layout: {
+      bodyBg: '#F7F5F3',
+      headerBg: '#FFFFFF',
     }
-  }
+  },
 };

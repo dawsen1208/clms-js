@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Typography, Statistic, Space } from 'antd';
+import { Card, Typography, Statistic, Space, theme } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
@@ -14,6 +14,7 @@ const KPIStatCardPro = ({
   color = '#A65D57',
   loading = false
 }) => {
+  const { token } = theme.useToken();
   // Simple SVG Sparkline
   const renderSparkline = () => {
     if (!data || data.length < 2) return null;
@@ -59,7 +60,7 @@ const KPIStatCardPro = ({
       style={{ 
         height: '100%', 
         borderRadius: 16, 
-        boxShadow: '0 4px 20px rgba(0,0,0,0.04)',
+        boxShadow: token.boxShadowTertiary,
         transition: 'transform 0.3s ease, box-shadow 0.3s ease'
       }}
       bodyStyle={{ padding: 24 }}
@@ -71,8 +72,8 @@ const KPIStatCardPro = ({
         </Text>
         {trendValue && (
           <Space size={4} style={{ 
-            color: trendType === 'up' ? '#52c41a' : '#ff4d4f',
-            background: trendType === 'up' ? 'rgba(82, 196, 26, 0.1)' : 'rgba(255, 77, 79, 0.1)',
+            color: trendType === 'up' ? token.colorSuccess : token.colorError,
+            background: trendType === 'up' ? token.colorSuccessBg : token.colorErrorBg,
             padding: '2px 8px',
             borderRadius: 12,
             fontSize: 12,
@@ -92,7 +93,7 @@ const KPIStatCardPro = ({
             fontFamily: "'Literata', serif", 
             fontWeight: 600,
             lineHeight: 1,
-            color: '#2C3E50'
+            color: token.colorTextHeading
           }} 
         />
         

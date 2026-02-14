@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Typography, Row, Col, Tag, Progress, Button, Space, theme, Tooltip } from 'antd';
+import { Typography, Row, Col, Tag, Progress, Button, Space, theme, Tooltip } from 'antd';
 import { 
   ClockCircleOutlined, 
   SyncOutlined, 
@@ -9,6 +9,8 @@ import {
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
+import BookCoverPro from './BookCoverPro';
+import { stringToWarmColor } from '../../utils/hashColor';
 
 const { Title, Text } = Typography;
 
@@ -52,111 +54,129 @@ const LoanCard = ({
   const pendingType = book.pendingType; // 'renew', 'return'
 
   return (
-    <Card
-      hoverable
-      bordered={false}
-      style={{ 
-        marginBottom: 16, 
-        borderRadius: token.borderRadiusLG,
-        boxShadow: token.boxShadowTertiary,
-        transition: 'all 0.3s'
-      }}
-      bodyStyle={{ padding: 24 }}
+    <div 
+      className="loan-card-editorial"
       onClick={() => navigate(`/book/${book._id || book.id}`)}
+      style={{
+        background: '#fff',
+        border: `1px solid ${token.colorBorderSecondary}`,
+        borderRadius: 2, // Sharp magazine feel
+        padding: 0,
+        marginBottom: 24,
+        position: 'relative',
+        transition: 'all 0.3s ease',
+        cursor: 'pointer',
+        overflow: 'hidden',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-2px)';
+        e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.06)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.02)';
+      }}
     >
-      <Row gutter={[24, 24]} align="middle">
-        {/* Book Info */}
-        <Col xs={24} md={10}>
-          <Space align="start">
-            <div style={{ 
-              width: 48, 
-              height: 64, 
-              background: token.colorFillSecondary, 
-              borderRadius: token.borderRadiusSM,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <BookOutlined style={{ fontSize: 24, color: token.colorTextQuaternary }} />
-            </div>
-            <div>
-              <Title level={4} style={{ marginBottom: 4, marginTop: 0 }}>
-                {book.title}
-              </Title>
-              <Text type="secondary" style={{ display: 'block' }}>
-                Borrowed on {dayjs(book.borrowDate).format("MMM D, YYYY")}
-              </Text>
-            </div>
-          </Space>
-          
-          <div style={{ marginTop: 16 }}>
-             <Space size={8} wrap>
-               <Tag 
-                  icon={<ClockCircleOutlined />} 
-                  color={isOverdue ? "error" : daysLeft < 5 ? "warning" : "success"} 
-                  style={{ borderRadius: 12, padding: '2px 10px', border: 'none' }}
-               >
-                 {isOverdue ? `${Math.abs(daysLeft)} Days Overdue` : `${daysLeft} Days Left`}
-               </Tag>
-               
-               {pendingType && (
-                 <Tag color="processing" icon={<SyncOutlined spin />} style={{ borderRadius: 12, padding: '2px 10px', border: 'none' }}>
-                   {pendingType === 'renew' ? 'Renew Pending' : 'Return Pending'}
-                 </Tag>
-               )}
-             </Space>
-          </div>
+      <Row gutter={0} style={{ height: '100%' }}>
+        {/* Cover Image - Left Side */}
+        <Col xs={8} sm={5} md={4} lg={3} style={{ background: '#FAF9F6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
+           <div style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+             <BookCoverPro 
+               title={book.title} 
+               author={book.author} 
+               width={80} 
+               height={120} 
+               style="swiss"
+               baseColor={stringToWarmColor(book.title)}
+             />
+           </div>
         </Col>
-        
-        {/* Progress Section */}
-        <Col xs={24} md={8}>
-          <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>Time Elapsed</Text>
-            <Text strong style={{ fontSize: 12, color: isOverdue ? token.colorError : token.colorPrimary }}>
-              {Math.round(progress)}%
-            </Text>
-          </div>
-          <Progress 
-            percent={progress} 
-            showInfo={false} 
-            strokeColor={isOverdue ? token.colorError : { '0%': token.colorPrimary, '100%': token.colorSuccess }} 
-            trailColor={token.colorFillSecondary}
-            strokeLinecap="round"
-          />
-          <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between' }}>
-             <Text type="secondary" style={{ fontSize: 12 }}>
-               Due: {book.dueDate ? dayjs(book.dueDate).format("MMM D, YYYY") : "N/A"}
-             </Text>
-             {book.renewCount > 0 && (
-               <Tooltip title={`${book.renewCount} renewals used`}>
-                 <Tag style={{ margin: 0, fontSize: 10 }}>{book.renewCount} Renewals</Tag>
-               </Tooltip>
-             )}
-          </div>
-        </Col>
-        
-        {/* Actions */}
-        <Col xs={24} md={6} style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-          {variant === 'active' && (
-            <Button 
-              type={isOverdue ? "primary" : "default"}
-              danger={isOverdue}
-              icon={<SyncOutlined />} 
-              loading={loading}
-              disabled={!!pendingType || isOverdue} // Cannot renew if overdue or pending
-              onClick={(e) => {
-                e.stopPropagation();
-                onRenew && onRenew(book);
-              }}
-              style={{ borderRadius: 18 }}
-            >
-              Renew
-            </Button>
-          )}
-          {/* Add Return button if needed in future, usually handled physically */}
+
+        {/* Content - Right Side */}
+        <Col xs={16} sm={19} md={20} lg={21} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
+             <div>
+                <Title level={4} style={{ 
+                  margin: '0 0 4px 0', 
+                  fontFamily: "'Literata', serif", 
+                  fontSize: 20,
+                  color: token.colorTextHeading
+                }}>
+                  {book.title}
+                </Title>
+                <Text type="secondary" style={{ 
+                  fontFamily: "'Inter', sans-serif", 
+                  fontSize: 14,
+                  color: token.colorTextSecondary
+                }}>
+                  by {book.author || "Unknown Author"}
+                </Text>
+             </div>
+             
+             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {isOverdue && (
+                  <Tag color="error" style={{ borderRadius: 12, border: 'none', padding: '2px 10px' }}>
+                    Overdue
+                  </Tag>
+                )}
+                <Tag style={{ 
+                  borderRadius: 12, 
+                  border: `1px solid ${token.colorBorderSecondary}`, 
+                  background: 'transparent', 
+                  color: token.colorTextSecondary 
+                }}>
+                  Due {book.dueDate ? dayjs(book.dueDate).format("MMM D") : "N/A"}
+                </Tag>
+             </div>
+           </div>
+
+           <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+              {/* Progress Bar */}
+              <div style={{ flex: 1, minWidth: 200 }}>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                   <Text style={{ fontSize: 12, color: token.colorTextQuaternary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Loan Period</Text>
+                   <Text style={{ fontSize: 12, fontWeight: 600, color: isOverdue ? token.colorError : token.colorPrimary }}>
+                     {isOverdue ? `${Math.abs(daysLeft)} Days Overdue` : `${daysLeft} Days Left`}
+                   </Text>
+                 </div>
+                 <Progress 
+                    percent={progress} 
+                    showInfo={false} 
+                    strokeColor={isOverdue ? token.colorError : token.colorPrimary}
+                    trailColor="#F0F0F0"
+                    size="small"
+                    style={{ marginBottom: 0 }}
+                 />
+              </div>
+
+              {/* Actions */}
+              {variant === 'active' && (
+                <div style={{ display: 'flex', gap: 12 }}>
+                   <Button 
+                     type="default"
+                     disabled={!!pendingType || isOverdue}
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       onRenew && onRenew(book);
+                     }}
+                     icon={pendingType === 'renew' ? <SyncOutlined spin /> : <ClockCircleOutlined />}
+                     style={{ 
+                       borderRadius: 20, 
+                       borderColor: token.colorBorderSecondary,
+                       color: token.colorTextSecondary,
+                       fontFamily: "'Inter', sans-serif",
+                       fontSize: 13
+                     }}
+                   >
+                     {pendingType === 'renew' ? 'Pending' : 'Renew'}
+                   </Button>
+                </div>
+              )}
+           </div>
         </Col>
       </Row>
-    </Card>
+    </div>
   );
 };
 

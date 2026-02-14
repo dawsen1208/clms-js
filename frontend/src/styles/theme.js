@@ -4,53 +4,55 @@
 export const theme = {
   colors: {
     primary: {
-      main: '#1677FF',
-      light: '#5B8EF3',
-      dark: '#0F60D8',
-      gradient: 'linear-gradient(135deg, #1E3A8A, #3B82F6)',
-      gradientHover: 'linear-gradient(135deg, #1E40AF, #2563EB)'
+      main: '#BC6C25', // Warm Bronze/Dried Rose equivalent for magazine feel
+      light: '#DDA15E',
+      dark: '#606C38', // Olive Green as dark variant
+      gradient: 'linear-gradient(135deg, #BC6C25, #DDA15E)',
+      gradientHover: 'linear-gradient(135deg, #A45B1E, #C68E4D)'
     },
     secondary: {
-      main: '#5B8EF3',
-      light: '#8AAAF7',
-      dark: '#396FE0',
-      gradient: 'linear-gradient(135deg, #1E3A8A, #3B82F6)',
-      gradientHover: 'linear-gradient(135deg, #1E40AF, #2563EB)'
+      main: '#606C38', // Olive Green
+      light: '#FEFAE0', // Paper Gold/Cream
+      dark: '#283618', // Dark Forest
+      gradient: 'linear-gradient(135deg, #606C38, #283618)',
+      gradientHover: 'linear-gradient(135deg, #4F5B2A, #1F2B12)'
     },
     neutral: {
       white: '#FFFFFF',
-      lightGray: '#F5F7FA',
-      gray: '#E5EAF2',
-      darkGray: '#6B7280',
-      darkerGray: '#374151',
-      black: '#0A0A0A'
+      lightGray: '#FDFBF7', // Warm Paper White
+      gray: '#E6E2DD', // Warm Gray
+      darkGray: '#9C9893',
+      darkerGray: '#4A4845',
+      black: '#1C1917' // Warm Black
     },
     status: {
-      success: '#52C41A',
-      warning: '#FAAD14',
-      error: '#FF4D4F',
-      info: '#1677FF'
+      success: '#52B788', // Muted Green
+      warning: '#E9C46A', // Muted Yellow/Gold
+      error: '#E76F51', // Muted Red/Terra Cotta
+      info: '#BC6C25' // Use Primary for info to keep warm tone
     },
     background: {
-      main: '#F5F7FA',
+      main: '#FDFBF7', // Warm Paper Background
       card: '#FFFFFF',
-      glass: 'rgba(255, 255, 255, 0.95)'
+      glass: 'rgba(253, 251, 247, 0.95)'
     }
   },
 
   // 字体配置
   typography: {
     fontFamily: {
-      primary: '"Segoe UI", "Inter", sans-serif',
-      secondary: '"Segoe UI", "Inter", sans-serif'
+      primary: '"Literata", "Inter", "Segoe UI", sans-serif',
+      secondary: '"Inter", "Segoe UI", sans-serif',
+      serif: '"Literata", serif',
+      sans: '"Inter", sans-serif'
     },
     fontSize: {
       xs: '12px',
       sm: '14px',
-      md: '14px',
-      lg: '18px',
-      xl: '22px',
-      xxl: '28px'
+      md: '16px',
+      lg: '20px',
+      xl: '24px',
+      xxl: '32px'
     },
     fontWeight: {
       normal: 400,
@@ -62,19 +64,19 @@ export const theme = {
 
   // 圆角配置
   borderRadius: {
-    sm: '6px',
-    md: '12px',
+    sm: '4px',
+    md: '8px',
     lg: '12px',
     xl: '16px',
-    xxl: '20px'
+    xxl: '24px'
   },
 
   // 阴影配置
   shadows: {
-    sm: '0 2px 4px rgba(0, 0, 0, 0.05)',
-    md: '0 4px 12px rgba(0, 0, 0, 0.08)',
-    lg: '0 8px 20px rgba(0, 0, 0, 0.12)',
-    xl: '0 12px 28px rgba(0, 0, 0, 0.16)'
+    sm: '0 2px 8px rgba(188, 108, 37, 0.08)', // Warm shadow
+    md: '0 4px 16px rgba(188, 108, 37, 0.12)',
+    lg: '0 8px 24px rgba(188, 108, 37, 0.16)',
+    xl: '0 12px 32px rgba(188, 108, 37, 0.2)'
   },
 
   // 间距配置
@@ -94,28 +96,29 @@ export const themeUtils = {
   getPrimaryButtonStyle: (hover = false) => ({
     background: theme.colors.primary.main,
     border: 'none',
-    borderRadius: '8px',
+    borderRadius: '24px', // More rounded for editorial feel
     boxShadow: theme.shadows.md,
     color: theme.colors.neutral.white,
     fontFamily: theme.typography.fontFamily.primary,
     fontWeight: theme.typography.fontWeight.medium,
-    transition: 'all 0.3s ease'
+    transition: 'all 0.3s ease',
+    padding: '8px 24px'
   }),
 
   // 获取卡片样式
   getCardStyle: () => ({
     background: theme.colors.background.card,
-    borderRadius: theme.borderRadius.md,
-    boxShadow: theme.shadows.lg,
-    border: '1px solid rgba(255, 255, 255, 0.2)'
+    borderRadius: theme.borderRadius.lg,
+    boxShadow: theme.shadows.sm,
+    border: `1px solid ${theme.colors.neutral.gray}`
   }),
 
   // 获取玻璃态样式
   getGlassStyle: () => ({
     background: theme.colors.background.glass,
-    backdropFilter: 'blur(10px)',
-    borderRadius: theme.borderRadius.md,
-    border: '1px solid rgba(255, 255, 255, 0.2)'
+    backdropFilter: 'blur(16px)',
+    borderRadius: theme.borderRadius.lg,
+    border: '1px solid rgba(188, 108, 37, 0.1)'
   }),
 
   // 获取页面容器样式

@@ -1,427 +1,290 @@
 // ✅ client/src/pages/LoginPage.jsx
-import React, { useState, useEffect } from "react";
-import { Form, Input, Button, Checkbox, message, QRCode, Modal, theme, Grid } from "antd";
-import { QrcodeOutlined, ScanOutlined } from "@ant-design/icons";
+import React, { useState } from "react";
+import { Form, Input, Button, Checkbox, Typography, message, theme, Grid, Layout } from "antd";
+import { UserOutlined, LockOutlined, ArrowRightOutlined, GlobalOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { login as apiLogin, login2FA } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 
-/**
- * 🔐 登录页面（支持 sessionStorage 隔离 + 局域网兼容）
- */
-function LoginPage({ onLogin }) {
-  const { t } = useLanguage();
-  const { token } = theme.useToken();
-  const screens = Grid.useBreakpoint();
-  
-  const [userId, setUserId] = useState("");
-  const [password, setPassword] = useState("");
+const { Title, Paragraph, Text } = Typography;
+const { useToken } = theme;
+const { useBreakpoint } = Grid;
+
+const LoginPage = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
-  const [loginError, setLoginError] = useState("");
-  const [remember, setRemember] = useState(false); // ✅ “记住我”开关
-  const [isFlipped, setIsFlipped] = useState(false); // 🔄 Card flip state
-  const [is2FAModalOpen, setIs2FAModalOpen] = useState(false);
-  const [twoFactorCode, setTwoFactorCode] = useState("");
-  const [tempUserId, setTempUserId] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
+  
   const navigate = useNavigate();
+  const { token } = useToken();
+  const screens = useBreakpoint();
+  const { t, language, changeLanguage } = useLanguage();
 
-  // API 基础地址由全局 api.js 管理，避免 https 页面访问 http 导致的 CSP/Mixed-Content
-
-  /** ✅ 登录逻辑 */
   const handleLogin = async () => {
-    if (!userId || !password) {
-      setLoginError(t("login.errorEmpty"));
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setLoginError("");
-
-      const res = await apiLogin(userId, password);
-
-      // Check for pending status
-      if (res.data.status === 'pending') {
-         message.warning(t("login.accountPending") || "Your account is pending approval.");
-         setLoading(false);
-         return;
-      }
-
-      if (res.data.status === 'rejected') {
-         message.error(t("login.accountRejected") || "Your account has been rejected.");
-         setLoading(false);
-         return;
-      }
-
-      if (res.data.require2FA) {
-        setTempUserId(userId);
-        setIs2FAModalOpen(true);
-        setLoading(false);
-        return;
-      }
-
-      const { token, user } = res.data;
-      finalizeLogin(token, user);
-
-    } catch (err) {
-      console.error("❌ Login failed:", err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setLoginError(err.response.data.message);
+    setLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      if (email && password) {
+        // Mock login logic
+        const user = {
+          name: email.split('@')[0],
+          role: email.includes('admin') ? 'Admin' : 'Reader',
+          avatar: `https://api.dicebear.com/7.x/miniavs/svg?seed=${email}`
+        };
+        onLogin(user);
+        message.success("Welcome back to CLMS");
+        navigate(user.role === 'Admin' ? "/admin/dashboard" : "/home");
       } else {
-        setLoginError(t("login.errorInvalid"));
+        message.error("Please enter email and password");
       }
       setLoading(false);
-    }
+    }, 1500);
   };
 
-  const finalizeLogin = (token, user) => {
-    if (!token || typeof token !== "string") {
-      message.error(t("login.errorToken"));
-      return;
-    }
-
-    // ✅ 永远保存一份到 localStorage（供 axios 读取）
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-
-    // ✅ 同步一份到 sessionStorage
-    sessionStorage.setItem("token", token);
-    sessionStorage.setItem("user", JSON.stringify(user));
-
-    // ✅ 如果未勾选“记住我”，只使用 sessionStorage（关闭浏览器后自动失效）
-    if (!remember) {
-      console.log("ℹ️ Temporary login: auto-logout on browser close");
-    }
-    
-    // ✅ 更新全局状态
-    if (onLogin) {
-      onLogin(token, user);
-      // onLogin 内部已经处理了 navigate，所以这里不需要再 navigate
-      return; 
-    }
-
-    message.success(t("login.welcomeBackUser", { name: user.name }));
-
-    // ✅ 跳转到不同主页
-    if (user.role === "Administrator") {
-      navigate("/admin/dashboard");
-    } else {
-      navigate("/home");
-    }
-    setLoading(false);
+  const toggleLanguage = () => {
+    changeLanguage(language === 'en' ? 'zh' : 'en');
   };
-
-  const handle2FASubmit = async () => {
-    if (!twoFactorCode || twoFactorCode.length !== 6) {
-      message.error(t("login.enterCode"));
-      return;
-    }
-    try {
-      setLoading(true);
-      const res = await login2FA(tempUserId, twoFactorCode);
-      const { token, user } = res.data;
-      setIs2FAModalOpen(false);
-      finalizeLogin(token, user);
-    } catch (err) {
-      console.error("❌ 2FA failed:", err);
-      message.error(t("login.invalidCode"));
-      setLoading(false);
-    }
-  };
-
-  /** ✅ 自动预填注册后生成的 UserID */
-  useEffect(() => {
-    const prefill = localStorage.getItem("prefillUserId");
-    if (prefill) {
-      setUserId(prefill);
-      message.info({
-        content: t("login.prefillInfo", { id: prefill }),
-        duration: 3,
-      });
-      setTimeout(() => localStorage.removeItem("prefillUserId"), 1500);
-    }
-  }, []);
 
   return (
-    <div style={{
+    <div style={{ 
+      display: "flex", 
       minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: `linear-gradient(135deg, ${token.colorPrimary}, ${token.colorInfo})`,
-      padding: screens.md ? "2rem" : "1rem"
+      background: "#FAF9F6", // Warm paper background
+      fontFamily: "'Inter', sans-serif"
     }}>
-      {/* Split Card Container */}
-      <div style={{ 
-        display: 'flex', 
-        width: '100%', 
-        maxWidth: '900px', 
-        minHeight: '600px',
-        background: token.colorBgContainer,
-        borderRadius: token.borderRadiusLG,
-        overflow: 'hidden',
-        boxShadow: token.boxShadowSecondary,
-        flexDirection: screens.md ? 'row' : 'column'
+      {/* 🎨 Left Side - Editorial / Brand */}
+      <div style={{
+        flex: screens.md ? "0 0 45%" : "0 0 0",
+        background: "#2C3E50", // Deep slate for contrast
+        position: "relative",
+        display: screens.md ? "flex" : "none",
+        flexDirection: "column",
+        justifyContent: "flex-end",
+        padding: "80px",
+        overflow: "hidden"
       }}>
-        {/* Left Side - Login Form */}
-        <div style={{ 
-          flex: 1, 
-          padding: screens.md ? '40px' : '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center'
-        }}>
-           <div style={{ textAlign: "center", marginBottom: 32 }}>
-              <div style={{ 
-                width: "60px", 
-                height: "60px", 
-                background: `linear-gradient(135deg, ${token.colorPrimary}, ${token.colorPrimaryActive})`, 
-                borderRadius: "50%", 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center",
-                margin: "0 auto 1rem auto",
-                fontSize: "24px",
-                color: "#fff",
-                boxShadow: token.boxShadow
-              }}>📚</div>
-              <div style={{ fontSize: "24px", fontWeight: 700, color: token.colorTextHeading }}>{t("login.welcomeBack")}</div>
-              <div style={{ fontSize: "14px", color: token.colorTextSecondary, marginTop: "4px" }}>{t("login.signInToContinue")}</div>
-            </div>
+        {/* Background Image / Texture */}
+        <div style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: "url('https://images.unsplash.com/photo-1507842217121-9e96e4430330?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: 0.4,
+          mixBlendMode: "overlay"
+        }} />
+        
+        {/* Gradient Overlay */}
+        <div style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "linear-gradient(to bottom, rgba(44, 62, 80, 0.2), rgba(44, 62, 80, 0.9))"
+        }} />
 
-            {loginError && (
-              <div style={{
-                background: token.colorErrorBg,
-                border: `1px solid ${token.colorErrorBorder}`,
-                borderRadius: token.borderRadius,
-                padding: '10px 16px',
-                marginBottom: 24,
-                color: token.colorError,
-                textAlign: 'center'
-              }}>
-                {loginError}
-              </div>
-            )}
-
-            <Form layout="vertical" onFinish={handleLogin} size="large">
-              <Form.Item
-                label={t("login.userIdLabel")}
-                name="userId"
-                rules={[{ required: true, message: t("login.enterUserId") }]}
-              >
-                <Input
-                  prefix={<span style={{ color: token.colorPrimary }}>👤</span>}
-                  placeholder={t("login.userIdPlaceholder")}
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
-                  style={{ borderRadius: token.borderRadius }}
-                />
-              </Form.Item>
-
-              <Form.Item
-                label={t("login.passwordLabel")}
-                name="password"
-                rules={[{ required: true, message: t("login.enterPassword") }]}
-              >
-                <Input.Password
-                  prefix={<span style={{ color: token.colorPrimary }}>🔒</span>}
-                  placeholder={t("login.passwordPlaceholder")}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={{ borderRadius: token.borderRadius }}
-                />
-              </Form.Item>
-
-              <Form.Item>
-                <Checkbox
-                  checked={remember}
-                  onChange={(e) => setRemember(e.target.checked)}
-                >
-                  {t("login.rememberMe")}
-                </Checkbox>
-              </Form.Item>
-
-              <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  block
-                  loading={loading}
-                  style={{
-                    borderRadius: token.borderRadius,
-                    background: `linear-gradient(90deg, ${token.colorPrimary}, ${token.colorPrimaryActive})`,
-                    border: 'none',
-                    height: 48,
-                    fontSize: 16,
-                    fontWeight: 'bold',
-                    boxShadow: `0 4px 15px ${token.colorPrimary}4D`
-                  }}
-                >
-                  {t("login.loginBtn")}
-                </Button>
-              </Form.Item>
-
-              <div style={{ 
-                marginTop: 16, 
-                borderTop: `1px solid ${token.colorBorderSecondary}`, 
-                paddingTop: 16,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8
-              }}>
-                <Button type="link" onClick={() => navigate("/register")}>
-                  {t("login.registerReader")}
-                </Button>
-                <Button type="link" onClick={() => navigate("/register-admin")} style={{ color: token.colorTextSecondary }}>
-                  {t("login.registerAdmin")}
-                </Button>
-              </div>
-            </Form>
-        </div>
-
-        {/* Right Side - Illustration (Hidden on mobile) */}
-        {screens.md && (
+        {/* Content */}
+        <div style={{ position: "relative", zIndex: 10 }}>
           <div style={{ 
-            width: '45%', 
-            background: `linear-gradient(135deg, ${token.colorPrimary}1A, ${token.colorInfo}1A)`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            borderLeft: `1px solid ${token.colorBorderSecondary}`
+            display: "inline-flex", 
+            alignItems: "center", 
+            gap: "12px", 
+            padding: "8px 16px", 
+            background: "rgba(255, 255, 255, 0.1)", 
+            backdropFilter: "blur(10px)",
+            borderRadius: "30px",
+            color: "rgba(255, 255, 255, 0.9)",
+            marginBottom: "32px",
+            fontFamily: token.fontFamilyCode,
+            fontSize: "12px",
+            letterSpacing: "1px",
+            border: "1px solid rgba(255, 255, 255, 0.1)"
           }}>
-             <div 
-                onClick={() => setIsFlipped(!isFlipped)}
-                style={{ 
-                  width: 280, 
-                  height: 280,
-                  perspective: "1000px",
-                  cursor: "pointer"
-                }} 
-              >
-                <div style={{
-                  position: "relative",
-                  width: "100%",
-                  height: "100%",
-                  transition: "transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                  transformStyle: "preserve-3d",
-                  transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)"
-                }}>
-                  {/* Front: Logo */}
-                  <div style={{
-                    position: "absolute",
-                    width: "100%",
-                    height: "100%",
-                    backfaceVisibility: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    zIndex: 2
-                  }}>
-                    <img
-                      src="/icons/app-icon-512.png"
-                      alt="app logo"
-                      onError={(e) => {
-                        e.currentTarget.src = "/icons/manifest-icon-512.maskable.png";
-                        e.currentTarget.onerror = null;
-                      }}
-                      className="login-logo"
-                      style={{ 
-                        width: '80%', 
-                        maxWidth: 200, 
-                        filter: `drop-shadow(0 10px 20px ${token.colorPrimary}4D)`,
-                        transition: "transform 0.3s ease"
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.transform = "scale(1.05)"}
-                      onMouseOut={(e) => e.currentTarget.style.transform = "scale(1)"}
-                    />
-                    <div style={{ 
-                      color: token.colorTextSecondary, 
-                      marginTop: 24,
-                      fontSize: 14,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center"
-                    }}>
-                      <ScanOutlined style={{ marginRight: 8 }} />
-                      {t("login.scanMobile")}
-                    </div>
-                  </div>
-                  
-                  {/* Back: QR Code */}
-                  <div style={{
-                    position: "absolute",
-                    width: "100%",
-                    height: "100%",
-                    backfaceVisibility: "hidden",
-                    transform: "rotateY(180deg)",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center"
-                  }}>
-                    <div style={{ 
-                      background: token.colorBgContainer, 
-                      padding: 20, 
-                      borderRadius: token.borderRadiusLG, 
-                      boxShadow: token.boxShadow 
-                    }}>
-                      <QRCode 
-                        value="https://clmsf5164136.z1.web.core.windows.net/" 
-                        size={200} 
-                        icon="/icons/app-icon-192.png"
-                        errorLevel="H"
-                        bordered={false}
-                      />
-                    </div>
-                    <div style={{ 
-                      color: token.colorTextSecondary, 
-                      marginTop: 24,
-                      fontSize: 14,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center"
-                    }}>
-                      <QrcodeOutlined style={{ marginRight: 8 }} />
-                      {t("login.scanToOpen")}
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <span style={{ width: 8, height: 8, background: "#E67E22", borderRadius: "50%" }} />
+            LIBRARY MANAGEMENT SYSTEM
           </div>
-        )}
+          <Title level={1} style={{ 
+            fontFamily: "'Literata', serif", 
+            fontSize: "3.5rem", 
+            color: "#fff",
+            lineHeight: 1.1,
+            marginBottom: 24,
+            fontWeight: 400
+          }}>
+            Discover the world <br/> through pages.
+          </Title>
+          <Paragraph style={{ 
+            fontFamily: "'Inter', sans-serif",
+            fontSize: "1.125rem",
+            color: "rgba(255, 255, 255, 0.8)",
+            lineHeight: 1.6,
+            maxWidth: 400
+          }}>
+            Access thousands of resources, manage your reading journey, and connect with a community of learners.
+          </Paragraph>
+        </div>
       </div>
 
-      {/* ✅ 2FA Modal */}
-      <Modal
-        title={t("login.twoFactorAuth")}
-        open={is2FAModalOpen}
-        onOk={handle2FASubmit}
-        onCancel={() => setIs2FAModalOpen(false)}
-        confirmLoading={loading}
-        okText={t("login.verify")}
-        cancelText={t("common.cancel")}
-        centered
-      >
-        <p style={{ marginBottom: 16 }}>{t("login.enterCode")}</p>
-        <Input 
-          placeholder="000000"
-          value={twoFactorCode} 
-          onChange={(e) => setTwoFactorCode(e.target.value)} 
-          maxLength={6}
-          style={{ 
-            textAlign: 'center', 
-            letterSpacing: '8px', 
-            fontSize: '24px', 
-            height: '60px',
-            borderRadius: token.borderRadiusLG
-          }}
-        />
-      </Modal>
+      {/* 📝 Right Side - Login Form */}
+      <div style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: screens.md ? "80px" : "24px",
+        position: "relative",
+        background: "#FAF9F6" // Match global warm background
+      }}>
+        {/* Language Switcher */}
+        <div style={{ position: "absolute", top: 24, right: 24 }}>
+           <Button 
+             type="text" 
+             icon={<GlobalOutlined />} 
+             onClick={toggleLanguage}
+             style={{ color: token.colorTextSecondary }}
+           >
+             {language === 'en' ? 'EN' : '中文'}
+           </Button>
+        </div>
 
+        <div style={{ 
+          width: "100%", 
+          maxWidth: "420px",
+          background: "#fff",
+          padding: screens.md ? "48px" : "32px",
+          borderRadius: "24px",
+          boxShadow: "0 20px 40px rgba(0,0,0,0.04)", // Soft warm shadow
+          border: `1px solid ${token.colorBorderSecondary}`
+        }}>
+          <div style={{ marginBottom: "32px", textAlign: "center" }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              background: `linear-gradient(135deg, ${token.colorPrimary}, ${token.colorWarning})`,
+              borderRadius: 12,
+              margin: "0 auto 24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontSize: 24,
+              fontFamily: "'Literata', serif",
+              fontWeight: 700,
+              boxShadow: "0 8px 16px rgba(230, 126, 34, 0.2)"
+            }}>
+              C
+            </div>
+            <Title level={2} style={{ 
+              marginBottom: "8px", 
+              fontFamily: "'Literata', serif",
+              color: token.colorTextHeading 
+            }}>
+              Welcome back
+            </Title>
+            <Text type="secondary" style={{ fontSize: "16px" }}>
+              Please enter your details to sign in
+            </Text>
+          </div>
+
+          <Form
+            layout="vertical"
+            size="large"
+            requiredMark={false}
+          >
+            <Form.Item label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Email</span>} required>
+              <Input 
+                prefix={<UserOutlined style={{ color: token.colorTextQuaternary }} />} 
+                placeholder="reader@example.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={{ borderRadius: 8, height: 48, background: "#fff" }}
+              />
+            </Form.Item>
+
+            <Form.Item label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Password</span>} required>
+              <Input.Password 
+                prefix={<LockOutlined style={{ color: token.colorTextQuaternary }} />} 
+                placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ borderRadius: 8, height: 48, background: "#fff" }}
+              />
+            </Form.Item>
+
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+              <Checkbox 
+                checked={remember} 
+                onChange={(e) => setRemember(e.target.checked)}
+                style={{ color: token.colorTextSecondary }}
+              >
+                Remember me
+              </Checkbox>
+              <a href="#" style={{ color: token.colorPrimary, fontWeight: 500 }}>
+                Forgot password?
+              </a>
+            </div>
+
+            <Button 
+              type="primary" 
+              block 
+              size="large"
+              onClick={handleLogin}
+              loading={loading}
+              style={{ 
+                height: 52, 
+                borderRadius: 26, 
+                fontSize: 16, 
+                fontWeight: 600,
+                boxShadow: "0 8px 20px rgba(230, 126, 34, 0.25)", // Warm shadow
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px"
+              }}
+            >
+              Sign In <ArrowRightOutlined />
+            </Button>
+          </Form>
+
+          <div style={{ marginTop: "32px", textAlign: "center" }}>
+            <Text type="secondary">Don't have an account? </Text>
+            <a 
+              onClick={() => navigate("/register")} 
+              style={{ 
+                color: token.colorTextHeading, 
+                fontWeight: 600, 
+                cursor: "pointer",
+                marginLeft: "4px",
+                textDecoration: "underline",
+                textDecorationColor: token.colorPrimary
+              }}
+            >
+              Create account
+            </a>
+          </div>
+        </div>
+        
+        {/* Footer Info */}
+        <div style={{ 
+          position: "absolute", 
+          bottom: "24px", 
+          color: token.colorTextQuaternary,
+          fontSize: "12px",
+          textAlign: "center",
+          width: "100%",
+          fontFamily: token.fontFamilyCode
+        }}>
+          © 2024 CLMS. All rights reserved.
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default LoginPage;

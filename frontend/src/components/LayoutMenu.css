@@ -1,54 +1,86 @@
-/* Custom Menu Styling */
+/* Custom Menu Styling - Warm Editorial Style */
+.custom-menu {
+  background: transparent !important;
+  border-inline-end: none !important;
+}
+
 .custom-menu .ant-menu-item {
-  border-radius: 8px;
-  margin: 4px 8px;
-  width: calc(100% - 16px);
-  height: 44px;
-  line-height: 44px;
+  border-radius: 8px; /* Slightly more rounded */
+  margin: 4px 12px;
+  width: calc(100% - 24px);
+  height: 48px; /* Taller touch targets */
+  line-height: 48px;
+  transition: all 0.3s ease;
+  color: var(--ant-color-text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+.custom-menu .ant-menu-item:hover {
+  color: var(--ant-color-primary);
+  background-color: var(--ant-color-fill-tertiary);
 }
 
 .custom-menu .ant-menu-item-selected {
-  background-color: var(--ant-color-primary-bg);
-  color: var(--ant-color-primary);
-  font-weight: 500;
-  position: relative;
+  background-color: var(--ant-color-primary-bg) !important; /* Soft background */
+  color: var(--ant-color-primary) !important;
+  font-weight: 600;
 }
 
-/* Side indicator strip */
+/* Remove the old side strip for a cleaner look */
 .custom-menu .ant-menu-item-selected::before {
+  display: none;
+}
+
+/* Add a subtle indicator dot or just rely on color/bg */
+.custom-menu .ant-menu-item-selected::after {
   content: '';
   position: absolute;
-  left: 0;
-  top: 10px;
-  bottom: 10px;
-  width: 3px;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   background-color: var(--ant-color-primary);
-  border-radius: 0 4px 4px 0;
+  opacity: 0.8;
 }
 
-/* Responsive adjustments */
+/* Submenu styling if needed */
+.custom-menu .ant-menu-submenu-title {
+  border-radius: 8px;
+  margin: 4px 12px;
+  width: calc(100% - 24px);
+}
+
+/* Responsive utilities */
 @media (max-width: 768px) {
-  .desktop-sider {
+  .desktop-only {
     display: none !important;
   }
   
-  .site-layout {
-    margin-left: 0 !important;
+  .mobile-only {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .desktop-only {
+    display: flex !important;
   }
   
-  .trigger-btn {
+  .mobile-only {
     display: none !important;
   }
-  
-  .mobile-trigger-btn {
-    display: inline-flex !important;
-  }
-  
-  .header-search {
-    display: none !important;
-  }
-  
-  .username-text {
-    display: none !important;
-  }
+}
+
+.mobile-bottom-nav button {
+  background: transparent;
+  border: none;
+}
+
+.mobile-bottom-nav button:focus-visible {
+  outline: 2px solid var(--ant-color-primary);
+  outline-offset: 2px;
+  background-color: var(--ant-color-primary-bg);
 }
