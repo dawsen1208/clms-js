@@ -37,6 +37,7 @@ function BookDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [modal, contextHolder] = Modal.useModal();
+  const backText = (t("nav.back") && t("nav.back") !== "nav.back") ? t("nav.back") : "Back to Library";
   
   // State
   const [book, setBook] = useState(null);
@@ -133,6 +134,26 @@ function BookDetail() {
     }
   };
 
+  const handleShare = () => {
+    const url = window.location.href;
+    modal.info({
+      title: "Share this page",
+      centered: true,
+      okText: "Got it",
+      content: (
+        <div style={{ marginTop: 8 }}>
+          <Paragraph style={{ marginBottom: 8 }}>
+            <Text strong>Link:</Text>
+          </Paragraph>
+          <Paragraph copyable={{ text: url }} style={{ userSelect: 'text', marginBottom: 8 }}>
+            {url}
+          </Paragraph>
+          <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>
+        </div>
+      )
+    });
+  };
+
   if (loading) return (
     <EditorialPageShell>
       <div style={{ padding: 48 }}>
@@ -201,7 +222,7 @@ function BookDetail() {
 
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div style={{ marginBottom: 16 }}>
-            <Button onClick={() => navigate('/search')}>{t("nav.back") || "Back to Library"}</Button>
+            <Button onClick={() => navigate('/search')}>{backText}</Button>
           </div>
           <div className="editorial-grid" style={{ alignItems: 'start' }}>
             {/* Left: Book Cover */}
@@ -310,10 +331,7 @@ function BookDetail() {
                    </div>
                    
                    <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: 16 }}>
-                      <Button size="large" icon={<ShareAltOutlined />} onClick={() => {
-                         navigator.clipboard.writeText(window.location.href);
-                         message.success("Link copied!");
-                      }}>Share</Button>
+                      <Button size="large" icon={<ShareAltOutlined />} onClick={handleShare}>Share</Button>
                       
                       {isBorrowed ? (
                         <Button 
