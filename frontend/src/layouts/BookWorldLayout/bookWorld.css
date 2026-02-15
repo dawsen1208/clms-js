@@ -1,0 +1,75 @@
+/* Book World 3D frame */
+.book-world-frame {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 0;
+  perspective: 1200px;
+  background: var(--book-bg, #f7f5ef);
+}
+
+.book-cover-left {
+  background: linear-gradient(135deg, #eae6da 0%, #f7f5ef 100%);
+  box-shadow: inset -6px 0 14px rgba(0,0,0,0.06);
+  border-right: 1px solid rgba(0,0,0,0.06);
+}
+
+.book-page-right {
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.bookmark-nav {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 5;
+}
+
+.bookmark {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-left: 4px solid #1677FF;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #444;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .2s ease, background .2s ease;
+}
+.bookmark:hover { transform: translateX(2px); background: #fafafa; }
+.bookmark.active { background: #1677FF; color: #fff; border-color: #1677FF; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .book-world-frame {
+    grid-template-columns: 1fr;
+  }
+  .book-cover-left {
+    display: none;
+  }
+  .bookmark-nav {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    top: auto;
+    transform: none;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+    padding: 8px;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: saturate(120%) blur(8px);
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  .bookmark { flex: 1; text-align: center; }
+}
+

@@ -10,6 +10,7 @@ import {
 import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks, sendAuthCode, bindEmail, toggle2FA } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAccessibility } from "../contexts/AccessibilityContext";
+import { useMotionPref } from "../motion/MotionProvider";
 import PageContainer from "../components/common/PageContainer";
 import PageHeader from "../components/common/PageHeader";
 
@@ -24,6 +25,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const [modal, contextHolder] = Modal.useModal();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
+  const { motionEnabled, setMotionEnabled } = useMotionPref();
 
   // ✅ Fix: Use useCallback and ensure handleUpdate is available
   const handleUpdate = useCallback((updates) => {
@@ -482,6 +484,22 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                             <Text strong style={{ display: 'block', color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.language")}</Text>
                             <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorTextSecondary }}>{t("settings.languageDesc")}</Text>
                         </div>
+                    </Space>
+                  </Card>
+                  <Card 
+                    hoverable 
+                    style={{ 
+                      cursor: 'pointer', 
+                      borderColor: appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder, 
+                      background: appearance?.highContrast ? '#000' : token.colorBgContainer 
+                    }}
+                  >
+                    <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
+                      <div>
+                        <Text strong style={{ display: 'block', color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>Animations</Text>
+                        <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorTextSecondary }}>3D 翻页 / 共享元素 / 登录动画</Text>
+                      </div>
+                      <Switch checked={motionEnabled} onChange={(checked) => setMotionEnabled(checked)} />
                     </Space>
                   </Card>
                 </div>

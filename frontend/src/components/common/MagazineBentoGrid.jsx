@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, Typography, theme } from 'antd';
+import { SharedCover } from '../../motion/CardToDetailTransition';
 
 const { Title, Text } = Typography;
 const { useToken } = theme;
@@ -113,23 +114,25 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
                       boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
                     }}
                   >
-                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                      <div style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
-                        {item.coverNode}
+                    <SharedCover id={String(item.id || '')}>
+                      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                        <div style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
+                          {item.coverNode}
+                        </div>
+                        {item.coverImage ? (
+                          <img
+                            src={item.coverImage}
+                            alt={item.title}
+                            loading="lazy"
+                            decoding="async"
+                            srcSet={item.coverSrcSet || undefined}
+                            sizes={item.coverSizes || undefined}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', position: 'relative', zIndex: 1 }}
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        ) : null}
                       </div>
-                      {item.coverImage ? (
-                        <img
-                          src={item.coverImage}
-                          alt={item.title}
-                          loading="lazy"
-                          decoding="async"
-                          srcSet={item.coverSrcSet || undefined}
-                          sizes={item.coverSizes || undefined}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', position: 'relative', zIndex: 1 }}
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        />
-                      ) : null}
-                    </div>
+                    </SharedCover>
                   </div>
                 )}
                 <div

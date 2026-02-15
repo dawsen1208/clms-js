@@ -23,6 +23,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
 import EditorialSectionHeader from "../components/common/EditorialSectionHeader";
 import BookCoverPro from "../components/common/BookCoverPro";
+import { SharedCover } from "../motion/CardToDetailTransition";
 import { getCleanImageUrl } from "../utils/imageUtils";
 import StatCard from "../components/cards/StatCard";
 import ShimmerSkeleton from "../components/common/ShimmerSkeleton";
@@ -228,6 +229,7 @@ function BookDetail() {
           <div className="editorial-grid" style={{ alignItems: 'start' }}>
             {/* Left: Book Cover */}
             <div className="col-span-4" style={{ position: 'relative', zIndex: 1 }}>
+              <SharedCover id={String(id)}>
               <div style={{ 
                 boxShadow: '0 20px 40px rgba(0,0,0,0.15)', 
                 borderRadius: 8, 
@@ -274,6 +276,7 @@ function BookDetail() {
                   ) : null}
                 </div>
               </div>
+              </SharedCover>
             </div>
 
             {/* Right: Info & Actions */}

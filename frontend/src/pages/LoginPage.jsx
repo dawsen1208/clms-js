@@ -5,6 +5,7 @@ import { UserOutlined, LockOutlined, ArrowRightOutlined, GlobalOutlined } from "
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { login as apiLogin } from "../api";
+import LoginBookTransition from "./public/LoginPage/LoginBookTransition";
 
 const { Title, Paragraph, Text } = Typography;
 const { useToken } = theme;
@@ -21,14 +22,18 @@ const LoginPage = ({ onLogin }) => {
   const screens = useBreakpoint();
   const { t, language, setLanguage } = useLanguage();
 
+  const [animating, setAnimating] = useState(false);
   const handleLogin = async () => {
     setLoading(true);
+    setAnimating(true);
     try {
       if (!userId || !password) {
         message.error(t("login.errorEmpty"));
         setLoading(false);
+        setAnimating(false);
         return;
       }
+      const started = Date.now();
       const res = await apiLogin(userId, password);
       const data = res?.data || {};
       const tokenStr = data.token || data.accessToken || data.jwt || "";
@@ -40,7 +45,11 @@ const LoginPage = ({ onLogin }) => {
       if (!tokenStr || !normalizedUser) {
         throw new Error(data.message || t("login.errorToken"));
       }
-      onLogin(tokenStr, normalizedUser);
+      const spent = Date.now() - started;
+      const rest = Math.max(0, 900 - spent);
+      setTimeout(() => {
+        onLogin(tokenStr, normalizedUser);
+      }, rest);
       message.success(t("login.welcomeBack"));
       navigate(normalizedUser.role === "Administrator" ? "/admin/dashboard" : "/home");
     } catch (err) {
@@ -68,6 +77,7 @@ const LoginPage = ({ onLogin }) => {
       message.error(t(key));
     } finally {
       setLoading(false);
+      setAnimating(false);
     }
   };
 
@@ -82,6 +92,7 @@ const LoginPage = ({ onLogin }) => {
       background: "#FAF9F6", // Warm paper background
       fontFamily: "'Inter', sans-serif"
     }}>
+      <LoginBookTransition running={animating} />
       {/* 🎨 Left Side - Editorial / Brand */}
       <div style={{
         flex: screens.md ? "0 0 45%" : "0 0 0",

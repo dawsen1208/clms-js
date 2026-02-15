@@ -19,6 +19,8 @@ import { Spin } from "antd";
 const LayoutMenu = React.lazy(() => import("./layouts/LayoutMenu/LayoutMenu"));
 const AdminMenu = React.lazy(() => import("./layouts/AdminMenu/AdminMenu"));
 import { PublicRoutes, ReaderRoutes, AdminRoutes } from "./app/routes";
+import BookWorldLayout from "./layouts/BookWorldLayout/BookWorldLayout";
+import { MotionProvider } from "./motion/MotionProvider";
 
 const PageLoading = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -268,9 +270,9 @@ function App() {
   // ✅ Layout Wrappers
   const UserLayoutWrapper = ({ children }) => (
     <PrivateRoute>
-      <LayoutMenu onLogout={handleLogout}>
+      <BookWorldLayout>
         {children}
-      </LayoutMenu>
+      </BookWorldLayout>
     </PrivateRoute>
   );
 
@@ -357,7 +359,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <LanguageProvider>
         <AccessibilityProvider>
           <BrowserRouter>
-            <App />
+            <MotionProvider>
+              <App />
+            </MotionProvider>
           </BrowserRouter>
         </AccessibilityProvider>
       </LanguageProvider>
