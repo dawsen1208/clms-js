@@ -5,6 +5,7 @@ import "./bookWorld.css";
 import { BookmarkNav } from "./BookmarkNav";
 import { PageFlipController } from "../../motion/PageFlipController";
 import { BookZoomToDetail } from "../../motion/BookZoomToDetail";
+import { getPageSpread } from "./PageSpread";
 
 const routes = [
   { key: "home", path: "/home", label: "Home" },
@@ -43,16 +44,13 @@ const BookWorldLayout: React.FC<BookWorldLayoutProps> = ({
   const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
 
-  const resolvedLeft =
-    left ||
-    (
-      <div className="book-placeholder">
-        <div className="book-placeholder-title">Tips</div>
-        <div className="book-placeholder-body">
-          Use bookmarks to navigate between sections.
-        </div>
-      </div>
-    );
+  const spread = getPageSpread({
+    routeKey: currentKey,
+    children: right || children,
+  });
+
+  const resolvedLeft = left ?? spread.left;
+  const resolvedRight = right ?? spread.right;
 
   return (
     <div className="bw-root">
@@ -70,7 +68,7 @@ const BookWorldLayout: React.FC<BookWorldLayoutProps> = ({
             <PageFlipController
               routeKey={currentKey}
               left={resolvedLeft}
-              right={right || children}
+              right={resolvedRight}
             />
           </div>
         </BookZoomToDetail>

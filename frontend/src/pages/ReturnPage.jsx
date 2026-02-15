@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { Button, message, Tag, Typography, theme, Row, Col, Empty, List } from "antd";
+import { Button, message, Tag, Typography, theme, Row, Col, Empty, List, Card, Space } from "antd";
 import { ReloadOutlined, ClockCircleOutlined, CheckCircleOutlined, BookOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +12,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 
 const { Text, Title } = Typography;
 
-function ReturnPage() {
+const useReturnData = () => {
   const { t } = useLanguage();
   const { token } = theme.useToken();
   const navigate = useNavigate();
@@ -61,6 +61,108 @@ function ReturnPage() {
     const current = total - returned;
     return { total, returned, current };
   }, [history]);
+  
+  return {
+    t,
+    token,
+    navigate,
+    history,
+    loading,
+    stats,
+    fetchHistory,
+  };
+};
+
+export const ReturnLeftPanel = () => {
+  const { t, token, navigate, history, loading, stats, fetchHistory } = useReturnData();
+  const last = history[0];
+  return (
+    <div style={{ padding: 24, height: "100%", display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <Title level={3} style={{ marginBottom: 8, fontFamily: "'Literata', serif" }}>
+          {t("nav.borrowHistory") || "Reading History"}
+        </Title>
+        <Text type="secondary">
+          {t("history.subtitle") || "A timeline of your literary journey."}
+        </Text>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
+        <StatCard 
+          title="Books Read" 
+          value={stats.total} 
+          trend={12}
+          trendLabel="this year"
+          color={token.colorPrimary}
+          loading={loading}
+        />
+        <StatCard 
+          title="Currently Reading" 
+          value={stats.current} 
+          trend={0}
+          trendLabel="active loans"
+          color={token.colorWarning}
+          loading={loading}
+        />
+        <StatCard 
+          title="Returned" 
+          value={stats.returned} 
+          trend={5}
+          trendLabel="completed"
+          color={token.colorSuccess}
+          loading={loading}
+        />
+      </div>
+      <div style={{ marginTop: 8 }}>
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          Quick Actions
+        </Text>
+        <Space style={{ marginTop: 8 }} wrap>
+          <Button icon={<ReloadOutlined />} onClick={fetchHistory}>
+            {t("common.refresh")}
+          </Button>
+          <Button type="default" icon={<BookOutlined />} onClick={() => navigate('/search')}>
+            Browse Library
+          </Button>
+        </Space>
+      </div>
+      {last && (
+        <div style={{ marginTop: "auto" }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            Latest Activity
+          </Text>
+          <Card bordered={false} style={{ marginTop: 8, borderRadius: 12, boxShadow: '0 8px 20px rgba(0,0,0,0.06)' }}>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+              <div style={{ flexShrink: 0 }}>
+                <BookCoverPro 
+                  title={last.title || 'Unknown'} 
+                  author={last.author || 'Unknown'} 
+                  width={60} 
+                  height={90} 
+                  baseColor={stringToWarmColor(last.title || 'U')}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <Title level={5} style={{ margin: 0 }}>{last.title || 'Unknown Book'}</Title>
+                <Text type="secondary">{last.author || 'Unknown Author'}</Text>
+                <div style={{ marginTop: 6 }}>
+                  <Tag color={(last.action === 'return' || last.returnDate) ? "success" : "warning"}>
+                    {(last.action === 'return' || last.returnDate) ? "Returned" : "Borrowed"}
+                  </Tag>
+                  <Text type="secondary" style={{ marginLeft: 8 }}>
+                    {dayjs(last.date || last.createdAt).format("MMM D, YYYY")}
+                  </Text>
+                </div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const ReturnRightPanel = () => {
+  const { t, token, navigate, history, loading, stats, fetchHistory } = useReturnData();
 
   return (
     <EditorialPageShell
@@ -84,7 +186,6 @@ function ReturnPage() {
     >
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px 64px' }}>
         
-        {/* 1. Stats Row */}
         <Row gutter={[24, 24]} style={{ marginBottom: 48 }}>
            <Col xs={24} sm={8}>
              <StatCard 
@@ -118,7 +219,6 @@ function ReturnPage() {
            </Col>
         </Row>
 
-        {/* 2. Timeline / Grid */}
         <Title level={3} style={{ fontFamily: "'Literata', serif", marginBottom: 32 }}>Activity Log</Title>
         
         {history.length > 0 ? (
@@ -222,6 +322,10 @@ function ReturnPage() {
       </div>
     </EditorialPageShell>
   );
+};
+
+function ReturnPage() {
+  return <ReturnRightPanel />;
 }
 
 export default ReturnPage;

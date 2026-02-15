@@ -37,12 +37,54 @@ import {
 import { getBookComparison, getBooksLibrary } from "../api.js";
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
 import RadarChart from "../components/RadarChart.jsx";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import PageContainer from "../components/common/PageContainer";
 import PageHeader from "../components/common/PageHeader";
 
 const { useBreakpoint } = Grid;
+
+export const AssistantLeftPanel = () => {
+  const { t } = useLanguage();
+  const navigate = useNavigate();
+  return (
+    <div style={{ padding: 24, height: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
+      <Typography.Title level={3} style={{ fontFamily: "'Literata', serif", marginBottom: 8 }}>
+        {t("assistant.title")}
+      </Typography.Title>
+      <Typography.Paragraph type="secondary">
+        {t("assistant.subTitle")}
+      </Typography.Paragraph>
+      <Card bordered={false} style={{ borderRadius: 12 }}>
+        <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+          {t("assistant.tips") || "Tips"}
+        </Typography.Text>
+        <List
+          size="small"
+          dataSource={[
+            t("assistant.tipAsk") || "Ask for book recommendations based on your history.",
+            t("assistant.tipCompare") || "Compare multiple books to decide faster.",
+            t("assistant.tipBorrow") || "Borrow directly from recommendations.",
+          ]}
+          renderItem={(it) => <List.Item style={{ padding: '8px 0' }}>• {it}</List.Item>}
+        />
+      </Card>
+      <div style={{ marginTop: 'auto' }}>
+        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+          Quick Links
+        </Typography.Text>
+        <Space direction="vertical" style={{ width: '100%', marginTop: 8 }}>
+          <Button icon={<SearchOutlined />} onClick={() => navigate('/search')} block>
+            {t("nav.search")}
+          </Button>
+          <Button icon={<BookOutlined />} onClick={() => navigate('/borrow')} block>
+            {t("nav.myBooks")}
+          </Button>
+        </Space>
+      </div>
+    </div>
+  );
+};
 
 function SmartAssistant() {
   const { t, language } = useLanguage();

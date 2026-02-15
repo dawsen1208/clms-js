@@ -1,6 +1,5 @@
 import React from "react";
 import { Route } from "react-router-dom";
-import { SearchLeftPanel, SearchRightPanel } from "../../pages/SearchPage";
 
 const HomePage = React.lazy(() => import("../../pages/HomePage"));
 const SearchPage = React.lazy(() => import("../../pages/SearchPage"));
@@ -16,17 +15,7 @@ const SettingsPage = React.lazy(() => import("../../pages/SettingsPage"));
 export const ReaderRoutes = ({ UserLayoutWrapper, appearance, user, setAppearance, setUser }) => (
   <>
     <Route path="/home" element={<UserLayoutWrapper><HomePage appearance={appearance} /></UserLayoutWrapper>} />
-    <Route
-      path="/search"
-      element={
-        <UserLayoutWrapper
-          left={<SearchLeftPanel />}
-          right={<SearchRightPanel />}
-        >
-          <SearchPage appearance={appearance} />
-        </UserLayoutWrapper>
-      }
-    />
+    <Route path="/search" element={<UserLayoutWrapper><SearchPage appearance={appearance} /></UserLayoutWrapper>} />
     <Route path="/borrow" element={<UserLayoutWrapper><BorrowPage appearance={appearance} /></UserLayoutWrapper>} />
     <Route path="/return" element={<UserLayoutWrapper><ReturnPage appearance={appearance} /></UserLayoutWrapper>} />
     <Route path="/profile" element={<UserLayoutWrapper><ProfilePage user={user} appearance={appearance} /></UserLayoutWrapper>} />

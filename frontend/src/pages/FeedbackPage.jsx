@@ -36,6 +36,76 @@ const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
 const { Option } = Select;
 
+export const FeedbackLeftPanel = () => {
+  const { t } = useLanguage();
+  const { token } = theme.useToken();
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const tokenAuth = sessionStorage.getItem("token") || localStorage.getItem("token");
+
+  const fetchFeedbacks = useCallback(async () => {
+    if (!tokenAuth) return;
+    try {
+      setLoading(true);
+      const res = await getMyFeedback(tokenAuth);
+      setFeedbacks(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch feedback overview:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [tokenAuth]);
+
+  useEffect(() => {
+    fetchFeedbacks();
+  }, [fetchFeedbacks]);
+
+  const total = feedbacks.length;
+  const openCount = feedbacks.filter(f => f.status !== "Replied").length;
+  const repliedCount = feedbacks.filter(f => f.status === "Replied").length;
+
+  return (
+    <div className="bw-scroll">
+      <div style={{ marginBottom: 24 }}>
+        <Title level={3} style={{ fontFamily: "'Literata', serif", marginBottom: 8 }}>
+          {t("feedback.overviewTitle") || "Feedback Snapshot"}
+        </Title>
+        <Text type="secondary">
+          {t("feedback.overviewDesc") || "Track your submissions and replies from the library."}
+        </Text>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
+        <Card 
+          size="small" 
+          style={{ borderRadius: 12, borderColor: token.colorBorderSecondary }}
+          title={<span><MessageOutlined /> {t("feedback.total") || "Total feedback"}</span>}
+        >
+          <Title level={3} style={{ margin: 0 }}>{total}</Title>
+        </Card>
+        <Card 
+          size="small" 
+          style={{ borderRadius: 12, borderColor: token.colorWarning }}
+          title={<span><SyncOutlined /> {t("feedback.open") || "Open"}</span>}
+        >
+          <Title level={4} style={{ margin: 0, color: token.colorWarning }}>{openCount}</Title>
+        </Card>
+        <Card 
+          size="small" 
+          style={{ borderRadius: 12, borderColor: token.colorSuccess }}
+          title={<span><CheckCircleOutlined /> {t("feedback.closed") || "Closed"}</span>}
+        >
+          <Title level={4} style={{ margin: 0, color: token.colorSuccess }}>{repliedCount}</Title>
+        </Card>
+      </div>
+      {loading && (
+        <div style={{ marginTop: 12, textAlign: "center" }}>
+          <Spin size="small" />
+        </div>
+      )}
+    </div>
+  );
+};
+
 function FeedbackPage() {
   const { t } = useLanguage();
   const { token } = theme.useToken();

@@ -6,7 +6,9 @@ import {
   Modal, 
   message,
   Skeleton,
-  theme
+  theme,
+  Button,
+  Card
 } from "antd";
 import { 
   ClockCircleOutlined, 
@@ -31,7 +33,7 @@ import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from ".
 
 const { Title } = Typography;
 
-const BorrowPage = () => {
+const useBorrowData = () => {
   const { t } = useLanguage();
   const { token } = theme.useToken();
   const navigate = useNavigate();
@@ -142,61 +144,159 @@ const BorrowPage = () => {
     return { total, pending, overdue };
   }, [borrowedBooks, pendingRequests]);
 
+  return {
+    t,
+    token,
+    navigate,
+    modal,
+    contextHolder,
+    loading,
+    borrowedBooks,
+    pendingRequests,
+    renewModalOpen,
+    selectedBook,
+    stats,
+    setRenewModalOpen,
+    setSelectedBook,
+    handleRenewClick,
+    submitRenew,
+    getRequestStatus,
+  };
+};
+
+export const BorrowLeftPanel = () => {
+  const {
+    t,
+    token,
+    loading,
+    borrowedBooks,
+    pendingRequests,
+    stats,
+    navigate,
+  } = useBorrowData();
+
+  const sampleBook = borrowedBooks[0];
+
+  return (
+    <div style={{ padding: 24, height: "100%", display: "flex", flexDirection: "column", gap: 24 }}>
+      <div>
+        <Title level={3} style={{ marginBottom: 8, fontFamily: "'Literata', serif" }}>
+          {t("titles.myBorrowings") || "My Library"}
+        </Title>
+        <Typography.Text type="secondary">
+          {t("history.subtitle") || "Keep an eye on your current loans and deadlines."}
+        </Typography.Text>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16 }}>
+        <StatCard
+          title={t("common.activeLoans") || "Active Loans"}
+          value={stats.total}
+          loading={loading}
+          trend={12}
+          trendLabel="Active"
+        />
+        <StatCard
+          title={t("common.pendingRequests") || "Pending Requests"}
+          value={stats.pending}
+          loading={loading}
+          color={token.colorWarning}
+          trend={0}
+          trendLabel="Processing"
+        />
+        <StatCard
+          title={t("common.overdueBooks") || "Overdue"}
+          value={stats.overdue}
+          loading={loading}
+          color={token.colorError}
+          trend={-stats.overdue * 10}
+          trendLabel="Need Attention"
+        />
+      </div>
+
+      <div style={{ marginTop: 8 }}>
+        <Typography.Text type="secondary" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>
+          Shortcuts
+        </Typography.Text>
+        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+          <Button icon={<BookOutlined />} onClick={() => navigate("/search")} block>
+            Browse Collection
+          </Button>
+          <Button icon={<ClockCircleOutlined />} onClick={() => navigate("/return")} block>
+            View History
+          </Button>
+        </div>
+      </div>
+
+      {sampleBook && (
+        <div style={{ marginTop: "auto" }}>
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            Next due
+          </Typography.Text>
+          <Card
+            bordered={false}
+            style={{
+              marginTop: 8,
+              borderRadius: 14,
+              background: token.colorBgContainer,
+              boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
+            }}
+          >
+            <LoanCard
+              compact
+              book={{
+                ...sampleBook,
+                pendingType: pendingRequests.find(
+                  (r) =>
+                    (r.bookId === sampleBook._id || r.bookId === sampleBook.id) &&
+                    r.status === "pending"
+                )?.type,
+              }}
+            />
+          </Card>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const BorrowRightPanel = () => {
+  const {
+    t,
+    navigate,
+    contextHolder,
+    loading,
+    borrowedBooks,
+    renewModalOpen,
+    selectedBook,
+    setRenewModalOpen,
+    handleRenewClick,
+    submitRenew,
+    getRequestStatus,
+  } = useBorrowData();
+
   return (
     <EditorialPageShell
       title="My Library"
       subtitle="Manage your borrowed books and track due dates."
       breadcrumbItems={[
         { title: t("nav.home"), path: "/" },
-        { title: t("nav.myBooks") }
+        { title: t("nav.myBooks") },
       ]}
     >
       {contextHolder}
-
-      {/* Stats Row */}
-      <Row gutter={[24, 24]} style={{ marginBottom: 48 }}>
-        <Col xs={24} sm={8}>
-          <StatCard 
-            title={t("common.activeLoans") || "Active Loans"} 
-            value={stats.total} 
-            loading={loading}
-            trend={12}
-            trendLabel="Active Readings"
-          />
-        </Col>
-        <Col xs={24} sm={8}>
-           <StatCard 
-            title={t("common.pendingRequests") || "Pending"} 
-            value={stats.pending} 
-            loading={loading}
-            color={token.colorWarning}
-            trend={0}
-            trendLabel="Processing"
-          />
-        </Col>
-        <Col xs={24} sm={8}>
-           <StatCard 
-            title={t("common.overdueBooks") || "Overdue"} 
-            value={stats.overdue} 
-            loading={loading}
-            color={token.colorError}
-            trend={-stats.overdue * 10}
-            trendLabel="Needs Attention"
-          />
-        </Col>
-      </Row>
 
       <Section title={t("titles.currentBorrowings") || "Active Loans"} style={{ marginTop: 0 }}>
         {loading ? (
           <Skeleton active paragraph={{ rows: 4 }} />
         ) : borrowedBooks.length > 0 ? (
           <Row gutter={[24, 24]}>
-            {borrowedBooks.map(book => (
+            {borrowedBooks.map((book) => (
               <Col span={24} key={book._id || book.id}>
-                <LoanCard 
+                <LoanCard
                   book={{
                     ...book,
-                    pendingType: getRequestStatus(book._id || book.id)
+                    pendingType: getRequestStatus(book._id || book.id),
                   }}
                   onRenew={handleRenewClick}
                 />
@@ -204,17 +304,16 @@ const BorrowPage = () => {
             ))}
           </Row>
         ) : (
-          <EmptyStateWarm 
-            title="No Active Loans" 
-            description="You haven't borrowed any books yet. Explore our collection to find something new!" 
+          <EmptyStateWarm
+            title="No Active Loans"
+            description="You haven't borrowed any books yet. Explore our collection to find something new!"
             actionLabel="Browse Books"
-            onAction={() => navigate('/search')}
+            onAction={() => navigate("/search")}
             icon={<BookOutlined />}
           />
         )}
       </Section>
 
-      {/* Renew Modal */}
       <Modal
         title="Renew Book"
         open={renewModalOpen}
@@ -223,11 +322,18 @@ const BorrowPage = () => {
         okText="Confirm Renewal"
         centered
       >
-        <p>Would you like to request a renewal for <strong>{selectedBook?.title}</strong>?</p>
+        <p>
+          Would you like to request a renewal for{" "}
+          <strong>{selectedBook?.title}</strong>?
+        </p>
         <p>This will extend the due date by 7 days pending approval.</p>
       </Modal>
     </EditorialPageShell>
   );
+};
+
+const BorrowPage = () => {
+  return <BorrowRightPanel />;
 };
 
 export default BorrowPage;

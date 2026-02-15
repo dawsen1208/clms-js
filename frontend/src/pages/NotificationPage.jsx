@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { List, Typography, Spin, Empty, Button, message, Tag } from "antd";
+import { List, Typography, Spin, Empty, Button, message, Tag, Card } from "antd";
 import {
   BellOutlined,
   CheckCircleOutlined,
@@ -13,6 +13,81 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { useAccessibility } from "../contexts/AccessibilityContext";
 
 const { Title, Text } = Typography;
+
+export const NotificationLeftPanel = () => {
+  const { t } = useLanguage();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+
+  const fetchAllNotifications = useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const res = await getNotifications(token);
+      setNotifications(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch notifications overview", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchAllNotifications();
+  }, [fetchAllNotifications]);
+
+  const total = notifications.length;
+  const unread = notifications.filter(n => !n.isRead).length;
+  const feedback = notifications.filter(n => n.type === "feedback_reply").length;
+
+  return (
+    <div className="bw-scroll">
+      <div style={{ marginBottom: 24 }}>
+        <Title level={3} style={{ fontFamily: "'Literata', serif", marginBottom: 8 }}>
+          {t("notifications.overviewTitle") || "Inbox Snapshot"}
+        </Title>
+        <Text type="secondary">
+          {t("notifications.overviewDesc") || "Unread reminders and reply highlights at a glance."}
+        </Text>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16, marginBottom: 24 }}>
+        <Card size="small" bordered>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>
+              <BellOutlined style={{ marginRight: 8 }} />
+              {t("notifications.total") || "Total"}
+            </span>
+            <Tag>{total}</Tag>
+          </div>
+        </Card>
+        <Card size="small" bordered>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>
+              <CloseCircleOutlined style={{ marginRight: 8, color: "#faad14" }} />
+              {t("notifications.unread") || "Unread"}
+            </span>
+            <Tag color={unread > 0 ? "orange" : "default"}>{unread}</Tag>
+          </div>
+        </Card>
+        <Card size="small" bordered>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span>
+              <MessageOutlined style={{ marginRight: 8, color: "#1890ff" }} />
+              {t("notifications.feedbackReplies") || "Feedback replies"}
+            </span>
+            <Tag color={feedback > 0 ? "blue" : "default"}>{feedback}</Tag>
+          </div>
+        </Card>
+      </div>
+      {loading && (
+        <div style={{ textAlign: "center" }}>
+          <Spin size="small" />
+        </div>
+      )}
+    </div>
+  );
+};
 
 const NotificationPage = () => {
   const { t } = useLanguage();

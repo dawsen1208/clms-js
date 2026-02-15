@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { 
   Card, Typography, Tag, List, Empty, Button, message, 
-  Row, Col, Space, Divider, Avatar, Rate, Modal, Progress, Tooltip, theme, Grid 
+  Row, Col, Space, Divider, Avatar, Rate, Modal, Progress, Tooltip, theme 
 } from "antd";
 import { 
   BookOutlined, 
@@ -30,12 +30,9 @@ import ShimmerSkeleton from "../components/common/ShimmerSkeleton";
 
 const { Title, Text, Paragraph } = Typography;
 
-const { useBreakpoint } = Grid;
-
-function BookDetail() {
+export const useBookDetailData = () => {
   const { t } = useLanguage();
   const { token } = theme.useToken();
-  const screens = useBreakpoint();
   const { id } = useParams();
   const navigate = useNavigate();
   const [modal, contextHolder] = Modal.useModal();
@@ -156,27 +153,6 @@ function BookDetail() {
     });
   };
 
-  if (loading) return (
-    <EditorialPageShell>
-      <div style={{ padding: 48 }}>
-         <ShimmerSkeleton height={400} style={{ marginBottom: 32 }} />
-         <ShimmerSkeleton height={200} />
-      </div>
-    </EditorialPageShell>
-  );
-
-  if (error) return (
-    <EditorialPageShell>
-      <Empty description={t("bookDetail.failedToLoad").replace("{error}", error)} />
-    </EditorialPageShell>
-  );
-
-  if (!book) return (
-    <EditorialPageShell>
-      <Empty description={t("bookDetail.notFound")} />
-    </EditorialPageShell>
-  );
-
   const canReview = eligible && !hasReviewed;
 
   // TODO: Mock Data for "Community Reading Progress" (Bonus Package)
@@ -188,6 +164,385 @@ function BookDetail() {
     completionRate: 85,
     topTags: ["Mind-blowing", "Must read", "Classic"]
   };
+
+  return {
+    t,
+    token,
+    id,
+    navigate,
+    modal,
+    contextHolder,
+    backText,
+    book,
+    loading,
+    error,
+    eligible,
+    hasReviewed,
+    reviewOpen,
+    setBook,
+    setHasReviewed,
+    setReviewOpen,
+    isBorrowed,
+    actionLoading,
+    handleBorrow,
+    handleShare,
+    canReview,
+    readingStats,
+  };
+};
+
+export const BookDetailLeft = () => {
+  const {
+    t,
+    token,
+    id,
+    navigate,
+    backText,
+    book,
+    loading,
+    error,
+    handleBorrow,
+    handleShare,
+    isBorrowed,
+    actionLoading,
+    readingStats,
+  } = useBookDetailData();
+
+  if (loading) {
+    return (
+      <div style={{ padding: 32 }}>
+        <ShimmerSkeleton height={320} style={{ marginBottom: 24 }} />
+        <ShimmerSkeleton height={120} />
+      </div>
+    );
+  }
+
+  if (error || !book) {
+    return (
+      <div style={{ padding: 32 }}>
+        <Empty description={error || t("bookDetail.notFound")} />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ height: "100%", overflowY: "auto" }}>
+      <div style={{ 
+        background: "#FAF9F6",
+        padding: "32px 24px 40px",
+        borderBottom: "1px solid rgba(0,0,0,0.05)",
+        position: "relative",
+        overflow: "hidden",
+      }}>
+        <div style={{ maxWidth: 540, margin: "0 auto" }}>
+          <div style={{ marginBottom: 16 }}>
+            <Button onClick={() => navigate("/search")}>{backText}</Button>
+          </div>
+          <SharedCover id={String(id)}>
+            <div
+              style={{
+                boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+                borderRadius: 8,
+                overflow: "hidden",
+                background: "#fff",
+                transform: "rotate(-2deg)",
+                transition: "transform 0.3s ease",
+                cursor: "default",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "rotate(0deg) scale(1.02)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "rotate(-2deg)")
+              }
+            >
+              <div style={{ position: "relative", width: "100%", height: "auto" }}>
+                <div style={{ position: "absolute", inset: 0 }} aria-hidden="true">
+                  <BookCoverPro
+                    title={book.title}
+                    author={book.author}
+                    width={360}
+                    height={540}
+                    style="serif"
+                    baseColor={token.colorPrimary}
+                    className="w-full h-auto"
+                  />
+                </div>
+                {book.coverImage ? (
+                  <img
+                    src={getCleanImageUrl(book.coverImage)}
+                    alt={book.title}
+                    loading="lazy"
+                    decoding="async"
+                    srcSet={
+                      book.coverImageSet
+                        ? [
+                            book.coverImageSet.w160
+                              ? `${book.coverImageSet.w160} 160w`
+                              : null,
+                            book.coverImageSet.w240
+                              ? `${book.coverImageSet.w240} 240w`
+                              : null,
+                            book.coverImageSet.w360
+                              ? `${book.coverImageSet.w360} 360w`
+                              : null,
+                          ]
+                            .filter(Boolean)
+                            .join(", ")
+                        : undefined
+                    }
+                    sizes="(min-width: 1200px) 400px, (min-width: 768px) 320px, 60vw"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      display: "block",
+                      position: "relative",
+                      zIndex: 1,
+                    }}
+                  />
+                ) : null}
+              </div>
+            </div>
+          </SharedCover>
+        </div>
+      </div>
+
+      <div style={{ padding: "24px 24px 40px" }}>
+        <Space direction="vertical" size={24} style={{ width: "100%" }}>
+          <div>
+            <Space wrap size="small" style={{ marginBottom: 16 }}>
+              <Tag
+                color="transparent"
+                style={{
+                  border: `1px solid ${token.colorPrimary}`,
+                  color: token.colorPrimary,
+                }}
+              >
+                {book.category}
+              </Tag>
+              {book.publishDate && (
+                <Tag color="default" style={{ background: "transparent" }}>
+                  {dayjs(book.publishDate).format("YYYY")}
+                </Tag>
+              )}
+              {book.rating > 4.5 && (
+                <Tag
+                  color="#E8B86D"
+                  style={{ color: "#fff", border: "none" }}
+                >
+                  <FireOutlined /> Top Rated
+                </Tag>
+              )}
+            </Space>
+
+            <Title
+              level={2}
+              style={{
+                fontFamily: "'Literata', serif",
+                margin: 0,
+                lineHeight: 1.1,
+                color: token.colorTextHeading,
+              }}
+            >
+              {book.title}
+            </Title>
+            <Text
+              style={{
+                fontSize: "1.1rem",
+                color: token.colorTextSecondary,
+                display: "block",
+                marginTop: 8,
+                fontFamily: "'Inter', sans-serif",
+              }}
+            >
+              by{" "}
+              <span
+                style={{ color: token.colorPrimary, fontWeight: 500 }}
+              >
+                {book.author}
+              </span>
+            </Text>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <Rate
+              disabled
+              allowHalf
+              value={book.rating || 0}
+              style={{ color: token.colorWarning, fontSize: 18 }}
+            />
+            <Divider type="vertical" />
+            <Space>
+              <ReadOutlined />{" "}
+              <Text>{`stock: ${
+                book.available_copies ?? book.copies ?? 0
+              }/${book.total_copies ??
+                book.totalCopies ??
+                book.total ??
+                book.copies ??
+                0}`}</Text>
+            </Space>
+            <Divider type="vertical" />
+            <Space>
+              <TeamOutlined />{" "}
+              <Text>{readingStats.readersNow} Reading</Text>
+            </Space>
+          </div>
+
+          <Paragraph
+            style={{
+              fontSize: "1rem",
+              lineHeight: 1.7,
+              color: token.colorText,
+              fontFamily: "'Literata', serif",
+            }}
+            ellipsis={{
+              rows: 5,
+              expandable: true,
+              symbol: "Read more",
+            }}
+          >
+            {book.description || t("bookDetail.noDescription")}
+          </Paragraph>
+
+          <div
+            style={{
+              marginTop: 8,
+              padding: 20,
+              background: "#fff",
+              borderRadius: 12,
+              boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+              border: "1px solid rgba(0,0,0,0.05)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+            }}
+          >
+            <div>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Availability
+              </Text>
+              <div style={{ fontSize: 18, fontWeight: 600 }}>
+                {`stock: ${
+                  book.available_copies ?? book.copies ?? 0
+                }/${book.total_copies ??
+                  book.totalCopies ??
+                  book.total ??
+                  book.copies ??
+                  0}`}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 12,
+              }}
+            >
+              <Button
+                size="middle"
+                icon={<ShareAltOutlined />}
+                onClick={handleShare}
+              >
+                Share
+              </Button>
+
+              {isBorrowed ? (
+                <Button
+                  size="middle"
+                  disabled
+                  icon={<CheckCircleOutlined />}
+                  style={{
+                    background: `${token.colorSuccess}15`,
+                    borderColor: `${token.colorSuccess}40`,
+                    color: token.colorSuccess,
+                    minWidth: 140,
+                  }}
+                >
+                  Borrowed
+                </Button>
+              ) : (
+                <Button
+                  type="primary"
+                  size="middle"
+                  loading={actionLoading}
+                  disabled={
+                    (book.copies ?? book.available_copies ?? 0) <= 0
+                  }
+                  onClick={handleBorrow}
+                  style={{
+                    minWidth: 160,
+                    height: 44,
+                    fontSize: 15,
+                    background:
+                      (book.copies ?? book.available_copies ?? 0) > 0
+                        ? token.colorPrimary
+                        : token.colorBorder,
+                  }}
+                  icon={<BookOutlined />}
+                >
+                  {(book.copies ?? book.available_copies ?? 0) > 0
+                    ? "Borrow Now"
+                    : "Out of Stock"}
+                </Button>
+              )}
+            </div>
+          </div>
+        </Space>
+      </div>
+    </div>
+  );
+};
+
+export const BookDetailRight = () => {
+  const {
+    t,
+    token,
+    id,
+    book,
+    loading,
+    error,
+    canReview,
+    reviewOpen,
+    setReviewOpen,
+    readingStats,
+    contextHolder,
+    setBook,
+    setHasReviewed,
+  } = useBookDetailData();
+
+  if (loading) {
+    return (
+      <EditorialPageShell>
+        <div style={{ padding: 48 }}>
+          <ShimmerSkeleton height={400} style={{ marginBottom: 32 }} />
+          <ShimmerSkeleton height={200} />
+        </div>
+      </EditorialPageShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <EditorialPageShell>
+        <Empty
+          description={t("bookDetail.failedToLoad").replace("{error}", error)}
+        />
+      </EditorialPageShell>
+    );
+  }
+
+  if (!book) {
+    return (
+      <EditorialPageShell>
+        <Empty description={t("bookDetail.notFound")} />
+      </EditorialPageShell>
+    );
+  }
 
   return (
     <EditorialPageShell
@@ -201,203 +556,7 @@ function BookDetail() {
       noPadding
     >
       {contextHolder}
-      
-      {/* 1. Immersive Hero Section */}
-      <div style={{ 
-        background: '#FAF9F6', 
-        padding: '64px 24px', 
-        borderBottom: '1px solid rgba(0,0,0,0.05)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Background Texture/Shape */}
-        <div style={{
-          position: 'absolute',
-          top: -100,
-          right: -100,
-          width: 600,
-          height: 600,
-          background: 'radial-gradient(circle, rgba(166, 93, 87, 0.05) 0%, rgba(255,255,255,0) 70%)',
-          borderRadius: '50%',
-          pointerEvents: 'none'
-        }} />
 
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ marginBottom: 16 }}>
-            <Button onClick={() => navigate('/search')}>{backText}</Button>
-          </div>
-          <div className="editorial-grid" style={{ alignItems: 'start' }}>
-            {/* Left: Book Cover */}
-            <div className="col-span-4" style={{ position: 'relative', zIndex: 1 }}>
-              <SharedCover id={String(id)}>
-              <div style={{ 
-                boxShadow: '0 20px 40px rgba(0,0,0,0.15)', 
-                borderRadius: 8, 
-                overflow: 'hidden',
-                background: '#fff',
-                transform: 'rotate(-2deg)',
-                transition: 'transform 0.3s ease',
-                cursor: 'default'
-              }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'rotate(0deg) scale(1.02)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'rotate(-2deg)'}
-              >
-                <div style={{ position: 'relative', width: '100%', height: 'auto' }}>
-                  <div style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
-                    <BookCoverPro 
-                      title={book.title} 
-                      author={book.author} 
-                      width={400} 
-                      height={600} 
-                      style="serif"
-                      baseColor={token.colorPrimary}
-                      className="w-full h-auto"
-                    />
-                  </div>
-                  {book.coverImage ? (
-                    <img
-                      src={getCleanImageUrl(book.coverImage)}
-                      alt={book.title}
-                      loading="lazy"
-                      decoding="async"
-                      srcSet={
-                        book.coverImageSet
-                          ? [
-                              book.coverImageSet.w160 ? `${book.coverImageSet.w160} 160w` : null,
-                              book.coverImageSet.w240 ? `${book.coverImageSet.w240} 240w` : null,
-                              book.coverImageSet.w360 ? `${book.coverImageSet.w360} 360w` : null
-                            ].filter(Boolean).join(', ')
-                          : undefined
-                      }
-                      sizes="(min-width: 1200px) 400px, (min-width: 768px) 320px, 60vw"
-                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                      style={{ width: '100%', height: 'auto', display: 'block', position: 'relative', zIndex: 1 }}
-                    />
-                  ) : null}
-                </div>
-              </div>
-              </SharedCover>
-            </div>
-
-            {/* Right: Info & Actions */}
-            <div className="col-span-8" style={{ 
-              paddingLeft: screens.md ? 48 : 0, 
-              paddingTop: screens.md ? 24 : 32 
-            }}>
-              <Space direction="vertical" size={24} style={{ width: '100%' }}>
-                <div>
-                  <Space wrap size="small" style={{ marginBottom: 16 }}>
-                    <Tag color="transparent" style={{ border: `1px solid ${token.colorPrimary}`, color: token.colorPrimary }}>{book.category}</Tag>
-                    {book.publishDate && <Tag color="default" style={{ background: 'transparent' }}>{dayjs(book.publishDate).format('YYYY')}</Tag>}
-                    {book.rating > 4.5 && <Tag color="#E8B86D" style={{ color: '#fff', border: 'none' }}><FireOutlined /> Top Rated</Tag>}
-                  </Space>
-                  
-                  <Title level={1} style={{ 
-                    fontFamily: "'Literata', serif", 
-                    fontSize: '3.5rem', 
-                    margin: 0, 
-                    lineHeight: 1.1,
-                    color: token.colorTextHeading
-                  }}>
-                    {book.title}
-                  </Title>
-                  <Text style={{ 
-                    fontSize: '1.25rem', 
-                    color: token.colorTextSecondary, 
-                    display: 'block', 
-                    marginTop: 12,
-                    fontFamily: "'Inter', sans-serif" 
-                  }}>
-                    by <span style={{ color: token.colorPrimary, fontWeight: 500 }}>{book.author}</span>
-                  </Text>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-                  <Rate disabled allowHalf value={book.rating || 0} style={{ color: token.colorWarning, fontSize: 20 }} />
-                  <Divider type="vertical" />
-                  <Space>
-                    <ReadOutlined /> <Text>{`stock: ${(book.available_copies ?? book.copies ?? 0)}/${book.total_copies ?? book.totalCopies ?? book.total ?? book.copies ?? 0}`}</Text>
-                  </Space>
-                  <Divider type="vertical" />
-                  <Space>
-                    <TeamOutlined /> <Text>{readingStats.readersNow} Reading</Text>
-                  </Space>
-                </div>
-
-                <Paragraph style={{ 
-                  fontSize: '1.1rem', 
-                  lineHeight: 1.8, 
-                  color: token.colorText, 
-                  maxWidth: '800px',
-                  fontFamily: "'Literata', serif"
-                }} ellipsis={{ rows: 4, expandable: true, symbol: 'Read more' }}>
-                  {book.description || t("bookDetail.noDescription")}
-                </Paragraph>
-
-                {/* Sticky-like Action Bar (Inline for desktop) */}
-                <div style={{ 
-                  marginTop: 32, 
-                  padding: 24, 
-                  background: '#fff', 
-                  borderRadius: 12, 
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-                  border: '1px solid rgba(0,0,0,0.05)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 24
-                }}>
-                   <div>
-                      <Text type="secondary" style={{ display: 'block', fontSize: 12 }}>Availability</Text>
-                      <div style={{ fontSize: 18, fontWeight: 600 }}>
-                        {`stock: ${(book.available_copies ?? book.copies ?? 0)}/${book.total_copies ?? book.totalCopies ?? book.total ?? book.copies ?? 0}`}
-                      </div>
-                   </div>
-                   
-                   <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: 16 }}>
-                      <Button size="large" icon={<ShareAltOutlined />} onClick={handleShare}>Share</Button>
-                      
-                      {isBorrowed ? (
-                        <Button 
-                          size="large"
-                          disabled
-                          icon={<CheckCircleOutlined />}
-                          style={{ 
-                            background: `${token.colorSuccess}15`, 
-                            borderColor: `${token.colorSuccess}40`, 
-                            color: token.colorSuccess, 
-                            minWidth: 160 
-                          }}
-                        >
-                          Borrowed
-                        </Button>
-                      ) : (
-                        <Button 
-                          type="primary" 
-                          size="large"
-                          loading={actionLoading}
-                          disabled={(book.copies ?? book.available_copies ?? 0) <= 0}
-                          onClick={handleBorrow}
-                          style={{ 
-                            minWidth: 180, 
-                            height: 48, 
-                            fontSize: 16,
-                            background: (book.copies ?? book.available_copies ?? 0) > 0 ? token.colorPrimary : token.colorBorder
-                          }}
-                          icon={<BookOutlined />}
-                        >
-                          {(book.copies ?? book.available_copies ?? 0) > 0 ? "Borrow Now" : "Out of Stock"}
-                        </Button>
-                      )}
-                   </div>
-                </div>
-              </Space>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Content Grid */}
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 24px' }}>
         <div className="editorial-grid">
            {/* Main Content: Reviews & Details */}
@@ -520,6 +679,10 @@ function BookDetail() {
       />
     </EditorialPageShell>
   );
+};
+
+function BookDetail() {
+  return <BookDetailRight />;
 }
 
 export default BookDetail;

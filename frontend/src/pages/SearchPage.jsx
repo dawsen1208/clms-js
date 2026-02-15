@@ -190,7 +190,7 @@ const SearchPage = () => {
       rowSpan: 1,
       background: token.colorBgContainer
     };
-  }), [paginatedBooks, navigate, token]);
+  }), [paginatedBooks, navigate, token.colorBgContainer]);
 
   return (
     <EditorialPageShell 
@@ -368,7 +368,6 @@ export const SearchLeftPanel = () => {
   const { token } = theme.useToken();
   const screens = useBreakpoint();
   const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   const [searchText, setSearchText] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -391,14 +390,11 @@ export const SearchLeftPanel = () => {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      setLoading(true);
       try {
         const res = await getBooks();
         if (!mounted) return;
         setBooks(res.data || []);
-      } finally {
-        setLoading(false);
-      }
+      } catch (e) { void e; }
     })();
     return () => {
       mounted = false;
@@ -545,7 +541,6 @@ export const SearchLeftPanel = () => {
 export const SearchRightPanel = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { token } = theme.useToken();
   const screens = useBreakpoint();
   const [loading, setLoading] = useState(false);
   const [books, setBooks] = useState([]);
@@ -607,8 +602,6 @@ export const SearchRightPanel = () => {
   const paginatedBooks = useMemo(() => filteredBooks.slice(pageStart, pageEnd), [filteredBooks, pageStart, pageEnd]);
 
   const bentoItems = useMemo(() => paginatedBooks.map((book, index) => {
-    const rawCover = book.coverImage || book.cover_image || "";
-    const coverImageUrl = getCleanImageUrl(rawCover);
     const coverNode = (
       <BookCoverPro 
         title={book.title} 
@@ -633,7 +626,7 @@ export const SearchRightPanel = () => {
       availableCopies,
       totalCopies,
     };
-  }), [paginatedBooks, navigate, token]);
+  }), [paginatedBooks]);
 
   return (
     <div style={{ padding: screens.md ? 24 : 12 }}>

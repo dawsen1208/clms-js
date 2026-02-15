@@ -1,6 +1,18 @@
 import React from "react";
-import { LogoutOutlined } from "@ant-design/icons";
-import "./bookWorld.css";
+import {
+  HomeOutlined,
+  SearchOutlined,
+  ReadOutlined,
+  SwapOutlined,
+  RobotOutlined,
+  BellOutlined,
+  MessageOutlined,
+  UserOutlined,
+  SettingOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
+import { Tooltip } from "antd";
+import "./bookmark.css";
 
 type BookmarkRoute = {
   key: string;
@@ -25,31 +37,63 @@ export const BookmarkNav: React.FC<BookmarkNavProps> = ({
 }) => {
   const containerClass = isMobile ? "bw-bookmarks bw-bookmarks-mobile" : "bw-bookmarks";
 
+  const iconForRoute = (key: string) => {
+    switch (key) {
+      case "home":
+        return <HomeOutlined />;
+      case "search":
+        return <SearchOutlined />;
+      case "borrow":
+        return <ReadOutlined />;
+      case "return":
+        return <SwapOutlined />;
+      case "assistant":
+        return <RobotOutlined />;
+      case "notifications":
+        return <BellOutlined />;
+      case "feedback":
+        return <MessageOutlined />;
+      case "profile":
+        return <UserOutlined />;
+      case "settings":
+        return <SettingOutlined />;
+      default:
+        return <BookOutlined />;
+    }
+  };
+
   return (
     <nav className={containerClass}>
       <div className="bw-bookmarks-stack">
         {routes.map((route) => (
-          <button
-            key={route.key}
-            type="button"
-            className={currentKey === route.key ? "bw-bookmark active" : "bw-bookmark"}
-            onClick={() => onNavigate(route.path)}
-          >
-            <span className="bw-bookmark-label">{route.label}</span>
-          </button>
+          <Tooltip key={route.key} title={route.label} placement="right">
+            <button
+              type="button"
+              className={
+                currentKey === route.key ? "bw-bookmark active" : "bw-bookmark"
+              }
+              onClick={() => onNavigate(route.path)}
+            >
+              <span className="bw-bookmark-icon">{iconForRoute(route.key)}</span>
+              <span className="bw-bookmark-label">{route.label}</span>
+            </button>
+          </Tooltip>
         ))}
       </div>
       {onLogout && (
-        <button
-          type="button"
-          className="bw-bookmark bw-bookmark-logout"
-          onClick={onLogout}
-        >
-          <LogoutOutlined style={{ fontSize: 14, marginBottom: 4 }} />
-          <span className="bw-bookmark-label">Logout</span>
-        </button>
+        <Tooltip title="Logout" placement="right">
+          <button
+            type="button"
+            className="bw-bookmark bw-bookmark-logout"
+            onClick={onLogout}
+          >
+            <span className="bw-bookmark-icon">
+              <LogoutOutlined />
+            </span>
+            <span className="bw-bookmark-label">Logout</span>
+          </button>
+        </Tooltip>
       )}
     </nav>
   );
 };
-

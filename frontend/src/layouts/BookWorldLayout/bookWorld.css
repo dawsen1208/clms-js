@@ -36,7 +36,9 @@
   display: grid;
   grid-template-columns: 1fr 24px 1fr;
   border-radius: 28px;
-  background: linear-gradient(145deg, #fefaf5, #f4ebe0);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.9), transparent 60%),
+    linear-gradient(145deg, #fefaf5, #f4ebe0);
   box-shadow:
     0 40px 80px rgba(0, 0, 0, 0.18),
     0 18px 36px rgba(0, 0, 0, 0.16);
@@ -47,9 +49,17 @@
 .bw-page {
   position: relative;
   border-radius: 22px;
-  background: var(--book-paper, #fcf8f3);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.4) 0px,
+      rgba(255, 255, 255, 0.4) 1px,
+      rgba(255, 255, 255, 0.2) 2px,
+      rgba(255, 255, 255, 0.2) 3px
+    ),
+    var(--book-paper, #fcf8f3);
   box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.05),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.04),
     0 16px 32px rgba(0, 0, 0, 0.18);
   overflow: hidden;
   display: flex;
@@ -57,14 +67,42 @@
 }
 
 .bw-left {
+  background:
+    radial-gradient(
+      circle at 0% 50%,
+      rgba(0, 0, 0, 0.06),
+      transparent 60%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.35) 0px,
+      rgba(255, 255, 255, 0.35) 1px,
+      rgba(255, 255, 255, 0.2) 2px,
+      rgba(255, 255, 255, 0.2) 3px
+    ),
+    var(--book-paper, #fcf8f3);
   box-shadow:
-    inset -16px 0 24px rgba(0, 0, 0, 0.08),
+    inset -14px 0 22px rgba(0, 0, 0, 0.12),
     0 20px 32px rgba(0, 0, 0, 0.2);
 }
 
 .bw-right {
+  background:
+    radial-gradient(
+      circle at 100% 50%,
+      rgba(255, 255, 255, 0.9),
+      transparent 55%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.35) 0px,
+      rgba(255, 255, 255, 0.35) 1px,
+      rgba(255, 255, 255, 0.2) 2px,
+      rgba(255, 255, 255, 0.2) 3px
+    ),
+    var(--book-paper, #fcf8f3);
   box-shadow:
-    inset 16px 0 24px rgba(0, 0, 0, 0.08),
+    inset 14px 0 22px rgba(0, 0, 0, 0.08),
     0 20px 32px rgba(0, 0, 0, 0.2);
 }
 
@@ -93,10 +131,18 @@
 .bw-spine {
   position: relative;
   border-radius: 999px;
-  background: linear-gradient(180deg, #d0bca3, #c2a78b);
+  background:
+    repeating-linear-gradient(
+      180deg,
+      #d9c3a8 0px,
+      #d9c3a8 2px,
+      #c9ae8f 3px,
+      #c9ae8f 5px
+    );
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.4),
-    inset 0 0 18px rgba(0, 0, 0, 0.4);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    inset 0 0 24px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(0, 0, 0, 0.5);
 }
 
 .bw-spine::before {
@@ -112,6 +158,18 @@
     rgba(255, 255, 255, 0.1) 4px
   );
   mix-blend-mode: soft-light;
+}
+
+@media (min-width: 1200px) {
+  .bw-book {
+    grid-template-columns: 1fr 24px 1fr;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1199.98px) {
+  .bw-book {
+    grid-template-columns: 0.42fr 24px 0.58fr;
+  }
 }
 
 .book-placeholder {
@@ -137,132 +195,7 @@
   line-height: 1.6;
 }
 
-.bw-bookmarks {
-  position: absolute;
-  left: calc(50% - min(1600px, 96vw) / 2 - 18px);
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.bw-bookmarks-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.bw-bookmark {
-  position: relative;
-  width: 72px;
-  padding: 10px 8px 16px 8px;
-  border: none;
-  outline: none;
-  border-radius: 8px 8px 2px 2px;
-  background: linear-gradient(180deg, #fefefe, #f0e4d7);
-  box-shadow:
-    0 6px 10px rgba(0, 0, 0, 0.18),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-  color: #5a4634;
-  font-size: 11px;
-  cursor: pointer;
-  text-align: center;
-  transform-origin: right center;
-  transform: translateZ(0);
-  transition:
-    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
-    background 0.2s linear;
-}
-
-.bw-bookmark::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -10px;
-  width: 0;
-  height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-top: 10px solid #f0e4d7;
-  transform: translateX(-50%);
-}
-
-.bw-bookmark-label {
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.bw-bookmark:hover {
-  transform: translateX(3px) translateZ(0);
-  box-shadow:
-    0 10px 14px rgba(0, 0, 0, 0.22),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.12);
-}
-
-.bw-bookmark.active {
-  background: linear-gradient(180deg, #f7b46a, #e58c41);
-  color: #fff;
-  box-shadow:
-    0 12px 20px rgba(203, 125, 44, 0.55),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-}
-
-.bw-bookmark.active::after {
-  border-top-color: #e58c41;
-}
-
-.bw-bookmark-logout {
-  margin-top: 12px;
-  background: linear-gradient(180deg, #fef3f2, #fcd0cf);
-  color: #8b1a1a;
-}
-
-.bw-bookmark-logout::after {
-  border-top-color: #fcd0cf;
-}
-
-.bw-bookmarks-mobile {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  top: auto;
-  transform: none;
-  translate: 0 0;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
-  padding: 8px 10px 10px;
-  background: rgba(250, 246, 240, 0.96);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.16);
-  flex-direction: row;
-}
-
-.bw-bookmarks-mobile .bw-bookmarks-stack {
-  flex-direction: row;
-  flex: 1;
-  justify-content: space-around;
-}
-
-.bw-bookmarks-mobile .bw-bookmark {
-  flex: 1;
-  max-width: none;
-  margin: 0 4px;
-  padding: 8px 4px 10px 4px;
-}
-
-.bw-bookmarks-mobile .bw-bookmark::after {
-  display: none;
-}
-
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .bw-stage {
     padding: 8px 8px 72px 8px;
   }

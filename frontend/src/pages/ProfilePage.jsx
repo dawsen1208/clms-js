@@ -44,6 +44,127 @@ import {
 
 const { Title, Text } = Typography;
 
+export const ProfileLeftPanel = () => {
+  const { t } = useLanguage();
+  const { token } = theme.useToken();
+  const [history, setHistory] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
+      if (!authToken) return;
+
+      const [histRes, reqRes] = await Promise.allSettled([
+        getBorrowHistory(authToken),
+        getUserRequestsLibrary(authToken)
+      ]);
+
+      if (histRes.status === "fulfilled") setHistory(histRes.value.data || []);
+      if (reqRes.status === "fulfilled") setRequests(reqRes.value.data || []);
+    } catch (error) {
+      console.error("Profile overview error", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const stats = useMemo(() => {
+    const total = history.length;
+    const returned = history.filter((h) => h.action === "return" || !!h.returnDate).length;
+    const active = total - returned;
+    const pending = requests.filter((r) => r.status === "pending").length;
+    return { total, returned, active, pending };
+  }, [history, requests]);
+
+  return (
+    <div className="bw-scroll">
+      <div style={{ marginBottom: 24 }}>
+        <Title level={3} style={{ fontFamily: "'Literata', serif", marginBottom: 8 }}>
+          {t("profile.overviewTitle") || "Reader Snapshot"}
+        </Title>
+        <Text type="secondary">
+          {t("profile.overviewDesc") || "Your recent reading activity and account status at a glance."}
+        </Text>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+        <StatCard title={t("profile.totalBooks") || "Total Books"} value={stats.total} color={token.colorPrimary} loading={loading} />
+        <StatCard title={t("profile.activeLoans") || "Active Loans"} value={stats.active} color={token.colorWarning} loading={loading} />
+        <StatCard title={t("profile.returned") || "Returned"} value={stats.returned} color={token.colorSuccess} loading={loading} />
+        <StatCard title={t("profile.pendingRequests") || "Pending Requests"} value={stats.pending} color={token.colorInfo} loading={loading} />
+      </div>
+
+      <div style={{ marginBottom: 24 }}>
+        <Title level={5} style={{ fontFamily: "'Literata', serif", marginBottom: 12 }}>
+          {t("profile.recentActivity") || "Recent Activity"}
+        </Title>
+        {loading ? (
+          <Spin />
+        ) : history.length === 0 ? (
+          <Empty description={t("profile.noActivity") || "No activity yet"} />
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {history.slice(0, 3).map((item) => {
+              const isReturn = item.action === "return" || !!item.returnDate;
+              const date = item.date || item.createdAt;
+              const displayDate = dayjs(date).format("MMM D, YYYY");
+              const bookTitle = item.title || item.bookTitle || "Unknown Book";
+              const bookAuthor = item.author || "Unknown Author";
+              return (
+                <div
+                  key={item._id}
+                  style={{
+                    display: "flex",
+                    gap: 12,
+                    alignItems: "center",
+                    padding: 12,
+                    borderRadius: 12,
+                    border: `1px solid ${token.colorBorderSecondary}`,
+                    background: token.colorBgContainer
+                  }}
+                >
+                  <div style={{ flexShrink: 0 }}>
+                    <BookCoverPro
+                      title={bookTitle}
+                      author={bookAuthor}
+                      width={40}
+                      height={60}
+                      baseColor={stringToWarmColor(bookTitle)}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <Text strong style={{ display: "block" }}>
+                      {bookTitle}
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {bookAuthor}
+                    </Text>
+                    <div style={{ marginTop: 4, display: "flex", justifyContent: "space-between" }}>
+                      <Tag color={isReturn ? "success" : "warning"}>
+                        {isReturn ? t("profile.returnedTag") || "Returned" : t("profile.borrowedTag") || "Borrowed"}
+                      </Tag>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {displayDate}
+                      </Text>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 function ProfilePage() {
   const { t } = useLanguage();
   const { token } = theme.useToken();

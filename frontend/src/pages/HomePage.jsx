@@ -19,7 +19,7 @@ const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
 const { useToken } = theme;
 
-const HomePage = () => {
+const useHomeData = () => {
   const navigate = useNavigate();
   const screens = useBreakpoint();
   const { token } = useToken();
@@ -213,105 +213,154 @@ const HomePage = () => {
     };
   });
 
-  return (
-    <EditorialPageShell 
-      fullWidth
-      noPadding
-      breadcrumbItems={[]}
-    >
-      {/* Hero Section */}
-      <HeroEditorial 
-        title={`${getGreeting()}, ${user.name || 'Reader'}.`}
-        subtitle="Explore our curated collection of knowledge and imagination. Your next favorite book is waiting."
-        ctaText="Browse Collection"
-        onCtaClick={() => navigate('/search')}
-        illustration={
-          <div style={{ position: 'relative', width: 300, height: 400, display: isMobile ? 'none' : 'block' }}>
-             <BookCoverPro 
-                title="The Design of Everyday Things" 
-                author="Don Norman" 
-                style="swiss" 
-                width={280} 
-                height={380} 
-                className="floating-book"
-                baseColor={token.colorPrimary}
-             />
-             {/* Decorative circle behind */}
-             <div style={{ 
-               position: 'absolute', 
-               top: '50%', 
-               left: '50%', 
-               transform: 'translate(-50%, -50%)', 
-               width: 350, 
-               height: 350, 
-               borderRadius: '50%', 
-               background: token.colorPrimary, 
-               opacity: 0.12, 
-               zIndex: -1 
-             }} />
-          </div>
-        }
-      />
+  return {
+    user,
+    stats,
+    loading,
+    isMobile,
+    token,
+    navigate,
+    getGreeting,
+    bentoItems,
+  };
+};
 
-      <div style={{ padding: isMobile ? '0 24px 64px' : '0 48px 64px' }}>
-        
-        {/* Stats Section (if logged in) */}
-        {user.email && (
-          <div style={{ marginTop: -40, position: 'relative', zIndex: 2, marginBottom: 64 }}>
-            <div className="editorial-grid" style={{ display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gap: 24 }}>
-              <div className={isMobile ? "" : "col-span-4"}>
-                <StatCard 
-                  title="Books Reading" 
-                  value={stats.active} 
-                  trend={15}
-                  trendLabel="vs last month"
-                  explanation="You're reading more than usual! Keep it up."
+export const HomeLeft = () => {
+  const { user, stats, loading, isMobile, token, navigate, getGreeting } =
+    useHomeData();
+
+  return (
+    <div style={{ padding: isMobile ? 16 : 24 }}>
+      <div style={{ marginBottom: 24 }}>
+        <Title
+          level={3}
+          style={{
+            marginBottom: 4,
+            fontFamily: "'Literata', serif",
+          }}
+        >
+          {getGreeting()}, {user.name || "Reader"}.
+        </Title>
+        <Text type="secondary" style={{ fontSize: 13 }}>
+          Keep track of your reading and jump back into your next book.
+        </Text>
+      </div>
+
+      <div style={{ marginBottom: 24 }}>
+        {loading ? (
+          <Skeleton active paragraph={{ rows: 2 }} />
+        ) : (
+          <div
+            className="editorial-grid"
+            style={{
+              display: isMobile ? "flex" : "grid",
+              flexDirection: isMobile ? "column" : undefined,
+              gap: 16,
+            }}
+          >
+            <div className={isMobile ? "" : "col-span-4"}>
+              <StatCard
+                title="Active Loans"
+                value={stats.active}
+                trend={15}
+                trendLabel="vs last month"
+                explanation="You're reading more than usual! Keep it up."
                 color={token.colorPrimary}
-                />
-              </div>
-              <div className={isMobile ? "" : "col-span-4"}>
-                <StatCard 
-                  title="Total Read" 
-                  value={stats.total} 
-                  trend={5}
-                  trendLabel="this year"
-                  explanation="Total books completed in your reading journey."
+              />
+            </div>
+            <div className={isMobile ? "" : "col-span-4"}>
+              <StatCard
+                title="Total Read"
+                value={stats.total}
+                trend={5}
+                trendLabel="this year"
+                explanation="Books completed in your reading journey."
                 color={token.colorSuccess}
-                />
-              </div>
-              <div className={isMobile ? "" : "col-span-4"}>
-                <Card 
-                  bordered={false} 
-                  hoverable
-                  style={{ 
-                    height: '100%', 
-                    borderRadius: 16, 
+              />
+            </div>
+            <div className={isMobile ? "" : "col-span-4"}>
+              <Card
+                bordered={false}
+                hoverable
+                style={{
+                  height: "100%",
+                  borderRadius: 16,
                   background: `linear-gradient(135deg, ${token.colorBgContainer} 0%, ${token.colorBgLayout} 100%)`,
-                    color: '#fff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    minHeight: 200
-                  }}
-                  onClick={() => navigate('/search')}
-                >
-                  <Space direction="vertical" align="center">
-                  <CompassOutlined style={{ fontSize: 32, color: token.colorPrimary }} />
-                  <Text style={{ color: token.colorText, fontSize: 16, fontWeight: 500 }}>Discover New Books</Text>
-                  </Space>
-                </Card>
-              </div>
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  minHeight: 140,
+                }}
+                onClick={() => navigate("/search")}
+              >
+                <Space direction="vertical" align="center">
+                  <CompassOutlined
+                    style={{ fontSize: 28, color: token.colorPrimary }}
+                  />
+                  <Text
+                    style={{
+                      color: token.colorText,
+                      fontSize: 14,
+                      fontWeight: 500,
+                    }}
+                  >
+                    Discover New Books
+                  </Text>
+                </Space>
+              </Card>
             </div>
           </div>
         )}
+      </div>
 
-        {/* Trending Section */}
-        <EditorialSectionHeader 
-          title="Popular List" 
+      <div>
+        <Text type="secondary" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>
+          Quick actions
+        </Text>
+        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+          <Button
+            icon={<SearchOutlined />}
+            onClick={() => navigate("/search")}
+            block
+          >
+            Search Library
+          </Button>
+          <Button
+            icon={<ReadOutlined />}
+            onClick={() => navigate("/borrow")}
+            block
+          >
+            My Borrowed Books
+          </Button>
+          <Button
+            icon={<RobotOutlined />}
+            onClick={() => navigate("/assistant")}
+            block
+          >
+            Smart Assistant
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const HomeRight = () => {
+  const { isMobile, loading, bentoItems, token, navigate } = useHomeData();
+
+  return (
+    <EditorialPageShell fullWidth noPadding breadcrumbItems={[]}>
+      <div
+        style={{
+          padding: isMobile ? "24px 24px 64px" : "32px 48px 64px",
+        }}
+      >
+        <EditorialSectionHeader
+          title="Popular List"
           subtitle="Trending books and recommended reads based on your history."
           actionText="View All Books"
-          onActionClick={() => navigate('/search')}
+          onActionClick={() => navigate("/search")}
         />
 
         {loading ? (
@@ -320,39 +369,67 @@ const HomePage = () => {
           <MagazineBentoGrid items={bentoItems} />
         )}
 
-        {/* Categories / Explore Section */}
-        <EditorialSectionHeader 
-          title="Explore Categories" 
+        <EditorialSectionHeader
+          title="Explore Categories"
           subtitle="Dive into specific topics and genres."
         />
-        
-        <div className="editorial-grid" style={{ marginBottom: 64, display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gap: 16 }}>
-          {['Fiction', 'Science', 'History', 'Technology', 'Design', 'Business', 'Philosophy', 'Art'].map((cat) => (
+
+        <div
+          className="editorial-grid"
+          style={{
+            marginBottom: 64,
+            display: isMobile ? "flex" : "grid",
+            flexDirection: isMobile ? "column" : undefined,
+            gap: 16,
+          }}
+        >
+          {[
+            "Fiction",
+            "Science",
+            "History",
+            "Technology",
+            "Design",
+            "Business",
+            "Philosophy",
+            "Art",
+          ].map((cat) => (
             <div key={cat} className={isMobile ? "" : "col-span-3"}>
-              <Card 
-                hoverable 
+              <Card
+                hoverable
                 bordered={false}
-                style={{ 
-                  height: 120, 
-                  borderRadius: 12, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
+                style={{
+                  height: 120,
+                  borderRadius: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   background: token.colorBgLayout,
                   border: `1px solid ${token.colorBorderSecondary}`,
-                  transition: 'all 0.3s ease'
+                  transition: "all 0.3s ease",
                 }}
                 onClick={() => navigate(`/search?category=${cat}`)}
               >
-                <Title level={4} style={{ margin: 0, fontFamily: "'Literata', serif", fontWeight: 400 }}>{cat}</Title>
+                <Title
+                  level={4}
+                  style={{
+                    margin: 0,
+                    fontFamily: "'Literata', serif",
+                    fontWeight: 400,
+                  }}
+                >
+                  {cat}
+                </Title>
               </Card>
             </div>
           ))}
         </div>
-
       </div>
     </EditorialPageShell>
   );
+};
+
+const HomePage = () => {
+  return <HomeRight />;
 };
 
 export default HomePage;
