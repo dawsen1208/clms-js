@@ -5,7 +5,7 @@ import { UserOutlined, LockOutlined, ArrowRightOutlined, GlobalOutlined } from "
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { login as apiLogin } from "../api";
-import LoginBookTransition from "./public/LoginPage/LoginBookTransition";
+import { LoginBookAnimation } from "./public/LoginPage/LoginBookAnimation";
 
 const { Title, Paragraph, Text } = Typography;
 const { useToken } = theme;
@@ -23,9 +23,11 @@ const LoginPage = ({ onLogin }) => {
   const { t, language, setLanguage } = useLanguage();
 
   const [animating, setAnimating] = useState(false);
+  const [animStatus, setAnimStatus] = useState("idle");
   const handleLogin = async () => {
     setLoading(true);
     setAnimating(true);
+    setAnimStatus("signing");
     try {
       if (!userId || !password) {
         message.error(t("login.errorEmpty"));
@@ -48,10 +50,11 @@ const LoginPage = ({ onLogin }) => {
       const spent = Date.now() - started;
       const rest = Math.max(0, 900 - spent);
       setTimeout(() => {
+        setAnimStatus("opening");
         onLogin(tokenStr, normalizedUser);
+        message.success(t("login.welcomeBack"));
+        navigate(normalizedUser.role === "Administrator" ? "/admin/dashboard" : "/home");
       }, rest);
-      message.success(t("login.welcomeBack"));
-      navigate(normalizedUser.role === "Administrator" ? "/admin/dashboard" : "/home");
     } catch (err) {
       const backendMsg = err?.response?.data?.message || "";
       let key = "login.errorUnknown";
@@ -75,6 +78,7 @@ const LoginPage = ({ onLogin }) => {
       }
 
       message.error(t(key));
+      setAnimStatus("error");
     } finally {
       setLoading(false);
       setAnimating(false);
@@ -92,7 +96,7 @@ const LoginPage = ({ onLogin }) => {
       background: "#FAF9F6", // Warm paper background
       fontFamily: "'Inter', sans-serif"
     }}>
-      <LoginBookTransition running={animating} />
+      <LoginBookAnimation running={animating} status={animStatus} />
       {/* 🎨 Left Side - Editorial / Brand */}
       <div style={{
         flex: screens.md ? "0 0 45%" : "0 0 0",

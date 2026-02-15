@@ -1,9 +1,10 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Grid, theme } from "antd";
-import { PageFlipTransition } from "../../motion/PageFlipTransition";
-import { useMotionPref } from "../../motion/MotionProvider";
 import "./bookWorld.css";
+import { BookmarkNav } from "./BookmarkNav";
+import { PageFlipController } from "../../motion/PageFlipController";
+import { BookZoomToDetail } from "../../motion/BookZoomToDetail";
 
 const routes = [
   { key: "home", path: "/home", label: "Home" },
@@ -22,42 +23,62 @@ const getKeyFromPath = (pathname: string) => {
   return seg;
 };
 
-const BookWorldLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+type BookWorldLayoutProps = {
+  left?: React.ReactNode;
+  right?: React.ReactNode;
+  children?: React.ReactNode;
+};
+
+const BookWorldLayout: React.FC<BookWorldLayoutProps> = ({
+  left,
+  right,
+  children,
+}) => {
   const { token } = theme.useToken();
   const location = useLocation();
-  const curKey = getKeyFromPath(location.pathname);
+  const currentKey = getKeyFromPath(location.pathname);
   const navigate = useNavigate();
-  const { useBreakpoint } = Grid;
-  const screens = useBreakpoint();
+  const screens = Grid.useBreakpoint();
   const isMobile = !screens.md;
-  const { motionEnabled } = useMotionPref();
 
-  const nav = useMemo(() => routes, []);
+  const resolvedLeft =
+    left ||
+    (
+      <div className="book-placeholder">
+        <div className="book-placeholder-title">Tips</div>
+        <div className="book-placeholder-body">
+          Use bookmarks to navigate between sections.
+        </div>
+      </div>
+    );
 
   return (
-    <div className="book-world-frame" style={{ "--book-bg": token.colorBgLayout } as React.CSSProperties}>
-      <div className="book-cover-left" />
-      <div className="book-page-right">
-        <PageFlipTransition>
-          <div style={{ height: "100%", minHeight: "100vh" }}>
-            {children}
-          </div>
-        </PageFlipTransition>
-      </div>
-      <div className="bookmark-nav">
-        {nav.map((n) => (
-          <div
-            key={n.key}
-            className={`bookmark ${curKey === n.key ? "active" : ""}`}
-            onClick={() => navigate(n.path)}
-          >
-            {n.label}
-          </div>
-        ))}
-      </div>
+    <div className="book-desk">
+      <div className="book-desk-texture" />
+      <BookZoomToDetail>
+        <div
+          className="book-frame"
+          style={
+            {
+              "--book-paper": token.colorBgContainer,
+            } as React.CSSProperties
+          }
+        >
+          <PageFlipController
+            routeKey={currentKey}
+            left={resolvedLeft}
+            right={right || children}
+          />
+        </div>
+      </BookZoomToDetail>
+      <BookmarkNav
+        routes={routes}
+        currentKey={currentKey}
+        onNavigate={(path) => navigate(path)}
+        isMobile={isMobile}
+      />
     </div>
   );
 };
 
 export default BookWorldLayout;
-

@@ -10,7 +10,7 @@ import {
 import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks, sendAuthCode, bindEmail, toggle2FA } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAccessibility } from "../contexts/AccessibilityContext";
-import { useMotionPref } from "../motion/MotionProvider";
+import { useMotionEnabled } from "../motion/useMotionEnabled";
 import PageContainer from "../components/common/PageContainer";
 import PageHeader from "../components/common/PageHeader";
 
@@ -25,7 +25,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const [modal, contextHolder] = Modal.useModal();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
-  const { motionEnabled, setMotionEnabled } = useMotionPref();
+  const { motionEnabled, setMotionEnabled } = useMotionEnabled();
 
   // ✅ Fix: Use useCallback and ensure handleUpdate is available
   const handleUpdate = useCallback((updates) => {

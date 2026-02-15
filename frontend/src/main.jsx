@@ -268,10 +268,10 @@ function App() {
   };
 
   // ✅ Layout Wrappers
-  const UserLayoutWrapper = ({ children }) => (
+  const UserLayoutWrapper = ({ children, left, right }) => (
     <PrivateRoute>
-      <BookWorldLayout>
-        {children}
+      <BookWorldLayout left={left} right={right || children}>
+        {!right ? children : null}
       </BookWorldLayout>
     </PrivateRoute>
   );

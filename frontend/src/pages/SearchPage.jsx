@@ -361,3 +361,319 @@ const SearchPage = () => {
 };
 
 export default SearchPage;
+
+export const SearchLeftPanel = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { token } = theme.useToken();
+  const screens = useBreakpoint();
+  const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const [searchText, setSearchText] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [sortBy, setSortBy] = useState("newest");
+  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('q') || params.get('query');
+    const sort = params.get('sort');
+    const cat = params.get('category');
+    const avail = params.get('avail');
+    if (q) setSearchText(q);
+    if (sort) setSortBy(sort);
+    if (cat) setSelectedCategories([cat]);
+    if (avail) setShowAvailableOnly(avail === '1');
+  }, [location.search]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await getBooks();
+        if (!mounted) return;
+        setBooks(res.data || []);
+      } finally {
+        setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const categories = useMemo(() => {
+    const cats = new Set(books.map(b => b.category).filter(Boolean));
+    return Array.from(cats).sort().slice(0, 12);
+  }, [books]);
+
+  const applyParams = (patch) => {
+    const params = new URLSearchParams(location.search);
+    if (typeof patch.q !== 'undefined') {
+      if (patch.q) params.set('q', patch.q); else params.delete('q');
+    }
+    if (typeof patch.sort !== 'undefined') {
+      if (patch.sort) params.set('sort', patch.sort); else params.delete('sort');
+    }
+    if (typeof patch.category !== 'undefined') {
+      if (patch.category) params.set('category', patch.category); else params.delete('category');
+    }
+    if (typeof patch.avail !== 'undefined') {
+      if (patch.avail) params.set('avail', '1'); else params.delete('avail');
+    }
+    navigate(`/search?${params.toString()}`, { replace: false });
+  };
+
+  return (
+    <div style={{ padding: screens.md ? 24 : 12 }}>
+      <div style={{ marginBottom: 24 }}>
+        <Input
+          size="large"
+          placeholder="Search by title, author, or ISBN..."
+          prefix={<SearchOutlined style={{ color: token.colorPrimary }} />}
+          bordered
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          onPressEnter={() => applyParams({ q: searchText })}
+          allowClear
+        />
+        <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+          <Select
+            value={sortBy}
+            onChange={(v) => { setSortBy(v); applyParams({ sort: v }); }}
+            style={{ width: 140 }}
+            options={[
+              { value: 'newest', label: 'Newest' },
+              { value: 'title', label: 'Title' },
+              { value: 'author', label: 'Author' },
+            ]}
+          />
+          <Button onClick={() => { setFilterDrawerOpen(true); }}>Filters</Button>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 8, marginBottom: 8 }}>
+        <Space wrap size={[8, 8]}>
+          <Tag.CheckableTag
+            checked={selectedCategories.length === 0}
+            onChange={() => { setSelectedCategories([]); applyParams({ category: "" }); }}
+            style={{ fontSize: 13, padding: '4px 10px' }}
+          >
+            All
+          </Tag.CheckableTag>
+          {categories.map(cat => (
+            <Tag.CheckableTag
+              key={cat}
+              checked={selectedCategories.includes(cat)}
+              onChange={(checked) => {
+                if (checked) {
+                  setSelectedCategories([cat]);
+                  applyParams({ category: cat });
+                } else {
+                  setSelectedCategories([]);
+                  applyParams({ category: "" });
+                }
+              }}
+              style={{ fontSize: 13, padding: '4px 10px' }}
+            >
+              {cat}
+            </Tag.CheckableTag>
+          ))}
+        </Space>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <Checkbox
+          checked={showAvailableOnly}
+          onChange={(e) => {
+            setShowAvailableOnly(e.target.checked);
+            applyParams({ avail: e.target.checked });
+          }}
+        >
+          Available only
+        </Checkbox>
+      </div>
+
+      <Drawer
+        title="Filter Books"
+        placement="right"
+        onClose={() => setFilterDrawerOpen(false)}
+        open={filterDrawerOpen}
+      >
+        <div style={{ marginBottom: 16 }}>
+          <Title level={5}>Availability</Title>
+          <Switch
+            checked={showAvailableOnly}
+            onChange={(v) => {
+              setShowAvailableOnly(v);
+              applyParams({ avail: v });
+            }}
+            checkedChildren="Available Only"
+            unCheckedChildren="All Books"
+          />
+        </div>
+        <div>
+          <Title level={5}>Categories</Title>
+          <Space direction="vertical" style={{ width: '100%' }}>
+            {categories.map(cat => (
+              <Checkbox
+                key={cat}
+                checked={selectedCategories.includes(cat)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    setSelectedCategories([cat]);
+                    applyParams({ category: cat });
+                  } else {
+                    setSelectedCategories([]);
+                    applyParams({ category: "" });
+                  }
+                }}
+              >
+                {cat}
+              </Checkbox>
+            ))}
+          </Space>
+        </div>
+      </Drawer>
+    </div>
+  );
+};
+
+export const SearchRightPanel = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { token } = theme.useToken();
+  const screens = useBreakpoint();
+  const [loading, setLoading] = useState(false);
+  const [books, setBooks] = useState([]);
+  const [filteredBooks, setFilteredBooks] = useState([]);
+
+  const params = new URLSearchParams(location.search);
+  const qParam = params.get('q') || params.get('query') || "";
+  const sortParam = params.get('sort') || "newest";
+  const categoryParam = params.get('category') || "";
+  const availableOnlyParam = params.get('avail') === '1';
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await getBooks();
+        if (!mounted) return;
+        setBooks(res.data || []);
+        setFilteredBooks(res.data || []);
+      } finally {
+        setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let result = books;
+    if (qParam) {
+      const lower = qParam.toLowerCase();
+      result = result.filter(b =>
+        (b.title || "").toLowerCase().includes(lower) ||
+        (b.author || "").toLowerCase().includes(lower) ||
+        (b.isbn && String(b.isbn).toLowerCase().includes(lower))
+      );
+    }
+    if (categoryParam) {
+      result = result.filter(b => (b.category || "") === categoryParam);
+    }
+    if (availableOnlyParam) {
+      result = result.filter(b => (b.available_copies ?? b.copies ?? 0) > 0);
+    }
+    if (sortParam === 'newest') {
+      result = [...result].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    } else if (sortParam === 'title') {
+      result = [...result].sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+    } else if (sortParam === 'author') {
+      result = [...result].sort((a, b) => (a.author || "").localeCompare(b.author || ""));
+    }
+    setFilteredBooks(result);
+  }, [books, qParam, sortParam, categoryParam, availableOnlyParam]);
+
+  const isMobile = !screens.md;
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = isMobile ? 8 : 12;
+  const pageStart = (currentPage - 1) * pageSize;
+  const pageEnd = pageStart + pageSize;
+  const paginatedBooks = useMemo(() => filteredBooks.slice(pageStart, pageEnd), [filteredBooks, pageStart, pageEnd]);
+
+  const bentoItems = useMemo(() => paginatedBooks.map((book, index) => {
+    const rawCover = book.coverImage || book.cover_image || "";
+    const coverImageUrl = getCleanImageUrl(rawCover);
+    const coverNode = (
+      <BookCoverPro 
+        title={book.title} 
+        author={book.author} 
+        width={180} 
+        height={240} 
+        style={index % 2 === 0 ? "swiss" : "serif"}
+        baseColor={stringToWarmColor(book.title)}
+      />
+    );
+    const availableCopies = book.available_copies ?? book.copies ?? 0;
+    const totalCopies = book.total_copies ?? book.totalCopies ?? book.total ?? book.copies ?? undefined;
+    return {
+      id: book.id || book._id,
+      title: book.title,
+      description: book.author,
+      category: book.category || 'General',
+      meta: totalCopies !== undefined
+        ? `stock: ${availableCopies}/${totalCopies}`
+        : `stock: ${availableCopies}`,
+      availableCopies,
+      totalCopies,
+      coverImage: coverImageUrl,
+      coverNode,
+      action: (
+        <Space>
+          <Button
+            size="small"
+            type="default"
+            icon={<ArrowRightOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/book/${book.id || book._id}`);
+            }}
+          >
+            View
+          </Button>
+        </Space>
+      ),
+      colSpan: 4, 
+      rowSpan: 1,
+      background: token.colorBgContainer
+    };
+  }), [paginatedBooks, navigate, token]);
+
+  return (
+    <div style={{ padding: screens.md ? 24 : 12 }}>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '40px 0' }}>
+          <Spin />
+        </div>
+      ) : (
+        <>
+          <MagazineBentoGrid items={bentoItems} />
+          <div style={{ textAlign: 'center', marginTop: 16, marginBottom: 24 }}>
+            <Pagination 
+              current={currentPage} 
+              total={filteredBooks.length} 
+              pageSize={pageSize} 
+              onChange={setCurrentPage}
+              showSizeChanger={false}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
