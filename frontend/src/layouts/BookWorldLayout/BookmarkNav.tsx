@@ -1,4 +1,5 @@
 import React from "react";
+import { LogoutOutlined } from "@ant-design/icons";
 import "./bookWorld.css";
 
 type BookmarkRoute = {
@@ -12,6 +13,7 @@ type BookmarkNavProps = {
   currentKey: string;
   onNavigate: (path: string) => void;
   isMobile: boolean;
+  onLogout?: () => void;
 };
 
 export const BookmarkNav: React.FC<BookmarkNavProps> = ({
@@ -19,20 +21,35 @@ export const BookmarkNav: React.FC<BookmarkNavProps> = ({
   currentKey,
   onNavigate,
   isMobile,
+  onLogout,
 }) => {
+  const containerClass = isMobile ? "bw-bookmarks bw-bookmarks-mobile" : "bw-bookmarks";
+
   return (
-    <div className={isMobile ? "bookmark-nav bookmark-nav-mobile" : "bookmark-nav"}>
-      {routes.map((route) => (
+    <nav className={containerClass}>
+      <div className="bw-bookmarks-stack">
+        {routes.map((route) => (
+          <button
+            key={route.key}
+            type="button"
+            className={currentKey === route.key ? "bw-bookmark active" : "bw-bookmark"}
+            onClick={() => onNavigate(route.path)}
+          >
+            <span className="bw-bookmark-label">{route.label}</span>
+          </button>
+        ))}
+      </div>
+      {onLogout && (
         <button
-          key={route.key}
           type="button"
-          className={currentKey === route.key ? "bookmark active" : "bookmark"}
-          onClick={() => onNavigate(route.path)}
+          className="bw-bookmark bw-bookmark-logout"
+          onClick={onLogout}
         >
-          <span className="bookmark-label">{route.label}</span>
+          <LogoutOutlined style={{ fontSize: 14, marginBottom: 4 }} />
+          <span className="bw-bookmark-label">Logout</span>
         </button>
-      ))}
-    </div>
+      )}
+    </nav>
   );
 };
 

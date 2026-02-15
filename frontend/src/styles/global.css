@@ -25,6 +25,10 @@
 }
 
 /* 2. Body & Background Texture */
+html, body, #root {
+  height: 100%;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -141,7 +145,28 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(0);
 }
 
-/* 7. Animation Utilities */
+/* 7. Search grid for SearchPage right panel */
+.search-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .search-grid {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .search-grid {
+    grid-template-columns: repeat(1, minmax(220px, 1fr));
+    gap: 16px;
+  }
+}
+
+/* 8. Animation Utilities */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -161,7 +186,7 @@ h1, h2, h3, h4, h5, h6 {
 .animate-delay-2 { animation-delay: 0.2s; }
 .animate-delay-3 { animation-delay: 0.3s; }
 
-/* 8. Scrollbar Styling */
+/* 9. Scrollbar Styling */
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }

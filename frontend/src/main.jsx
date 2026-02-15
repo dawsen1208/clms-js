@@ -270,7 +270,7 @@ function App() {
   // ✅ Layout Wrappers
   const UserLayoutWrapper = ({ children, left, right }) => (
     <PrivateRoute>
-      <BookWorldLayout left={left} right={right || children}>
+      <BookWorldLayout left={left} right={right || children} onLogout={handleLogout}>
         {!right ? children : null}
       </BookWorldLayout>
     </PrivateRoute>

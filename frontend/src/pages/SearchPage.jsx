@@ -624,33 +624,14 @@ export const SearchRightPanel = () => {
     return {
       id: book.id || book._id,
       title: book.title,
-      description: book.author,
+      author: book.author,
       category: book.category || 'General',
       meta: totalCopies !== undefined
         ? `stock: ${availableCopies}/${totalCopies}`
         : `stock: ${availableCopies}`,
+      coverNode,
       availableCopies,
       totalCopies,
-      coverImage: coverImageUrl,
-      coverNode,
-      action: (
-        <Space>
-          <Button
-            size="small"
-            type="default"
-            icon={<ArrowRightOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/book/${book.id || book._id}`);
-            }}
-          >
-            View
-          </Button>
-        </Space>
-      ),
-      colSpan: 4, 
-      rowSpan: 1,
-      background: token.colorBgContainer
     };
   }), [paginatedBooks, navigate, token]);
 
@@ -662,7 +643,46 @@ export const SearchRightPanel = () => {
         </div>
       ) : (
         <>
-          <MagazineBentoGrid items={bentoItems} />
+          <div className="search-grid">
+            {bentoItems.map((item) => (
+              <div
+                key={item.id}
+                className="editorial-card book-card"
+                style={{ width: "100%", cursor: "pointer" }}
+                onClick={() => navigate(`/book/${item.id}`)}
+              >
+                <div style={{ display: "grid", gridTemplateColumns: "120px 1fr" }}>
+                  <div className="book-card-cover" style={{ height: "100%" }}>
+                    {item.coverNode}
+                  </div>
+                  <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 6 }}>
+                    <Title level={5} style={{ margin: 0 }}>
+                      {item.title}
+                    </Title>
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      {item.author}
+                    </Text>
+                    <Text style={{ fontSize: 12, opacity: 0.8 }}>
+                      {item.category} · {item.meta}
+                    </Text>
+                    <div style={{ marginTop: "auto" }}>
+                      <Button
+                        size="small"
+                        type="default"
+                        icon={<ArrowRightOutlined />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/book/${item.id}`);
+                        }}
+                      >
+                        View
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
           <div style={{ textAlign: 'center', marginTop: 16, marginBottom: 24 }}>
             <Pagination 
               current={currentPage} 

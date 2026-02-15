@@ -27,12 +27,14 @@ type BookWorldLayoutProps = {
   left?: React.ReactNode;
   right?: React.ReactNode;
   children?: React.ReactNode;
+  onLogout?: () => void;
 };
 
 const BookWorldLayout: React.FC<BookWorldLayoutProps> = ({
   left,
   right,
   children,
+  onLogout,
 }) => {
   const { token } = theme.useToken();
   const location = useLocation();
@@ -53,30 +55,33 @@ const BookWorldLayout: React.FC<BookWorldLayoutProps> = ({
     );
 
   return (
-    <div className="book-desk">
-      <div className="book-desk-texture" />
-      <BookZoomToDetail>
-        <div
-          className="book-frame"
-          style={
-            {
-              "--book-paper": token.colorBgContainer,
-            } as React.CSSProperties
-          }
-        >
-          <PageFlipController
-            routeKey={currentKey}
-            left={resolvedLeft}
-            right={right || children}
-          />
-        </div>
-      </BookZoomToDetail>
-      <BookmarkNav
-        routes={routes}
-        currentKey={currentKey}
-        onNavigate={(path) => navigate(path)}
-        isMobile={isMobile}
-      />
+    <div className="bw-root">
+      <div className="bw-desk" />
+      <div className="bw-stage">
+        <BookZoomToDetail>
+          <div
+            className="bw-book"
+            style={
+              {
+                "--book-paper": token.colorBgContainer,
+              } as React.CSSProperties
+            }
+          >
+            <PageFlipController
+              routeKey={currentKey}
+              left={resolvedLeft}
+              right={right || children}
+            />
+          </div>
+        </BookZoomToDetail>
+        <BookmarkNav
+          routes={routes}
+          currentKey={currentKey}
+          onNavigate={(path) => navigate(path)}
+          isMobile={isMobile}
+          onLogout={onLogout}
+        />
+      </div>
     </div>
   );
 };

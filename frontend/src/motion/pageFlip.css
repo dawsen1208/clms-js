@@ -1,42 +1,43 @@
-.flip-layer {
+.bw-flip-layer {
   position: absolute;
-  inset: 28px 36px 40px 36px;
+  inset: 0;
   pointer-events: none;
   transform-style: preserve-3d;
   perspective: 1200px;
+  z-index: 5;
 }
 
-.flip-page {
+.bw-flip-page {
   position: absolute;
-  inset: 0;
+  inset: 16px 24px;
   transform-origin: left center;
   transform-style: preserve-3d;
 }
 
-.flip-left .flip-page {
+.bw-flip-left .bw-flip-page {
   transform-origin: left center;
 }
 
-.flip-right .flip-page {
+.bw-flip-right .bw-flip-page {
   transform-origin: right center;
 }
 
-.flip-front,
-.flip-back {
+.bw-flip-front,
+.bw-flip-back {
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
   overflow: hidden;
 }
 
-.flip-front {
+.bw-flip-front {
   background: var(--book-paper, #fcf8f3);
   box-shadow:
     inset 0 0 0 1px rgba(0, 0, 0, 0.06),
     0 18px 24px rgba(0, 0, 0, 0.22);
 }
 
-.flip-back {
+.bw-flip-back {
   background: var(--book-paper, #fcf8f3);
   transform: rotateY(180deg);
   box-shadow:
@@ -44,7 +45,7 @@
     0 18px 24px rgba(0, 0, 0, 0.22);
 }
 
-.flip-shadow {
+.bw-flip-shadow {
   position: absolute;
   inset: 0;
   background: radial-gradient(
@@ -57,7 +58,7 @@
   pointer-events: none;
 }
 
-.flip-right .flip-shadow {
+.bw-flip-right .bw-flip-shadow {
   background: radial-gradient(
     circle at 100% 50%,
     rgba(0, 0, 0, 0.25),
@@ -65,14 +66,14 @@
   );
 }
 
-.flip-fade {
-  position: absolute;
-  inset: 28px 36px 40px 36px;
-}
-
-.flip-fade-overlay {
+.bw-flip-fade {
   position: absolute;
   inset: 0;
+}
+
+.bw-flip-fade-overlay {
+  position: absolute;
+  inset: 16px 24px;
   border-radius: 18px;
   background: radial-gradient(
     circle at 50% 0,
@@ -80,11 +81,3 @@
     rgba(235, 224, 210, 0.96)
   );
 }
-
-@media (max-width: 768px) {
-  .flip-layer,
-  .flip-fade {
-    inset: 16px 16px 20px 16px;
-  }
-}
-

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { Grid } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMotionEnabled } from "./useMotionEnabled";
@@ -103,12 +103,14 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
   };
 
   return (
-    <div className="book-frame-inner">
-      <div className="book-left-paper">{left}</div>
-      <div className="book-gutter" />
-      <div className="book-right-paper">
-        <div className="book-right-content">{right}</div>
-      </div>
+    <Fragment>
+      <section className="bw-page bw-left">
+        <div className="bw-scroll">{left}</div>
+      </section>
+      <div className="bw-spine" />
+      <section className="bw-page bw-right">
+        <div className="bw-scroll">{right}</div>
+      </section>
 
       <AnimatePresence initial={false} mode="wait">
         {direction !== "none" && use3D && (
@@ -121,14 +123,14 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
             exit="exit"
             className={
               direction === "right"
-                ? "flip-layer flip-right"
-                : "flip-layer flip-left"
+                ? "bw-flip-layer bw-flip-right"
+                : "bw-flip-layer bw-flip-left"
             }
           >
-            <div className="flip-shadow" />
-            <div className="flip-page">
-              <div className="flip-front">{right}</div>
-              <div className="flip-back">{right}</div>
+            <div className="bw-flip-shadow" />
+            <div className="bw-flip-page">
+              <div className="bw-flip-front">{right}</div>
+              <div className="bw-flip-back">{right}</div>
             </div>
           </motion.div>
         )}
@@ -139,13 +141,12 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
             initial="initial"
             animate="animate"
             exit="exit"
-            className="flip-layer flip-fade"
+            className="bw-flip-layer bw-flip-fade"
           >
-            <div className="flip-fade-overlay" />
+            <div className="bw-flip-fade-overlay" />
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </Fragment>
   );
 };
-
