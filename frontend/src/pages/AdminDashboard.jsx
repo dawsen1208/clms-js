@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Typography, Button, Spin, theme, Row, Col, Empty } from "antd";
 import { 
   BookOutlined, 
@@ -11,7 +11,7 @@ import {
   ArrowRightOutlined,
   ReadOutlined
 } from "@ant-design/icons";
-import { getBooksLibrary, getAllRequestsLibrary, getUserAnalytics, getBorrowedBooksLibrary, getBorrowHistoryAllLibrary, getBooks, getLibraryStats } from "../api.js";
+import { getBooksLibrary, getAllRequestsLibrary, getBorrowedBooksLibrary } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
 import EditorialSectionHeader from "../components/common/EditorialSectionHeader";
@@ -52,20 +52,15 @@ const AdminDashboard = () => {
       
       // Mock data handling if API fails or for development
       // TODO: Remove mock fallbacks when backend is fully ready
-      const [booksRes, reqRes, borrowedRes, usersRes, historyAllRes, statsRes] = await Promise.all([
+      const [booksRes, reqRes, borrowedRes] = await Promise.all([
         getBooksLibrary().catch(() => ({ data: [] })),
         authToken ? getAllRequestsLibrary(authToken).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
         authToken ? getBorrowedBooksLibrary(authToken).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
-        authToken ? getUserAnalytics(authToken).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
-        authToken ? getBorrowHistoryAllLibrary(authToken).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
-        authToken ? getLibraryStats(authToken).catch(() => ({ data: null })) : Promise.resolve({ data: null }),
       ]);
 
       const books = booksRes.data || [];
       const requests = reqRes.data || [];
       const borrowed = (borrowedRes.data || []).filter((r) => !r.returned);
-      const users = usersRes.data || [];
-      const history = historyAllRes.data || [];
 
       const pendingRequests = requests.filter((r) => (r.status || "").toLowerCase() === "pending").length;
       const overdueBooks = borrowed.filter((r) => new Date(r.dueDate) < new Date()).length;

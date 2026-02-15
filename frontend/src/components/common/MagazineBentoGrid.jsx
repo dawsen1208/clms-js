@@ -128,22 +128,23 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
                       background: token.colorFillTertiary,
                       boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
                     }}>
-                      {item.coverImage ? (
-                        <img 
-                          src={item.coverImage} 
-                          alt={item.title} 
-                          loading="lazy"
-                          decoding="async"
-                          srcSet={item.coverSrcSet || undefined}
-                          sizes={item.coverSizes || undefined}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }} 
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        />
-                      ) : (
-                        <div style={{ width: '100%', height: '100%' }}>
+                      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                        <div style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
                           {item.coverNode}
                         </div>
-                      )}
+                        {item.coverImage ? (
+                          <img 
+                            src={item.coverImage} 
+                            alt={item.title} 
+                            loading="lazy"
+                            decoding="async"
+                            srcSet={item.coverSrcSet || undefined}
+                            sizes={item.coverSizes || undefined}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', position: 'relative', zIndex: 1 }} 
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        ) : null}
+                      </div>
                     </div>
                   ) : null}
                   

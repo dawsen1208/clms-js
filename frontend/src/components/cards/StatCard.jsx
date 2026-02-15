@@ -9,11 +9,10 @@ const StatCard = ({
   value, 
   prefix, 
   suffix, 
-  trend, // number (positive or negative)
+  trend, 
   trendLabel = "vs last month",
   explanation,
-  color,
-  loading = false 
+  color
 }) => {
   const { token } = theme.useToken();
   const isPositive = trend >= 0;

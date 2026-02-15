@@ -15,9 +15,9 @@ import {
   HistoryOutlined
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
-import GlobalNotifier from "./GlobalNotifier";
-import { getBooks } from "../api";
+import { useLanguage } from "../../contexts/LanguageContext";
+import GlobalNotifier from "../../components/GlobalNotifier";
+import { getBooks } from "../../api";
 import "./LayoutMenu.css";
 
 const { Sider, Content, Header } = Layout;
@@ -70,7 +70,6 @@ const LayoutMenu = ({ onLogout, children }) => {
     return () => root.removeEventListener('keydown', handleKeyDown);
   }, [mobileDrawerOpen]);
   
-  // Search AutoComplete State
   const [allBooks, setAllBooks] = useState([]);
   const [searchOptions, setSearchOptions] = useState([]);
   const [booksLoaded, setBooksLoaded] = useState(false);
@@ -84,8 +83,6 @@ const LayoutMenu = ({ onLogout, children }) => {
     }
   }, []);
 
-  // Responsive check
-  // screens.md is true for desktop (>= 768px)
   const isMobile = !screens.md;
 
   useEffect(() => {
@@ -151,7 +148,7 @@ const LayoutMenu = ({ onLogout, children }) => {
         book.author.toLowerCase().includes(lowerVal) ||
         (book.isbn && book.isbn.includes(lowerVal))
       )
-      .slice(0, 8) // Limit to top 8
+      .slice(0, 8)
       .map(book => ({
         value: book.title,
         label: (
@@ -198,7 +195,6 @@ const LayoutMenu = ({ onLogout, children }) => {
     return "home";
   };
 
-  // Mobile Bottom Nav Items
   const mobileNavItems = [
     { key: "home", icon: <HomeOutlined />, label: t("nav.home") || "Home" },
     { key: "search", icon: <SearchOutlined />, label: t("nav.books") || "Search" },
@@ -277,7 +273,6 @@ const LayoutMenu = ({ onLogout, children }) => {
 
   return (
     <Layout style={{ minHeight: "100vh", background: 'transparent' }}>
-      {/* Desktop Sidebar */}
       {!isMobile && (
         <Sider
           id="app-sider"
@@ -310,7 +305,6 @@ const LayoutMenu = ({ onLogout, children }) => {
               />
             </div>
             
-            {/* User Profile Snippet in Sidebar (Desktop) */}
             <div style={{ 
               padding: 20, 
               borderTop: `1px solid ${token.colorBorderSecondary}`,
@@ -353,7 +347,6 @@ const LayoutMenu = ({ onLogout, children }) => {
         </Sider>
       )}
 
-      {/* Mobile Drawer */}
       <Drawer
         placement="left"
         onClose={() => setMobileDrawerOpen(false)}
@@ -369,10 +362,16 @@ const LayoutMenu = ({ onLogout, children }) => {
                 const selected = root.querySelector('.ant-menu-item-selected');
                 const first = root.querySelector('.ant-menu-item');
                 (selected || first)?.focus?.();
-              } catch {}
+              } catch {
+                void 0;
+              }
             }, 0);
           } else if (menuBtnRef.current) {
-            try { menuBtnRef.current.focus(); } catch {}
+            try {
+              menuBtnRef.current.focus();
+            } catch {
+              void 0;
+            }
           }
         }}
         styles={{ body: { padding: 0 } }}

@@ -1,5 +1,5 @@
 // ✅ client/src/components/GlobalNotifier.jsx
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   Badge,
   Button,
@@ -21,11 +21,9 @@ import {
   MessageTwoTone,
 } from "@ant-design/icons";
 import { 
-  getBorrowHistory, 
   getReviewReminders, 
   getUserRequestsLibrary,
   getNotifications,
-  markNotificationRead 
 } from "../api";
 import "./GlobalNotifier.css";
 
@@ -35,14 +33,8 @@ const { Text } = Typography;
  * 🔔 用户端全局通知系统（Drawer + 实时提醒 + 详情弹窗）
  */
 function GlobalNotifier() {
-  const { useBreakpoint } = Grid; // ✅ Moved inside component
-  const notifPrefs = (() => {
-    try {
-      const raw = localStorage.getItem("notification_prefs");
-      return raw ? JSON.parse(raw) : { inApp: true };
-    } catch { return { inApp: true }; }
-  })();
-  if (!notifPrefs.inApp) return null;
+  const { useBreakpoint } = Grid;
+  const [notifEnabled, setNotifEnabled] = useState(true);
   const [notifications, setNotifications] = useState(() => {
     const stored = localStorage.getItem("notifications");
     return stored ? JSON.parse(stored) : [];
@@ -52,26 +44,37 @@ function GlobalNotifier() {
   const [detailModal, setDetailModal] = useState({ open: false, data: null });
   const token =
     sessionStorage.getItem("token") || localStorage.getItem("token");
-  const initialKnownIds = (() => {
-    try {
-      const raw = localStorage.getItem("notificationKnownIds");
-      const arr = raw ? JSON.parse(raw) : [];
-      return new Set(arr);
-    } catch {
-      return new Set();
-    }
-  })();
-  const lastKnownIds = useRef(initialKnownIds);
+  const lastKnownIds = useRef(new Set());
   const screens = useBreakpoint();
 
   // ✅ Drawer auto width (mobile friendly)
   const drawerWidth = screens.lg ? 400 : "90%";
 
+  useEffect(() => {
+    try {
+      const rawPrefs = localStorage.getItem("notification_prefs");
+      const prefs = rawPrefs ? JSON.parse(rawPrefs) : { inApp: true };
+      setNotifEnabled(prefs.inApp !== false);
+    } catch (err) {
+      console.error("Failed to read notification prefs", err);
+      setNotifEnabled(true);
+    }
+
+    try {
+      const rawIds = localStorage.getItem("notificationKnownIds");
+      const arr = rawIds ? JSON.parse(rawIds) : [];
+      lastKnownIds.current = new Set(arr);
+    } catch (err) {
+      console.error("Failed to read notification known ids", err);
+      lastKnownIds.current = new Set();
+    }
+  }, []);
+
   /* =========================================================
      📬 Fetch all notifications (Requests, Reminders, System)
      ========================================================= */
-  const fetchNotifications = async () => {
-    if (!token) return;
+  const fetchNotifications = useCallback(async () => {
+    if (!token || !notifEnabled) return;
 
     let newItems = [];
 
@@ -163,7 +166,9 @@ function GlobalNotifier() {
       // Persist known IDs
       try {
         localStorage.setItem("notificationKnownIds", JSON.stringify(Array.from(lastKnownIds.current)));
-      } catch {}
+      } catch (err) {
+        console.error("Failed to persist notification known ids", err);
+      }
 
       // Show Toasts
       newItems.forEach((n) => {
@@ -200,13 +205,13 @@ function GlobalNotifier() {
       });
       setUnreadCount((prev) => prev + newItems.length);
     }
-  };
+  }, [token, notifEnabled]);
 
   /* =========================================================
      ⏱️ Polling (refresh every 60s)
      ========================================================= */
   useEffect(() => {
-    if (!token) return;
+    if (!token || !notifEnabled) return;
     // 首次进入立刻拉取
     fetchNotifications();
 
@@ -226,7 +231,7 @@ function GlobalNotifier() {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [token]);
+  }, [token, notifEnabled, fetchNotifications]);
 
   /* =========================================================
      📨 Open detail modal
@@ -244,7 +249,9 @@ function GlobalNotifier() {
         "notificationKnownIds",
         JSON.stringify(Array.from(lastKnownIds.current))
       );
-    } catch {}
+    } catch (err) {
+      console.error("Failed to persist notification known ids on openDetail", err);
+    }
   };
 
   // 📝 写书评弹窗状态
@@ -265,7 +272,9 @@ function GlobalNotifier() {
       setNotifications(filtered);
       localStorage.setItem("notifications", JSON.stringify(filtered));
       setUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch {}
+    } catch (err) {
+      console.error("Failed to mark review reminder as read", err);
+    }
   };
 
   /* =========================================================
@@ -506,8 +515,14 @@ function GlobalNotifier() {
         "notificationKnownIds",
         JSON.stringify(Array.from(lastKnownIds.current))
       );
-    } catch {}
+    } catch (err) {
+      console.error("Failed to mark all as read", err);
+    }
   };
+
+  if (!notifEnabled) {
+    return null;
+  }
 
   return (
     <>
@@ -594,7 +609,9 @@ function ModalPortal({ reviewModal, setReviewModal, token, notifications, setNot
           setNotifications(filtered);
           localStorage.setItem("notifications", JSON.stringify(filtered));
           setUnreadCount(0);
-        } catch {}
+        } catch (err) {
+          console.error("Failed to handle review submit notification cleanup", err);
+        }
       }}
     />
   );

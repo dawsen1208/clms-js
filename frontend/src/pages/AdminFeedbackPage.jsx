@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Table,
@@ -12,7 +12,6 @@ import {
   Tabs,
   Tooltip,
   Statistic,
-  Grid,
   Row,
   Col,
   theme
@@ -34,14 +33,11 @@ import KPIStatCard from "../components/common/KPIStatCard";
 
 const { Text: AntText, Paragraph } = Typography;
 const { TextArea } = Input;
-const { useBreakpoint } = Grid;
 const { useToken } = theme;
 
 function AdminFeedbackPage() {
   const { t } = useLanguage();
   const { token } = useToken();
-  const screens = useBreakpoint();
-  const isMobile = !screens.md;
   const [loading, setLoading] = useState(false);
   const [feedbacks, setFeedbacks] = useState([]);
   const [replyModalVisible, setReplyModalVisible] = useState(false);
@@ -52,7 +48,7 @@ function AdminFeedbackPage() {
 
   const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
 
-  const fetchFeedbacks = async () => {
+  const fetchFeedbacks = useCallback(async () => {
     if (!authToken) return;
     try {
       setLoading(true);
@@ -64,11 +60,11 @@ function AdminFeedbackPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authToken, t]);
 
   useEffect(() => {
     fetchFeedbacks();
-  }, []);
+  }, [fetchFeedbacks]);
 
   const handleReplyClick = (record) => {
     setCurrentFeedback(record);

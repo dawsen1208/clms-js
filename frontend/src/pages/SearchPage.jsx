@@ -9,19 +9,13 @@ import {
   Tag,
   Drawer,
   Space,
-  Radio,
   Empty,
   Switch,
   Modal,
-  AutoComplete,
-  Card,
-  Divider,
-  Layout,
-  Row,
-  Col,
   Checkbox,
   theme,
-  Grid
+  Grid,
+  Spin
 } from "antd";
 import {
   SearchOutlined,
@@ -29,43 +23,35 @@ import {
   ArrowRightOutlined
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
 import MagazineBentoGrid from "../components/common/MagazineBentoGrid";
 import EmptyStateIllustration from "../components/common/EmptyStateIllustration";
 import BookCoverPro from "../components/common/BookCoverPro";
 import { stringToWarmColor } from "../utils/hashColor";
-import { getBooks, borrowBook, getBorrowedBooks, getUserRequestsLibrary } from "../api";
-import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
+import { getBooks } from "../api";
+import { getCleanImageUrl } from "../utils/imageUtils";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
 
 const SearchPage = () => {
-  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const { token } = theme.useToken();
   const screens = useBreakpoint();
-  const [modal, contextHolder] = Modal.useModal();
+  const [, contextHolder] = Modal.useModal();
   const [loading, setLoading] = useState(false);
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
   
   // Filter States
   const [searchText, setSearchText] = useState("");
-  const [searchOptions, setSearchOptions] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [showAvailableOnly, setShowAvailableOnly] = useState(false);
   const [sortBy, setSortBy] = useState("newest");
-  const [viewMode, setViewMode] = useState("grid");
   
   // UI States
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
-  
-  // User Data
-  const [userBorrowedBooks, setUserBorrowedBooks] = useState(new Set());
-  const [pendingRequests, setPendingRequests] = useState(new Set());
   
   // Parse URL query params
   useEffect(() => {
@@ -85,10 +71,8 @@ const SearchPage = () => {
     return Array.from(cats).sort();
   }, [books]);
 
-  // ... (keep existing fetching logic)
   useEffect(() => {
     fetchBooks();
-    fetchUserData();
   }, []);
 
   const fetchBooks = async () => {
@@ -97,32 +81,10 @@ const SearchPage = () => {
       const res = await getBooks();
       setBooks(res.data);
       setFilteredBooks(res.data);
-    } catch (error) {
+    } catch {
       message.error("Failed to load books");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchUserData = async () => {
-    // ... (keep existing user data fetching)
-    const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-    if (!token) return;
-
-    try {
-      const [borrowedRes, requestsRes] = await Promise.allSettled([
-        getBorrowedBooks(token),
-        getUserRequestsLibrary(token)
-      ]);
-
-      if (borrowedRes.status === 'fulfilled') {
-        setUserBorrowedBooks(new Set(borrowedRes.value.data.map(b => b.book_id)));
-      }
-      if (requestsRes.status === 'fulfilled') {
-        setPendingRequests(new Set(requestsRes.value.data.filter(r => r.status === 'pending').map(r => r.book_id)));
-      }
-    } catch (error) {
-      console.error("Error fetching user data", error);
     }
   };
 
@@ -175,11 +137,9 @@ const SearchPage = () => {
 
   // Transform to Bento Grid Items (memoized)
   const bentoItems = useMemo(() => paginatedBooks.map((book, index) => {
-    // Prefer camelCase coverImage, fallback to snake_case
-    const coverImageUrl = book.coverImage || book.cover_image || "";
-    // Generate fallback cover if image missing
-    const hasImage = !!coverImageUrl;
-    const coverNode = !hasImage ? (
+    const rawCover = book.coverImage || book.cover_image || "";
+    const coverImageUrl = getCleanImageUrl(rawCover);
+    const coverNode = (
       <BookCoverPro 
         title={book.title} 
         author={book.author} 
@@ -188,7 +148,7 @@ const SearchPage = () => {
         style={index % 2 === 0 ? "swiss" : "serif"}
         baseColor={stringToWarmColor(book.title)}
       />
-    ) : null;
+    );
 
     return {
       id: book.id || book._id, // Handle both id formats
@@ -318,25 +278,33 @@ const SearchPage = () => {
 
       {/* Results */}
       <div style={{ padding: screens.md ? '0 48px' : '0 16px' }}>
-        {filteredBooks.length > 0 ? (
-           <>
-             <MagazineBentoGrid items={bentoItems} />
-             <div style={{ textAlign: 'center', marginTop: 16, marginBottom: 24 }}>
-               <Pagination 
-                 current={currentPage} 
-                 total={filteredBooks.length} 
-                 pageSize={pageSize} 
-                 onChange={setCurrentPage}
-                 showSizeChanger={false}
-               />
-             </div>
-           </>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Spin />
+          </div>
         ) : (
-          <EmptyStateIllustration 
-            title="No books found" 
-            description={`We couldn't find any matches for "${searchText}".`}
-            action={<Button onClick={() => {setSearchText(''); setSelectedCategories([]);}}>Clear Filters</Button>}
-          />
+          <>
+            {filteredBooks.length > 0 ? (
+              <>
+                <MagazineBentoGrid items={bentoItems} />
+                <div style={{ textAlign: 'center', marginTop: 16, marginBottom: 24 }}>
+                  <Pagination 
+                    current={currentPage} 
+                    total={filteredBooks.length} 
+                    pageSize={pageSize} 
+                    onChange={setCurrentPage}
+                    showSizeChanger={false}
+                  />
+                </div>
+              </>
+            ) : (
+              <EmptyStateIllustration 
+                title="No books found" 
+                description={`We couldn't find any matches for "${searchText}".`}
+                action={<Button onClick={() => {setSearchText(''); setSelectedCategories([]);}}>Clear Filters</Button>}
+              />
+            )}
+          </>
         )}
       </div>
 

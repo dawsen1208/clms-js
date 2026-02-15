@@ -23,6 +23,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
 import EditorialSectionHeader from "../components/common/EditorialSectionHeader";
 import BookCoverPro from "../components/common/BookCoverPro";
+import { getCleanImageUrl } from "../utils/imageUtils";
 import StatCard from "../components/cards/StatCard";
 import ShimmerSkeleton from "../components/common/ShimmerSkeleton";
 
@@ -49,7 +50,6 @@ function BookDetail() {
   
   // Borrow/Return Logic State
   const [isBorrowed, setIsBorrowed] = useState(false);
-  const [pendingType, setPendingType] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -71,7 +71,9 @@ function BookDetail() {
             const borrowedIds = (br?.data || []).map(b => String(b.book_id || b.bookId || b._id || b.id));
             const thisId = String(data?._id || data?.id);
             setIsBorrowed(borrowedIds.includes(thisId));
-          } catch (e) {}
+          } catch (e) {
+            console.error("Failed to check borrowed status", e);
+          }
         }
 
         // 2. Check Review Eligibility
@@ -123,7 +125,6 @@ function BookDetail() {
       await borrowBook(book._id || book.id, tokenVal);
       message.success("Borrowed");
       setIsBorrowed(true);
-      setPendingType(null);
       // Refresh book data to update copies count if needed
       const res = await getBookDetail(id);
       setBook(res?.data);
@@ -253,7 +254,7 @@ function BookDetail() {
                   </div>
                   {book.coverImage ? (
                     <img
-                      src={book.coverImage}
+                      src={getCleanImageUrl(book.coverImage)}
                       alt={book.title}
                       loading="lazy"
                       decoding="async"
@@ -509,7 +510,9 @@ function BookDetail() {
             setHasReviewed(true);
             setReviewOpen(false);
             message.success(t("bookDetail.reviewSubmitted"));
-          } catch (e) {}
+          } catch (e) {
+            console.error("Failed to refresh book after review", e);
+          }
         }}
       />
     </EditorialPageShell>

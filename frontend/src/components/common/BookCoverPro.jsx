@@ -179,7 +179,7 @@ const BookCoverPro = ({
       default:
         drawSwiss(ctx, width, height, title, author, baseColor, palette);
     }
-  }, [title, author, style, width, height, baseColor]);
+  }, [title, author, style, width, height, baseColor, token]);
 
   return (
     <canvas 

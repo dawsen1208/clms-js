@@ -7,8 +7,7 @@ const { Title, Text } = Typography;
 const KPIStatCardPro = ({ 
   title, 
   value, 
-  trend, 
-  trendType = 'up', // 'up' or 'down'
+  trendType = 'up',
   trendValue, 
   data = [], 
   color = '#A65D57',

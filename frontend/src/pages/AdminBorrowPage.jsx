@@ -1,5 +1,5 @@
 // ✅ client/src/pages/AdminBorrowPage.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Card,
   Table,
@@ -9,7 +9,6 @@ import {
   Modal,
   message,
   Typography,
-  Grid,
   Row,
   Col,
   theme
@@ -32,10 +31,9 @@ import EditorialPageShell from "../components/common/EditorialPageShell";
 import StatCard from "../components/cards/StatCard";
 
 const { Text: AntText } = Typography;
-const { useBreakpoint } = Grid;
 const { useToken } = theme;
 
-function AdminBorrowPage({ appearance }) {
+function AdminBorrowPage() {
   const { t } = useLanguage();
   const { token } = useToken();
   const [loading, setLoading] = useState(false);
@@ -49,17 +47,12 @@ function AdminBorrowPage({ appearance }) {
   const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
   
   const [modal, contextHolder] = Modal.useModal();
-  const screens = useBreakpoint();
-  const isMobile = !screens.md;
 
   // Stats
   const activeCount = records.length;
   const overdueCount = records.filter(r => dayjs(r.dueDate).isBefore(dayjs())).length;
 
-  /* =========================================================
-     ✅ Fetch active borrows
-     ========================================================= */
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getActiveBorrowRecords(authToken);
@@ -72,13 +65,12 @@ function AdminBorrowPage({ appearance }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authToken, t]);
 
   /* =========================================================
      🔍 Search logic
      ========================================================= */
   useEffect(() => {
-    // 🔄 Auto-exit batch mode on filter/search change
     if (isBatchMode) {
       setIsBatchMode(false);
       setSelectedRowKeys([]);
@@ -95,7 +87,7 @@ function AdminBorrowPage({ appearance }) {
       );
     }
     setFiltered(data);
-  }, [searchText, records]);
+  }, [searchText, records, isBatchMode]);
 
   /* =========================================================
      ↩️ Handle Return
@@ -159,11 +151,11 @@ function AdminBorrowPage({ appearance }) {
         let failCount = 0;
 
         try {
-          const promises = selectedRowKeys.map(async (id) => {
+        const promises = selectedRowKeys.map(async (id) => {
              try {
                 await markBookReturned({ borrowRecordId: id }, authToken);
                 successCount++;
-             } catch (e) {
+             } catch {
                 failCount++;
              }
           });
@@ -269,7 +261,7 @@ function AdminBorrowPage({ appearance }) {
      ========================================================= */
   useEffect(() => {
     fetchRecords();
-  }, []);
+  }, [fetchRecords]);
 
   return (
     <EditorialPageShell
@@ -336,7 +328,7 @@ function AdminBorrowPage({ appearance }) {
           />
         </div>
 
-        <Table
+          <Table
           columns={columns}
           dataSource={filtered}
           rowKey="_id"
@@ -344,7 +336,7 @@ function AdminBorrowPage({ appearance }) {
           pagination={{ pageSize: 10, showTotal: (total) => `${t("admin.total")} ${total} ${t("admin.items")}` }}
           scroll={{ x: 800 }}
           rowSelection={rowSelection}
-          onChange={(pagination, filters, sorter, extra) => {
+          onChange={() => {
             if (isBatchMode) exitBatchMode();
           }}
         />

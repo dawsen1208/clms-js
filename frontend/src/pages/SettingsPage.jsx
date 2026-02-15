@@ -18,8 +18,8 @@ const { useBreakpoint } = Grid;
 const { useToken } = theme;
 
 function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
-  const { language, setLanguage, t } = useLanguage(); // ✅ Use Language Hook
-  const { ttsEnabled, accessibilityMode, updatePrefs } = useAccessibility();
+  const { language, setLanguage, t } = useLanguage();
+  const { ttsEnabled: _ttsEnabled, accessibilityMode: _accessibilityMode, updatePrefs } = useAccessibility();
   const { token } = useToken();
   const [modal, contextHolder] = Modal.useModal();
   const screens = useBreakpoint();
@@ -68,12 +68,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
 
   const saveNotifications = async (patch) => {
     const next = { ...notifPrefs, ...patch };
-    try { localStorage.setItem("notification_prefs", JSON.stringify(next)); } catch {}
+    try { localStorage.setItem("notification_prefs", JSON.stringify(next)); } catch (error) { void error; }
     try {
       if (authToken) {
         await updateProfile(authToken, { preferences: { notifications: next } });
       }
-    } catch {}
+    } catch (error) { void error; }
   };
 
   const handleSendAuthCode = async () => {
@@ -112,7 +112,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
 
       setAuthCodeSent(true);
       setTimer(60);
-    } catch (err) {
+    } catch {
       message.error(t("settings.sendFailed"));
     } finally {
       setLoadingEmail(false);
@@ -144,7 +144,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
       setAuthCodeSent(false);
       setEmailCode("");
       setTimer(0);
-    } catch (err) {
+    } catch {
       message.error(t("settings.bindFailed"));
     } finally {
       setLoadingEmail(false);
@@ -177,7 +177,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
       if (onUserUpdate) {
         onUserUpdate(storedUser);
       }
-    } catch (err) {
+    } catch {
       message.error(t("settings.operationFailed"));
     }
   };
@@ -194,12 +194,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const saveOperation = async (patch) => {
     const next = { ...operationPrefs, ...patch };
     setOperationPrefs(next);
-    try { localStorage.setItem("operation_prefs", JSON.stringify(next)); } catch {}
+    try { localStorage.setItem("operation_prefs", JSON.stringify(next)); } catch (error) { void error; }
     try {
       if (authToken) {
         await updateProfile(authToken, { preferences: { operation: next } });
       }
-    } catch {}
+    } catch (error) { void error; }
   };
 
   const [recommendPrefs, setRecommendPrefs] = useState(() => {
@@ -219,19 +219,19 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
         const list = res?.data || [];
         const cats = Array.from(new Set(list.map(b => b.category).filter(Boolean))).sort();
         setAllCategories(cats);
-      } catch {}
+      } catch (error) { void error; }
     })();
   }, []);
 
   const saveRecommend = async (patch) => {
     const next = { ...recommendPrefs, ...patch };
     setRecommendPrefs(next);
-    try { localStorage.setItem("recommend_prefs", JSON.stringify(next)); } catch {}
+    try { localStorage.setItem("recommend_prefs", JSON.stringify(next)); } catch (error) { void error; }
     try {
       if (authToken) {
         await updateProfile(authToken, { preferences: { recommendation: next } });
       }
-    } catch {}
+    } catch (error) { void error; }
   };
 
   const [adminApprovalPrefs, setAdminApprovalPrefs] = useState(() => {
@@ -246,12 +246,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const saveAdminApproval = async (patch) => {
     const next = { ...adminApprovalPrefs, ...patch };
     setAdminApprovalPrefs(next);
-    try { localStorage.setItem("admin_approval_prefs", JSON.stringify(next)); } catch {}
+    try { localStorage.setItem("admin_approval_prefs", JSON.stringify(next)); } catch (error) { void error; }
     try {
       if (authToken) {
         await updateProfile(authToken, { preferences: { adminApproval: next } });
       }
-    } catch {}
+    } catch (error) { void error; }
   };
 
   const [adminPermissions, setAdminPermissions] = useState(() => {
@@ -275,12 +275,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
 
   const saveAdminPermissions = async (nextMap) => {
     setAdminPermissions(nextMap);
-    try { localStorage.setItem("admin_permissions", JSON.stringify(nextMap)); } catch {}
+    try { localStorage.setItem("admin_permissions", JSON.stringify(nextMap)); } catch (error) { void error; }
     try {
       if (authToken) {
         await updateProfile(authToken, { preferences: { adminPermissions: nextMap } });
       }
-    } catch {}
+    } catch (error) { void error; }
   };
 
   const [securityPrefs, setSecurityPrefs] = useState(() => {
@@ -313,12 +313,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const saveSecurity = async (patch) => {
     const next = { ...securityPrefs, ...patch };
     setSecurityPrefs(next);
-    try { localStorage.setItem("security_prefs", JSON.stringify(next)); } catch {}
+    try { localStorage.setItem("security_prefs", JSON.stringify(next)); } catch (error) { void error; }
     try {
       if (authToken) {
         await updateProfile(authToken, { preferences: { security: next } });
       }
-    } catch {}
+    } catch (error) { void error; }
   };
 
   const [borrowingPrefs, setBorrowingPrefs] = useState(() => {
@@ -344,12 +344,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const saveBorrowing = async (patch) => {
     const next = { ...borrowingPrefs, ...patch };
     setBorrowingPrefs(next);
-    try { localStorage.setItem("borrowing_prefs", JSON.stringify(next)); } catch {}
+    try { localStorage.setItem("borrowing_prefs", JSON.stringify(next)); } catch (error) { void error; }
     try {
       if (authToken) {
         await updateProfile(authToken, { preferences: { borrowing: next } });
       }
-    } catch {}
+    } catch (error) { void error; }
   };
 
   const [accessibilityPrefs, setAccessibilityPrefs] = useState(() => {
@@ -374,12 +374,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
       updatePrefs(next);
     }
     
-    try { localStorage.setItem("accessibility_prefs", JSON.stringify(next)); } catch {}
+    try { localStorage.setItem("accessibility_prefs", JSON.stringify(next)); } catch (error) { void error; }
     try {
       if (authToken) {
         await updateProfile(authToken, { preferences: { accessibility: next } });
       }
-    } catch {}
+    } catch (error) { void error; }
   };
 
   const [sessions, setSessions] = useState([]);
@@ -397,23 +397,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const [bgModalOpen, setBgModalOpen] = useState(false);
   const [tempBgColor, setTempBgColor] = useState('');
 
-  const openThemeColorModal = () => {
-    setTempThemeColor(appearance?.themeColor || 'blue');
-    setTempCustomColor(appearance?.customColor || '#1677FF');
-    setThemeColorModalOpen(true);
-  };
-
   const confirmThemeColor = () => {
     handleUpdate({ 
         themeColor: tempThemeColor, 
         customColor: tempThemeColor === 'custom' ? tempCustomColor : (appearance?.customColor || '#1677FF')
     });
     setThemeColorModalOpen(false);
-  };
-
-  const openBgModal = () => {
-    setTempBgColor(appearance?.backgroundColor || '#ffffff');
-    setBgModalOpen(true);
   };
 
   const confirmBgColor = () => {
@@ -443,7 +432,8 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
         loginTime: s.loginTime || s.createdAt || s.lastUsedAt || Date.now(),
         id: s.id || s._id,
       })));
-    } catch {
+    } catch (error) {
+      void error;
       setSessions([]);
     } finally {
       setSessionsLoading(false);
@@ -904,12 +894,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                           </div>
                       </Space>
                     </Card>
-                     <Card hoverable onClick={() => { 
+                 <Card hoverable onClick={() => { 
                         modal.confirm({
                             title: t("settings.clearCache"),
                             content: t("settings.clearCacheDesc"),
                              onOk: () => {
-                                 try { localStorage.clear(); } catch {} 
+                                 try { localStorage.clear(); } catch (error) { void error; } 
                                  message.success(t("settings.cacheCleared"));
                              }
                          });
@@ -1148,7 +1138,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => { try { localStorage.removeItem('recommend_behavior'); localStorage.removeItem('compare_ids'); message.success(t("settings.dataReset")); } catch {} }} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder, background: appearance?.highContrast ? '#000' : token.colorBgContainer }}>
+                       <Card hoverable onClick={() => { try { localStorage.removeItem('recommend_behavior'); localStorage.removeItem('compare_ids'); message.success(t("settings.dataReset")); } catch (error) { void error; } }} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder, background: appearance?.highContrast ? '#000' : token.colorBgContainer }}>
                           <Space align="start">
                               <ReloadOutlined style={{ fontSize: 24, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorError }} />
                               <div>

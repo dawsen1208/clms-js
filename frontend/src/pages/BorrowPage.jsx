@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { 
   Typography, 
   Row, 
@@ -45,11 +45,7 @@ const BorrowPage = () => {
   const [renewModalOpen, setRenewModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const token = sessionStorage.getItem("token") || localStorage.getItem("token");
@@ -88,7 +84,11 @@ const BorrowPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const getDaysLeft = (borrowDate, dueDate) => {
     if (!borrowDate) return 0;

@@ -29,13 +29,13 @@ export const showBorrowLimitModal = (t, modalInstance) => {
         maskClosable: true,
       });
     }, 100);
-  } catch (e) {
-    console.error("Error showing borrow limit modal:", e);
+  } catch (error) {
+    console.error("Error showing borrow limit modal:", error);
     // Fallback: ensure user sees something
     try { 
       message.error(t ? t("popular.limitTitle") : "Borrowing Limit Reached");
-    } catch (_) {
-      console.warn("Message fallback failed", _);
+    } catch (messageError) {
+      console.warn("Message fallback failed", messageError);
     }
   }
 };
@@ -56,7 +56,7 @@ export const showBorrowSuccessModal = (t, bookTitle = "") => {
       zIndex: 9999,
       maskClosable: true,
     });
-  } catch (_) {
+  } catch {
     message.success(title);
   }
 };
@@ -70,7 +70,7 @@ export const extractErrorMessage = (err) => {
       err?.message ||
       ""
     );
-  } catch (_) {
+  } catch {
     return "";
   }
 };

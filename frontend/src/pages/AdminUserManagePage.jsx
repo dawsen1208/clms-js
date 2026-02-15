@@ -1,5 +1,5 @@
 // ✅ client/src/pages/AdminUserManagePage.jsx
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Table,
   Card,
@@ -65,13 +65,15 @@ const AdminUserManagePage = () => {
   if (authToken?.startsWith('"')) {
     try {
       authToken = JSON.parse(authToken);
-    } catch {}
+    } catch (err) {
+      console.error("Failed to parse auth token", err);
+    }
   }
 
   /* =========================================================
      📡 Load user data
      ========================================================= */
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getUserAnalytics(authToken);
@@ -84,11 +86,11 @@ const AdminUserManagePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authToken, t]);
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   useEffect(() => {
     setTableData(users);
@@ -102,6 +104,7 @@ const AdminUserManagePage = () => {
         message.success(status === 'APPROVED' ? (t("admin.userApproved") || "用户已通过审核") : (t("admin.userRejected") || "用户已拒绝"));
         fetchUsers();
     } catch (err) {
+        console.error("Failed to update user approval status", err);
         message.error(t("admin.operationFailed") || "操作失败");
     }
   };
@@ -155,6 +158,7 @@ const AdminUserManagePage = () => {
             message.success(t("admin.successUnban") || "已解除黑名单");
             fetchUsers();
           } catch (e) {
+            console.error("Failed to unban user", e);
             message.error(t("admin.operationFailed") || "操作失败");
           }
         }
@@ -179,6 +183,7 @@ const AdminUserManagePage = () => {
              message.success(t("admin.successBan") || "已加入黑名单");
              fetchUsers();
            } catch (e) {
+             console.error("Failed to ban user", e);
              message.error(t("admin.operationFailed") || "操作失败");
            }
         }

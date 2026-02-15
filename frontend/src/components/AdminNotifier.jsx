@@ -1,5 +1,5 @@
 // ✅ client/src/components/AdminNotifier.jsx
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   Badge,
   Button,
@@ -28,18 +28,12 @@ import "./AdminNotifier.css";
 const { Text } = Typography;
 
 function AdminNotifier() {
-  const { useBreakpoint } = Grid; // ✅ Moved inside component
-  const notifPrefs = (() => {
-    try {
-      const raw = localStorage.getItem("notification_prefs");
-      return raw ? JSON.parse(raw) : { inApp: true };
-    } catch { return { inApp: true }; }
-  })();
-  if (!notifPrefs.inApp) return null;
+  const { useBreakpoint } = Grid;
+  const [notifEnabled, setNotifEnabled] = useState(true);
   const [requests, setRequests] = useState([]);
   const [unread, setUnread] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [qrModalOpen, setQrModalOpen] = useState(false); // ✅ Fix: Add missing state
+  const [qrModalOpen, setQrModalOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const lastCountRef = useRef(0);
   const screens = useBreakpoint();
@@ -56,11 +50,22 @@ function AdminNotifier() {
     setIsAdmin(user?.role === "Administrator");
   }, []);
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("notification_prefs");
+      const prefs = raw ? JSON.parse(raw) : { inApp: true };
+      setNotifEnabled(prefs.inApp !== false);
+    } catch (err) {
+      console.error("Failed to read notification prefs", err);
+      setNotifEnabled(true);
+    }
+  }, []);
+
   /* =========================================================
      📬 Fetch pending requests (admins only)
      ========================================================= */
-  const fetchRequests = async () => {
-    if (!token || !isAdmin) return;
+  const fetchRequests = useCallback(async () => {
+    if (!token || !isAdmin || !notifEnabled) return;
 
     try {
       const res = await getAllRequests(token);
@@ -92,22 +97,26 @@ function AdminNotifier() {
         console.error("❌ Failed to fetch admin notifications:", err);
       }
     }
-  };
+  }, [token, isAdmin, notifEnabled]);
 
   /* =========================================================
      ⏱️ Polling mechanism (refresh every 60 seconds)
      ========================================================= */
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin || !notifEnabled) return;
     fetchRequests();
     const timer = setInterval(fetchRequests, 60000);
     return () => clearInterval(timer);
-  }, [token, isAdmin]);
+  }, [isAdmin, notifEnabled, fetchRequests]);
 
   /* =========================================================
      📱 Drawer responsive width
      ========================================================= */
   const drawerWidth = screens.lg ? 400 : "90%";
+
+  if (!notifEnabled) {
+    return null;
+  }
 
   /* =========================================================
      🧱 Render component

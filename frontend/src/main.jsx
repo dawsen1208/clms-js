@@ -1,6 +1,5 @@
 // ✅ client/src/main.jsx
 import React, { useState, useEffect } from "react";
-import { createRoot } from 'react-dom/client';
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 import { AccessibilityProvider } from "./contexts/AccessibilityContext";
 
@@ -13,48 +12,13 @@ import { appTheme } from "./theme";
 import { ConfigProvider, message, Grid, theme as antdTheme } from "antd";
 import enUS from "antd/locale/en_US";
 import zhCN from "antd/locale/zh_CN";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Navigate,
-  useNavigate,
-  useLocation
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 
 import { Spin } from "antd";
 
-// ✅ Global Components
-const LayoutMenu = React.lazy(() => import("./components/LayoutMenu"));
-const AdminMenu = React.lazy(() => import("./components/AdminMenu"));
-const SettingsPage = React.lazy(() => import("./pages/SettingsPage"));
-
-// ✅ Auth Pages
-const LoginPage = React.lazy(() => import("./pages/LoginPage"));
-const RegisterReader = React.lazy(() => import("./pages/RegisterReader"));
-const RegisterAdmin = React.lazy(() => import("./pages/RegisterAdmin"));
-
-// ✅ User Pages
-const HomePage = React.lazy(() => import("./pages/HomePage"));
-const SearchPage = React.lazy(() => import("./pages/SearchPage"));
-const BorrowPage = React.lazy(() => import("./pages/BorrowPage"));
-const ReturnPage = React.lazy(() => import("./pages/ReturnPage"));
-const ProfilePage = React.lazy(() => import("./pages/ProfilePage"));
-const SmartAssistant = React.lazy(() => import("./pages/SmartAssistant"));
-const BookDetail = React.lazy(() => import("./pages/BookDetail"));
-const FeedbackPage = React.lazy(() => import("./pages/FeedbackPage"));
-const NotificationPage = React.lazy(() => import("./pages/NotificationPage"));
-
-// ✅ Admin Pages
-const AdminDashboard = React.lazy(() => import("./pages/AdminDashboard"));
-const AdminBookPage = React.lazy(() => import("./pages/AdminBookPage"));
-const AdminBorrowPage = React.lazy(() => import("./pages/AdminBorrowPage"));
-const AdminRequestPage = React.lazy(() => import("./pages/AdminRequestPage"));
-const AdminBorrowHistory = React.lazy(() => import("./pages/AdminBorrowHistory"));
-const AdminUserManagePage = React.lazy(() => import("./pages/AdminUserManagePage"));
-const AdminFeedbackPage = React.lazy(() => import("./pages/AdminFeedbackPage"));
-const AdminProfilePage = React.lazy(() => import("./pages/AdminProfilePage"));
-const AdminSettingsPage = React.lazy(() => import("./pages/AdminSettingsPage"));
+const LayoutMenu = React.lazy(() => import("./layouts/LayoutMenu/LayoutMenu"));
+const AdminMenu = React.lazy(() => import("./layouts/AdminMenu/AdminMenu"));
+import { PublicRoutes, ReaderRoutes, AdminRoutes } from "./app/routes";
 
 const PageLoading = () => (
   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -168,7 +132,11 @@ function App() {
   const isMobile = !screens.md;
 
   useEffect(() => {
-    try { localStorage.setItem("appearance_prefs", JSON.stringify(appearance)); } catch {}
+    try {
+      localStorage.setItem("appearance_prefs", JSON.stringify(appearance));
+    } catch (err) {
+      console.error("Failed to persist appearance prefs", err);
+    }
   }, [appearance]);
 
   const resolvePrimary = () => {
@@ -315,37 +283,23 @@ function App() {
   );
 
   return (
-    <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={enUS} theme={{ token: themeTokens, algorithm, cssVar: true }}>
+    <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={locale} theme={{ token: themeTokens, algorithm, cssVar: true }}>
       <React.Suspense fallback={<PageLoading />}>
         <Routes>
-          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-          <Route path="/register" element={<RegisterReader />} />
-          <Route path="/register-admin" element={<RegisterAdmin />} />
-
-          {/* ✅ User Routes */}
-          <Route path="/home" element={<UserLayoutWrapper><HomePage appearance={appearance} /></UserLayoutWrapper>} />
-          <Route path="/search" element={<UserLayoutWrapper><SearchPage appearance={appearance} /></UserLayoutWrapper>} />
-          <Route path="/borrow" element={<UserLayoutWrapper><BorrowPage appearance={appearance} /></UserLayoutWrapper>} />
-          <Route path="/return" element={<UserLayoutWrapper><ReturnPage appearance={appearance} /></UserLayoutWrapper>} />
-          <Route path="/profile" element={<UserLayoutWrapper><ProfilePage user={user} appearance={appearance} /></UserLayoutWrapper>} />
-          <Route path="/assistant" element={<UserLayoutWrapper><SmartAssistant appearance={appearance} /></UserLayoutWrapper>} />
-          <Route path="/settings" element={<UserLayoutWrapper><SettingsPage appearance={appearance} onChange={setAppearance} user={user} onUserUpdate={setUser} /></UserLayoutWrapper>} />
-          <Route path="/book/:id" element={<UserLayoutWrapper><BookDetail appearance={appearance} /></UserLayoutWrapper>} />
-          <Route path="/feedback" element={<UserLayoutWrapper><FeedbackPage appearance={appearance} /></UserLayoutWrapper>} />
-          <Route path="/notifications" element={<UserLayoutWrapper><NotificationPage appearance={appearance} /></UserLayoutWrapper>} />
-
-          {/* ✅ Admin Routes */}
-          <Route path="/admin/dashboard" element={<AdminLayoutWrapper><AdminDashboard appearance={appearance} /></AdminLayoutWrapper>} />
-          <Route path="/admin/books" element={<AdminLayoutWrapper><AdminBookPage appearance={appearance} /></AdminLayoutWrapper>} />
-          <Route path="/admin/borrow" element={<AdminLayoutWrapper><AdminBorrowPage appearance={appearance} /></AdminLayoutWrapper>} />
-          <Route path="/admin/requests" element={<AdminLayoutWrapper><AdminRequestPage appearance={appearance} /></AdminLayoutWrapper>} />
-          <Route path="/admin/history" element={<AdminLayoutWrapper><AdminBorrowHistory appearance={appearance} /></AdminLayoutWrapper>} />
-          <Route path="/admin/users" element={<AdminLayoutWrapper><AdminUserManagePage appearance={appearance} /></AdminLayoutWrapper>} />
-          <Route path="/admin/feedback" element={<AdminLayoutWrapper><AdminFeedbackPage appearance={appearance} /></AdminLayoutWrapper>} />
-          <Route path="/admin/profile" element={<AdminLayoutWrapper><AdminProfilePage appearance={appearance} /></AdminLayoutWrapper>} />
-          <Route path="/admin/settings" element={<AdminLayoutWrapper><AdminSettingsPage appearance={appearance} onChange={setAppearance} user={user} /></AdminLayoutWrapper>} />
-
-          {/* ✅ Default Route */}
+          <PublicRoutes handleLogin={handleLogin} />
+          <ReaderRoutes
+            UserLayoutWrapper={UserLayoutWrapper}
+            appearance={appearance}
+            user={user}
+            setAppearance={setAppearance}
+            setUser={setUser}
+          />
+          <AdminRoutes
+            AdminLayoutWrapper={AdminLayoutWrapper}
+            appearance={appearance}
+            setAppearance={setAppearance}
+            user={user}
+          />
           <Route
             path="*"
             element={
@@ -359,7 +313,7 @@ function App() {
                 <Navigate to="/login" replace />
               )
             }
-        />
+          />
         </Routes>
       </React.Suspense>
     </ConfigProvider>
@@ -373,7 +327,7 @@ class GlobalErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    return { hasError: true };
+    return { hasError: !!error };
   }
 
   componentDidCatch(error, errorInfo) {

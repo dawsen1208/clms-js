@@ -5,10 +5,10 @@
 }
 
 .custom-menu .ant-menu-item {
-  border-radius: 8px; /* Slightly more rounded */
+  border-radius: 8px;
   margin: 4px 12px;
   width: calc(100% - 24px);
-  height: 48px; /* Taller touch targets */
+  height: 48px;
   line-height: 48px;
   transition: all 0.3s ease;
   color: var(--ant-color-text-secondary);
@@ -22,17 +22,15 @@
 }
 
 .custom-menu .ant-menu-item-selected {
-  background-color: var(--ant-color-primary-bg) !important; /* Soft background */
+  background-color: var(--ant-color-primary-bg) !important;
   color: var(--ant-color-primary) !important;
   font-weight: 600;
 }
 
-/* Remove the old side strip for a cleaner look */
 .custom-menu .ant-menu-item-selected::before {
   display: none;
 }
 
-/* Add a subtle indicator dot or just rely on color/bg */
 .custom-menu .ant-menu-item-selected::after {
   content: '';
   position: absolute;
@@ -46,14 +44,12 @@
   opacity: 0.8;
 }
 
-/* Submenu styling if needed */
 .custom-menu .ant-menu-submenu-title {
   border-radius: 8px;
   margin: 4px 12px;
   width: calc(100% - 24px);
 }
 
-/* Responsive utilities */
 @media (max-width: 768px) {
   .desktop-only {
     display: none !important;
@@ -84,3 +80,4 @@
   outline-offset: 2px;
   background-color: var(--ant-color-primary-bg);
 }
+

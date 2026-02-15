@@ -93,7 +93,6 @@
   font-weight: 600 !important;
 }
 
-/* Logo/Header section */
 .sidebar-header {
   padding: 16px 20px !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -125,7 +124,6 @@
   filter: drop-shadow(0 0 4px rgba(30, 58, 138, 0.5)) !important;
 }
 
-/* Collapse button enhancement */
 .sidebar-collapse-btn {
   background: rgba(255, 255, 255, 0.1) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -141,7 +139,6 @@
   transform: scale(1.05) !important;
 }
 
-/* Logout section */
 .logout-menu {
   background: transparent !important;
   border: none !important;
@@ -160,7 +157,6 @@
   color: #ef4444 !important;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .app-sidebar {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5) !important;
@@ -173,7 +169,6 @@
   }
 }
 
-/* Animation for menu items */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -195,3 +190,4 @@
 .app-like-menu .ant-menu-item:nth-child(4) { animation-delay: 0.25s; }
 .app-like-menu .ant-menu-item:nth-child(5) { animation-delay: 0.3s; }
 .app-like-menu .ant-menu-item:nth-child(6) { animation-delay: 0.35s; }
+

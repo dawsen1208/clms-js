@@ -1,5 +1,5 @@
 // ✅ client/src/pages/AdminBorrowHistory.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Card,
   Table,
@@ -61,7 +61,7 @@ function AdminBorrowHistory() {
   };
 
   /** ✅ Fetch all borrow records */
-  const fetchRecords = async () => {
+  const fetchRecords = useCallback(async () => {
     if (!authToken) return message.warning(t("common.loginFirst"));
     try {
       setLoading(true);
@@ -75,10 +75,10 @@ function AdminBorrowHistory() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authToken, t]);
 
   /** ✅ Search and filter */
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     let data = [...records];
 
     // Username / ID fuzzy match
@@ -112,7 +112,7 @@ function AdminBorrowHistory() {
     }
 
     setFiltered(data);
-  };
+  }, [records, searchText, dateRange, renewFilter, returnFilter]);
 
   /** ✅ Reset filters */
   const handleReset = () => {
@@ -125,11 +125,11 @@ function AdminBorrowHistory() {
 
   useEffect(() => {
     handleSearch();
-  }, [searchText, renewFilter, returnFilter, dateRange]); // Auto-filter on change
+  }, [handleSearch]); // Auto-filter on change
 
   useEffect(() => {
     fetchRecords();
-  }, []);
+  }, [fetchRecords]);
 
   /** ✅ Table columns */
   const columns = [

@@ -1,41 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { List, Typography, Spin, Empty, Button, message, Tag } from "antd";
 import {
   BellOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   InfoCircleOutlined,
-  MessageOutlined
+  MessageOutlined,
+  SoundOutlined
 } from "@ant-design/icons";
 import { getNotifications, markNotificationRead } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useAccessibility } from "../contexts/AccessibilityContext";
 
 const { Title, Text } = Typography;
 
 const NotificationPage = () => {
   const { t } = useLanguage();
+  const { ttsEnabled, speak } = useAccessibility();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
 
-  const fetchAllNotifications = async () => {
+  const fetchAllNotifications = useCallback(async () => {
     if (!token) return;
     try {
       setLoading(true);
       const res = await getNotifications(token);
-      // Assuming res.data is array of notifications
       setNotifications(res.data || []);
     } catch (err) {
       console.error("Failed to fetch notifications", err);
-      // message.error(t("common.error")); // Avoid spamming error on load
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchAllNotifications();
-  }, [token]);
+  }, [fetchAllNotifications]);
 
   const handleMarkRead = async (id) => {
     try {
@@ -54,13 +55,11 @@ const NotificationPage = () => {
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
 
     try {
-        // Ideally backend should have markAllRead endpoint
-        // For now we just call it for each (parallel)
         await Promise.all(unread.map(n => markNotificationRead(n._id, token)));
         message.success("All marked as read");
-    } catch (err) {
+    } catch {
         message.error("Failed to mark some notifications");
-        fetchAllNotifications(); // Revert/Refresh
+        fetchAllNotifications();
     }
   };
 

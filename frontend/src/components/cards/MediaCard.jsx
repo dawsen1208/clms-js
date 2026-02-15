@@ -10,8 +10,7 @@ const MediaCard = ({
   coverUrl, 
   category, 
   tags = [], 
-  onClick,
-  bookId
+  onClick
 }) => {
   const { token } = theme.useToken();
 

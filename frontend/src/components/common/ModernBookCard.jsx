@@ -15,7 +15,6 @@ const ModernBookCard = ({
   book, 
   onBorrow, 
   onView,
-  variant = 'default', // default, search, compact
   isBorrowed = false,
   isPending = false
 }) => {

@@ -19,6 +19,14 @@ const InsightCard = ({
   const mainColor = color || token.colorPrimary;
 
   const renderChart = () => {
+    if (loading) {
+      return (
+        <div style={{ textAlign: 'center', paddingTop: 40 }}>
+          Loading...
+        </div>
+      );
+    }
+
     if (!data || data.length === 0) {
       return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No data available" />;
     }

@@ -13,7 +13,8 @@ import {
   Col, 
   theme,
   Empty,
-  Badge
+  Badge,
+  Spin
 } from "antd";
 import { 
   UserOutlined, 
@@ -29,7 +30,6 @@ import {
   BookOutlined
 } from "@ant-design/icons";
 import dayjs from "dayjs";
-import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
 import StatCard from "../components/cards/StatCard";
@@ -46,7 +46,6 @@ const { Title, Text } = Typography;
 
 function ProfilePage() {
   const { t } = useLanguage();
-  const navigate = useNavigate();
   const { token } = theme.useToken();
   
   // State
@@ -112,7 +111,7 @@ function ProfilePage() {
       if (localStorage.getItem("user")) localStorage.setItem("user", JSON.stringify(updatedUser));
       
       message.success(t("profile.avatarUpdated"));
-    } catch (error) {
+    } catch {
       message.error(t("profile.avatarFailed"));
     } finally {
       setAvatarUploading(false);
@@ -132,7 +131,7 @@ function ProfilePage() {
       
       message.success(t("profile.updateSuccess"));
       setEditing(false);
-    } catch (error) {
+    } catch {
       message.error(t("profile.updateFailed"));
     }
   };
@@ -282,43 +281,50 @@ function ProfilePage() {
          </div>
       </div>
 
-      {/* 2. Stats & Content */}
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '48px 24px' }}>
-         <Row gutter={[24, 24]} style={{ marginBottom: 48 }}>
-            <Col xs={12} sm={6}>
-               <StatCard title="Total" value={stats.total} color={token.colorPrimary} />
-            </Col>
-            <Col xs={12} sm={6}>
-               <StatCard title="Active" value={stats.active} color="#E8B86D" />
-            </Col>
-            <Col xs={12} sm={6}>
-               <StatCard title="Returned" value={stats.returned} color={token.colorSuccess} />
-            </Col>
-            <Col xs={12} sm={6}>
-               <StatCard title="Pending" value={stats.pending} color={token.colorWarning} />
-            </Col>
-         </Row>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Spin />
+          </div>
+        ) : (
+          <>
+            <Row gutter={[24, 24]} style={{ marginBottom: 48 }}>
+              <Col xs={12} sm={6}>
+                <StatCard title="Total" value={stats.total} color={token.colorPrimary} />
+              </Col>
+              <Col xs={12} sm={6}>
+                <StatCard title="Active" value={stats.active} color="#E8B86D" />
+              </Col>
+              <Col xs={12} sm={6}>
+                <StatCard title="Returned" value={stats.returned} color={token.colorSuccess} />
+              </Col>
+              <Col xs={12} sm={6}>
+                <StatCard title="Pending" value={stats.pending} color={token.colorWarning} />
+              </Col>
+            </Row>
 
-         <Tabs 
-           defaultActiveKey="1" 
-           size="large"
-           items={[
-             {
-               key: '1',
-               label: <span><HistoryOutlined /> History</span>,
-               children: history.length > 0 ? (
-                  <div>{history.map(item => renderListItem(item, 'history'))}</div>
-               ) : <Empty description="No history yet" />
-             },
-             {
-               key: '2',
-               label: <span><SolutionOutlined /> Requests</span>,
-               children: requests.length > 0 ? (
-                  <div>{requests.map(item => renderListItem(item, 'request'))}</div>
-               ) : <Empty description="No requests found" />
-             }
-           ]}
-         />
+            <Tabs 
+              defaultActiveKey="1" 
+              size="large"
+              items={[
+                {
+                  key: '1',
+                  label: <span><HistoryOutlined /> History</span>,
+                  children: history.length > 0 ? (
+                    <div>{history.map(item => renderListItem(item, 'history'))}</div>
+                  ) : <Empty description="No history yet" />
+                },
+                {
+                  key: '2',
+                  label: <span><SolutionOutlined /> Requests</span>,
+                  children: requests.length > 0 ? (
+                    <div>{requests.map(item => renderListItem(item, 'request'))}</div>
+                  ) : <Empty description="No requests found" />
+                }
+              ]}
+            />
+          </>
+        )}
       </div>
     </EditorialPageShell>
   );

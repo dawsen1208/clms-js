@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, Typography, Radio, Space, Input, Switch, Form, Button, Table, message, Select, InputNumber, Checkbox, Tabs, Grid, Modal, ColorPicker, Slider, theme } from "antd";
 import { 
   LockOutlined, DesktopOutlined, DeleteOutlined, SafetyCertificateOutlined,
@@ -14,13 +14,11 @@ const { Title, Text: AntText } = Typography;
 const { useBreakpoint } = Grid;
 const { useToken } = theme;
 
-function AdminSettingsPage({ appearance, onChange, user }) {
+function AdminSettingsPage({ appearance, onChange }) {
   const { language, setLanguage, t } = useLanguage();
   const { token } = useToken();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
-  const [form] = Form.useForm();
-
   const authToken = useMemo(() => {
     return sessionStorage.getItem("token") || localStorage.getItem("token");
   }, []);
@@ -38,12 +36,16 @@ function AdminSettingsPage({ appearance, onChange, user }) {
   const saveAdminApproval = async (patch) => {
     const next = { ...adminApprovalPrefs, ...patch };
     setAdminApprovalPrefs(next);
-    try { localStorage.setItem("admin_approval_prefs", JSON.stringify(next)); } catch {}
+    try { localStorage.setItem("admin_approval_prefs", JSON.stringify(next)); } catch (err) {
+      console.error("Failed to persist admin approval prefs", err);
+    }
     try {
       if (authToken) {
         await updateProfile(authToken, { preferences: { adminApproval: next } });
       }
-    } catch {}
+    } catch (err) {
+      console.error("Failed to sync admin approval prefs", err);
+    }
   };
 
   // --- Admin Permissions ---
@@ -68,12 +70,16 @@ function AdminSettingsPage({ appearance, onChange, user }) {
 
   const saveAdminPermissions = async (nextMap) => {
     setAdminPermissions(nextMap);
-    try { localStorage.setItem("admin_permissions", JSON.stringify(nextMap)); } catch {}
+    try { localStorage.setItem("admin_permissions", JSON.stringify(nextMap)); } catch (err) {
+      console.error("Failed to persist admin permissions", err);
+    }
     try {
       if (authToken) {
         await updateProfile(authToken, { preferences: { adminPermissions: nextMap } });
       }
-    } catch {}
+    } catch (err) {
+      console.error("Failed to sync admin permissions", err);
+    }
   };
 
   // --- Security Prefs ---
@@ -89,12 +95,16 @@ function AdminSettingsPage({ appearance, onChange, user }) {
   const saveSecurity = async (patch) => {
     const next = { ...securityPrefs, ...patch };
     setSecurityPrefs(next);
-    try { localStorage.setItem("security_prefs", JSON.stringify(next)); } catch {}
+    try { localStorage.setItem("security_prefs", JSON.stringify(next)); } catch (err) {
+      console.error("Failed to persist security prefs", err);
+    }
     try {
       if (authToken) {
         await updateProfile(authToken, { preferences: { security: next } });
       }
-    } catch {}
+    } catch (err) {
+      console.error("Failed to sync security prefs", err);
+    }
   };
 
   // --- Modals State ---
@@ -338,8 +348,10 @@ function AdminSettingsPage({ appearance, onChange, user }) {
                            Modal.confirm({
                                title: t("settings.clearCache"),
                                content: t("settings.clearCacheDesc"),
-                               onOk: () => {
-                                   try { localStorage.clear(); } catch {} 
+                                 onOk: () => {
+                                   try { localStorage.clear(); } catch (err) {
+                                     console.error("Failed to clear localStorage", err);
+                                   } 
                                    message.success(t("settings.cacheCleared"));
                                }
                            });

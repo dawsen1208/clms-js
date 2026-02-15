@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Typography, Button, Skeleton, Space, Card, Grid, theme, Badge } from "antd";
+import { Typography, Button, Skeleton, Space, Card, Grid, theme } from "antd";
 import { 
   ArrowRightOutlined,
   CompassOutlined,
   ReadOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
 import HeroEditorial from "../components/common/HeroEditorial";
 import MagazineBentoGrid from "../components/common/MagazineBentoGrid";
 import EditorialSectionHeader from "../components/common/EditorialSectionHeader";
 import BookCoverPro from "../components/common/BookCoverPro";
+import { getCleanImageUrl } from "../utils/imageUtils";
 import StatCard from "../components/cards/StatCard";
 import { getBooks, getRecommendations, getBorrowedBooks, getBorrowHistory } from "../api";
 
@@ -20,16 +20,13 @@ const { useBreakpoint } = Grid;
 const { useToken } = theme;
 
 const HomePage = () => {
-  const { t } = useLanguage();
   const navigate = useNavigate();
   const screens = useBreakpoint();
   const { token } = useToken();
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
-  
   const [trending, setTrending] = useState([]);
   const [allBooks, setAllBooks] = useState([]);
-  const [activeBorrows, setActiveBorrows] = useState([]);
   const [stats, setStats] = useState({
     active: 0,
     total: 0,
@@ -54,8 +51,8 @@ const HomePage = () => {
     setLoading(true);
     try {
       const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-      
-      const [allBooksRes, recommendRes, borrowedRes, historyRes] = await Promise.allSettled([
+
+      const [allBooksRes, , borrowedRes, historyRes] = await Promise.allSettled([
         getBooks(),
         getRecommendations(token),
         getBorrowedBooks(token),
@@ -84,7 +81,6 @@ const HomePage = () => {
       let activeCount = 0;
       if (borrowedRes.status === 'fulfilled') {
         const borrowed = borrowedRes.value.data || [];
-        setActiveBorrows(borrowed);
         activeCount = borrowed.length;
       } else {
         // TODO: Mock Data for development
@@ -120,7 +116,6 @@ const HomePage = () => {
     return "Good Evening";
   };
 
-  // Curated Popular List (static)
   const popularList = [
     {
       id: 'clean-code',
@@ -152,7 +147,8 @@ const HomePage = () => {
     }
   ];
 
-  // Resolve navigation target for popular list
+  const baseList = trending.length > 0 ? trending : popularList;
+
   const resolveTargetPath = (book) => {
     const match = (allBooks || []).find(b => 
       (b.title || '').toLowerCase().trim() === (book.title || '').toLowerCase().trim()
@@ -164,11 +160,10 @@ const HomePage = () => {
     return `/search?query=${q}`;
   };
 
-  // Transform books for Bento Grid (use Popular List)
-  const bentoItems = popularList.map((book, index) => {
+  const bentoItems = baseList.map((book, index) => {
     const target = resolveTargetPath(book);
     const matched = (allBooks || []).find(b => (b.title || '').toLowerCase().trim() === (book.title || '').toLowerCase().trim());
-    const coverImage = matched?.coverImage || book.cover_image;
+    const coverImage = getCleanImageUrl(matched?.coverImage || book.cover_image || "");
     const coverImageSet = matched?.coverImageSet;
     const coverSrcSet = coverImageSet ? [
       coverImageSet.w160 ? `${coverImageSet.w160} 160w` : null,
@@ -185,7 +180,7 @@ const HomePage = () => {
       coverImage,
       coverSrcSet,
       coverSizes,
-      coverNode: !coverImage ? (
+      coverNode: (
         <BookCoverPro 
           title={book.title} 
           author={book.author} 
@@ -194,7 +189,7 @@ const HomePage = () => {
           style={index % 2 === 0 ? "swiss" : "serif"}
           baseColor={token.colorPrimary}
         />
-      ) : null,
+      ),
       action: (
         <Button 
           shape="circle" 
@@ -323,7 +318,7 @@ const HomePage = () => {
         />
         
         <div className="editorial-grid" style={{ marginBottom: 64, display: isMobile ? 'flex' : 'grid', flexDirection: 'column', gap: 16 }}>
-          {['Fiction', 'Science', 'History', 'Technology', 'Design', 'Business', 'Philosophy', 'Art'].map((cat, i) => (
+          {['Fiction', 'Science', 'History', 'Technology', 'Design', 'Business', 'Philosophy', 'Art'].map((cat) => (
             <div key={cat} className={isMobile ? "" : "col-span-3"}>
               <Card 
                 hoverable 

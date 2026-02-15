@@ -21,7 +21,8 @@
     "covers:purge-no-cover": "node scripts/purgeBooksWithoutCover.js"
   },
   "scripts": {
-    "users:approve-pending": "node scripts/approvePendingUsers.js"
+    "users:approve-pending": "node scripts/approvePendingUsers.js",
+    "fix:borrow-new-users": "node scripts/fixBorrowRecordsForNewUsers.js"
   },
   "keywords": [],
   "author": "",

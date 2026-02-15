@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Card,
   List,
@@ -35,9 +35,8 @@ import {
   getBookDetail,
 } from "../api";
 import { getBookComparison, getBooksLibrary } from "../api.js";
-import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage, showBorrowSuccessModal } from "../utils/borrowUI";
+import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
 import RadarChart from "../components/RadarChart.jsx";
-import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import PageContainer from "../components/common/PageContainer";
@@ -59,7 +58,7 @@ function SmartAssistant() {
   const [successTitle, setSuccessTitle] = useState("");
 
   // 🔤 Normalize backend strategy text based on language
-  const formatStrategy = (s) => {
+  const formatStrategy = useCallback((s) => {
     if (!s) return t("assistant.basedOnHistory");
     let tStr = String(s);
     
@@ -75,7 +74,7 @@ function SmartAssistant() {
     tStr = tStr.replace("未借阅用户推荐：", t("assistant.forNewUsers"));
     tStr = tStr.replace("全馆最热TOP3", t("assistant.top3LibraryHot"));
     // Strip decorative emoji/symbols first
-    tStr = tStr.replace(/[📚📖⭐️✨🌟📈]/g, "");
+    tStr = tStr.replace(/[📚📖✨🌟📈]/gu, "");
     tStr = tStr.replace(/\*+/g, "");
     // Remove trailing Chinese '推荐' even if followed by spaces/emojis
     tStr = tStr.replace(/推荐(?:\s)*$/g, "");
@@ -83,9 +82,9 @@ function SmartAssistant() {
     tStr = tStr.replace(/\s{2,}/g, " ").trim();
     tStr = tStr.replace(/未知/g, t("common.unknown"));
     return tStr;
-  };
+  }, [t, language]);
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = useCallback(async () => {
     if (!token) return message.error(t("assistant.loginFirst"));
     try {
       setLoading(true);
@@ -108,7 +107,9 @@ function SmartAssistant() {
             // no-op for now: backend handles learning; avoid storing local behavior
           }
         }
-      } catch {}
+      } catch (error) {
+        void error;
+      }
       setRecommends(recs);
       setStrategy(formatStrategy(data.strategy));
     } catch (err) {
@@ -117,7 +118,7 @@ function SmartAssistant() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, t, formatStrategy]);
 
   const handleBorrow = async (bookId, title, copies) => {
     if (!token) return message.warning(t("assistant.loginToBorrow"));
@@ -184,11 +185,11 @@ function SmartAssistant() {
   useEffect(() => {
     // Re-format strategy when language changes if we have one
     setStrategy(prev => formatStrategy(prev)); 
-  }, [language]);
+  }, [formatStrategy]);
 
   useEffect(() => {
     fetchRecommendations();
-  }, []);
+  }, [fetchRecommendations]);
 
   /* =========================================================
      📊 Smart Comparison
@@ -203,20 +204,20 @@ function SmartAssistant() {
   const isMobile = !screens.md;
 
   // 比较参数与结果
-  const DEFAULT_WEIGHTS = {
+  const DEFAULT_WEIGHTS = useMemo(() => ({
     rating: 0.3,
     popularity: 0.25,
     availability: 0.25,
     recency: 0.1,
     match: 0.1,
-  };
+  }), []);
   const [windowDays, setWindowDays] = useState(30);
   const [weights, setWeights] = useState(DEFAULT_WEIGHTS);
   const [cmpLoading, setCmpLoading] = useState(false);
   const [cmpData, setCmpData] = useState(null);
   const [radarMode, setRadarMode] = useState("custom"); // "default" | "custom"
 
-  const fetchAllBooks = async () => {
+  const fetchAllBooks = useCallback(async () => {
     try {
       // 优先 /library 路由，兼容旧 /books
       const res = await getBooksLibrary().catch(() => getBooks());
@@ -227,7 +228,7 @@ function SmartAssistant() {
       console.error("❌ Failed to fetch books:", err);
       message.error(t("assistant.fetchBooksFailed"));
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchAllBooks();
@@ -235,13 +236,17 @@ function SmartAssistant() {
       const raw = localStorage.getItem('compare_ids') || '[]';
       const arr = JSON.parse(raw);
       if (Array.isArray(arr)) setSelectedIds(arr);
-    } catch {}
-  }, []);
+    } catch (error) {
+      void error;
+    }
+  }, [fetchAllBooks]);
 
   useEffect(() => {
     try {
       localStorage.setItem('compare_ids', JSON.stringify(selectedIds));
-    } catch {}
+    } catch (error) {
+      void error;
+    }
   }, [selectedIds]);
 
   const headerStats = useMemo(() => ({
@@ -340,7 +345,7 @@ function SmartAssistant() {
         metrics: weighted,
       };
     });
-  }, [cmpData, weights, radarMode, language]);
+  }, [cmpData, weights, radarMode, t, DEFAULT_WEIGHTS]);
 
   // 当前权重总和提示
   const weightSum = useMemo(() => {

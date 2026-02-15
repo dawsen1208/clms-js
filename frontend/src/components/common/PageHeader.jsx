@@ -1,10 +1,9 @@
 import React from 'react';
-import { Typography, Breadcrumb, Button, Space, theme } from 'antd';
+import { Typography, Breadcrumb, Button, Space } from 'antd';
 
 const { Title, Text } = Typography;
 
 const PageHeader = ({ title, subtitle, breadcrumbItems, extra, style }) => {
-  const { token } = theme.useToken();
   
   return (
     <div style={{ marginBottom: 32, ...style }}>

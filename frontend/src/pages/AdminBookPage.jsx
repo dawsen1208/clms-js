@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Table,
@@ -54,7 +54,7 @@ function AdminBookPage() {
   const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
 
   /** ✅ 获取书籍列表 */
-  const fetchBooks = async () => {
+  const fetchBooks = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getBooks();
@@ -65,11 +65,11 @@ function AdminBookPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     fetchBooks();
-  }, []);
+  }, [fetchBooks]);
 
   /** ✅ 添加书籍 */
   const handleAddBook = async (values) => {

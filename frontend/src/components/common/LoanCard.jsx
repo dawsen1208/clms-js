@@ -17,9 +17,7 @@ const { Title, Text } = Typography;
 const LoanCard = ({ 
   book, 
   onRenew, 
-  onReturn, 
-  loading = false,
-  variant = 'active' // active, history
+  variant = 'active'
 }) => {
   const { token } = theme.useToken();
   const navigate = useNavigate();

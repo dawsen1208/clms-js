@@ -8,13 +8,12 @@ class ErrorBoundary extends Component {
     this.state = { hasError: false, error: null, errorInfo: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     // 更新 state 使下一次渲染能够显示降级后的 UI
     return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
-    // 你同样可以将错误日志上报给服务器
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     this.setState({
       error: error,

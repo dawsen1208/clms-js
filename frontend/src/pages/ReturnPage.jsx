@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Button, message, Tag, Typography, theme, Row, Col, Empty, List } from "antd";
 import { ReloadOutlined, ClockCircleOutlined, CheckCircleOutlined, BookOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -21,11 +21,7 @@ function ReturnPage() {
   
   const userToken = sessionStorage.getItem("token") || localStorage.getItem("token");
 
-  useEffect(() => {
-    fetchHistory();
-  }, []);
-
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     if (!userToken) return;
 
     try {
@@ -53,7 +49,11 @@ function ReturnPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userToken, t]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   const stats = useMemo(() => {
     const total = history.length;

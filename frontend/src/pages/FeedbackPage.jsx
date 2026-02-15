@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Card,
   Typography,
@@ -52,7 +52,7 @@ function FeedbackPage() {
 
   const tokenAuth = sessionStorage.getItem("token") || localStorage.getItem("token");
 
-  const fetchFeedbacks = async () => {
+  const fetchFeedbacks = useCallback(async () => {
     if (!tokenAuth) return;
     try {
       setLoading(true);
@@ -64,13 +64,13 @@ function FeedbackPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [tokenAuth, t]);
 
   useEffect(() => {
     if (activeTab === "history") {
       fetchFeedbacks();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchFeedbacks]);
 
   const handleSubmit = async () => {
     if (!content.trim()) {

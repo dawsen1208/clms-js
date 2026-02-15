@@ -19,13 +19,13 @@ const LoginPage = ({ onLogin }) => {
   const navigate = useNavigate();
   const { token } = useToken();
   const screens = useBreakpoint();
-  const { t, language, changeLanguage } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
 
   const handleLogin = async () => {
     setLoading(true);
     try {
       if (!userId || !password) {
-        message.error("Please enter ID and password");
+        message.error(t("login.errorEmpty"));
         setLoading(false);
         return;
       }
@@ -38,21 +38,41 @@ const LoginPage = ({ onLogin }) => {
         role: rawUser.role === "Admin" ? "Administrator" : rawUser.role
       };
       if (!tokenStr || !normalizedUser) {
-        throw new Error(data.message || "Invalid server response");
+        throw new Error(data.message || t("login.errorToken"));
       }
       onLogin(tokenStr, normalizedUser);
-      message.success("Welcome back to CLMS");
+      message.success(t("login.welcomeBack"));
       navigate(normalizedUser.role === "Administrator" ? "/admin/dashboard" : "/home");
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || "Login failed";
-      message.error(msg);
+      const backendMsg = err?.response?.data?.message || "";
+      let key = "login.errorUnknown";
+
+      if (!backendMsg) {
+        key = "login.errorUnknown";
+      } else if (backendMsg.includes("User not found")) {
+        key = "login.errorUserNotFound";
+      } else if (backendMsg.includes("Incorrect password")) {
+        key = "login.errorIncorrectPassword";
+      } else if (backendMsg.includes("blacklisted")) {
+        key = "login.errorBlacklisted";
+      } else if (backendMsg.includes("pending approval")) {
+        key = "login.errorPending";
+      } else if (backendMsg.includes("rejected")) {
+        key = "login.errorRejected";
+      } else if (backendMsg.includes("Please enter User ID and password")) {
+        key = "login.errorEmpty";
+      } else {
+        key = "login.errorInvalid";
+      }
+
+      message.error(t(key));
     } finally {
       setLoading(false);
     }
   };
 
   const toggleLanguage = () => {
-    changeLanguage(language === 'en' ? 'zh' : 'en');
+    setLanguage(language === 'en' ? 'zh' : 'en');
   };
 
   return (

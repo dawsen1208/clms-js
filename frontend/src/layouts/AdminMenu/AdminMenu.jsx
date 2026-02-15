@@ -14,9 +14,9 @@ import {
 } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import AdminNotifier from "./AdminNotifier";
+import AdminNotifier from "../../components/AdminNotifier";
 import "./AdminMenu.css";
-import { useLanguage } from "../contexts/LanguageContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 const { Sider, Content } = Layout;
 
@@ -30,7 +30,6 @@ function AdminMenu({ onLogout, children }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Determine selected key from URL
   const getSelectedKey = () => {
     const path = location.pathname;
     if (path.includes("/admin/dashboard")) return "home";
@@ -64,7 +63,9 @@ function AdminMenu({ onLogout, children }) {
         const key = user?.userId || user?.email || user?.name || "";
         const mods = map[key]?.modules || null;
         setAllowed(mods);
-      } catch {}
+      } catch {
+        setAllowed(null);
+      }
     } catch {
       onLogout?.();
     }
@@ -116,7 +117,6 @@ function AdminMenu({ onLogout, children }) {
     ? allMenuItems.filter(i => allowed.includes(i.key))
     : allMenuItems;
 
-  // Mobile Bottom Navigation
   const MobileBottomNav = () => {
     const navItems = [
       { key: "home", icon: <DashboardOutlined />, label: t("admin.dashboard") },
@@ -132,7 +132,7 @@ function AdminMenu({ onLogout, children }) {
 
     return (
       <div className="mobile-bottom-nav" style={{ 
-        background: 'rgba(253,251,247,0.95)', // Warmer background
+        background: 'rgba(253,251,247,0.95)',
         backdropFilter: 'blur(12px)',
         borderTop: `1px solid ${token.colorBorderSecondary}`,
         position: 'fixed',
@@ -179,7 +179,7 @@ function AdminMenu({ onLogout, children }) {
         breakpoint="md"
         theme="light"
         style={{
-          background: 'rgba(253,251,247,0.85)', // Warmer background
+          background: 'rgba(253,251,247,0.85)',
           backdropFilter: 'blur(20px)',
           height: "100vh",
           position: "fixed",

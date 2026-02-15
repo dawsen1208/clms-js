@@ -23,7 +23,8 @@ const getBackendOrigin = () => {
     try {
       const url = new URL(API_BASE);
       return url.origin;
-    } catch (e) {
+    } catch (error) {
+      void error;
       return "";
     }
   }

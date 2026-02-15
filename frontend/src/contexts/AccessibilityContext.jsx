@@ -124,7 +124,9 @@ export const AccessibilityProvider = ({ children }) => {
          try {
           const raw = e.newValue;
           if (raw) setPrefs(JSON.parse(raw));
-         } catch {}
+         } catch (err) {
+           console.error("Failed to sync accessibility prefs from storage", err);
+         }
        }
     };
     window.addEventListener("storage", handleStorage);

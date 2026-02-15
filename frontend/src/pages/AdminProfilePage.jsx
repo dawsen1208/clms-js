@@ -1,5 +1,5 @@
 // ✅ client/src/pages/AdminProfilePage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Card,
   Avatar,
@@ -47,7 +47,7 @@ const AdminProfilePage = () => {
   /* =========================================================
      🧩 Fetch admin profile
      ========================================================= */
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const res = await getProfile(authToken);
       setProfile(res.data);
@@ -56,12 +56,12 @@ const AdminProfilePage = () => {
       console.error("❌ Failed to fetch admin info:", err);
       message.error("Failed to load profile, please re-login");
     }
-  };
+  }, [authToken]);
 
   /* =========================================================
      📨 Fetch pending requests (✅ /library/requests/admin)
      ========================================================= */
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       const res = await getPendingRequestsLibrary(authToken);
 
@@ -86,12 +86,12 @@ const AdminProfilePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authToken, t]);
 
   useEffect(() => {
     fetchProfile();
     fetchRequests();
-  }, []);
+  }, [fetchProfile, fetchRequests]);
 
   /* =========================================================
      ✏️ Update email

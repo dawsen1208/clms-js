@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Card,
   Table,
@@ -12,7 +12,6 @@ import {
   Typography,
   Tooltip,
   Segmented,
-  Grid,
   Row,
   Col,
   theme
@@ -37,7 +36,6 @@ import StatCard from "../components/cards/StatCard";
 
 const { Option } = Select;
 const { Title, Text: AntText } = Typography;
-const { useBreakpoint } = Grid;
 const { useToken } = theme;
 
 const STATUS_INFO = {
@@ -47,7 +45,7 @@ const STATUS_INFO = {
   pending: { color: "gold", icon: <ClockCircleOutlined /> },
 };
 
-function AdminRequestPage({ appearance }) {
+function AdminRequestPage() {
   const { t } = useLanguage();
   const { token } = useToken();
   const [loading, setLoading] = useState(false);
@@ -56,7 +54,6 @@ function AdminRequestPage({ appearance }) {
   const [searchText, setSearchText] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
-  const isHighContrast = appearance?.highContrast;
   // 🆕 Batch Mode State
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -87,13 +84,13 @@ function AdminRequestPage({ appearance }) {
       g.connect(ctx.destination);
       o.start();
       o.stop(ctx.currentTime + 0.18);
-    } catch {}
+    } catch (err) {
+      console.error("Failed to play notification sound", err);
+    }
   };
 
   // ✅ v5 推荐写法：使用 useModal
   const [modal, contextHolder] = Modal.useModal();
-  const screens = useBreakpoint();
-  const isMobile = !screens.md;
 
   const stats = useMemo(() => {
     const total = requests.length;
@@ -107,7 +104,7 @@ function AdminRequestPage({ appearance }) {
   /* =========================================================
      ✅ Fetch all renew/return requests (admin only)
      ========================================================= */
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getAllRequests(authToken);
@@ -126,7 +123,7 @@ function AdminRequestPage({ appearance }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authToken]);
 
   /* =========================================================
      🔍 Search / filter logic
@@ -150,7 +147,7 @@ function AdminRequestPage({ appearance }) {
     if (filterStatus !== "all")
       data = data.filter((r) => r.status === filterStatus);
     setFiltered(data);
-  }, [searchText, filterType, filterStatus, requests]);
+  }, [searchText, filterType, filterStatus, requests, isBatchMode]);
 
   /* =========================================================
      ✅ Approve request (with instant refresh)
@@ -239,9 +236,19 @@ function AdminRequestPage({ appearance }) {
       const stock = getStock(r);
       const overdue = getOverdue(r);
       if (r.type === "renew" && stock != null && stock > approvalPrefs.autoApproveWhenStockGt) {
-        try { await approveRequest(r._id, true, null, authToken); beep(); } catch {}
+        try {
+          await approveRequest(r._id, true, null, authToken);
+          beep();
+        } catch (err) {
+          console.error("Auto-approve request failed", err);
+        }
       } else if (overdue != null && overdue > approvalPrefs.autoRejectWhenOverdueGt) {
-        try { await approveRequest(r._id, false, t("admin.autoRejectOverdue"), authToken); beep(); } catch {}
+        try {
+          await approveRequest(r._id, false, t("admin.autoRejectOverdue"), authToken);
+          beep();
+        } catch (err) {
+          console.error("Auto-reject overdue request failed", err);
+        }
       }
     }
     await fetchRequests();
@@ -279,16 +286,17 @@ function AdminRequestPage({ appearance }) {
 
         try {
           const promises = selectedRowKeys.map(async (id) => {
-             try {
-                if (approvalPrefs.defaultBulkAction === "approve") {
-                  await approveRequest(id, true, null, authToken);
-                } else {
-                  await approveRequest(id, false, t("admin.bulkReject"), authToken);
-                }
-                successCount++;
-             } catch (e) {
-                failCount++;
-             }
+            try {
+              if (approvalPrefs.defaultBulkAction === "approve") {
+                await approveRequest(id, true, null, authToken);
+              } else {
+                await approveRequest(id, false, t("admin.bulkReject"), authToken);
+              }
+              successCount++;
+            } catch (err) {
+              console.error("Bulk process item failed", err);
+              failCount++;
+            }
           });
 
           await Promise.all(promises);
@@ -477,7 +485,7 @@ function AdminRequestPage({ appearance }) {
      ========================================================= */
   useEffect(() => {
     fetchRequests();
-  }, []);
+  }, [fetchRequests]);
 
   /* =========================================================
      🧱 页面渲染
@@ -591,7 +599,7 @@ function AdminRequestPage({ appearance }) {
           pagination={{ pageSize: 10, showTotal: (total) => `${t("admin.total")} ${total} ${t("admin.items")}` }}
           scroll={{ x: 800 }}
           rowSelection={rowSelection}
-          onChange={(pagination, filters, sorter, extra) => {
+          onChange={() => {
             if (isBatchMode) exitBatchMode();
           }}
         />

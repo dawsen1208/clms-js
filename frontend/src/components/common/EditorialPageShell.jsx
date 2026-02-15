@@ -9,8 +9,7 @@ const EditorialPageShell = ({
   subtitle, 
   headerAction, 
   children,
-  noPadding = false,
-  maxWidth = 1400 // Magazine layout often uses wider containers
+  maxWidth = 1400
 }) => {
   const { token } = theme.useToken();
 

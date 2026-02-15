@@ -1,6 +1,7 @@
 // ✅ vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import process from 'node:process'
 
 // ============================================================
 // 🌐 改进说明：
