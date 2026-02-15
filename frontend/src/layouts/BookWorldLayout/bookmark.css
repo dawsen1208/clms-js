@@ -1,145 +1,79 @@
 .bw-bookmarks {
-  position: absolute;
-  left: calc(50% - min(1600px, 96vw) / 2 - 14px);
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 20;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .bw-bookmarks-stack {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .bw-bookmark {
   position: relative;
-  width: 56px;
-  min-height: 44px;
-  padding: 8px 6px 14px 6px;
-  border: none;
-  outline: none;
-  border-radius: 10px 10px 4px 4px;
-  background: linear-gradient(180deg, #fdfbfa, #f1e4d8);
+  width: 58px;
+  height: 44px;
+  padding: 8px 6px;
+  border: 0;
+  outline: 0;
+  background: linear-gradient(180deg, #fcf5ed, #f0e1d3);
   box-shadow:
-    0 6px 10px rgba(0, 0, 0, 0.16),
+    0 6px 12px rgba(0, 0, 0, 0.18),
     inset 0 0 0 1px rgba(0, 0, 0, 0.06);
   color: #5a4634;
-  font-size: 11px;
   cursor: pointer;
-  text-align: center;
-  transform-origin: right center;
-  transform: translate3d(0, 0, 0);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  transition:
-    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
-    background 0.2s linear;
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%);
 }
 
-.bw-bookmark::after {
+.bw-bookmark:hover {
+  transform: translateX(6px);
+}
+
+.bw-bookmark.active {
+  transform: translateX(10px);
+  box-shadow:
+    0 10px 18px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+.bw-bookmark.active::after {
   content: "";
   position: absolute;
-  left: 50%;
-  bottom: -9px;
-  width: 0;
-  height: 0;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-top: 9px solid #f1e4d8;
-  transform: translateX(-50%);
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(90deg, #f8b267, #e5863e);
 }
 
 .bw-bookmark-icon {
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
 }
 
 .bw-bookmark-label {
-  max-width: 0;
-  opacity: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition:
-    opacity 0.18s ease,
-    max-width 0.18s ease;
-}
-
-.bw-bookmark:hover {
-  transform: translate3d(4px, 0, 0);
-  box-shadow:
-    0 10px 16px rgba(0, 0, 0, 0.2),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.1);
-}
-
-.bw-bookmark:hover .bw-bookmark-label {
-  opacity: 1;
-  max-width: 80px;
-}
-
-.bw-bookmark.active {
-  background: linear-gradient(180deg, #f8b267, #e5863e);
-  color: #fff;
-  box-shadow:
-    0 12px 20px rgba(203, 125, 44, 0.55),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
-  transform: translate3d(6px, 0, 0);
-}
-
-.bw-bookmark.active::after {
-  border-top-color: #e5863e;
-}
-
-.bw-bookmark.active .bw-bookmark-label {
-  opacity: 1;
-  max-width: 80px;
+  display: none;
 }
 
 .bw-bookmark-logout {
-  margin-top: 10px;
-  background: linear-gradient(180deg, #fef4f3, #f7d0cf);
+  background: linear-gradient(180deg, #fff2f1, #f7d0cf);
   color: #8b1a1a;
-}
-
-.bw-bookmark-logout::after {
-  border-top-color: #f7d0cf;
-}
-
-.bw-bookmarks-stack .bw-bookmark:nth-child(2) {
-  transform: translate3d(2px, 0, 0);
-  z-index: 1;
-}
-
-.bw-bookmarks-stack .bw-bookmark:nth-child(3) {
-  transform: translate3d(4px, 0, 0);
-  z-index: 2;
-}
-
-.bw-bookmarks-stack .bw-bookmark:nth-child(n + 4) {
-  transform: translate3d(6px, 0, 0);
-  z-index: 3;
 }
 
 .bw-bookmarks-mobile {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
   top: auto;
-  transform: none;
-  translate: 0 0;
+  bottom: 0;
   display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
+  justify-content: center;
+  transform: none;
   padding: 8px 10px 10px;
   background: rgba(250, 246, 240, 0.96);
   backdrop-filter: blur(12px);
@@ -148,19 +82,10 @@
 
 .bw-bookmarks-mobile .bw-bookmarks-stack {
   flex-direction: row;
-  flex: 1;
-  justify-content: space-around;
+  gap: 8px;
 }
 
 .bw-bookmarks-mobile .bw-bookmark {
-  flex: 1;
-  max-width: none;
-  margin: 0 4px;
-  padding: 8px 4px 10px 4px;
-  border-radius: 10px;
+  width: 54px;
+  height: 42px;
 }
-
-.bw-bookmarks-mobile .bw-bookmark::after {
-  display: none;
-}
-

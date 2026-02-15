@@ -25,6 +25,13 @@ const LoginPage = ({ onLogin }) => {
   const [animating, setAnimating] = useState(false);
   const [animStatus, setAnimStatus] = useState("idle");
   const handleLogin = async () => {
+    if (loading) return;
+    const clickAt = Date.now();
+    const closingMs = 560;
+    const signingMs = 260;
+    const openingMs = 560;
+    const minAnimMs = closingMs + signingMs + Math.floor(openingMs * 0.6);
+
     setLoading(true);
     setAnimating(true);
     setAnimStatus("signing");
@@ -35,26 +42,35 @@ const LoginPage = ({ onLogin }) => {
         setAnimating(false);
         return;
       }
-      const started = Date.now();
       const res = await apiLogin(userId, password);
       const data = res?.data || {};
       const tokenStr = data.token || data.accessToken || data.jwt || "";
       const rawUser = data.user || {};
       const normalizedUser = {
         ...rawUser,
-        role: rawUser.role === "Admin" ? "Administrator" : rawUser.role
+        role: rawUser.role === "Admin" ? "Administrator" : rawUser.role,
       };
       if (!tokenStr || !normalizedUser) {
         throw new Error(data.message || t("login.errorToken"));
       }
-      const spent = Date.now() - started;
-      const rest = Math.max(0, 900 - spent);
-      setTimeout(() => {
+      const elapsed = Date.now() - clickAt;
+      const delay = Math.max(0, minAnimMs - elapsed);
+      const proceed = () => {
         setAnimStatus("opening");
         onLogin(tokenStr, normalizedUser);
         message.success(t("login.welcomeBack"));
-        navigate(normalizedUser.role === "Administrator" ? "/admin/dashboard" : "/home");
-      }, rest);
+        navigate(
+          normalizedUser.role === "Administrator"
+            ? "/admin/dashboard"
+            : "/home"
+        );
+        setAnimating(false);
+      };
+      if (delay > 0) {
+        setTimeout(proceed, delay);
+      } else {
+        proceed();
+      }
     } catch (err) {
       const backendMsg = err?.response?.data?.message || "";
       let key = "login.errorUnknown";
@@ -79,9 +95,11 @@ const LoginPage = ({ onLogin }) => {
 
       message.error(t(key));
       setAnimStatus("error");
+      setTimeout(() => {
+        setAnimating(false);
+      }, 200);
     } finally {
       setLoading(false);
-      setAnimating(false);
     }
   };
 

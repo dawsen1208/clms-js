@@ -58,7 +58,7 @@ export const BookmarkNav: React.FC<BookmarkNavProps> = ({
       case "settings":
         return <SettingOutlined />;
       default:
-        return <BookOutlined />;
+        return <ReadOutlined />;
     }
   };
 

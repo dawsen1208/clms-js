@@ -9,51 +9,94 @@ type LoginBookAnimationProps = {
 
 const penPath = "M2 22 L22 2 M14 2 L22 2 L22 10";
 
+type Phase = "open" | "closing" | "signed" | "opening";
+
 export const LoginBookAnimation: React.FC<LoginBookAnimationProps> = ({
   running,
   status,
 }) => {
   const { motionEnabled } = useMotionEnabled();
-  const [phase, setPhase] = useState<"open" | "closed" | "reopen">("open");
+  const [phase, setPhase] = useState<Phase>("open");
+  const [showSignature, setShowSignature] = useState(false);
 
   useEffect(() => {
-    if (!running) return;
-    setPhase("open");
-    const t1 = setTimeout(() => setPhase("closed"), 40);
+    if (!running || !motionEnabled) {
+      setPhase("open");
+      setShowSignature(false);
+      return;
+    }
+
+    const closingMs = 560;
+    const signingMs = 260;
+    const openingMs = 560;
+
+    setPhase("closing");
+    setShowSignature(false);
+
+    const t1 = setTimeout(() => {
+      if (status === "error") return;
+      setPhase("signed");
+      setShowSignature(true);
+    }, closingMs);
+
     const t2 = setTimeout(() => {
-      if (status !== "error") {
-        setPhase("reopen");
-      }
-    }, 600);
+      if (status === "error") return;
+      setPhase("opening");
+    }, closingMs + signingMs);
+
+    const t3 = setTimeout(() => {
+      if (status === "error") return;
+      setPhase("open");
+      setShowSignature(false);
+    }, closingMs + signingMs + openingMs);
+
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(t3);
     };
-  }, [running, status]);
+  }, [running, status, motionEnabled]);
 
   if (!running) return null;
 
   if (!motionEnabled) {
     return (
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          background: "rgba(0,0,0,0.55)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          zIndex: 2000,
-        }}
-      >
-        <div>Signing in…</div>
-      </div>
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18, ease: [0.2, 0.8, 0.2, 1] }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#fff",
+            zIndex: 2000,
+          }}
+        >
+          <div
+            style={{
+              padding: "16px 24px",
+              borderRadius: 12,
+              background: "rgba(0,0,0,0.7)",
+            }}
+          >
+            Signing in…
+          </div>
+        </motion.div>
+      </AnimatePresence>
     );
   }
 
-  const isClosed = phase === "closed";
-  const isReopen = phase === "reopen";
+  const coverRotate =
+    phase === "closing" || phase === "signed" ? -160 : 0;
+
+  const shadowOpacity =
+    phase === "closing" || phase === "signed" ? 0.4 : 0.18;
 
   return (
     <AnimatePresence>
@@ -64,7 +107,8 @@ export const LoginBookAnimation: React.FC<LoginBookAnimationProps> = ({
         style={{
           position: "fixed",
           inset: 0,
-          background: "radial-gradient(circle at top, rgba(0,0,0,0.8), rgba(0,0,0,0.95))",
+          background:
+            "radial-gradient(circle at top, rgba(0,0,0,0.8), rgba(0,0,0,0.95))",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -73,26 +117,17 @@ export const LoginBookAnimation: React.FC<LoginBookAnimationProps> = ({
       >
         <div
           style={{
-            perspective: 1200,
+            perspective: 1400,
             width: 420,
             maxWidth: "92vw",
             height: 260,
             position: "relative",
           }}
         >
-          <motion.div
-            initial={{ rotateY: 0 }}
-            animate={{
-              rotateY: isClosed ? 180 : isReopen ? 0 : 0,
-            }}
-            transition={{
-              duration: 0.9,
-              ease: [0.2, 0.8, 0.2, 1],
-            }}
+          <div
             style={{
-              width: "100%",
-              height: "100%",
-              position: "relative",
+              position: "absolute",
+              inset: 0,
               transformStyle: "preserve-3d",
             }}
           >
@@ -100,54 +135,85 @@ export const LoginBookAnimation: React.FC<LoginBookAnimationProps> = ({
               style={{
                 position: "absolute",
                 inset: 0,
+                borderRadius: 18,
                 background:
-                  "linear-gradient(135deg, #fefaf5, #f1e1ce)",
-                borderRadius: 16,
-                boxShadow: "0 24px 60px rgba(0,0,0,0.32)",
-                backfaceVisibility: "hidden",
+                  "linear-gradient(140deg, #fefaf5, #f3e1ce)",
+                boxShadow:
+                  "0 28px 70px rgba(0,0,0,0.38), 0 12px 24px rgba(0,0,0,0.45)",
               }}
             />
-            <div
+            <motion.div
               style={{
                 position: "absolute",
                 inset: 0,
+                borderRadius: 18,
                 background:
-                  "linear-gradient(135deg, #f1e1ce, #e4c4a2)",
-                borderRadius: 16,
-                boxShadow: "0 24px 60px rgba(0,0,0,0.32)",
-                transform: "rotateY(180deg)",
+                  "linear-gradient(135deg, #f6e4cf, #e4c4a2)",
+                transformOrigin: "left center",
                 backfaceVisibility: "hidden",
               }}
-            />
-          </motion.div>
-
-          <motion.svg
-            width="160"
-            height="80"
-            viewBox="0 0 24 24"
-            style={{
-              position: "absolute",
-              right: -18,
-              bottom: -10,
-            }}
-          >
-            <motion.path
-              d={penPath}
-              stroke="#f5f0e6"
-              strokeWidth="2"
-              fill="none"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: isClosed ? 1 : 0 }}
+              initial={{ rotateY: 0 }}
+              animate={{ rotateY: coverRotate }}
               transition={{
-                duration: 0.32,
-                ease: "easeInOut",
-                delay: 0.25,
+                duration: 0.58,
+                ease: [0.2, 0.8, 0.2, 1],
               }}
             />
-          </motion.svg>
+            <motion.div
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: 18,
+                background:
+                  "radial-gradient(circle at 10% 0%, rgba(255,255,255,0.8), transparent 60%), linear-gradient(140deg,#fdf7f0,#f1e1d2)",
+                mixBlendMode: "soft-light",
+              }}
+              animate={{ opacity: shadowOpacity }}
+              transition={{ duration: 0.3 }}
+            />
+          </div>
+
+          {showSignature && (
+            <motion.svg
+              width="160"
+              height="80"
+              viewBox="0 0 24 24"
+              style={{
+                position: "absolute",
+                right: 36,
+                bottom: 36,
+              }}
+            >
+              <motion.path
+                d={penPath}
+                stroke="rgba(60,40,20,0.85)"
+                strokeWidth={2.6}
+                fill="none"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{
+                  duration: 0.28,
+                  ease: "easeInOut",
+                }}
+              />
+            </motion.svg>
+          )}
+
+          <div
+            style={{
+              position: "absolute",
+              left: 24,
+              bottom: 20,
+              fontSize: 12,
+              letterSpacing: 0.08,
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.7)",
+            }}
+          >
+            Signing in…
+          </div>
         </div>
       </motion.div>
     </AnimatePresence>
   );
 };
-

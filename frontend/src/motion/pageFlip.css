@@ -15,11 +15,11 @@
 }
 
 .bw-flip-left .bw-flip-page {
-  transform-origin: left center;
+  transform-origin: right center;
 }
 
 .bw-flip-right .bw-flip-page {
-  transform-origin: right center;
+  transform-origin: left center;
 }
 
 .bw-flip-front,
@@ -60,10 +60,18 @@
 
 .bw-flip-right .bw-flip-shadow {
   background: radial-gradient(
-    circle at 100% 50%,
+    circle at 0% 50%,
     rgba(0, 0, 0, 0.25),
     transparent 55%
   );
+}
+
+.bw-flip-right .bw-flip-shadow {
+  animation: bw-flip-shadow-right 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.bw-flip-left .bw-flip-shadow {
+  animation: bw-flip-shadow-left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bw-flip-fade {
@@ -80,4 +88,34 @@
     rgba(255, 255, 255, 0.9),
     rgba(235, 224, 210, 0.96)
   );
+}
+
+@keyframes bw-flip-shadow-right {
+  0% {
+    opacity: 0.2;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translateX(-6px);
+  }
+  100% {
+    opacity: 0.25;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bw-flip-shadow-left {
+  0% {
+    opacity: 0.2;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translateX(6px);
+  }
+  100% {
+    opacity: 0.25;
+    transform: translateX(0);
+  }
 }

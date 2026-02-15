@@ -53,18 +53,22 @@ const BookWorldLayout: React.FC<BookWorldLayoutProps> = ({
   const resolvedRight = right ?? spread.right;
 
   return (
-    <div className="bw-root">
+    <div
+      className="bw-root"
+      style={
+        {
+          "--book-w": "min(1900px, 95vw)",
+          "--book-h": "min(1040px, 94vh)",
+          "--bookmark-rail": "112px",
+          "--book-shift": "72px",
+          "--book-paper": token.colorBgContainer,
+        } as React.CSSProperties
+      }
+    >
       <div className="bw-desk" />
       <div className="bw-stage">
         <BookZoomToDetail>
-          <div
-            className="bw-book"
-            style={
-              {
-                "--book-paper": token.colorBgContainer,
-              } as React.CSSProperties
-            }
-          >
+          <div className="bw-book">
             <PageFlipController
               routeKey={currentKey}
               left={resolvedLeft}
