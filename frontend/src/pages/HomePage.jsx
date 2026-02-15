@@ -3,7 +3,9 @@ import { Typography, Button, Skeleton, Space, Card, Grid, theme } from "antd";
 import { 
   ArrowRightOutlined,
   CompassOutlined,
-  ReadOutlined
+  ReadOutlined,
+  SearchOutlined,
+  RobotOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import EditorialPageShell from "../components/common/EditorialPageShell";
