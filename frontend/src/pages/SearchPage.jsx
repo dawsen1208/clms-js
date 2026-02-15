@@ -150,16 +150,21 @@ const SearchPage = () => {
       />
     );
 
+    const availableCopies = book.available_copies ?? book.copies ?? 0;
+    const totalCopies = book.total_copies ?? book.totalCopies ?? book.total ?? book.copies ?? undefined;
+
     return {
-      id: book.id || book._id, // Handle both id formats
+      id: book.id || book._id,
       title: book.title,
       description: book.author,
       category: book.category || 'General',
-      meta: (typeof book.total_copies === 'number' || typeof book.totalCopies === 'number' || typeof book.total === 'number')
-        ? `stock: ${(book.available_copies ?? book.copies ?? 0)}/${book.total_copies ?? book.totalCopies ?? book.total ?? book.copies ?? 0}`
-        : `stock: ${(book.available_copies ?? book.copies ?? 0)}`,
+      meta: totalCopies !== undefined
+        ? `stock: ${availableCopies}/${totalCopies}`
+        : `stock: ${availableCopies}`,
+      availableCopies,
+      totalCopies,
       coverImage: coverImageUrl,
-      coverNode: coverNode,
+      coverNode,
       coverSrcSet: book.coverImageSet ? [
         book.coverImageSet.w160 ? `${book.coverImageSet.w160} 160w` : null,
         book.coverImageSet.w240 ? `${book.coverImageSet.w240} 240w` : null,
@@ -167,13 +172,20 @@ const SearchPage = () => {
       ].filter(Boolean).join(', ') : undefined,
       coverSizes: "(min-width: 992px) 200px, (min-width: 576px) 160px, 45vw",
       action: (
-        <Button 
-          shape="circle" 
-          icon={<ArrowRightOutlined />} 
-          onClick={() => navigate(`/book/${book.id || book._id}`)}
-        />
+        <Space>
+          <Button
+            size="small"
+            type="default"
+            icon={<ArrowRightOutlined />}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/book/${book.id || book._id}`);
+            }}
+          >
+            View
+          </Button>
+        </Space>
       ),
-      // Standard grid for search results
       colSpan: 4, 
       rowSpan: 1,
       background: token.colorBgContainer

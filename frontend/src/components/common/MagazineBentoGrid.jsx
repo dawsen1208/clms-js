@@ -6,184 +6,211 @@ const { useToken } = theme;
 
 const MagazineBentoGrid = ({ items = [], className = '' }) => {
   const { token } = useToken();
+
+  const getCategoryColor = (category) => {
+    const colors = [
+      token.colorPrimary,
+      token.colorSuccess,
+      token.colorWarning,
+      token.colorError,
+      token.colorInfo
+    ];
+    let hash = 0;
+    const str = category || 'General';
+    for (let i = 0; i < str.length; i += 1) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  const renderStock = (item) => {
+    const available = typeof item.availableCopies === 'number' ? item.availableCopies : undefined;
+    if (available === undefined) {
+      if (!item.meta) return null;
+      return (
+        <Text style={{ fontSize: 12, color: token.colorTextTertiary }}>
+          {item.meta}
+        </Text>
+      );
+    }
+
+    if (available === 0) {
+      return (
+        <span style={{ fontSize: 12, color: token.colorTextTertiary, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: token.colorBorderSecondary, display: 'inline-block' }} />
+          OUT OF STOCK
+        </span>
+      );
+    }
+
+    if (available <= 3) {
+      return (
+        <span style={{ fontSize: 12, color: token.colorWarningText, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: token.colorWarning, display: 'inline-block' }} />
+          LOW STOCK
+        </span>
+      );
+    }
+
+    return (
+      <span style={{ fontSize: 12, color: token.colorSuccessText, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <span style={{ width: 8, height: 8, borderRadius: '50%', background: token.colorSuccess, display: 'inline-block' }} />
+        Available
+      </span>
+    );
+  };
+
   return (
     <div className={`magazine-bento-grid editorial-grid ${className}`} style={{ gap: 24 }}>
       {items.map((item, index) => {
-        // Calculate grid spans based on index or item property
-        // Pattern: Big (2x2) -> Wide (2x1) -> Small (1x1) -> Small (1x1)
         const isFeatured = index === 0;
-        const isWide = index === 1 || index === 2;
-        
-        const colSpan = item.colSpan || (isFeatured ? 8 : isWide ? 6 : 4);
+        const colSpan = item.colSpan || (isFeatured ? 8 : 4);
         const rowSpan = item.rowSpan || (isFeatured ? 2 : 1);
-        
+        const categoryColor = getCategoryColor(item.category);
+
         return (
-          <div 
+          <div
             key={item.id || index}
             className={`bento-item col-span-${colSpan}`}
-            style={{ 
+            style={{
               gridRow: `span ${rowSpan}`,
               height: '100%',
-              minHeight: isFeatured ? 400 : 280
+              minHeight: isFeatured ? 360 : 260
             }}
           >
             <Card
               hoverable
               bordered={false}
-              style={{ 
-                height: '100%', 
-                borderRadius: 16, 
-                overflow: 'hidden',
+              className="book-card"
+              style={{
+                height: '100%',
                 background: item.background || token.colorBgContainer,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
                 cursor: item.onClick ? 'pointer' : 'default'
               }}
-              bodyStyle={{ 
-                height: '100%', 
-                padding: 0, 
-                display: 'flex', 
-                flexDirection: 'column' 
+              bodyStyle={{
+                height: '100%',
+                padding: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative'
               }}
               onClick={item.onClick}
             >
-              {(isWide && !isFeatured) ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, height: '100%' }}>
-                  {(item.coverImage || item.coverNode) ? (
-                    <div style={{ 
-                      flex: '0 0 36%',
-                      maxWidth: 220,
-                      marginLeft: 24,
-                      aspectRatio: '3 / 4',
-                      borderRadius: 12, 
+              <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 3, background: categoryColor }} />
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                {(item.coverImage || item.coverNode) && (
+                  <div
+                    className="book-card-cover"
+                    style={{
+                      flex: '0 0 65%',
+                      minHeight: 160,
+                      borderRadius: 12,
                       overflow: 'hidden',
+                      margin: 16,
+                      marginBottom: 12,
                       background: token.colorFillTertiary,
                       boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
-                    }}>
-                  <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                    {/* Fallback placeholder (always present, initially hidden if image loads) */}
-                    <div style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
-                      {item.coverNode}
-                    </div>
-                    {item.coverImage ? (
-                      <img 
-                        src={item.coverImage} 
-                        alt={item.title} 
-                        loading="lazy"
-                        decoding="async"
-                        srcSet={item.coverSrcSet || undefined}
-                        sizes={item.coverSizes || undefined}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', position: 'relative', zIndex: 1 }} 
-                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                      />
-                    ) : null}
-                  </div>
-                    </div>
-                  ) : null}
-                  <div style={{ 
-                    padding: 24, 
-                    flex: 1, 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    justifyContent: 'space-between' 
-                  }}>
-                    <div>
-                      <Text type="secondary" style={{ fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                        {item.category}
-                      </Text>
-                      <div style={{
-                        fontFamily: "'Literata', serif",
-                        fontWeight: 600,
-                        fontSize: 20,
-                        margin: '6px 0 10px',
-                        lineHeight: 1.3,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical'
-                      }}>
-                        {item.title}
+                    }}
+                  >
+                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                      <div style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
+                        {item.coverNode}
                       </div>
-                      <Text style={{ color: token.colorTextSecondary }} ellipsis={{ rows: 2, tooltip: item.description }}>
-                        {item.description}
-                      </Text>
+                      {item.coverImage ? (
+                        <img
+                          src={item.coverImage}
+                          alt={item.title}
+                          loading="lazy"
+                          decoding="async"
+                          srcSet={item.coverSrcSet || undefined}
+                          sizes={item.coverSizes || undefined}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', position: 'relative', zIndex: 1 }}
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                      ) : null}
                     </div>
-                    <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Text style={{ fontSize: 12, color: token.colorTextTertiary }}>{item.meta}</Text>
-                      {item.action}
-                    </div>
+                  </div>
+                )}
+                <div
+                  style={{
+                    padding: 24,
+                    paddingTop: item.coverImage || item.coverNode ? 0 : 24,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: 1
+                  }}
+                >
+                  {item.category && (
+                    <Text
+                      type="secondary"
+                      style={{
+                        fontSize: 11,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        color: token.colorTextTertiary
+                      }}
+                    >
+                      {item.category}
+                    </Text>
+                  )}
+                  <div
+                    style={{
+                      fontFamily: "'Literata', serif",
+                      fontWeight: 600,
+                      fontSize: 18,
+                      marginTop: 6,
+                      marginBottom: 4,
+                      lineHeight: 1.3,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical'
+                    }}
+                  >
+                    {item.title}
+                  </div>
+                  {item.description && (
+                    <Text
+                      type="secondary"
+                      style={{
+                        fontSize: 13,
+                        color: token.colorTextSecondary,
+                        marginBottom: item.meta ? 4 : 8
+                      }}
+                      ellipsis={{ rows: 2, tooltip: item.description }}
+                    >
+                      {item.description}
+                    </Text>
+                  )}
+                  {item.meta && (
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: token.colorTextTertiary
+                      }}
+                    >
+                      {item.meta}
+                    </Text>
+                  )}
+                  <div
+                    style={{
+                      marginTop: 'auto',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      paddingTop: 12
+                    }}
+                  >
+                    {renderStock(item)}
                   </div>
                 </div>
-              ) : (
-                <>
-                  {(item.coverImage || item.coverNode) ? (
-                    <div style={{ 
-                      width: isFeatured ? '60%' : '64%', 
-                      maxWidth: isFeatured ? 300 : 200,
-                      margin: `${isFeatured ? 12 : 16}px auto 0`,
-                      aspectRatio: '3 / 4',
-                      borderRadius: 12, 
-                      overflow: 'hidden',
-                      background: token.colorFillTertiary,
-                      boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
-                    }}>
-                      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                        <div style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
-                          {item.coverNode}
-                        </div>
-                        {item.coverImage ? (
-                          <img 
-                            src={item.coverImage} 
-                            alt={item.title} 
-                            loading="lazy"
-                            decoding="async"
-                            srcSet={item.coverSrcSet || undefined}
-                            sizes={item.coverSizes || undefined}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', position: 'relative', zIndex: 1 }} 
-                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                          />
-                        ) : null}
-                      </div>
-                    </div>
-                  ) : null}
-                  
-                  <div style={{ 
-                    padding: 24, 
-                    flex: 1, 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    justifyContent: 'space-between' 
-                  }}>
-                    <div style={{ marginTop: isFeatured ? 8 : 4 }}>
-                      <Text type="secondary" style={{ fontSize: 12, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                        {item.category}
-                      </Text>
-                      <div style={{
-                        fontFamily: "'Literata', serif",
-                        fontWeight: isFeatured ? 600 : 500,
-                        fontSize: isFeatured ? 22 : 18,
-                        margin: '6px 0 10px',
-                        lineHeight: 1.3,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: isFeatured ? 2 : 2,
-                        WebkitBoxOrient: 'vertical'
-                      }}>
-                        {item.title}
-                      </div>
-                      <Text style={{ color: token.colorTextSecondary }} ellipsis={{ rows: 2, tooltip: item.description }}>
-                        {item.description}
-                      </Text>
-                    </div>
-                    
-                    <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Text style={{ fontSize: 12, color: token.colorTextTertiary }}>{item.meta}</Text>
-                      {item.action}
-                    </div>
-                  </div>
-                </>
+              </div>
+              {item.action && (
+                <div className="book-card-overlay-actions">
+                  {item.action}
+                </div>
               )}
             </Card>
           </div>

@@ -286,20 +286,20 @@ function App() {
     <ConfigProvider componentSize={isMobile ? "small" : "middle"} locale={locale} theme={{ token: themeTokens, algorithm, cssVar: true }}>
       <React.Suspense fallback={<PageLoading />}>
         <Routes>
-          <PublicRoutes handleLogin={handleLogin} />
-          <ReaderRoutes
-            UserLayoutWrapper={UserLayoutWrapper}
-            appearance={appearance}
-            user={user}
-            setAppearance={setAppearance}
-            setUser={setUser}
-          />
-          <AdminRoutes
-            AdminLayoutWrapper={AdminLayoutWrapper}
-            appearance={appearance}
-            setAppearance={setAppearance}
-            user={user}
-          />
+          {PublicRoutes({ handleLogin })}
+          {ReaderRoutes({
+            UserLayoutWrapper,
+            appearance,
+            user,
+            setAppearance,
+            setUser,
+          })}
+          {AdminRoutes({
+            AdminLayoutWrapper,
+            appearance,
+            setAppearance,
+            user,
+          })}
           <Route
             path="*"
             element={

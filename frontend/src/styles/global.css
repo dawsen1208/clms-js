@@ -102,6 +102,45 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 12px 24px rgba(0,0,0,0.06);
 }
 
+.book-card {
+  border-radius: 18px !important;
+  padding: 0;
+  overflow: hidden;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.book-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.12);
+}
+
+.book-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-normal);
+}
+
+.book-card:hover .book-card-cover img {
+  transform: scale(1.03);
+}
+
+.book-card-overlay-actions {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--transition-normal), transform var(--transition-normal);
+}
+
+.book-card:hover .book-card-overlay-actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* 7. Animation Utilities */
 @keyframes fadeInUp {
   from {

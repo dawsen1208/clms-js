@@ -171,12 +171,18 @@ const HomePage = () => {
       coverImageSet.w360 ? `${coverImageSet.w360} 360w` : null,
     ].filter(Boolean).join(', ') : undefined;
     const coverSizes = "(min-width: 992px) 220px, (min-width: 576px) 180px, 45vw";
+
+    const availableCopies = matched?.available_copies ?? matched?.copies ?? undefined;
+    const totalCopies = matched?.total_copies ?? matched?.totalCopies ?? matched?.total ?? matched?.copies ?? undefined;
+
     return {
       id: book.id,
       title: book.title,
       description: book.author,
       category: book.category,
       meta: 'Popular',
+      availableCopies,
+      totalCopies,
       coverImage,
       coverSrcSet,
       coverSizes,
@@ -192,10 +198,13 @@ const HomePage = () => {
       ),
       action: (
         <Button 
-          shape="circle" 
+          size="small"
+          type="default"
           icon={<ArrowRightOutlined />} 
           onClick={(e) => { e.stopPropagation(); navigate(target); }}
-        />
+        >
+          View
+        </Button>
       ),
       onClick: () => navigate(target),
       colSpan: isMobile ? 12 : (index === 0 ? 6 : (index === 1 || index === 2) ? 6 : 4),
