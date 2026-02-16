@@ -67,11 +67,11 @@
 }
 
 .bw-flip-right .bw-flip-shadow {
-  animation: bw-flip-shadow-right 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: bw-flip-shadow-right 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bw-flip-left .bw-flip-shadow {
-  animation: bw-flip-shadow-left 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: bw-flip-shadow-left 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .bw-flip-fade {
