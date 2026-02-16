@@ -71,6 +71,34 @@ const useSyncedScroll = (side) => {
   return rootRef;
 };
 
+// Compute stock consistently across all views
+const computeStock = (b) => {
+  const firstNum = (...vals) => {
+    for (const v of vals) {
+      const n = Number(v);
+      if (Number.isFinite(n)) return n;
+    }
+    return undefined;
+  };
+  const available = firstNum(
+    b?.available_copies,
+    b?.availableCopies,
+    b?.available,
+    b?.stockAvailable,
+    b?.copies
+  );
+  const total = firstNum(
+    b?.total_copies,
+    b?.totalCopies,
+    b?.total,
+    b?.copies
+  );
+  return {
+    available: available ?? 0,
+    total
+  };
+};
+
 const filterAndSortBooksFromParams = (books, params) => {
   let result = books || [];
 
@@ -98,9 +126,10 @@ const filterAndSortBooksFromParams = (books, params) => {
   }
 
   if (availableOnlyParam) {
-    result = result.filter(
-      (b) => (b.available_copies ?? b.copies ?? 0) > 0
-    );
+    result = result.filter((b) => {
+      const { available } = computeStock(b);
+      return available > 0;
+    });
   }
 
   if (sortParam === "newest") {
@@ -237,6 +266,7 @@ const SearchPage = () => {
   const bentoItems = useMemo(() => paginatedBooks.map((book, index) => {
     const rawCover = book.coverImage || book.cover_image || book.cover || "";
     const coverImageUrl = getCleanImageUrl(rawCover);
+    const { available, total } = computeStock(book);
     const coverNode = (
       <BookCoverPro 
         title={book.title} 
@@ -248,8 +278,8 @@ const SearchPage = () => {
       />
     );
 
-    const availableCopies = book.available_copies ?? book.copies ?? 0;
-    const totalCopies = book.total_copies ?? book.totalCopies ?? book.total ?? book.copies ?? undefined;
+    const availableCopies = available;
+    const totalCopies = total;
 
     return {
       id: book.id || book._id,
@@ -628,17 +658,11 @@ export const SearchLeftPanel = () => {
           }}
         >
           {leftBooks.map((book, index) => {
-            const rawCover =
-              book.coverImage || book.cover_image || book.cover || "";
+            const rawCover = book.coverImage || book.cover_image || book.cover || "";
             const coverImageUrl = getCleanImageUrl(rawCover);
-            const availableCopies =
-              book.available_copies ?? book.copies ?? 0;
-            const totalCopies =
-              book.total_copies ??
-              book.totalCopies ??
-              book.total ??
-              book.copies ??
-              undefined;
+            const { available, total } = computeStock(book);
+            const availableCopies = available;
+            const totalCopies = total;
             return (
               <div
                 key={book.id || book._id || index}
@@ -801,8 +825,7 @@ export const SearchRightPanel = () => {
   };
 
   const bentoItems = useMemo(() => paginatedBooks.map((book, index) => {
-    const rawCover =
-      book.coverImage || book.cover_image || book.cover || "";
+    const rawCover = book.coverImage || book.cover_image || book.cover || "";
     const coverImage = getCleanImageUrl(rawCover);
     const coverImageSet = book.coverImageSet;
     const coverSrcSet = coverImageSet
@@ -816,6 +839,7 @@ export const SearchRightPanel = () => {
       : undefined;
     const coverSizes =
       "(min-width: 992px) 160px, (min-width: 576px) 120px, 40vw";
+    const { available, total } = computeStock(book);
     const coverNode = (
       <BookCoverPro
         title={book.title}
@@ -826,13 +850,8 @@ export const SearchRightPanel = () => {
         baseColor={stringToWarmColor(book.title)}
       />
     );
-    const availableCopies = book.available_copies ?? book.copies ?? 0;
-    const totalCopies =
-      book.total_copies ??
-      book.totalCopies ??
-      book.total ??
-      book.copies ??
-      undefined;
+    const availableCopies = available;
+    const totalCopies = total;
     return {
       id: book.id || book._id,
       title: book.title,
