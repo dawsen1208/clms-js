@@ -13,10 +13,52 @@ import { useAccessibility } from "../contexts/AccessibilityContext";
 import { useMotionEnabled } from "../motion/useMotionEnabled";
 import PageContainer from "../components/common/PageContainer";
 import PageHeader from "../components/common/PageHeader";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
 const { useToken } = theme;
+
+export const SettingsLeftPanel = () => {
+  const { t } = useLanguage();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const active = new URLSearchParams(location.search).get("pane") || "language";
+  const items = [
+    { key: "language", icon: <GlobalOutlined />, label: t("settings.language") },
+    { key: "appearance", icon: <BgColorsOutlined />, label: t("settings.appearance") },
+    { key: "accessibility", icon: <RobotOutlined />, label: t("settings.accessibility") || "Accessibility" },
+    { key: "notifications", icon: <BellOutlined />, label: t("settings.notifications") || "Notifications" },
+    { key: "account", icon: <LockOutlined />, label: t("settings.account") || "Account" },
+    { key: "recommend", icon: <TagsOutlined />, label: t("settings.recommendation") || "Recommendation" },
+    { key: "operation", icon: <AppstoreOutlined />, label: t("settings.operation") || "Operation" },
+    { key: "admin", icon: <TeamOutlined />, label: t("settings.admin") || "Admin" },
+  ];
+  return (
+    <div className="bw-scroll" style={{ padding: 24 }}>
+      <Typography.Title level={3} style={{ fontFamily: "'Literata', serif", marginBottom: 8 }}>
+        {t("settings.settings")}
+      </Typography.Title>
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 16 }}>
+        {t("settings.settingsDesc") || "Manage your account and preferences"}
+      </Typography.Paragraph>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {items.map(it => (
+          <Button
+            key={it.key}
+            type={active === it.key ? "primary" : "default"}
+            block
+            icon={it.icon}
+            onClick={() => navigate(`/settings?pane=${it.key}`, { replace: false })}
+            style={{ justifyContent: "flex-start" }}
+          >
+            {it.label}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const { language, setLanguage, t } = useLanguage();
@@ -26,6 +68,9 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const { motionEnabled, setMotionEnabled } = useMotionEnabled();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const activePane = new URLSearchParams(location.search).get("pane") || "language";
 
   // ✅ Fix: Use useCallback and ensure handleUpdate is available
   const handleUpdate = useCallback((updates) => {
@@ -449,15 +494,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   return (
     <PageContainer>
       {contextHolder}
-      <PageHeader 
-        title={t("settings.settings")}
-        subtitle={t("settings.settingsDesc") || "Manage your account and preferences"}
-        icon={<SettingOutlined />}
-      />
+      {/* 主标题统一在左页，右页不再渲染 PageHeader */}
       
       <Tabs
-        defaultActiveKey="language"
-        tabPosition={isMobile ? "top" : "left"}
+        activeKey={activePane}
+        onChange={(k) => navigate(`/settings?pane=${k}`, { replace: true })}
+        tabBarStyle={{ display: "none" }}
         items={[
           {
             key: "language",

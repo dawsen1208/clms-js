@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { List, Typography, Spin, Empty, Button, message, Tag, Card } from "antd";
 import {
   BellOutlined,
@@ -11,6 +11,7 @@ import {
 import { getNotifications, markNotificationRead } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAccessibility } from "../contexts/AccessibilityContext";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 
 const { Title, Text } = Typography;
 
@@ -40,6 +41,29 @@ export const NotificationLeftPanel = () => {
   const total = notifications.length;
   const unread = notifications.filter(n => !n.isRead).length;
   const feedback = notifications.filter(n => n.type === "feedback_reply").length;
+
+  const trendData = useMemo(() => {
+    if (!notifications.length) return [];
+    const map = new Map();
+    const now = new Date();
+    for (let i = 6; i >= 0; i -= 1) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      map.set(key, 0);
+    }
+    notifications.forEach((n) => {
+      const d = new Date(n.createdAt);
+      const key = d.toISOString().slice(0, 10);
+      if (map.has(key)) {
+        map.set(key, map.get(key) + 1);
+      }
+    });
+    return Array.from(map.entries()).map(([date, count]) => ({
+      date: date.slice(5),
+      count,
+    }));
+  }, [notifications]);
 
   return (
     <div className="bw-scroll">
@@ -80,6 +104,41 @@ export const NotificationLeftPanel = () => {
           </div>
         </Card>
       </div>
+      <Card 
+        size="small" 
+        bordered
+        title={t("notifications.trendTitle") || "This week"}
+        style={{ marginBottom: 24 }}
+        bodyStyle={{ height: 140, padding: 12 }}
+      >
+        {trendData.length === 0 ? (
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {t("notifications.trendEmpty") || "No activity this week yet."}
+          </Text>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={trendData}>
+              <defs>
+                <linearGradient id="notifTrend" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#A65D57" stopOpacity={0.8} />
+                  <stop offset="100%" stopColor="#A65D57" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={24} />
+              <Tooltip />
+              <Area
+                type="monotone"
+                dataKey="count"
+                stroke="#A65D57"
+                strokeWidth={2}
+                fill="url(#notifTrend)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </Card>
       {loading && (
         <div style={{ textAlign: "center" }}>
           <Spin size="small" />
@@ -140,13 +199,9 @@ const NotificationPage = () => {
 
   return (
     <div style={{ padding: "24px", maxWidth: "800px", margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-        <Title level={2} style={{ marginBottom: 0 }}>
-            <BellOutlined style={{ marginRight: 8 }} /> 
-            {t("notifications.title") || "Notification Center"}
-        </Title>
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "16px" }}>
         <Button onClick={handleMarkAllRead} disabled={!notifications.some(n => !n.isRead)}>
-            {t("notifications.markAllRead") || "Mark all as read"}
+          {t("notifications.markAllRead") || "Mark all as read"}
         </Button>
       </div>
 

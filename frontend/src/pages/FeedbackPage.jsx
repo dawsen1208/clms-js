@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Card,
   Typography,
@@ -31,6 +31,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { submitFeedback, getMyFeedback } from "../api";
 import PageContainer from "../components/common/PageContainer";
 import PageHeader from "../components/common/PageHeader";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -63,6 +64,29 @@ export const FeedbackLeftPanel = () => {
   const total = feedbacks.length;
   const openCount = feedbacks.filter(f => f.status !== "Replied").length;
   const repliedCount = feedbacks.filter(f => f.status === "Replied").length;
+
+  const trendData = useMemo(() => {
+    if (!feedbacks.length) return [];
+    const map = new Map();
+    const now = dayjs();
+    for (let i = 6; i >= 0; i -= 1) {
+      const d = now.subtract(i, "day");
+      const key = d.format("YYYY-MM-DD");
+      map.set(key, { date: d.format("MM-DD"), submitted: 0, replied: 0 });
+    }
+    feedbacks.forEach((f) => {
+      const created = dayjs(f.createdAt);
+      const key = created.format("YYYY-MM-DD");
+      if (map.has(key)) {
+        const v = map.get(key);
+        v.submitted += 1;
+        if (f.status === "Replied") {
+          v.replied += 1;
+        }
+      }
+    });
+    return Array.from(map.values());
+  }, [feedbacks]);
 
   return (
     <div className="bw-scroll">
@@ -97,6 +121,51 @@ export const FeedbackLeftPanel = () => {
           <Title level={4} style={{ margin: 0, color: token.colorSuccess }}>{repliedCount}</Title>
         </Card>
       </div>
+      <Card
+        size="small"
+        style={{ borderRadius: 12, marginTop: 16 }}
+        title={t("feedback.trendTitle") || "This week activity"}
+        bodyStyle={{ height: 140, padding: 12 }}
+      >
+        {trendData.length === 0 ? (
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {t("feedback.trendEmpty") || "No feedback this week yet."}
+          </Text>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={trendData}>
+              <defs>
+                <linearGradient id="fbSubmitted" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={token.colorPrimary} stopOpacity={0.8} />
+                  <stop offset="100%" stopColor={token.colorPrimary} stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="fbReplied" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={token.colorSuccess} stopOpacity={0.9} />
+                  <stop offset="100%" stopColor={token.colorSuccess} stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} width={24} />
+              <Tooltip />
+              <Area
+                type="monotone"
+                dataKey="submitted"
+                stroke={token.colorPrimary}
+                strokeWidth={2}
+                fill="url(#fbSubmitted)"
+              />
+              <Area
+                type="monotone"
+                dataKey="replied"
+                stroke={token.colorSuccess}
+                strokeWidth={2}
+                fill="url(#fbReplied)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </Card>
       {loading && (
         <div style={{ marginTop: 12, textAlign: "center" }}>
           <Spin size="small" />
@@ -301,11 +370,7 @@ function FeedbackPage() {
 
   return (
     <PageContainer>
-      <PageHeader
-        title={t("feedback.title")}
-        subtitle={t("feedback.description")}
-        icon={<MessageOutlined />}
-      />
+      {/* 主标题统一在左页，右页不再重复 PageHeader */}
 
       <Card
         bordered={false}

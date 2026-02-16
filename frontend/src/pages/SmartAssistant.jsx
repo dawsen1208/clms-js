@@ -10,16 +10,13 @@ import {
   Divider,
   Input,
   Pagination,
-  Modal,
   Slider,
   Space,
   Typography,
-  Statistic,
   Tag,
   InputNumber,
   Collapse,
   Radio,
-  Alert,
   Grid
 } from "antd";
 import {
@@ -32,7 +29,6 @@ import {
   getRecommendations,
   getBooks,
   borrowBook,
-  getBookDetail,
 } from "../api";
 import { getBookComparison, getBooksLibrary } from "../api.js";
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
@@ -40,13 +36,48 @@ import RadarChart from "../components/RadarChart.jsx";
 import { Link, useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import PageContainer from "../components/common/PageContainer";
-import PageHeader from "../components/common/PageHeader";
 
 const { useBreakpoint } = Grid;
 
 export const AssistantLeftPanel = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [recs, setRecs] = useState([]);
+  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+
+  const fetchRecs = useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const res = await getRecommendations(token);
+      const data = res.data || {};
+      setRecs(data.recommended || []);
+    } catch {
+      message.error(t("assistant.fetchFailed"));
+    } finally {
+      setLoading(false);
+    }
+  }, [token, t]);
+
+  useEffect(() => {
+    fetchRecs();
+  }, [fetchRecs]);
+
+  const handleBorrowLeft = async (bookId, title, copies) => {
+    try {
+      if (isBorrowLimitError({ copies })) {
+        showBorrowLimitModal();
+        return;
+      }
+      const res = await borrowBook(bookId, token);
+      message.success(res.data?.message || t("assistant.borrowSuccessTitle"));
+      fetchRecs();
+    } catch (err) {
+      message.error(extractErrorMessage(err) || t("assistant.borrowFailed"));
+    }
+  };
+
   return (
     <div style={{ padding: 24, height: "100%", display: "flex", flexDirection: "column", gap: 16 }}>
       <Typography.Title level={3} style={{ fontFamily: "'Literata', serif", marginBottom: 8 }}>
@@ -55,6 +86,45 @@ export const AssistantLeftPanel = () => {
       <Typography.Paragraph type="secondary">
         {t("assistant.subTitle")}
       </Typography.Paragraph>
+
+      <Card
+        bordered={false}
+        style={{ borderRadius: 12 }}
+        title={<span><RobotOutlined /> {t("assistant.recommended")}</span>}
+      >
+        {loading ? (
+          <Spin size="large" style={{ display: "block", margin: "1.5rem auto" }} />
+        ) : recs.length > 0 ? (
+          <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8 }}>
+            {recs.map((book) => (
+              <Card
+                key={book._id}
+                title={book.title}
+                style={{ minWidth: 260, borderRadius: 10 }}
+                extra={
+                  <Button
+                    size="small"
+                    type="primary"
+                    icon={<BookOutlined />}
+                    onClick={() => handleBorrowLeft(book._id, book.title, book.copies)}
+                  >
+                    {t("assistant.borrow")}
+                  </Button>
+                }
+              >
+                <p style={{ marginBottom: 0 }}>
+                  {book.author || t("common.unknown")} · <Tag>{book.category || t("common.unknown")}</Tag>
+                </p>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Typography.Text type="secondary">
+            {t("assistant.noRecs")}
+          </Typography.Text>
+        )}
+      </Card>
+
       <Card bordered={false} style={{ borderRadius: 12 }}>
         <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
           {t("assistant.tips") || "Tips"}
@@ -69,6 +139,7 @@ export const AssistantLeftPanel = () => {
           renderItem={(it) => <List.Item style={{ padding: '8px 0' }}>• {it}</List.Item>}
         />
       </Card>
+
       <div style={{ marginTop: 'auto' }}>
         <Typography.Text type="secondary" style={{ fontSize: 12 }}>
           Quick Links
@@ -87,151 +158,7 @@ export const AssistantLeftPanel = () => {
 };
 
 function SmartAssistant() {
-  const { t, language } = useLanguage();
-  const [modal, contextHolder] = Modal.useModal();
-  /* =========================================================
-     🤖 Smart Recommendations
-     ========================================================= */
-  const [recommends, setRecommends] = useState([]);
-  const [strategy, setStrategy] = useState(t("assistant.generating"));
-  const [loading, setLoading] = useState(false);
-  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
-  // Controlled modals for robust visibility
-  const [successTitle, setSuccessTitle] = useState("");
-
-  // 🔤 Normalize backend strategy text based on language
-  const formatStrategy = useCallback((s) => {
-    if (!s) return t("assistant.basedOnHistory");
-    let tStr = String(s);
-    
-    // If Chinese mode, just clean up
-    if (language === 'zh') {
-       // Remove common prefixes if they are redundant or just return as is
-       return tStr;
-    }
-
-    // If English mode, translate common phrases
-    tStr = tStr.replace("基于您偏借类别", t("assistant.basedOnPreferred"));
-    tStr = tStr.replace("基于您常借类别", t("assistant.basedOnPreferred"));
-    tStr = tStr.replace("未借阅用户推荐：", t("assistant.forNewUsers"));
-    tStr = tStr.replace("全馆最热TOP3", t("assistant.top3LibraryHot"));
-    // Strip decorative emoji/symbols first
-    tStr = tStr.replace(/[📚📖✨🌟📈]/gu, "");
-    tStr = tStr.replace(/\*+/g, "");
-    // Remove trailing Chinese '推荐' even if followed by spaces/emojis
-    tStr = tStr.replace(/推荐(?:\s)*$/g, "");
-    // Collapse extra spaces
-    tStr = tStr.replace(/\s{2,}/g, " ").trim();
-    tStr = tStr.replace(/未知/g, t("common.unknown"));
-    return tStr;
-  }, [t, language]);
-
-  const fetchRecommendations = useCallback(async () => {
-    if (!token) return message.error(t("assistant.loginFirst"));
-    try {
-      setLoading(true);
-      const res = await getRecommendations(token);
-      const data = res.data || {};
-      let recs = data.recommended || [];
-      try {
-        const raw = localStorage.getItem('recommend_prefs');
-        if (raw) {
-          const prefs = JSON.parse(raw);
-          const include = Array.isArray(prefs.preferredCategories) ? prefs.preferredCategories : [];
-          const exclude = Array.isArray(prefs.excludedCategories) ? prefs.excludedCategories : [];
-          if (include.length > 0) {
-            recs = recs.filter(b => include.includes(b.category));
-          }
-          if (exclude.length > 0) {
-            recs = recs.filter(b => !exclude.includes(b.category));
-          }
-          if (prefs.autoLearn === false) {
-            // no-op for now: backend handles learning; avoid storing local behavior
-          }
-        }
-      } catch (error) {
-        void error;
-      }
-      setRecommends(recs);
-      setStrategy(formatStrategy(data.strategy));
-    } catch (err) {
-      console.error("❌ Failed to fetch recommendations:", err);
-      message.error(t("assistant.fetchFailed"));
-    } finally {
-      setLoading(false);
-    }
-  }, [token, t, formatStrategy]);
-
-  const handleBorrow = async (bookId, title, copies) => {
-    if (!token) return message.warning(t("assistant.loginToBorrow"));
-    try {
-      let available = copies;
-      if (typeof available !== "number") {
-        // Preflight detail query to verify stock
-        const detail = await getBookDetail(bookId);
-        available = Number(detail?.data?.copies ?? 0);
-      }
-
-      if (available <= 0) {
-        modal.info({
-          title: t("assistant.outOfStockTitle"),
-          content: t("assistant.outOfStockMsg"),
-          okText: t("assistant.gotIt"),
-          centered: true,
-        });
-        message.warning(t("assistant.borrowUnavailable"));
-        console.log("🟡 Borrow blocked due to zero stock:", { bookId, title, available });
-        return;
-      }
-
-      // Confirm before borrowing
-      modal.confirm({
-        title: t("borrow.confirmTitle"),
-        content: t("borrow.confirmContent", { title }),
-        okText: t("common.confirm"),
-        cancelText: t("common.cancel"),
-        centered: true,
-        onOk: async () => {
-          try {
-            const res = await borrowBook(bookId, token);
-            setSuccessTitle(title);
-            message.success(res.data.message || t("assistant.borrowSuccessMsg"));
-            fetchRecommendations(); // ✅ Refresh recommendations after borrowing
-          } catch (err) {
-            console.error("❌ Borrow failed:", err);
-            
-            if (err?.__borrowLimit) {
-              console.warn("🔴 Borrow limit flagged by interceptor", {
-                url: err?.config?.url,
-                status: err?.response?.status,
-              });
-              showBorrowLimitModal(t, modal);
-              return;
-            }
-
-            const msg = extractErrorMessage(err);
-            if (isBorrowLimitError(msg)) {
-              showBorrowLimitModal(t, modal);
-              return;
-            }
-            message.error(msg);
-          }
-        },
-      });
-    } catch (err) {
-      console.error("❌ Borrow check failed:", err);
-      message.error(t("assistant.borrowFailed"));
-    }
-  };
-
-  useEffect(() => {
-    // Re-format strategy when language changes if we have one
-    setStrategy(prev => formatStrategy(prev)); 
-  }, [formatStrategy]);
-
-  useEffect(() => {
-    fetchRecommendations();
-  }, [fetchRecommendations]);
+  const { t } = useLanguage();
 
   /* =========================================================
      📊 Smart Comparison
@@ -290,11 +217,6 @@ function SmartAssistant() {
       void error;
     }
   }, [selectedIds]);
-
-  const headerStats = useMemo(() => ({
-    recommended: recommends.length,
-    selected: selectedIds.length,
-  }), [recommends, selectedIds]);
 
   // 🔍 Search filter (by title or author)
   const handleSearch = (e) => {
@@ -468,85 +390,7 @@ function SmartAssistant() {
      ========================================================= */
   return (
     <PageContainer>
-      {contextHolder}
-      {/* Controlled Success Modal to guarantee visibility */}
-      <Modal
-        open={!!successTitle}
-        title={`"${successTitle}" ${t("assistant.borrowSuccessTitle")}`}
-        onOk={() => setSuccessTitle("")}
-        onCancel={() => setSuccessTitle("")}
-        centered
-        zIndex={10000}
-      >
-        <div>{t("assistant.borrowSuccessMsg")}</div>
-      </Modal>
-      
-      <PageHeader 
-        title={t("assistant.title")}
-        subtitle={t("assistant.subTitle")}
-        extra={
-           <Space size="large">
-             <Statistic title={t("assistant.recommended")} value={headerStats.recommended} prefix={<RobotOutlined />} />
-             <Statistic title={t("assistant.selected")} value={headerStats.selected} prefix={<BarChartOutlined />} />
-           </Space>
-        }
-      />
-      
-      {/* Strategy Info */}
-      <Alert
-        message={strategy}
-        type="info"
-        showIcon
-        icon={<RobotOutlined />}
-        style={{ marginBottom: 24, borderRadius: 8, border: 'none', background: '#e6f7ff' }}
-      />
-
-      {/* Recommendations Card */}
-      <Card
-        title={<span><RobotOutlined /> {t("assistant.recommended")}</span>}
-        bordered={false}
-        style={{
-          borderRadius: "12px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-          marginBottom: "2rem",
-        }}
-      >
-        {loading ? (
-          <Spin size="large" style={{ display: "block", margin: "2rem auto" }} />
-        ) : recommends.length > 0 ? (
-          <div style={{ position: 'relative' }}>
-            <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 8 }} id="recs-scroll">
-              {recommends.map((book) => (
-                <Card
-                  key={book._id}
-                  title={book.title}
-                  style={{ minWidth: 280, borderRadius: 10, cursor: 'move' }}
-                  draggable
-                  onDragStart={(e) => { e.dataTransfer.setData('text/plain', book._id); }}
-                  extra={
-                    <Space>
-                      <Button size="small" onClick={() => handleSelect(book._id)}>
-                        {selectedIds.includes(book._id) ? t("assistant.remove") : t("assistant.add")}
-                      </Button>
-                      <Button size="small" type="primary" icon={<BookOutlined />} onClick={() => handleBorrow(book._id, book.title, book.copies)}>{t("assistant.borrow")}</Button>
-                    </Space>
-                  }
-                >
-                  <p>{book.author || t("common.unknown")} · <Tag>{book.category || t("common.unknown")}</Tag></p>
-                </Card>
-              ))}
-            </div>
-            <Space style={{ position: 'absolute', top: -40, right: 0 }}>
-              <Button size="small" onClick={() => { const el = document.getElementById('recs-scroll'); el && el.scrollBy({ left: -300, behavior: 'smooth' }); }}>◀</Button>
-              <Button size="small" onClick={() => { const el = document.getElementById('recs-scroll'); el && el.scrollBy({ left: 300, behavior: 'smooth' }); }}>▶</Button>
-            </Space>
-          </div>
-        ) : (
-          <p style={{ textAlign: "center", color: "#999", padding: "1rem" }}>
-            {t("assistant.noRecs")}
-          </p>
-        )}
-      </Card>
+      {/* Compare UI 保留在右侧，推荐已移至左侧 */}
 
       {/* Comparison Card */}
       <Card

@@ -111,16 +111,9 @@ const ProfileLeft: React.FC = () => {
   );
 };
 
-const SettingsLeft: React.FC = () => {
-  return (
-    <div className="book-placeholder">
-      <div className="book-placeholder-title">Settings</div>
-      <div className="book-placeholder-body">
-        Adjust appearance, accessibility, and notification preferences.
-      </div>
-    </div>
-  );
-};
+const SettingsLeftPanel = lazy(() =>
+  import("../../pages/SettingsPage").then((m) => ({ default: m.SettingsLeftPanel }))
+);
 
 const FeedbackLeft: React.FC = () => {
   return (
@@ -183,7 +176,7 @@ export const getPageSpread = ({
       };
     case "settings":
       return {
-        left: <SettingsLeft />,
+        left: <SettingsLeftPanel />,
         right: children ?? null,
       };
     case "feedback":

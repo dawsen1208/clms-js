@@ -257,14 +257,6 @@ function ProfilePage() {
     }
   };
 
-  const stats = useMemo(() => {
-    const total = history.length;
-    const returned = history.filter((h) => h.action === 'return' || !!h.returnDate).length;
-    const active = total - returned;
-    const pending = requests.filter((r) => r.status === "pending").length;
-    return { total, returned, active, pending };
-  }, [history, requests]);
-
   // Shared List Item Component
   const renderListItem = (item, type) => {
     const isRequest = type === 'request';
@@ -409,20 +401,7 @@ function ProfilePage() {
           </div>
         ) : (
           <>
-            <Row gutter={[24, 24]} style={{ marginBottom: 48 }}>
-              <Col xs={12} sm={6}>
-                <StatCard title="Total" value={stats.total} color={token.colorPrimary} />
-              </Col>
-              <Col xs={12} sm={6}>
-                <StatCard title="Active" value={stats.active} color="#E8B86D" />
-              </Col>
-              <Col xs={12} sm={6}>
-                <StatCard title="Returned" value={stats.returned} color={token.colorSuccess} />
-              </Col>
-              <Col xs={12} sm={6}>
-                <StatCard title="Pending" value={stats.pending} color={token.colorWarning} />
-              </Col>
-            </Row>
+            {/* KPI 卡片只保留在左页，右页删除重复 KPI 区块 */}
 
             <Tabs 
               defaultActiveKey="1" 
