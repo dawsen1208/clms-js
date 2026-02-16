@@ -539,7 +539,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                     <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
                       <div>
                         <Text strong style={{ display: 'block', color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>Animations</Text>
-                        <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorTextSecondary }}>3D 翻页 / 共享元素 / 登录动画</Text>
+                        <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorTextSecondary }}>3D page flip / shared element / login animation</Text>
                       </div>
                       <Switch checked={motionEnabled} onChange={(checked) => setMotionEnabled(checked)} />
                     </Space>
