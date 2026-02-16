@@ -17,38 +17,202 @@
   padding: 8px 6px;
   border: 0;
   outline: 0;
-  background: linear-gradient(180deg, #fcf5ed, #f0e1d3);
+  border-radius: 6px 6px 8px 6px;
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.8), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.15) 0px,
+      rgba(255, 255, 255, 0.15) 1px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #fcf5e6, #f2e4cf);
   box-shadow:
-    0 6px 12px rgba(0, 0, 0, 0.18),
+    0 4px 10px rgba(0, 0, 0, 0.15),
     inset 0 0 0 1px rgba(0, 0, 0, 0.06);
   color: #5a4634;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-  clip-path: polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%);
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  clip-path: polygon(0 0, 100% 0, 100% 76%, 50% 100%, 0 76%); /* 可选小尖角 */
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,0.05));
+}
+
+.bw-bookmark-home {
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.18) 0px,
+      rgba(255, 255, 255, 0.18) 1px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #fdf4d8, #f4dfb0);
+}
+
+.bw-bookmark-search {
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.18) 0px,
+      rgba(255, 255, 255, 0.18) 1px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #eaf6ff, #d1e7ff);
+}
+
+.bw-bookmark-borrow {
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.18) 0px,
+      rgba(255, 255, 255, 0.18) 1px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #e7f7ec, #c9ebd4);
+}
+
+.bw-bookmark-return {
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.18) 0px,
+      rgba(255, 255, 255, 0.18) 1px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #fff0e4, #ffd5b8);
+}
+
+.bw-bookmark-assistant {
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.18) 0px,
+      rgba(255, 255, 255, 0.18) 1px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #f6ecff, #e4d3ff);
+}
+
+.bw-bookmark-notifications {
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.18) 0px,
+      rgba(255, 255, 255, 0.18) 1px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #ffeef5, #ffd3e6);
+}
+
+.bw-bookmark-feedback {
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.18) 0px,
+      rgba(255, 255, 255, 0.18) 1px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #e9f2ff, #cedcff);
+}
+
+.bw-bookmark-profile {
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.18) 0px,
+      rgba(255, 255, 255, 0.18) 1px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #f6f0ff, #e3ddff);
+}
+
+.bw-bookmark-settings {
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.18) 0px,
+      rgba(255, 255, 255, 0.18) 1px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #edf3f8, #d5e0ea);
+}
+
+.bw-bookmark::after {
+  /* 右上角折角 */
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-width: 0 10px 10px 0;
+  border-style: solid;
+  border-color: transparent rgba(0,0,0,0.08) transparent transparent;
+  filter: blur(0.2px);
+}
+
+.bw-bookmark::before {
+  /* 轻微不规则边缘感（纸边暗纹） */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 6px 6px 10px 6px;
+  background:
+    radial-gradient(60% 20% at 10% 100%, rgba(0,0,0,0.06), transparent 70%),
+    radial-gradient(60% 20% at 90% 100%, rgba(0,0,0,0.04), transparent 70%);
+  mix-blend-mode: multiply;
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .bw-bookmark:hover {
   transform: translateX(6px);
+  box-shadow:
+    0 8px 16px rgba(0, 0, 0, 0.18),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
 .bw-bookmark.active {
   transform: translateX(10px);
   box-shadow:
-    0 10px 18px rgba(0, 0, 0, 0.22),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+    0 6px 14px rgba(0, 0, 0, 0.22),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
 }
 
-.bw-bookmark.active::after {
+.bw-bookmark.active::before {
+  /* 激活态左侧色条 */
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 8px;
-  background: linear-gradient(90deg, #f8b267, #e5863e);
+  left: -4px;
+  top: 6px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #f3a65b, #e07b33);
+  opacity: 0.9;
+  pointer-events: none;
 }
 
 .bw-bookmark-icon {
@@ -61,7 +225,16 @@
 }
 
 .bw-bookmark-logout {
-  background: linear-gradient(180deg, #fff2f1, #f7d0cf);
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.8), transparent 70%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.15) 0px,
+      rgba(255, 255, 255, 0.15) 1px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 3px
+    ),
+    linear-gradient(180deg, #fff2f1, #f7d0cf);
   color: #8b1a1a;
 }
 

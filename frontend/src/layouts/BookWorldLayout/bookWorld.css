@@ -27,7 +27,7 @@ html, body, #root { height: 100%; }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  padding: 14px 16px;
   padding-left: var(--bookmark-rail);
   z-index: 1;
 }
@@ -37,7 +37,7 @@ html, body, #root { height: 100%; }
   width: var(--book-w);
   height: var(--book-h);
   display: grid;
-  grid-template-columns: 1fr 26px 1fr;
+  grid-template-columns: 1fr 28px 1fr;
   border-radius: 28px;
   background:
     radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.9), transparent 60%),
@@ -48,7 +48,6 @@ html, body, #root { height: 100%; }
   outline: 1px solid rgba(0,0,0,0.06);
   overflow: visible;
   perspective: 1400px;
-  transform: translateX(var(--book-shift));
 }
 
 .bw-book::before {
@@ -143,7 +142,7 @@ html, body, #root { height: 100%; }
   width: 100%;
   height: 100%;
   overflow: auto;
-  padding: 32px;
+  padding: 36px;
   scrollbar-gutter: stable;
   overscroll-behavior: contain;
 }
@@ -195,7 +194,7 @@ html, body, #root { height: 100%; }
 
 .bw-bookmarks {
   position: absolute;
-  left: calc((100vw - var(--book-w))/2 + var(--bookmark-rail) + var(--book-shift));
+  left: calc((100vw - var(--book-w)) / 2 + var(--bookmark-rail));
   top: 50%;
   transform: translate(-86px, -50%);
   z-index: 30;

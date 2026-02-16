@@ -57,10 +57,9 @@ const BookWorldLayout: React.FC<BookWorldLayoutProps> = ({
       className="bw-root"
       style={
         {
-          "--book-w": "min(1900px, 95vw)",
+          "--book-w": "min(1920px, 98vw)",
           "--book-h": "min(1040px, 94vh)",
-          "--bookmark-rail": "112px",
-          "--book-shift": "72px",
+          "--bookmark-rail": "110px",
           "--book-paper": token.colorBgContainer,
         } as React.CSSProperties
       }

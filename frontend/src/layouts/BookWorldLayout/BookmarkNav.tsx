@@ -70,7 +70,9 @@ export const BookmarkNav: React.FC<BookmarkNavProps> = ({
             <button
               type="button"
               className={
-                currentKey === route.key ? "bw-bookmark active" : "bw-bookmark"
+                currentKey === route.key
+                  ? `bw-bookmark bw-bookmark-${route.key} active`
+                  : `bw-bookmark bw-bookmark-${route.key}`
               }
               onClick={() => onNavigate(route.path)}
             >
