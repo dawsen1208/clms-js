@@ -28,11 +28,15 @@
   border: 0;
   outline: 0;
   border-radius: 6px;
-  background: linear-gradient(180deg, #fbfbfb, #f2f2f2);
+  background:
+    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.9), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 1px, rgba(0,0,0,0.02) 2px, rgba(0,0,0,0.02) 3px),
+    linear-gradient(180deg, #fbfbf7, #f0efe6);
   box-shadow:
-    0 6px 12px rgba(0, 0, 0, 0.12),
+    0 10px 16px rgba(0, 0, 0, 0.14),
     inset 0 0 0 1px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255,255,255,0.6);
+    inset 0 1px 0 rgba(255,255,255,0.6),
+    0 1px 0 rgba(0,0,0,0.05);
   color: #4a4a4a;
   cursor: pointer;
   display: flex;
@@ -42,7 +46,7 @@
     transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
     filter 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-  filter: saturate(0.96) brightness(1.02) drop-shadow(0 0.5px 0 rgba(0,0,0,0.04));
+  filter: saturate(0.94) brightness(1.01) drop-shadow(0 0.5px 0 rgba(0,0,0,0.04));
 }
 
 .bw-bookmark-home {
@@ -93,14 +97,14 @@
 }
 
 .bw-bookmark::before {
-  /* 轻微不规则边缘感（纸边暗纹） */
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 6px 6px 10px 6px;
   background:
     radial-gradient(60% 20% at 10% 100%, rgba(0,0,0,0.06), transparent 70%),
-    radial-gradient(60% 20% at 90% 100%, rgba(0,0,0,0.04), transparent 70%);
+    radial-gradient(60% 20% at 90% 100%, rgba(0,0,0,0.04), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 2px, transparent 3px);
   mix-blend-mode: multiply;
   opacity: 0.45;
   pointer-events: none;

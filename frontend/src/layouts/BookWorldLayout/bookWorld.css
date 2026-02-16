@@ -92,6 +92,19 @@ html, body, #root { height: 100%; }
   text-rendering: optimizeLegibility;
 }
 
+.bw-page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(140% 80% at 50% 15%, rgba(0,0,0,0.06), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,0.02), transparent 140px),
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.01) 0px, rgba(0,0,0,0.01) 1px, transparent 2px, transparent 3px);
+  mix-blend-mode: multiply;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .bw-left {
   background: var(--book-paper, #ffffff);
   box-shadow:
@@ -99,11 +112,35 @@ html, body, #root { height: 100%; }
     0 10px 20px rgba(0, 0, 0, 0.10);
 }
 
+.bw-left::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,0.10), transparent 40%),
+    linear-gradient(0deg, rgba(0,0,0,0.02), transparent 38%);
+  mix-blend-mode: multiply;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 .bw-right {
   background: var(--book-paper, #ffffff);
   box-shadow:
     inset 8px 0 12px rgba(0, 0, 0, 0.05),
     0 10px 20px rgba(0, 0, 0, 0.10);
+}
+
+.bw-right::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(270deg, rgba(0,0,0,0.10), transparent 40%),
+    linear-gradient(0deg, rgba(0,0,0,0.02), transparent 38%);
+  mix-blend-mode: multiply;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .bw-scroll {
