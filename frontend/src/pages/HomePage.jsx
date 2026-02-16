@@ -368,7 +368,7 @@ export const HomeRight = () => {
         {loading ? (
           <Skeleton active paragraph={{ rows: 4 }} />
         ) : (
-          <MagazineBentoGrid items={bentoItems} />
+          <MagazineBentoGrid items={bentoItems} mode="list" />
         )}
 
         <EditorialSectionHeader
@@ -412,11 +412,13 @@ export const HomeRight = () => {
                 onClick={() => navigate(`/search?category=${cat}`)}
               >
                 <Title
-                  level={4}
+                  level={5}
                   style={{
                     margin: 0,
                     fontFamily: "'Literata', serif",
                     fontWeight: 400,
+                    fontSize: 16,
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {cat}

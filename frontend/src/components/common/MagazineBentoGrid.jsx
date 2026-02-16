@@ -5,7 +5,7 @@ import { SharedCover } from '../../motion/CardToDetailTransition';
 const { Title, Text } = Typography;
 const { useToken } = theme;
 
-const MagazineBentoGrid = ({ items = [], className = '' }) => {
+const MagazineBentoGrid = ({ items = [], className = '', mode = 'grid' }) => {
   const { token } = useToken();
 
   const getCategoryColor = (category) => {
@@ -60,6 +60,104 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
       </span>
     );
   };
+
+  if (mode === 'list') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {items.map((item, index) => {
+          const available = typeof item.availableCopies === 'number' ? item.availableCopies : undefined;
+          const total = typeof item.totalCopies === 'number' ? item.totalCopies : undefined;
+          const hasClick = typeof item.onClick === 'function';
+
+          return (
+            <div
+              key={item.id || index}
+              className="editorial-card book-card"
+              style={{ width: '100%', cursor: hasClick ? 'pointer' : 'default' }}
+              onClick={item.onClick}
+            >
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '88px 1fr',
+                  alignItems: 'stretch',
+                  gap: 12,
+                  padding: 16
+                }}
+              >
+                <div
+                  className="book-card-cover"
+                  style={{
+                    position: 'relative',
+                    height: '100%',
+                    overflow: 'hidden',
+                    borderRadius: 4,
+                    background: token.colorFillTertiary
+                  }}
+                >
+                  {(item.coverImage || item.coverNode) && (
+                    <SharedCover id={String(item.id || '')}>
+                      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                        <div style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
+                          {item.coverNode}
+                        </div>
+                        {item.coverImage ? (
+                          <img
+                            src={item.coverImage}
+                            alt={item.title}
+                            loading="lazy"
+                            decoding="async"
+                            srcSet={item.coverSrcSet || undefined}
+                            sizes={item.coverSizes || undefined}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              objectPosition: 'center',
+                              display: 'block',
+                              position: 'relative',
+                              zIndex: 1
+                            }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : null}
+                      </div>
+                    </SharedCover>
+                  )}
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6
+                  }}
+                >
+                  <Title level={5} style={{ margin: 0 }}>
+                    {item.title}
+                  </Title>
+                  {item.description && (
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      {item.description}
+                    </Text>
+                  )}
+                  <Text style={{ fontSize: 12, opacity: 0.8 }}>
+                    {(item.category || 'General') +
+                      (available !== undefined || total !== undefined
+                        ? ` · stock: ${available ?? 0}${total !== undefined ? `/${total}` : ''}`
+                        : item.meta
+                        ? ` · ${item.meta}`
+                        : '')}
+                  </Text>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className={`magazine-bento-grid editorial-grid ${className}`} style={{ gap: 24 }}>
