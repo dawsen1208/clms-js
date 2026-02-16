@@ -109,16 +109,7 @@ const NotificationsLeft: React.FC = () => {
   );
 };
 
-const BookDetailLeft: React.FC = () => {
-  return (
-    <div className="book-placeholder">
-      <div className="book-placeholder-title">Book Detail</div>
-      <div className="book-placeholder-body">
-        Explore the book information, reviews, and borrow status on the right.
-      </div>
-    </div>
-  );
-};
+// Note: Do not define a local BookDetailLeft to avoid shadowing the imported panels.
 
 export const getPageSpread = ({
   routeKey,

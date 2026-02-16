@@ -46,7 +46,7 @@ const BookWorldLayout: React.FC<BookWorldLayoutProps> = ({
 
   const spread = getPageSpread({
     routeKey: currentKey,
-    children: right || children,
+    children,
   });
 
   const resolvedLeft = left ?? spread.left;
