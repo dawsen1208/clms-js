@@ -1,12 +1,17 @@
 .bw-bookmarks {
   position: absolute;
-  left: -78px;
+  left: -86px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 30;
+  z-index: 9999 !important;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  pointer-events: none;
+}
+
+.bw-bookmarks * {
+  pointer-events: auto;
 }
 
 .bw-bookmarks-stack {
