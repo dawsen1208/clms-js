@@ -76,7 +76,7 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
             style={{
               gridRow: `span ${rowSpan}`,
               height: '100%',
-              minHeight: isFeatured ? 360 : 260
+              minHeight: isFeatured ? 320 : 220
             }}
           >
             <Card
@@ -104,33 +104,33 @@ const MagazineBentoGrid = ({ items = [], className = '' }) => {
                   <div
                     className="book-card-cover"
                     style={{
-                      flex: '0 0 65%',
-                      minHeight: 160,
+                      margin: isFeatured ? 20 : 16,
+                      marginBottom: 12,
                       borderRadius: 12,
                       overflow: 'hidden',
-                      margin: 16,
-                      marginBottom: 12,
                       background: token.colorFillTertiary,
                       boxShadow: '0 6px 16px rgba(0,0,0,0.06)'
                     }}
                   >
                     <SharedCover id={String(item.id || '')}>
-                      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                        <div style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
-                          {item.coverNode}
+                      <div style={{ position: 'relative', width: '100%', paddingTop: isFeatured ? '135%' : '145%' }}>
+                        <div style={{ position: 'absolute', inset: 0 }}>
+                          <div style={{ position: 'absolute', inset: 0 }} aria-hidden="true">
+                            {item.coverNode}
+                          </div>
+                          {item.coverImage ? (
+                            <img
+                              src={item.coverImage}
+                              alt={item.title}
+                              loading="lazy"
+                              decoding="async"
+                              srcSet={item.coverSrcSet || undefined}
+                              sizes={item.coverSizes || undefined}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', position: 'relative', zIndex: 1 }}
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                          ) : null}
                         </div>
-                        {item.coverImage ? (
-                          <img
-                            src={item.coverImage}
-                            alt={item.title}
-                            loading="lazy"
-                            decoding="async"
-                            srcSet={item.coverSrcSet || undefined}
-                            sizes={item.coverSizes || undefined}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', position: 'relative', zIndex: 1 }}
-                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                          />
-                        ) : null}
                       </div>
                     </SharedCover>
                   </div>
