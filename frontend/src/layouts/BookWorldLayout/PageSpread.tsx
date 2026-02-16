@@ -1,13 +1,4 @@
-import React from "react";
-import { HomeLeft, HomeRight } from "../../pages/HomePage";
-import { SearchLeftPanel, SearchRightPanel } from "../../pages/SearchPage";
-import { BorrowLeftPanel, BorrowRightPanel } from "../../pages/BorrowPage";
-import { BookDetailLeft, BookDetailRight } from "../../pages/BookDetail";
-import { ReturnLeftPanel, ReturnRightPanel } from "../../pages/ReturnPage";
-import { AssistantLeftPanel } from "../../pages/SmartAssistant";
-import { ProfileLeftPanel } from "../../pages/ProfilePage";
-import { FeedbackLeftPanel } from "../../pages/FeedbackPage";
-import { NotificationLeftPanel } from "../../pages/NotificationPage";
+import React, { lazy } from "react";
 
 export type PageSpreadResult = {
   left: React.ReactNode;
@@ -18,6 +9,50 @@ type PageSpreadProps = {
   routeKey: string;
   children?: React.ReactNode;
 };
+
+// Lazy panels to preserve code-splitting and avoid bundling entire pages twice
+const HomeLeft = lazy(() =>
+  import("../../pages/HomePage").then((m) => ({ default: m.HomeLeft }))
+);
+const HomeRight = lazy(() =>
+  import("../../pages/HomePage").then((m) => ({ default: m.HomeRight }))
+);
+const SearchLeftPanel = lazy(() =>
+  import("../../pages/SearchPage").then((m) => ({ default: m.SearchLeftPanel }))
+);
+const SearchRightPanel = lazy(() =>
+  import("../../pages/SearchPage").then((m) => ({ default: m.SearchRightPanel }))
+);
+const BorrowLeftPanel = lazy(() =>
+  import("../../pages/BorrowPage").then((m) => ({ default: m.BorrowLeftPanel }))
+);
+const BorrowRightPanel = lazy(() =>
+  import("../../pages/BorrowPage").then((m) => ({ default: m.BorrowRightPanel }))
+);
+const BookDetailLeft = lazy(() =>
+  import("../../pages/BookDetail").then((m) => ({ default: m.BookDetailLeft }))
+);
+const BookDetailRight = lazy(() =>
+  import("../../pages/BookDetail").then((m) => ({ default: m.BookDetailRight }))
+);
+const ReturnLeftPanel = lazy(() =>
+  import("../../pages/ReturnPage").then((m) => ({ default: m.ReturnLeftPanel }))
+);
+const ReturnRightPanel = lazy(() =>
+  import("../../pages/ReturnPage").then((m) => ({ default: m.ReturnRightPanel }))
+);
+const AssistantLeftPanel = lazy(() =>
+  import("../../pages/SmartAssistant").then((m) => ({ default: m.AssistantLeftPanel }))
+);
+const ProfileLeftPanel = lazy(() =>
+  import("../../pages/ProfilePage").then((m) => ({ default: m.ProfileLeftPanel }))
+);
+const FeedbackLeftPanel = lazy(() =>
+  import("../../pages/FeedbackPage").then((m) => ({ default: m.FeedbackLeftPanel }))
+);
+const NotificationLeftPanel = lazy(() =>
+  import("../../pages/NotificationPage").then((m) => ({ default: m.NotificationLeftPanel }))
+);
 
 const PlaceholderLeft: React.FC<{ routeKey: string }> = ({ routeKey }) => {
   return (
