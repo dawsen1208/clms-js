@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Input,
   Button,
@@ -33,6 +33,104 @@ import { getCleanImageUrl } from "../utils/imageUtils";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
+
+let leftScrollContainer = null;
+let rightScrollContainer = null;
+let isSyncingScroll = false;
+
+const useSyncedScroll = (side) => {
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    if (!rootRef.current) return;
+    const scrollEl = rootRef.current.closest(".bw-scroll");
+    if (!scrollEl) return;
+
+    if (side === "left") {
+      leftScrollContainer = scrollEl;
+    } else {
+      rightScrollContainer = scrollEl;
+    }
+
+    const handleScroll = () => {
+      if (isSyncingScroll) return;
+      const target =
+        side === "left" ? rightScrollContainer : leftScrollContainer;
+      if (!target) return;
+      isSyncingScroll = true;
+      target.scrollTop = scrollEl.scrollTop;
+      isSyncingScroll = false;
+    };
+
+    scrollEl.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      scrollEl.removeEventListener("scroll", handleScroll);
+    };
+  }, [side]);
+
+  return rootRef;
+};
+
+const filterAndSortBooksFromParams = (books, params) => {
+  let result = books || [];
+
+  const qParam = params.get("q") || params.get("query") || "";
+  const sortParam = params.get("sort") || "newest";
+  const categoryParam = params.get("category") || "";
+  const availableOnlyParam = params.get("avail") === "1";
+
+  if (qParam) {
+    const lower = qParam.toLowerCase();
+    result = result.filter((b) => {
+      const title = (b.title || "").toLowerCase();
+      const author = (b.author || "").toLowerCase();
+      const isbn = b.isbn ? String(b.isbn).toLowerCase() : "";
+      return (
+        title.includes(lower) || author.includes(lower) || isbn.includes(lower)
+      );
+    });
+  }
+
+  if (categoryParam) {
+    result = result.filter(
+      (b) => (b.category || "") === categoryParam
+    );
+  }
+
+  if (availableOnlyParam) {
+    result = result.filter(
+      (b) => (b.available_copies ?? b.copies ?? 0) > 0
+    );
+  }
+
+  if (sortParam === "newest") {
+    result = [...result].sort(
+      (a, b) =>
+        new Date(b.created_at || 0).getTime() -
+        new Date(a.created_at || 0).getTime()
+    );
+  } else if (sortParam === "title") {
+    result = [...result].sort((a, b) =>
+      (a.title || "").localeCompare(b.title || "")
+    );
+  } else if (sortParam === "author") {
+    result = [...result].sort((a, b) =>
+      (a.author || "").localeCompare(b.author || "")
+    );
+  }
+
+  return result;
+};
+
+const splitBooksEvenOdd = (books) => {
+  const left = [];
+  const right = [];
+  books.forEach((b, index) => {
+    if (index % 2 === 0) left.push(b);
+    else right.push(b);
+  });
+  return { left, right };
+};
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -368,99 +466,135 @@ export const SearchLeftPanel = () => {
   const { token } = theme.useToken();
   const screens = useBreakpoint();
   const [books, setBooks] = useState([]);
-
+  const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [sortBy, setSortBy] = useState("newest");
-  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
-  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [, setSortBy] = useState("newest");
+  const [, setShowAvailableOnly] = useState(false);
+  const rootRef = useSyncedScroll("left");
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const q = params.get('q') || params.get('query');
-    const sort = params.get('sort');
-    const cat = params.get('category');
-    const avail = params.get('avail');
-    if (q) setSearchText(q);
-    if (sort) setSortBy(sort);
-    if (cat) setSelectedCategories([cat]);
-    if (avail) setShowAvailableOnly(avail === '1');
+    const q = params.get("q") || params.get("query") || "";
+    const sort = params.get("sort") || "newest";
+    const cat = params.get("category") || "";
+    const avail = params.get("avail") === "1";
+    setSearchText(q);
+    setSortBy(sort);
+    setSelectedCategories(cat ? [cat] : []);
+    setShowAvailableOnly(avail);
   }, [location.search]);
 
   useEffect(() => {
     let mounted = true;
+    setLoading(true);
     (async () => {
       try {
         const res = await getBooks();
         if (!mounted) return;
         setBooks(res.data || []);
-      } catch (e) { void e; }
+      } catch (e) {
+        void e;
+      } finally {
+        if (mounted) setLoading(false);
+      }
     })();
     return () => {
       mounted = false;
     };
   }, []);
 
+  const filteredBooks = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return filterAndSortBooksFromParams(books, params);
+  }, [books, location.search]);
+
+  const { left: leftBooks } = useMemo(
+    () => splitBooksEvenOdd(filteredBooks),
+    [filteredBooks]
+  );
+
   const categories = useMemo(() => {
-    const cats = new Set(books.map(b => b.category).filter(Boolean));
+    const cats = new Set(books.map((b) => b.category).filter(Boolean));
     return Array.from(cats).sort().slice(0, 12);
   }, [books]);
 
   const applyParams = (patch) => {
-    const params = new URLSearchParams(location.search);
-    if (typeof patch.q !== 'undefined') {
-      if (patch.q) params.set('q', patch.q); else params.delete('q');
+    const next = new URLSearchParams(location.search);
+    if (Object.prototype.hasOwnProperty.call(patch, "q")) {
+      if (patch.q) next.set("q", patch.q);
+      else next.delete("q");
     }
-    if (typeof patch.sort !== 'undefined') {
-      if (patch.sort) params.set('sort', patch.sort); else params.delete('sort');
+    if (Object.prototype.hasOwnProperty.call(patch, "sort")) {
+      if (patch.sort) next.set("sort", patch.sort);
+      else next.delete("sort");
     }
-    if (typeof patch.category !== 'undefined') {
-      if (patch.category) params.set('category', patch.category); else params.delete('category');
+    if (Object.prototype.hasOwnProperty.call(patch, "category")) {
+      if (patch.category) next.set("category", patch.category);
+      else next.delete("category");
     }
-    if (typeof patch.avail !== 'undefined') {
-      if (patch.avail) params.set('avail', '1'); else params.delete('avail');
+    if (Object.prototype.hasOwnProperty.call(patch, "avail")) {
+      if (patch.avail) next.set("avail", "1");
+      else next.delete("avail");
     }
-    navigate(`/search?${params.toString()}`, { replace: false });
+    navigate(`/search?${next.toString()}`, { replace: false });
   };
 
   return (
-    <div style={{ padding: screens.md ? 24 : 12 }}>
-      <div style={{ marginBottom: 24 }}>
+    <div
+      ref={rootRef}
+      style={{
+        padding: screens.md ? 24 : 12,
+        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16
+      }}
+    >
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          padding: screens.md ? "16px 16px 12px" : "12px 8px 10px",
+          marginLeft: screens.md ? -24 : -12,
+          marginRight: screens.md ? -24 : -12,
+          background: "rgba(255,255,255,0.82)",
+          backdropFilter: "blur(10px)",
+          borderBottom: `1px solid ${token.colorBorderSecondary}`
+        }}
+      >
         <Input
           size="large"
           placeholder="Search by title, author, or ISBN..."
           prefix={<SearchOutlined style={{ color: token.colorPrimary }} />}
-          bordered
+          bordered={false}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           onPressEnter={() => applyParams({ q: searchText })}
           allowClear
+          style={{
+            fontSize: 22,
+            fontFamily: "'Literata', serif",
+            background: "transparent",
+            boxShadow: "none"
+          }}
         />
-        <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-          <Select
-            value={sortBy}
-            onChange={(v) => { setSortBy(v); applyParams({ sort: v }); }}
-            style={{ width: 140 }}
-            options={[
-              { value: 'newest', label: 'Newest' },
-              { value: 'title', label: 'Title' },
-              { value: 'author', label: 'Author' },
-            ]}
-          />
-          <Button onClick={() => { setFilterDrawerOpen(true); }}>Filters</Button>
-        </div>
       </div>
 
-      <div style={{ marginTop: 8, marginBottom: 8 }}>
+      <div style={{ marginTop: 8, marginBottom: 16 }}>
         <Space wrap size={[8, 8]}>
           <Tag.CheckableTag
             checked={selectedCategories.length === 0}
-            onChange={() => { setSelectedCategories([]); applyParams({ category: "" }); }}
-            style={{ fontSize: 13, padding: '4px 10px' }}
+            onChange={() => {
+              setSelectedCategories([]);
+              applyParams({ category: "" });
+            }}
+            style={{ fontSize: 13, padding: "4px 10px" }}
           >
             All
           </Tag.CheckableTag>
-          {categories.map(cat => (
+          {categories.map((cat) => (
             <Tag.CheckableTag
               key={cat}
               checked={selectedCategories.includes(cat)}
@@ -473,7 +607,7 @@ export const SearchLeftPanel = () => {
                   applyParams({ category: "" });
                 }
               }}
-              style={{ fontSize: 13, padding: '4px 10px' }}
+              style={{ fontSize: 13, padding: "4px 10px" }}
             >
               {cat}
             </Tag.CheckableTag>
@@ -481,59 +615,67 @@ export const SearchLeftPanel = () => {
         </Space>
       </div>
 
-      <div style={{ marginTop: 16 }}>
-        <Checkbox
-          checked={showAvailableOnly}
-          onChange={(e) => {
-            setShowAvailableOnly(e.target.checked);
-            applyParams({ avail: e.target.checked });
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "40px 0" }}>
+          <Spin />
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 16
           }}
         >
-          Available only
-        </Checkbox>
-      </div>
-
-      <Drawer
-        title="Filter Books"
-        placement="right"
-        onClose={() => setFilterDrawerOpen(false)}
-        open={filterDrawerOpen}
-      >
-        <div style={{ marginBottom: 16 }}>
-          <Title level={5}>Availability</Title>
-          <Switch
-            checked={showAvailableOnly}
-            onChange={(v) => {
-              setShowAvailableOnly(v);
-              applyParams({ avail: v });
-            }}
-            checkedChildren="Available Only"
-            unCheckedChildren="All Books"
-          />
-        </div>
-        <div>
-          <Title level={5}>Categories</Title>
-          <Space direction="vertical" style={{ width: '100%' }}>
-            {categories.map(cat => (
-              <Checkbox
-                key={cat}
-                checked={selectedCategories.includes(cat)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelectedCategories([cat]);
-                    applyParams({ category: cat });
-                  } else {
-                    setSelectedCategories([]);
-                    applyParams({ category: "" });
-                  }
-                }}
+          {leftBooks.map((book, index) => {
+            const availableCopies =
+              book.available_copies ?? book.copies ?? 0;
+            const totalCopies =
+              book.total_copies ??
+              book.totalCopies ??
+              book.total ??
+              book.copies ??
+              undefined;
+            return (
+              <div
+                key={book.id || book._id || index}
+                className="editorial-card book-card"
+                style={{ width: "100%", cursor: "pointer" }}
+                onClick={() => navigate(`/book/${book.id || book._id}`)}
               >
-                {cat}
-              </Checkbox>
-            ))}
-          </Space>
+                <div
+                  style={{
+                    padding: 16,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 6
+                  }}
+                >
+                  <Title level={5} style={{ margin: 0 }}>
+                    {book.title}
+                  </Title>
+                  <Text type="secondary" style={{ fontSize: 13 }}>
+                    {book.author}
+                  </Text>
+                  <Text style={{ fontSize: 12, opacity: 0.8 }}>
+                    {(book.category || "General") +
+                      " · " +
+                      (totalCopies !== undefined
+                        ? `stock: ${availableCopies}/${totalCopies}`
+                        : `stock: ${availableCopies}`)}
+                  </Text>
+                </div>
+              </div>
+            );
+          })}
+          {leftBooks.length === 0 && !loading && (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="No books on this side for current filters."
+            />
+          )}
         </div>
-      </Drawer>
+      )}
     </div>
   );
 };
@@ -542,15 +684,19 @@ export const SearchRightPanel = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const screens = useBreakpoint();
-  const [loading, setLoading] = useState(false);
   const [books, setBooks] = useState([]);
-  const [filteredBooks, setFilteredBooks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [sortBy, setSortBy] = useState("newest");
+  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
+  const rootRef = useSyncedScroll("right");
 
-  const params = new URLSearchParams(location.search);
-  const qParam = params.get('q') || params.get('query') || "";
-  const sortParam = params.get('sort') || "newest";
-  const categoryParam = params.get('category') || "";
-  const availableOnlyParam = params.get('avail') === '1';
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const sort = params.get("sort") || "newest";
+    const avail = params.get("avail") === "1";
+    setSortBy(sort);
+    setShowAvailableOnly(avail);
+  }, [location.search]);
 
   useEffect(() => {
     let mounted = true;
@@ -560,46 +706,47 @@ export const SearchRightPanel = () => {
         const res = await getBooks();
         if (!mounted) return;
         setBooks(res.data || []);
-        setFilteredBooks(res.data || []);
       } finally {
         setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  useEffect(() => {
-    let result = books;
-    if (qParam) {
-      const lower = qParam.toLowerCase();
-      result = result.filter(b =>
-        (b.title || "").toLowerCase().includes(lower) ||
-        (b.author || "").toLowerCase().includes(lower) ||
-        (b.isbn && String(b.isbn).toLowerCase().includes(lower))
-      );
-    }
-    if (categoryParam) {
-      result = result.filter(b => (b.category || "") === categoryParam);
-    }
-    if (availableOnlyParam) {
-      result = result.filter(b => (b.available_copies ?? b.copies ?? 0) > 0);
-    }
-    if (sortParam === 'newest') {
-      result = [...result].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
-    } else if (sortParam === 'title') {
-      result = [...result].sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-    } else if (sortParam === 'author') {
-      result = [...result].sort((a, b) => (a.author || "").localeCompare(b.author || ""));
-    }
-    setFilteredBooks(result);
-  }, [books, qParam, sortParam, categoryParam, availableOnlyParam]);
+  const filteredBooks = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return filterAndSortBooksFromParams(books, params);
+  }, [books, location.search]);
+
+  const { right: rightBooks } = useMemo(
+    () => splitBooksEvenOdd(filteredBooks),
+    [filteredBooks]
+  );
 
   const isMobile = !screens.md;
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = isMobile ? 8 : 12;
   const pageStart = (currentPage - 1) * pageSize;
   const pageEnd = pageStart + pageSize;
-  const paginatedBooks = useMemo(() => filteredBooks.slice(pageStart, pageEnd), [filteredBooks, pageStart, pageEnd]);
+  const paginatedBooks = useMemo(
+    () => rightBooks.slice(pageStart, pageEnd),
+    [rightBooks, pageStart, pageEnd]
+  );
+
+  const applyParams = (patch) => {
+    const next = new URLSearchParams(location.search);
+    if (Object.prototype.hasOwnProperty.call(patch, "sort")) {
+      if (patch.sort) next.set("sort", patch.sort);
+      else next.delete("sort");
+    }
+    if (Object.prototype.hasOwnProperty.call(patch, "avail")) {
+      if (patch.avail) next.set("avail", "1");
+      else next.delete("avail");
+    }
+    navigate(`/search?${next.toString()}`, { replace: false });
+  };
 
   const bentoItems = useMemo(() => paginatedBooks.map((book, index) => {
     const coverNode = (
@@ -629,7 +776,75 @@ export const SearchRightPanel = () => {
   }), [paginatedBooks]);
 
   return (
-    <div style={{ padding: screens.md ? 24 : 12 }}>
+    <div
+      ref={rootRef}
+      style={{
+        padding: screens.md ? 24 : 12,
+        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16
+      }}
+    >
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          padding: screens.md ? "16px 16px 12px" : "12px 8px 10px",
+          marginLeft: screens.md ? -24 : -12,
+          marginRight: screens.md ? -24 : -12,
+          background: "rgba(255,255,255,0.82)",
+          backdropFilter: "blur(10px)",
+          borderBottom: "1px solid rgba(0,0,0,0.06)"
+        }}
+      >
+        <Space
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center"
+          }}
+        >
+          <Select
+            value={sortBy}
+            onChange={(v) => {
+              setSortBy(v);
+              applyParams({ sort: v });
+            }}
+            style={{ width: 160 }}
+            options={[
+              { value: "newest", label: "Newest" },
+              { value: "title", label: "Title" },
+              { value: "author", label: "Author" }
+            ]}
+          />
+          <Space>
+            <Checkbox
+              checked={showAvailableOnly}
+              onChange={(e) => {
+                setShowAvailableOnly(e.target.checked);
+                applyParams({ avail: e.target.checked });
+              }}
+            >
+              Available only
+            </Checkbox>
+            <Button
+              icon={<FilterOutlined />}
+              onClick={() => {
+                Modal.info({
+                  title: "Filters",
+                  content: "Use left page categories and this toggle to refine."
+                });
+              }}
+            >
+              Filters
+            </Button>
+          </Space>
+        </Space>
+      </div>
+
       {loading ? (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
           <Spin />

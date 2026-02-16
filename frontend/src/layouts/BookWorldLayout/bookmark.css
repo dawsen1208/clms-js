@@ -1,8 +1,8 @@
 .bw-bookmarks {
   position: absolute;
-  left: -86px;
+  left: 0;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translate(-60%, -50%);
   z-index: 9999 !important;
   display: flex;
   flex-direction: column;
