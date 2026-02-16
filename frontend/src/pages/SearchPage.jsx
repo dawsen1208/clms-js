@@ -932,20 +932,23 @@ export const SearchRightPanel = () => {
               <div
                 key={item.id}
                 className="editorial-card book-card"
-                style={{ width: "100%", cursor: "pointer" }}
+                style={{ width: "100%", cursor: "pointer", display: "flex", flexDirection: "column" }}
                 onClick={() => navigate(`/book/${item.id}`)}
               >
-                <div style={{ display: "grid", gridTemplateColumns: "120px 1fr" }}>
+                <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                   <div
                     className="book-card-cover"
                     style={{
                       position: "relative",
-                      height: "100%",
+                      paddingTop: "150%",
                       overflow: "hidden",
-                      borderRadius: 4
+                      borderRadius: 12
                     }}
                   >
-                    <div style={{ position: "absolute", inset: 0 }} aria-hidden="true">
+                    <div
+                      style={{ position: "absolute", inset: 0 }}
+                      aria-hidden="true"
+                    >
                       {item.coverNode}
                     </div>
                     {item.coverImage ? (
@@ -957,12 +960,13 @@ export const SearchRightPanel = () => {
                         srcSet={item.coverSrcSet || undefined}
                         sizes={item.coverSizes || undefined}
                         style={{
+                          position: "absolute",
+                          inset: 0,
                           width: "100%",
                           height: "100%",
                           objectFit: "cover",
                           objectPosition: "center",
                           display: "block",
-                          position: "relative",
                           zIndex: 1
                         }}
                         onError={(e) => {
@@ -971,11 +975,24 @@ export const SearchRightPanel = () => {
                       />
                     ) : null}
                   </div>
-                  <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 6 }}>
-                    <Title level={5} style={{ margin: 0 }}>
+                  <div
+                    style={{
+                      padding: 14,
+                      paddingTop: 12,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 4,
+                      flex: 1
+                    }}
+                  >
+                    <Text
+                      strong
+                      ellipsis={{ rows: 2 }}
+                      style={{ fontSize: 14, lineHeight: 1.4 }}
+                    >
                       {item.title}
-                    </Title>
-                    <Text type="secondary" style={{ fontSize: 13 }}>
+                    </Text>
+                    <Text type="secondary" style={{ fontSize: 12 }}>
                       {item.author}
                     </Text>
                     <Text style={{ fontSize: 12, opacity: 0.8 }}>
@@ -999,11 +1016,11 @@ export const SearchRightPanel = () => {
               </div>
             ))}
           </div>
-          <div style={{ textAlign: 'center', marginTop: 16, marginBottom: 24 }}>
-            <Pagination 
-              current={currentPage} 
-              total={filteredBooks.length} 
-              pageSize={pageSize} 
+          <div style={{ textAlign: "center", marginTop: 16, marginBottom: 24 }}>
+            <Pagination
+              current={currentPage}
+              total={filteredBooks.length}
+              pageSize={pageSize}
               onChange={setCurrentPage}
               showSizeChanger={false}
             />
