@@ -57,9 +57,6 @@ const BookWorldLayout: React.FC<BookWorldLayoutProps> = ({
       className="bw-root"
       style={
         {
-          "--book-w": "min(1920px, 98vw)",
-          "--book-h": "min(1040px, 94vh)",
-          "--bookmark-rail": "110px",
           "--book-paper": token.colorBgContainer,
         } as React.CSSProperties
       }
@@ -73,15 +70,15 @@ const BookWorldLayout: React.FC<BookWorldLayoutProps> = ({
               left={resolvedLeft}
               right={resolvedRight}
             />
+            <BookmarkNav
+              routes={routes}
+              currentKey={currentKey}
+              onNavigate={(path) => navigate(path)}
+              isMobile={isMobile}
+              onLogout={onLogout}
+            />
           </div>
         </BookZoomToDetail>
-        <BookmarkNav
-          routes={routes}
-          currentKey={currentKey}
-          onNavigate={(path) => navigate(path)}
-          isMobile={isMobile}
-          onLogout={onLogout}
-        />
       </div>
     </div>
   );

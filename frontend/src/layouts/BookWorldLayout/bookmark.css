@@ -1,4 +1,9 @@
 .bw-bookmarks {
+  position: absolute;
+  left: -78px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -12,26 +17,18 @@
 
 .bw-bookmark {
   position: relative;
-  width: 58px;
-  height: 44px;
+  width: 54px;
+  height: 40px;
   padding: 8px 6px;
   border: 0;
   outline: 0;
-  border-radius: 6px 6px 8px 6px;
-  background:
-    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.8), transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.15) 0px,
-      rgba(255, 255, 255, 0.15) 1px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 3px
-    ),
-    linear-gradient(180deg, #fcf5e6, #f2e4cf);
+  border-radius: 6px;
+  background: linear-gradient(180deg, #fbfbfb, #f2f2f2);
   box-shadow:
-    0 4px 10px rgba(0, 0, 0, 0.15),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.06);
-  color: #5a4634;
+    0 6px 12px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255,255,255,0.6);
+  color: #4a4a4a;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -40,137 +37,54 @@
     transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
     box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
     filter 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-  clip-path: polygon(0 0, 100% 0, 100% 76%, 50% 100%, 0 76%); /* 可选小尖角 */
-  filter: drop-shadow(0 1px 0 rgba(0,0,0,0.05));
+  filter: saturate(0.96) brightness(1.02) drop-shadow(0 0.5px 0 rgba(0,0,0,0.04));
 }
 
 .bw-bookmark-home {
-  background:
-    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.18) 0px,
-      rgba(255, 255, 255, 0.18) 1px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 3px
-    ),
-    linear-gradient(180deg, #fdf4d8, #f4dfb0);
+  background: linear-gradient(180deg, #faf6e8, #f3e7c9);
 }
 
 .bw-bookmark-search {
-  background:
-    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.18) 0px,
-      rgba(255, 255, 255, 0.18) 1px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 3px
-    ),
-    linear-gradient(180deg, #eaf6ff, #d1e7ff);
+  background: linear-gradient(180deg, #eef7ff, #d8eaff);
 }
 
 .bw-bookmark-borrow {
-  background:
-    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.18) 0px,
-      rgba(255, 255, 255, 0.18) 1px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 3px
-    ),
-    linear-gradient(180deg, #e7f7ec, #c9ebd4);
+  background: linear-gradient(180deg, #eaf8ef, #d4ecde);
 }
 
 .bw-bookmark-return {
-  background:
-    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.18) 0px,
-      rgba(255, 255, 255, 0.18) 1px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 3px
-    ),
-    linear-gradient(180deg, #fff0e4, #ffd5b8);
+  background: linear-gradient(180deg, #fff1e7, #ffd9bf);
 }
 
 .bw-bookmark-assistant {
-  background:
-    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.18) 0px,
-      rgba(255, 255, 255, 0.18) 1px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 3px
-    ),
-    linear-gradient(180deg, #f6ecff, #e4d3ff);
+  background: linear-gradient(180deg, #f6eeff, #e5d8ff);
 }
 
 .bw-bookmark-notifications {
-  background:
-    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.18) 0px,
-      rgba(255, 255, 255, 0.18) 1px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 3px
-    ),
-    linear-gradient(180deg, #ffeef5, #ffd3e6);
+  background: linear-gradient(180deg, #ffeff6, #ffd7e8);
 }
 
 .bw-bookmark-feedback {
-  background:
-    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.18) 0px,
-      rgba(255, 255, 255, 0.18) 1px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 3px
-    ),
-    linear-gradient(180deg, #e9f2ff, #cedcff);
+  background: linear-gradient(180deg, #eaf2ff, #d1ddff);
 }
 
 .bw-bookmark-profile {
-  background:
-    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.18) 0px,
-      rgba(255, 255, 255, 0.18) 1px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 3px
-    ),
-    linear-gradient(180deg, #f6f0ff, #e3ddff);
+  background: linear-gradient(180deg, #f7f2ff, #e7e1ff);
 }
 
 .bw-bookmark-settings {
-  background:
-    radial-gradient(90% 60% at 30% 10%, rgba(255,255,255,0.85), transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 255, 255, 0.18) 0px,
-      rgba(255, 255, 255, 0.18) 1px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 3px
-    ),
-    linear-gradient(180deg, #edf3f8, #d5e0ea);
+  background: linear-gradient(180deg, #eef3f7, #d9e2eb);
 }
 
 .bw-bookmark::after {
-  /* 右上角折角 */
   content: "";
   position: absolute;
   top: 0;
   right: 0;
   border-width: 0 10px 10px 0;
   border-style: solid;
-  border-color: transparent rgba(0,0,0,0.08) transparent transparent;
-  filter: blur(0.2px);
+  border-color: transparent rgba(0,0,0,0.06) transparent transparent;
+  filter: blur(0.15px);
 }
 
 .bw-bookmark::before {
@@ -188,21 +102,20 @@
 }
 
 .bw-bookmark:hover {
-  transform: translateX(6px);
+  transform: translateX(4px) rotate(0.2deg);
   box-shadow:
-    0 8px 16px rgba(0, 0, 0, 0.18),
+    0 8px 16px rgba(0, 0, 0, 0.16),
     inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
 .bw-bookmark.active {
-  transform: translateX(10px);
+  transform: translateX(6px);
   box-shadow:
-    0 6px 14px rgba(0, 0, 0, 0.22),
+    0 3px 8px rgba(0, 0, 0, 0.22),
     inset 0 0 0 1px rgba(255, 255, 255, 0.4);
 }
 
 .bw-bookmark.active::before {
-  /* 激活态左侧色条 */
   content: "";
   position: absolute;
   left: -4px;
@@ -210,13 +123,13 @@
   bottom: 10px;
   width: 4px;
   border-radius: 2px;
-  background: linear-gradient(180deg, #f3a65b, #e07b33);
-  opacity: 0.9;
+  background: linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.08));
+  opacity: 0.6;
   pointer-events: none;
 }
 
 .bw-bookmark-icon {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
 }
 
