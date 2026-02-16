@@ -235,7 +235,7 @@ const SearchPage = () => {
 
   // Transform to Bento Grid Items (memoized)
   const bentoItems = useMemo(() => paginatedBooks.map((book, index) => {
-    const rawCover = book.coverImage || book.cover_image || "";
+    const rawCover = book.coverImage || book.cover_image || book.cover || "";
     const coverImageUrl = getCleanImageUrl(rawCover);
     const coverNode = (
       <BookCoverPro 
@@ -628,6 +628,9 @@ export const SearchLeftPanel = () => {
           }}
         >
           {leftBooks.map((book, index) => {
+            const rawCover =
+              book.coverImage || book.cover_image || book.cover || "";
+            const coverImageUrl = getCleanImageUrl(rawCover);
             const availableCopies =
               book.available_copies ?? book.copies ?? 0;
             const totalCopies =
@@ -645,25 +648,74 @@ export const SearchLeftPanel = () => {
               >
                 <div
                   style={{
-                    padding: 16,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 6
+                    display: "grid",
+                    gridTemplateColumns: "88px 1fr",
+                    alignItems: "stretch",
+                    gap: 12,
+                    padding: 16
                   }}
                 >
-                  <Title level={5} style={{ margin: 0 }}>
-                    {book.title}
-                  </Title>
-                  <Text type="secondary" style={{ fontSize: 13 }}>
-                    {book.author}
-                  </Text>
-                  <Text style={{ fontSize: 12, opacity: 0.8 }}>
-                    {(book.category || "General") +
-                      " · " +
-                      (totalCopies !== undefined
-                        ? `stock: ${availableCopies}/${totalCopies}`
-                        : `stock: ${availableCopies}`)}
-                  </Text>
+                  <div
+                    className="book-card-cover"
+                    style={{
+                      position: "relative",
+                      height: "100%",
+                      overflow: "hidden",
+                      borderRadius: 4
+                    }}
+                  >
+                    <div style={{ position: "absolute", inset: 0 }} aria-hidden="true">
+                      <BookCoverPro
+                        title={book.title}
+                        author={book.author}
+                        width={72}
+                        height={108}
+                        style={index % 2 === 0 ? "swiss" : "serif"}
+                        baseColor={stringToWarmColor(book.title)}
+                      />
+                    </div>
+                    {coverImageUrl ? (
+                      <img
+                        src={coverImageUrl}
+                        alt={book.title}
+                        loading="lazy"
+                        decoding="async"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          objectPosition: "center",
+                          display: "block",
+                          position: "relative",
+                          zIndex: 1
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : null}
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 6
+                    }}
+                  >
+                    <Title level={5} style={{ margin: 0 }}>
+                      {book.title}
+                    </Title>
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      {book.author}
+                    </Text>
+                    <Text style={{ fontSize: 12, opacity: 0.8 }}>
+                      {(book.category || "General") +
+                        " · " +
+                        (totalCopies !== undefined
+                          ? `stock: ${availableCopies}/${totalCopies}`
+                          : `stock: ${availableCopies}`)}
+                    </Text>
+                  </div>
                 </div>
               </div>
             );
@@ -749,29 +801,53 @@ export const SearchRightPanel = () => {
   };
 
   const bentoItems = useMemo(() => paginatedBooks.map((book, index) => {
+    const rawCover =
+      book.coverImage || book.cover_image || book.cover || "";
+    const coverImage = getCleanImageUrl(rawCover);
+    const coverImageSet = book.coverImageSet;
+    const coverSrcSet = coverImageSet
+      ? [
+          coverImageSet.w160 ? `${coverImageSet.w160} 160w` : null,
+          coverImageSet.w240 ? `${coverImageSet.w240} 240w` : null,
+          coverImageSet.w360 ? `${coverImageSet.w360} 360w` : null
+        ]
+          .filter(Boolean)
+          .join(", ")
+      : undefined;
+    const coverSizes =
+      "(min-width: 992px) 160px, (min-width: 576px) 120px, 40vw";
     const coverNode = (
-      <BookCoverPro 
-        title={book.title} 
-        author={book.author} 
-        width={180} 
-        height={240} 
+      <BookCoverPro
+        title={book.title}
+        author={book.author}
+        width={180}
+        height={240}
         style={index % 2 === 0 ? "swiss" : "serif"}
         baseColor={stringToWarmColor(book.title)}
       />
     );
     const availableCopies = book.available_copies ?? book.copies ?? 0;
-    const totalCopies = book.total_copies ?? book.totalCopies ?? book.total ?? book.copies ?? undefined;
+    const totalCopies =
+      book.total_copies ??
+      book.totalCopies ??
+      book.total ??
+      book.copies ??
+      undefined;
     return {
       id: book.id || book._id,
       title: book.title,
       author: book.author,
-      category: book.category || 'General',
-      meta: totalCopies !== undefined
-        ? `stock: ${availableCopies}/${totalCopies}`
-        : `stock: ${availableCopies}`,
+      category: book.category || "General",
+      meta:
+        totalCopies !== undefined
+          ? `stock: ${availableCopies}/${totalCopies}`
+          : `stock: ${availableCopies}`,
       coverNode,
+      coverImage,
+      coverSrcSet,
+      coverSizes,
       availableCopies,
-      totalCopies,
+      totalCopies
     };
   }), [paginatedBooks]);
 
@@ -860,8 +936,40 @@ export const SearchRightPanel = () => {
                 onClick={() => navigate(`/book/${item.id}`)}
               >
                 <div style={{ display: "grid", gridTemplateColumns: "120px 1fr" }}>
-                  <div className="book-card-cover" style={{ height: "100%" }}>
-                    {item.coverNode}
+                  <div
+                    className="book-card-cover"
+                    style={{
+                      position: "relative",
+                      height: "100%",
+                      overflow: "hidden",
+                      borderRadius: 4
+                    }}
+                  >
+                    <div style={{ position: "absolute", inset: 0 }} aria-hidden="true">
+                      {item.coverNode}
+                    </div>
+                    {item.coverImage ? (
+                      <img
+                        src={item.coverImage}
+                        alt={item.title}
+                        loading="lazy"
+                        decoding="async"
+                        srcSet={item.coverSrcSet || undefined}
+                        sizes={item.coverSizes || undefined}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          objectPosition: "center",
+                          display: "block",
+                          position: "relative",
+                          zIndex: 1
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : null}
                   </div>
                   <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 6 }}>
                     <Title level={5} style={{ margin: 0 }}>
