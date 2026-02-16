@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Typography, Button, Spin, theme, Row, Col, Empty } from "antd";
+import { Typography, Button, Spin, theme, Row, Col, Empty, Grid } from "antd";
 import { 
   BookOutlined, 
   ClockCircleOutlined, 
@@ -17,15 +17,17 @@ import EditorialPageShell from "../components/common/EditorialPageShell";
 import EditorialSectionHeader from "../components/common/EditorialSectionHeader";
 import StatCard from "../components/cards/StatCard";
 import InsightCard from "../components/cards/InsightCard";
-import ActionCard from "../components/cards/ActionCard";
 import ListCard from "../components/cards/ListCard";
 
 const { Title, Text } = Typography;
 const { useToken } = theme;
+const { useBreakpoint } = Grid;
 
 const AdminDashboard = () => {
   const { t } = useLanguage();
   const { token } = useToken();
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [loading, setLoading] = useState(false);
   
   const [metrics, setMetrics] = useState({
@@ -178,34 +180,94 @@ const AdminDashboard = () => {
         </div>
         <div className="col-span-4">
           <div className="editorial-card" style={{ padding: 24, height: 360, display: 'flex', flexDirection: 'column' }}>
-            <Title level={4} style={{ margin: "0 0 16px 0", fontFamily: "'Literata', serif" }}>
+            <Title level={4} style={{ margin: "0 0 12px 0", fontFamily: "'Literata', serif" }}>
               Quick Actions
             </Title>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, flex: 1 }}>
-              <ActionCard 
-                icon={<BookOutlined />} 
-                title="Add Book" 
-                onClick={() => {}} // TODO: Navigate
-                variant="minimal"
-              />
-              <ActionCard 
-                icon={<TeamOutlined />} 
-                title="Users" 
-                onClick={() => {}} // TODO: Navigate
-                variant="minimal"
-              />
-              <ActionCard 
-                icon={<CheckCircleOutlined />} 
-                title="Approvals" 
-                onClick={() => {}} // TODO: Navigate
-                variant="minimal"
-              />
-              <ActionCard 
-                icon={<RiseOutlined />} 
-                title="Reports" 
-                onClick={() => {}} // TODO: Navigate
-                variant="minimal"
-              />
+            <div
+              style={{
+                marginTop: 4,
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                gap: 8,
+                flex: 1
+              }}
+            >
+              <Button
+                icon={<BookOutlined />}
+                type="default"
+                size="large"
+                block
+                style={{
+                  justifyContent: "flex-start",
+                  padding: "10px 14px",
+                  borderRadius: 999,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+                  borderColor: token.colorBorderSecondary,
+                }}
+                onClick={() => {}}
+              >
+                Add Book
+              </Button>
+              <Button
+                icon={<TeamOutlined />}
+                type="default"
+                size="large"
+                block
+                style={{
+                  justifyContent: "flex-start",
+                  padding: "10px 14px",
+                  borderRadius: 999,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+                  borderColor: token.colorBorderSecondary,
+                }}
+                onClick={() => {}}
+              >
+                Users
+              </Button>
+              <Button
+                icon={<CheckCircleOutlined />}
+                type="default"
+                size="large"
+                block
+                style={{
+                  justifyContent: "flex-start",
+                  padding: "10px 14px",
+                  borderRadius: 999,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+                  borderColor: token.colorBorderSecondary,
+                }}
+                onClick={() => {}}
+              >
+                Approvals
+              </Button>
+              <Button
+                icon={<RiseOutlined />}
+                type="default"
+                size="large"
+                block
+                style={{
+                  justifyContent: "flex-start",
+                  padding: "10px 14px",
+                  borderRadius: 999,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+                  borderColor: token.colorBorderSecondary,
+                }}
+                onClick={() => {}}
+              >
+                Reports
+              </Button>
             </div>
           </div>
         </div>

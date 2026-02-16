@@ -317,32 +317,87 @@ export const HomeLeft = () => {
       </div>
 
       <div>
-        <Text type="secondary" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: 1 }}>
-          Quick actions
-        </Text>
-        <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-          <Button
-            icon={<SearchOutlined />}
-            onClick={() => navigate("/search")}
-            block
+        <Card
+          bordered={false}
+          className="editorial-card"
+          style={{
+            borderRadius: 16,
+            boxShadow: token.boxShadowSecondary,
+          }}
+        >
+          <Title
+            level={4}
+            style={{
+              margin: "0 0 12px 0",
+              fontFamily: "'Literata', serif",
+            }}
           >
-            Search Library
-          </Button>
-          <Button
-            icon={<ReadOutlined />}
-            onClick={() => navigate("/borrow")}
-            block
+            Quick Actions
+          </Title>
+          <div
+            style={{
+              marginTop: 4,
+              display: "grid",
+              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+              gap: 8,
+            }}
           >
-            My Borrowed Books
-          </Button>
-          <Button
-            icon={<RobotOutlined />}
-            onClick={() => navigate("/assistant")}
-            block
-          >
-            Smart Assistant
-          </Button>
-        </div>
+            <Button
+              icon={<SearchOutlined />}
+              onClick={() => navigate("/search")}
+              type="default"
+              block
+              style={{
+                justifyContent: "flex-start",
+                padding: "10px 14px",
+                borderRadius: 999,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+                borderColor: token.colorBorderSecondary,
+              }}
+            >
+              Search Library
+            </Button>
+            <Button
+              icon={<ReadOutlined />}
+              onClick={() => navigate("/borrow")}
+              type="default"
+              block
+              style={{
+                justifyContent: "flex-start",
+                padding: "10px 14px",
+                borderRadius: 999,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+                borderColor: token.colorBorderSecondary,
+              }}
+            >
+              My Borrowed Books
+            </Button>
+            <Button
+              icon={<RobotOutlined />}
+              onClick={() => navigate("/assistant")}
+              type="default"
+              block
+              style={{
+                justifyContent: "flex-start",
+                padding: "10px 14px",
+                borderRadius: 999,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+                borderColor: token.colorBorderSecondary,
+              }}
+            >
+              Smart Assistant
+            </Button>
+          </div>
+        </Card>
       </div>
     </div>
   );
