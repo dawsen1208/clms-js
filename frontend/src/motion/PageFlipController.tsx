@@ -106,7 +106,7 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
               rotateY: dir === "right" ? -180 : 180,
               opacity: 1,
               transition: {
-                duration: 1.2,
+                duration: 0.62,
                 ease: [0.2, 0.8, 0.2, 1],
               },
             },

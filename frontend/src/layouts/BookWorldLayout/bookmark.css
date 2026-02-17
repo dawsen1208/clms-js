@@ -153,6 +153,27 @@
   filter: saturate(1.06) brightness(1.1) drop-shadow(0 0 7px rgba(255, 239, 210, 0.85));
 }
 
+:root.theme-night .bw-bookmark {
+  background: #e8c9a6;
+  border-radius: 6px;
+  box-shadow:
+    0 8px 14px rgba(0,0,0,0.4);
+  transform: rotate(-1deg);
+}
+
+:root.theme-night .bw-bookmark::after {
+  border-width: 10px;
+  border-color: rgba(255,255,255,0.6) transparent transparent rgba(255,255,255,0.6);
+}
+
+:root.theme-night .bw-bookmark:hover {
+  transform: translateX(4px) rotate(0deg);
+}
+
+:root.theme-night .bw-bookmark.active {
+  transform: translateX(6px) rotate(0deg);
+}
+
 .bw-bookmark-icon {
   font-size: 16px;
   line-height: 1;
