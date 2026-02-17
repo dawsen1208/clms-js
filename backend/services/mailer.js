@@ -49,7 +49,7 @@ export async function sendMail(to, subject, html, text) {
     const t = getTransporter();
     if (!t) {
       console.warn("⚠️ 邮件发送被跳过（transporter 未初始化或配置缺失）");
-      return;
+      return false;
     }
 
     const mailOptions = {
@@ -61,8 +61,10 @@ export async function sendMail(to, subject, html, text) {
     };
 
     await t.sendMail(mailOptions);
+    return true;
   } catch (err) {
     console.error("❌ 发送邮件失败（不影响主业务）:", err?.message || err);
+    return false;
   }
 }
 

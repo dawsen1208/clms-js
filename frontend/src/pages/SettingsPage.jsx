@@ -230,7 +230,11 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
       const res = await sendGmailCode(authToken);
       const expires = res?.data?.expiresInSec || 600;
       setGmailTimer(expires);
-      message.success("验证码已发送至您的邮箱");
+      if (res?.data?.mailSent === false) {
+        message.warning("验证码请求已创建，但邮件服务配置有问题，请联系管理员检查 SMTP 配置");
+      } else {
+        message.success("验证码已发送至您的邮箱");
+      }
     } catch (err) {
       const msg = err?.response?.data?.message || "发送验证码失败";
       message.error(msg);

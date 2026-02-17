@@ -62,10 +62,9 @@ router.post("/send-code", authMiddleware, async (req, res) => {
         <p>This code is valid for 10 minutes.</p>
       </div>
     `;
-    // 发送验证码邮件（失败不影响返回）
-    sendMail(user.gmailAddress, subject, html).catch(() => {});
+    const mailSent = await sendMail(user.gmailAddress, subject, html);
 
-    res.json({ ok: true, expiresInSec: 600 });
+    res.json({ ok: true, expiresInSec: 600, mailSent: !!mailSent });
   } catch (err) {
     console.error("❌ send verify code failed:", err);
     res.status(500).json({ message: "Send code failed" });
