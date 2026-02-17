@@ -7,7 +7,7 @@ import {
   TagsOutlined, ReloadOutlined, RobotOutlined, BuildOutlined, TeamOutlined,
   BellOutlined, SettingOutlined, PictureOutlined, SoundOutlined, BulbOutlined
 } from "@ant-design/icons";
-import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks, sendAuthCode, bindEmail, toggle2FA } from "../api";
+import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks, toggle2FA, bindGmail, sendGmailCode, verifyGmailCode, updateEmailPreferences } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAccessibility } from "../contexts/AccessibilityContext";
 import { useMotionEnabled } from "../motion/useMotionEnabled";
@@ -78,26 +78,43 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     }
   }, [onChange]);
 
-  const [email, setEmail] = useState("");
-  const [boundEmail, setBoundEmail] = useState(user?.email || "");
-  const [emailCode, setEmailCode] = useState("");
-  const [authCodeSent, setAuthCodeSent] = useState(false);
-  const [timer, setTimer] = useState(0);
-  const [loadingEmail, setLoadingEmail] = useState(false);
+  const [gmail, setGmail] = useState(user?.gmailAddress || user?.email || "");
+  const [gmailVerified, setGmailVerified] = useState(!!user?.gmailVerified);
+  const [gmailPrefs, setGmailPrefs] = useState(() => ({
+    enabled: !!user?.externalEmailNotifyEnabled,
+    borrow: !!user?.externalEmailNotifyEvents?.borrow,
+    return: !!user?.externalEmailNotifyEvents?.return,
+    requestApproved: !!user?.externalEmailNotifyEvents?.requestApproved,
+  }));
+  const [gmailCode, setGmailCode] = useState("");
+  const [gmailTimer, setGmailTimer] = useState(0);
+  const [gmailLoading, setGmailLoading] = useState(false);
 
   useEffect(() => {
-    if (user?.email) {
-      setBoundEmail(user.email);
+    if (!user) return;
+    if (typeof user.gmailAddress === "string") {
+      setGmail(user.gmailAddress);
+    }
+    if (typeof user.gmailVerified === "boolean") {
+      setGmailVerified(user.gmailVerified);
+    }
+    if (user.externalEmailNotifyEvents) {
+      setGmailPrefs({
+        enabled: !!user.externalEmailNotifyEnabled,
+        borrow: !!user.externalEmailNotifyEvents.borrow,
+        return: !!user.externalEmailNotifyEvents.return,
+        requestApproved: !!user.externalEmailNotifyEvents.requestApproved,
+      });
     }
   }, [user]);
 
   useEffect(() => {
     let interval;
-    if (timer > 0) {
-      interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
+    if (gmailTimer > 0) {
+      interval = setInterval(() => setGmailTimer((prev) => prev - 1), 1000);
     }
     return () => clearInterval(interval);
-  }, [timer]);
+  }, [gmailTimer]);
 
   const authToken = useMemo(() => {
     return sessionStorage.getItem("token") || localStorage.getItem("token");
@@ -122,84 +139,8 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     } catch (error) { void error; }
   };
 
-  const handleSendAuthCode = async () => {
-    if (!email) {
-      message.error(t("settings.enterEmail"));
-      return;
-    }
-    try {
-      setLoadingEmail(true);
-      const res = await sendAuthCode(authToken, email);
-      message.success(t("settings.codeSent"));
-      
-      // ✅ 模拟模式：弹窗显示验证码
-      const responseData = res.data || {};
-      if (responseData.code) {
-        modal.info({
-          title: "模拟邮件验证码",
-          content: (
-            <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <p>您的验证码是：</p>
-              <Typography.Title level={2} style={{ margin: 0, letterSpacing: 4, color: token.colorPrimary }}>
-                {responseData.code}
-              </Typography.Title>
-              <p style={{ marginTop: 10, color: token.colorTextSecondary }}>（此弹窗仅在模拟模式下显示）</p>
-            </div>
-          ),
-          okText: "复制并关闭",
-          onOk: () => {
-             navigator.clipboard.writeText(responseData.code).then(() => {
-                message.success("验证码已复制到剪贴板");
-             }).catch(() => {});
-             setEmailCode(responseData.code); // 自动填入
-          }
-        });
-      }
-
-      setAuthCodeSent(true);
-      setTimer(60);
-    } catch {
-      message.error(t("settings.sendFailed"));
-    } finally {
-      setLoadingEmail(false);
-    }
-  };
-
-  const handleBindEmail = async () => {
-    if (!emailCode) {
-      message.error(t("settings.enterCode"));
-      return;
-    }
-    try {
-      setLoadingEmail(true);
-      await bindEmail(authToken, email, emailCode);
-      message.success(t("settings.bindSuccess"));
-      
-      const storedUser = JSON.parse(sessionStorage.getItem("user") || localStorage.getItem("user") || "{}");
-      storedUser.email = email;
-      sessionStorage.setItem("user", JSON.stringify(storedUser));
-      localStorage.setItem("user", JSON.stringify(storedUser));
-      
-      // ✅ Update global user state
-      if (onUserUpdate) {
-        onUserUpdate(storedUser);
-      }
-      
-      setBoundEmail(email);
-
-      setAuthCodeSent(false);
-      setEmailCode("");
-      setTimer(0);
-    } catch {
-      message.error(t("settings.bindFailed"));
-    } finally {
-      setLoadingEmail(false);
-    }
-  };
-
   const handleToggle2FA = async (checked) => {
-    // Check if email is bound first
-    if (!boundEmail && checked) {
+    if (!gmailVerified && checked) {
       message.warning(t("settings.bindEmailFirst"));
       return;
     }
@@ -225,6 +166,130 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
       }
     } catch {
       message.error(t("settings.operationFailed"));
+    }
+  };
+
+  const validateGmail = (value) => {
+    if (!value) return false;
+    const v = value.trim();
+    return /^\S+@\S+\.\S+$/.test(v);
+  };
+
+  const handleBindGmail = async () => {
+    if (!gmail || !validateGmail(gmail)) {
+      message.error("请输入有效的邮箱地址");
+      return;
+    }
+    if (!authToken) {
+      message.error(t("settings.notLoggedIn") || "Please login first.");
+      return;
+    }
+    try {
+      setGmailLoading(true);
+      await bindGmail(authToken, gmail.trim());
+      setGmailVerified(false);
+      setGmailPrefs({
+        enabled: false,
+        borrow: false,
+        return: false,
+        requestApproved: false,
+      });
+      setGmailCode("");
+      setGmailTimer(0);
+      message.success("邮箱已绑定，请发送验证码完成验证");
+    } catch (err) {
+      const msg = err?.response?.data?.message || "绑定邮箱失败";
+      message.error(msg);
+    } finally {
+      setGmailLoading(false);
+    }
+  };
+
+  const handleSendGmailCode = async () => {
+    if (!gmail || !validateGmail(gmail)) {
+      message.error("请先输入有效的邮箱地址");
+      return;
+    }
+    if (!authToken) {
+      message.error(t("settings.notLoggedIn") || "Please login first.");
+      return;
+    }
+    try {
+      setGmailLoading(true);
+      const res = await sendGmailCode(authToken);
+      const expires = res?.data?.expiresInSec || 600;
+      setGmailTimer(expires);
+      message.success("验证码已发送至您的邮箱");
+    } catch (err) {
+      const msg = err?.response?.data?.message || "发送验证码失败";
+      message.error(msg);
+    } finally {
+      setGmailLoading(false);
+    }
+  };
+
+  const handleVerifyGmail = async () => {
+    if (!gmailCode) {
+      message.error("请输入验证码");
+      return;
+    }
+    if (!authToken) {
+      message.error(t("settings.notLoggedIn") || "Please login first.");
+      return;
+    }
+    try {
+      setGmailLoading(true);
+      const res = await verifyGmailCode(authToken, gmailCode.trim());
+      if (res?.data?.gmailVerified || res?.data?.user?.gmailVerified) {
+        setGmailVerified(true);
+      }
+      setGmailCode("");
+      message.success("邮箱验证成功");
+    } catch (err) {
+      const msg = err?.response?.data?.message || "验证失败";
+      message.error(msg);
+    } finally {
+      setGmailLoading(false);
+    }
+  };
+
+  const patchGmailPrefs = async (patch) => {
+    if (!authToken) {
+      message.error(t("settings.notLoggedIn") || "Please login first.");
+      return;
+    }
+    const next = { ...gmailPrefs, ...patch };
+    setGmailPrefs(next);
+    try {
+      const res = await updateEmailPreferences(authToken, {
+        externalEmailNotifyEnabled: next.enabled,
+        events: {
+          borrow: next.borrow,
+          return: next.return,
+          requestApproved: next.requestApproved,
+        },
+      });
+      const prefs = res?.data?.preferences || res?.data;
+      if (prefs) {
+        setGmailPrefs({
+          enabled: !!prefs.externalEmailNotifyEnabled,
+          borrow: !!prefs.externalEmailNotifyEvents?.borrow,
+          return: !!prefs.externalEmailNotifyEvents?.return,
+          requestApproved: !!prefs.externalEmailNotifyEvents?.requestApproved,
+        });
+        if (typeof prefs.gmailVerified === "boolean") {
+          setGmailVerified(prefs.gmailVerified);
+        }
+        if (typeof prefs.gmailAddress === "string") {
+          setGmail(prefs.gmailAddress);
+        }
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || "更新邮件通知配置失败";
+      if (patch.enabled === true && err?.response?.status === 400) {
+        setGmailPrefs((prev) => ({ ...prev, enabled: false }));
+      }
+      message.error(msg);
     }
   };
 
@@ -435,7 +500,6 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const [devicesModalOpen, setDevicesModalOpen] = useState(false);
   const [fontSizeModalOpen, setFontSizeModalOpen] = useState(false);
   const [languageModalOpen, setLanguageModalOpen] = useState(false);
-  const [themeModeModalOpen, setThemeModeModalOpen] = useState(false);
   const [themeColorModalOpen, setThemeColorModalOpen] = useState(false);
   const [tempThemeColor, setTempThemeColor] = useState('');
   const [tempCustomColor, setTempCustomColor] = useState('');
@@ -629,7 +693,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                             <Radio.Group
                               onChange={(e) => {
                                 const v = e.target.value;
-                                try { localStorage.setItem("readingTheme", v); } catch {}
+                                try { localStorage.setItem("readingTheme", v); } catch (e) { void e; }
                                 const root = document.documentElement;
                                 root.classList.remove("theme-day", "theme-night");
                                 root.classList.add(v === "night" ? "theme-night" : "theme-day");
@@ -812,64 +876,138 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             label: t("settings.notifications"),
             children: (
               <Card style={{ borderRadius: token.borderRadiusLG }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.notifications")}</Title>}>
-                <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder) }}>
-                        <Space>
-                            <BellOutlined style={{ fontSize: 20, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorWarning }} />
-                            <Text strong style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.inAppNotif")}</Text>
-                        </Space>
-                        <Switch checked={!!notifPrefs.inApp} onChange={(v) => saveNotifications({ inApp: v })} />
-                   </div>
+                <Space direction="vertical" size={16} style={{ width: "100%" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 16, background: appearance?.highContrast ? "#000" : token.colorBgLayout, borderRadius: token.borderRadius, border: "1px solid " + (appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder) }}>
+                    <Space>
+                      <BellOutlined style={{ fontSize: 20, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorWarning }} />
+                      <Text strong style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.inAppNotif")}</Text>
+                    </Space>
+                    <Switch checked={!!notifPrefs.inApp} onChange={(v) => saveNotifications({ inApp: v })} />
+                  </div>
 
-                   {/* Email Binding Section */}
-                   <Card type="inner" title={<span style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.emailConfig")}</span>} size="small" style={{ borderColor: appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
-                      <Space direction="vertical" style={{ width: '100%' }}>
-                        <Text type="secondary" style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.emailDesc")}</Text>
-                        <Space.Compact style={{ width: '100%' }}>
-                          <Input 
-                            placeholder={t("settings.emailPlaceholder")} 
-                            value={email || (boundEmail || "")} 
-                            onChange={(e) => setEmail(e.target.value)}
-                            // disabled={!!boundEmail && !authCodeSent} 
+                  <Card
+                    type="inner"
+                    title={
+                      <span style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>
+                        {t("settings.emailNotifGmail") || "Notification Email & 2FA"}
+                      </span>
+                    }
+                    size="small"
+                    style={{ borderColor: appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder, background: appearance?.highContrast ? "#000" : undefined }}
+                  >
+                    <Space direction="vertical" style={{ width: "100%" }} size={12}>
+                      <Text type="secondary" style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>
+                        {t("settings.emailNotifDesc") || "Bind and verify an email address to receive notifications and 2FA codes."}
+                      </Text>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                        <Space.Compact style={{ flex: 1 }}>
+                          <Input
+                            placeholder={t("settings.gmailPlaceholder") || "name@example.com"}
+                            value={gmail}
+                            onChange={(e) => setGmail(e.target.value)}
+                            disabled={gmailLoading}
                           />
-                          <Button type="primary" onClick={handleSendAuthCode} disabled={timer > 0 || loadingEmail}>
-                            {timer > 0 ? `${timer}s` : t("settings.sendCode")}
+                          <Button type="primary" onClick={handleBindGmail} loading={gmailLoading}>
+                            {t("settings.bindGmail") || "Bind Email"}
                           </Button>
                         </Space.Compact>
-                        {authCodeSent && (
-                           <Space.Compact style={{ width: '100%' }}>
-                             <Input 
-                               placeholder={t("settings.codePlaceholder")} 
-                               value={emailCode} 
-                               onChange={(e) => setEmailCode(e.target.value)} 
-                             />
-                             <Button type="primary" onClick={handleBindEmail} loading={loadingEmail}>
-                               {t("settings.bindEmail")}
-                             </Button>
-                           </Space.Compact>
-                        )}
-                        {boundEmail && <Tag color="success">{t("settings.emailBound")}: {boundEmail}</Tag>}
-                      </Space>
-                   </Card>
+                      </div>
 
-                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder) }}>
+                      <Space size={12}>
+                        <Tag color={gmail ? "processing" : "default"}>
+                          {gmail || (t("settings.gmailNotBound") || "Not bound")}
+                        </Tag>
+                        {gmailVerified ? (
+                          <Tag color="success">{t("settings.gmailVerified") || "Verified"}</Tag>
+                        ) : gmail ? (
+                          <Tag color="warning">{t("settings.gmailUnverified") || "Pending verification"}</Tag>
+                        ) : null}
+                      </Space>
+
+                      <Divider plain>{t("settings.gmailVerifySection") || "Verify Email"}</Divider>
+
+                      <Space direction={isMobile ? "vertical" : "horizontal"} style={{ width: "100%" }} size={12}>
+                        <Button
+                          type="primary"
+                          onClick={handleSendGmailCode}
+                          loading={gmailLoading}
+                          disabled={!gmail || !validateGmail(gmail) || gmailTimer > 0}
+                        >
+                          {gmailTimer > 0 ? `${gmailTimer}s` : (t("settings.sendCode") || "Send Code")}
+                        </Button>
+                        <Space.Compact style={{ flex: 1 }}>
+                          <Input
+                            placeholder={t("settings.codePlaceholder") || "Enter verification code"}
+                            value={gmailCode}
+                            onChange={(e) => setGmailCode(e.target.value)}
+                            disabled={gmailLoading || !gmail}
+                          />
+                          <Button type="primary" onClick={handleVerifyGmail} loading={gmailLoading} disabled={!gmailCode}>
+                            {t("settings.verifyGmail") || "Verify"}
+                          </Button>
+                        </Space.Compact>
+                      </Space>
+
+                      <Divider plain>{t("settings.gmailEventsSection") || "Notification events"}</Divider>
+
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <Space>
-                            <BellOutlined style={{ fontSize: 20, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorPrimary }} />
-                            <Text strong style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.emailNotif")}</Text>
+                          <BellOutlined style={{ fontSize: 18, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorPrimary }} />
+                          <Text strong style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>
+                            {t("settings.emailNotifToggle") || "External email notifications"}
+                          </Text>
                         </Space>
-                        <Switch checked={!!notifPrefs.email} onChange={(v) => saveNotifications({ email: v })} disabled={!boundEmail} />
-                   </div>
-                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-                       <Card hoverable onClick={() => setReminderDaysModalOpen(true)} style={{ cursor: 'pointer', borderColor: appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder, background: appearance?.highContrast ? '#000' : undefined }}>
-                          <Space align="start">
-                              <CalendarOutlined style={{ fontSize: 24, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorError }} />
-                              <div>
-                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.reminderDays")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.reminderDaysDesc")}</Text>
-                              </div>
-                          </Space>
-                       </Card>
-                   </div>
+                        <Switch
+                          checked={gmailPrefs.enabled}
+                          onChange={(v) => patchGmailPrefs({ enabled: v })}
+                          disabled={!gmailVerified}
+                        />
+                      </div>
+
+                      <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>
+                        {t("settings.gmailEventsDesc") || "Choose which events will trigger email notifications."}
+                      </Text>
+
+                      <Checkbox
+                        checked={gmailPrefs.borrow}
+                        disabled={!gmailPrefs.enabled || !gmailVerified}
+                        onChange={(e) => patchGmailPrefs({ borrow: e.target.checked })}
+                      >
+                        {t("settings.gmailEventBorrow") || "When borrowing succeeds"}
+                      </Checkbox>
+                      <Checkbox
+                        checked={gmailPrefs.return}
+                        disabled={!gmailPrefs.enabled || !gmailVerified}
+                        onChange={(e) => patchGmailPrefs({ return: e.target.checked })}
+                      >
+                        {t("settings.gmailEventReturn") || "When returning succeeds"}
+                      </Checkbox>
+                      <Checkbox
+                        checked={gmailPrefs.requestApproved}
+                        disabled={!gmailPrefs.enabled || !gmailVerified}
+                        onChange={(e) => patchGmailPrefs({ requestApproved: e.target.checked })}
+                      >
+                        {t("settings.gmailEventApproved") || "When a borrow request is approved"}
+                      </Checkbox>
+                    </Space>
+                  </Card>
+
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16 }}>
+                    <Card
+                      hoverable
+                      onClick={() => setReminderDaysModalOpen(true)}
+                      style={{ cursor: "pointer", borderColor: appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder, background: appearance?.highContrast ? "#000" : undefined }}
+                    >
+                      <Space align="start">
+                        <CalendarOutlined style={{ fontSize: 24, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorError }} />
+                        <div>
+                          <Text strong style={{ display: "block", color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.reminderDays")}</Text>
+                          <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.reminderDaysDesc")}</Text>
+                        </div>
+                      </Space>
+                    </Card>
+                  </div>
                 </Space>
                 <Modal title={t("settings.reminderDays")} open={reminderDaysModalOpen} onCancel={() => setReminderDaysModalOpen(false)} footer={null}>
                     <Radio.Group value={notifPrefs.reminderDays || 3} onChange={(e) => saveNotifications({ reminderDays: Number(e.target.value) })} style={{ width: '100%' }}>
@@ -928,10 +1066,14 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                       <Switch 
                         checked={!!securityPrefs.twoFactorEnabled} 
                         onChange={handleToggle2FA} 
-                        disabled={!boundEmail} 
+                        disabled={!gmailVerified} 
                       />
                   </div>
-                  {!boundEmail && <Text type="danger" style={{ display: 'block', marginTop: -8, marginBottom: 8 }}>{t("settings.bindEmailFirst")}</Text>}
+                  {!gmailVerified && (
+                    <Text type="danger" style={{ display: "block", marginTop: -8, marginBottom: 8 }}>
+                      {t("settings.bindEmailFirst")}
+                    </Text>
+                  )}
                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                     <Card
                       hoverable

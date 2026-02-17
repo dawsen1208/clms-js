@@ -15,6 +15,7 @@ import bookRoutes from "./routes/bookRoutes.js";
 import borrowRequestRoutes from "./routes/borrowRequestRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import notificationEmailRoutes from "./routes/notificationEmailRoutes.js";
 
 
 // ✅ 加载环境变量
@@ -236,8 +237,9 @@ app.use("/api/library/requests", borrowRequestRoutes);
 app.use("/api/borrow-requests", borrowRequestRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/notifications/email", notificationEmailRoutes);
 
-console.log("✅ 已注册路由前缀: /api/users, /api/library, /api/health, /api/feedback, /api/notifications");
+console.log("✅ 已注册路由前缀: /api/users, /api/library, /api/health, /api/feedback, /api/notifications, /api/notifications/email");
 
 /* =========================================================
    🖼️ 前端静态资源与 SPA 回退（非 /api 请求）

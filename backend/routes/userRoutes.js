@@ -11,6 +11,7 @@ import User from "../models/User.js";
 import BorrowRecord from "../models/BorrowRecord.js"; // ✅ 新增
 import Book from "../models/Book.js"; // ✅ 新增
 import { authMiddleware, requireAdmin } from "../middleware/authUnified.js"; // ✅ 使用统一认证中间件
+import { sendMail } from "../services/mailer.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -168,10 +169,25 @@ router.post("/login/2fa", async (req, res) => {
       });
     }
 
-    // 验证授权码
-    if (user.authCode !== code) {
+    if (!user.twoFactorEnabled) {
+      return res.status(400).json({ message: "2FA is not enabled for this account." });
+    }
+
+    if (!user.login2faCodeExpiresAt || user.login2faCodeExpiresAt < new Date()) {
+      return res.status(400).json({ message: "Auth code expired, please login again to request a new code." });
+    }
+
+    if (!user.login2faCodeHash) {
+      return res.status(400).json({ message: "No auth code requested, please login again." });
+    }
+
+    const ok = await bcrypt.compare(code, user.login2faCodeHash);
+    if (!ok) {
       return res.status(401).json({ message: "Invalid auth code." });
     }
+
+    user.login2faCodeHash = null;
+    user.login2faCodeExpiresAt = null;
 
     // 登录成功，颁发 Token
     const sessionId = crypto.randomUUID();
@@ -306,10 +322,33 @@ router.post("/login", async (req, res) => {
 
     // 🔐 检查双重认证 (2FA)
     if (user.twoFactorEnabled) {
+      const code = String(Math.floor(Math.random() * 1000000)).padStart(6, "0");
+      const expires = new Date(Date.now() + 10 * 60 * 1000);
+      const salt = await bcrypt.genSalt(10);
+      const hash = await bcrypt.hash(code, salt);
+
+      user.login2faCodeHash = hash;
+      user.login2faCodeExpiresAt = expires;
+      await user.save();
+
+      const targetEmail = user.gmailAddress || user.email || "";
+      if (targetEmail) {
+        const subject = "[CLMS] Login Verification Code";
+        const html = `
+          <div style="font-family: system-ui, -apple-system, Segoe UI, sans-serif;">
+            <p>Your login verification code is:</p>
+            <div style="font-size:24px;letter-spacing:4px;font-weight:700">${code}</div>
+            <p>This code is valid for 10 minutes. If this was not you, please change your password immediately.</p>
+          </div>
+        `;
+        sendMail(targetEmail, subject, html).catch(() => {});
+      }
+
       return res.json({
         require2FA: true,
         userId: user.userId,
-        message: "Please enter 2FA auth code."
+        message: "2FA code has been sent to your email.",
+        expiresInSec: 600,
       });
     }
 

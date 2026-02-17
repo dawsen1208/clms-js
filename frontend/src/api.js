@@ -356,3 +356,33 @@ export const markAllNotificationsRead = (token) =>
 export const deleteNotification = (id, token) =>
   API.delete(`/notifications/${id}`, { headers: { Authorization: `Bearer ${token}` } });
 
+/* =========================================================
+   📧 外部邮箱通知（通用）
+   ========================================================= */
+export const bindGmail = (token, gmail) =>
+  API.post(
+    "/notifications/email/bind",
+    { gmail },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+export const sendGmailCode = (token) =>
+  API.post(
+    "/notifications/email/send-code",
+    {},
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+export const verifyGmailCode = (token, code) =>
+  API.post(
+    "/notifications/email/verify",
+    { code },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+export const updateEmailPreferences = (token, payload) =>
+  API.patch(
+    "/notifications/email/preferences",
+    payload,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );

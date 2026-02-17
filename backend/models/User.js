@@ -21,6 +21,8 @@ const userSchema = new mongoose.Schema({
   authCode: { type: String, default: "" }, // 静态授权码（绑定邮箱时生成）
   tempAuthCode: { type: String, default: "" }, // 临时验证码
   tempAuthCodeExpires: { type: Date }, // 临时验证码过期时间
+  login2faCodeHash: { type: String, default: null }, // 每次登录的动态验证码哈希
+  login2faCodeExpiresAt: { type: Date, default: null }, // 动态验证码过期时间
   
   // ⚙️ 用户偏好设置
   preferences: {
@@ -40,6 +42,18 @@ const userSchema = new mongoose.Schema({
     borrowing: {
       defaultDuration: { type: Number, default: 30, min: 1, max: 30 }
     }
+  },
+
+  // 📧 外部邮件通知（仅支持 Gmail）
+  gmailAddress: { type: String, default: null },            // 仅 @gmail.com / @googlemail.com
+  gmailVerified: { type: Boolean, default: false },         // 是否已通过验证码验证
+  gmailVerifyCodeHash: { type: String, default: null },     // 验证码哈希（不存明文）
+  gmailVerifyCodeExpiresAt: { type: Date, default: null },  // 验证码过期时间
+  externalEmailNotifyEnabled: { type: Boolean, default: false }, // 应用外通知主开关（默认关闭）
+  externalEmailNotifyEvents: {                               // 事件级别订阅（默认全关）
+    borrow: { type: Boolean, default: false },
+    return: { type: Boolean, default: false },
+    requestApproved: { type: Boolean, default: false }
   },
 
   sessions: [{

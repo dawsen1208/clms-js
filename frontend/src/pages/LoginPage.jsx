@@ -4,7 +4,7 @@ import { Form, Input, Button, Checkbox, Typography, message, theme, Grid, Layout
 import { UserOutlined, LockOutlined, ArrowRightOutlined, GlobalOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
-import { login as apiLogin } from "../api";
+import { login as apiLogin, login2FA as apiLogin2FA } from "../api";
 import { LoginBookAnimation } from "./public/LoginPage/LoginBookAnimation";
 
 const { Title, Paragraph, Text } = Typography;
@@ -24,6 +24,10 @@ const LoginPage = ({ onLogin }) => {
 
   const [animating, setAnimating] = useState(false);
   const [animStatus, setAnimStatus] = useState("idle");
+  const [twoFAModalOpen, setTwoFAModalOpen] = useState(false);
+  const [pendingUserId, setPendingUserId] = useState("");
+  const [twoFACode, setTwoFACode] = useState("");
+  const [twoFALoading, setTwoFALoading] = useState(false);
   const handleLogin = async () => {
     if (loading) return;
     const clickAt = Date.now();
@@ -44,6 +48,18 @@ const LoginPage = ({ onLogin }) => {
       }
       const res = await apiLogin(userId, password);
       const data = res?.data || {};
+
+      if (data.require2FA) {
+        setPendingUserId(data.userId || userId);
+        setTwoFACode("");
+        setTwoFAModalOpen(true);
+        setAnimating(false);
+        setAnimStatus("idle");
+        const msg = data.message || t("login.twoFactorAuth");
+        message.info(msg);
+        return;
+      }
+
       const tokenStr = data.token || data.accessToken || data.jwt || "";
       const rawUser = data.user || {};
       const normalizedUser = {
@@ -107,7 +123,53 @@ const LoginPage = ({ onLogin }) => {
     setLanguage(language === 'en' ? 'zh' : 'en');
   };
 
+  const handleVerify2FA = async () => {
+    if (!pendingUserId) {
+      message.error(t("login.errorInvalid"));
+      return;
+    }
+    if (!twoFACode) {
+      message.error(t("login.enterCode"));
+      return;
+    }
+    if (twoFALoading) return;
+    setTwoFALoading(true);
+    try {
+      const res = await apiLogin2FA(pendingUserId, twoFACode.trim());
+      const data = res?.data || {};
+      const tokenStr = data.token || data.accessToken || data.jwt || "";
+      const rawUser = data.user || {};
+      const normalizedUser = {
+        ...rawUser,
+        role: rawUser.role === "Admin" ? "Administrator" : rawUser.role,
+      };
+      if (!tokenStr || !normalizedUser) {
+        throw new Error(data.message || t("login.errorToken"));
+      }
+      onLogin(tokenStr, normalizedUser);
+      message.success(t("login.welcomeBack"));
+      setTwoFAModalOpen(false);
+      setTwoFACode("");
+      setPendingUserId("");
+      navigate(
+        normalizedUser.role === "Administrator"
+          ? "/admin/dashboard"
+          : "/home"
+      );
+    } catch (err) {
+      const backendMsg = err?.response?.data?.message || "";
+      let key = "login.invalidCode";
+      if (backendMsg.includes("expired")) {
+        key = "login.invalidCode";
+      }
+      message.error(t(key));
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
   return (
+    <>
     <div style={{ 
       display: "flex", 
       minHeight: "100vh",
@@ -367,6 +429,25 @@ const LoginPage = ({ onLogin }) => {
         </div>
       </div>
     </div>
+    <Modal
+      open={twoFAModalOpen}
+      title={t("login.twoFactorAuth")}
+      onOk={handleVerify2FA}
+      onCancel={() => {
+        setTwoFAModalOpen(false);
+        setTwoFACode("");
+        setPendingUserId("");
+      }}
+      confirmLoading={twoFALoading}
+      okText={t("login.verify")}
+    >
+      <Input
+        placeholder={t("login.authCodePlaceholder")}
+        value={twoFACode}
+        onChange={(e) => setTwoFACode(e.target.value)}
+      />
+    </Modal>
+    </>
   );
 };
 

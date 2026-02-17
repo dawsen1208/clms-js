@@ -6,6 +6,7 @@ import Book from "../models/Book.js";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js";
 import mongoose from "mongoose";
+import { sendLibraryNotification } from "../services/mailer.js";
 
 /* =========================================================
    📬 获取所有借阅申请（管理员查看）
@@ -154,12 +155,57 @@ export const approveRequestLibrary = async (req, res) => {
       } catch (notifErr) {
         console.error("❌ Failed to create return notification:", notifErr);
       }
+
+  // 📧 异步邮件通知（归还成功），不阻塞
+  (async () => {
+    try {
+      const user = await User.findOne({ userId: request.userId });
+      if (
+        user &&
+        user.externalEmailNotifyEnabled &&
+        user.gmailVerified &&
+        user.gmailAddress &&
+        (user.externalEmailNotifyEvents?.return ?? false)
+      ) {
+        await sendLibraryNotification(user.gmailAddress, "📗 Return Successful", `You returned “${request.bookTitle}”.`, {
+          bookTitle: request.bookTitle,
+          operation: "Return",
+          time: new Date().toISOString(),
+        });
+      }
+    } catch (e) {
+      console.error("❌ 发送归还邮件失败（忽略）:", e?.message || e);
+    }
+  })();
     }
 
     // ✅ 更新申请状态
     request.status = "approved";
     request.handledAt = new Date();
     await request.save();
+
+  // 📧 异步邮件通知（申请通过），不阻塞
+  (async () => {
+    try {
+      const user = await User.findOne({ userId: request.userId });
+      if (
+        user &&
+        user.externalEmailNotifyEnabled &&
+        user.gmailVerified &&
+        user.gmailAddress &&
+        (user.externalEmailNotifyEvents?.requestApproved ?? false)
+      ) {
+        await sendLibraryNotification(user.gmailAddress, "✅ Request Approved", `Your request has been approved.`, {
+          bookTitle: request.bookTitle,
+          operation: request.type === "renew" ? "Renew Approved" : "Return Approved",
+          time: new Date().toISOString(),
+          extra: request?.reason ? `Note: ${request.reason}` : "",
+        });
+      }
+    } catch (e) {
+      console.error("❌ 发送申请通过邮件失败（忽略）:", e?.message || e);
+    }
+  })();
 
     res.json({ message: "✅ 审批成功", request, record });
   } catch (err) {
@@ -308,6 +354,28 @@ export const markBookReturned = async (req, res) => {
     } catch (notifErr) {
       console.error("❌ Failed to create return notification:", notifErr);
     }
+
+    // 📧 异步邮件通知（管理员直接归还），不阻塞
+    (async () => {
+      try {
+        const user = await User.findOne({ userId: record.userId });
+        if (
+          user &&
+          user.externalEmailNotifyEnabled &&
+          user.gmailVerified &&
+          user.gmailAddress &&
+          (user.externalEmailNotifyEvents?.return ?? false)
+        ) {
+          await sendLibraryNotification(user.gmailAddress, "📗 Return Successful", `Your book “${record.bookTitle}” has been returned.`, {
+            bookTitle: record.bookTitle,
+            operation: "Return",
+            time: new Date().toISOString(),
+          });
+        }
+      } catch (e) {
+        console.error("❌ 发送归还邮件失败（忽略）:", e?.message || e);
+      }
+    })();
 
     res.json({ message: "归还成功", record });
 

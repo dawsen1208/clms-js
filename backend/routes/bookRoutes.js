@@ -9,6 +9,8 @@ import User from "../models/User.js";
 import mongoose from "mongoose";
 import { authMiddleware, requireAdmin } from "../middleware/authUnified.js"; // ✅ 使用统一认证中间件
 import { markBookReturned, getActiveBorrowRecords } from "../controllers/libraryController.js";
+import { sendLibraryNotification } from "../services/mailer.js";
+import User from "../models/User.js";
 
 console.log("📁 当前运行的 bookRoutes 文件路径:", import.meta.url);
 
@@ -725,6 +727,28 @@ router.post("/borrow/:id", authMiddleware, async (req, res) => {
     } catch (e) {
       console.warn("⚠️ 借阅历史记录写入失败（不影响借阅成功）:", e?.message || e);
     }
+
+    // 📧 异步触发外部邮件通知（不阻塞主流程）
+    (async () => {
+      try {
+        const u = await User.findOne({ userId });
+        if (
+          u &&
+          u.externalEmailNotifyEnabled &&
+          u.gmailVerified &&
+          u.gmailAddress &&
+          (u.externalEmailNotifyEvents?.borrow ?? false)
+        ) {
+          await sendLibraryNotification(u.gmailAddress, "📚 Borrow Successful", `You borrowed “${book.title}”.`, {
+            bookTitle: book.title,
+            operation: "Borrow",
+            time: new Date().toISOString(),
+          });
+        }
+      } catch (e) {
+        console.error("❌ 发送借阅邮件失败（忽略）:", e?.message || e);
+      }
+    })();
 
     res.json({
       message: "借阅成功",
