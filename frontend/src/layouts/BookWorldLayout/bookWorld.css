@@ -20,6 +20,28 @@ html, body, #root { height: 100%; }
   z-index: 0;
 }
 
+.bw-desk::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 64% 12%, rgba(255, 239, 210, 0.85), transparent 60%);
+  mix-blend-mode: soft-light;
+  filter: blur(18px);
+  transition: opacity 0.4s ease-out, filter 0.4s ease-out;
+}
+
+:root.theme-night .bw-desk::after {
+  opacity: 0.3;
+  animation: lampBreath 6.2s ease-in-out infinite;
+}
+
+:root.theme-day .bw-desk::after {
+  opacity: 0;
+}
+
 .bw-stage {
   position: relative;
   height: 100vh;
@@ -303,5 +325,50 @@ html, body, #root { height: 100%; }
 
   .bw-left {
     display: none;
+  }
+}
+
+@keyframes lampBreath {
+  0%,
+  100% {
+    opacity: 0.26;
+    filter: blur(18px);
+  }
+  50% {
+    opacity: 0.36;
+    filter: blur(20px);
+  }
+}
+
+.theme-switching .bw-book,
+.theme-switching .bw-page {
+  animation: pageFlash 0.25s ease-out;
+}
+
+@keyframes pageFlash {
+  0% {
+    opacity: 1;
+    filter: brightness(1) saturate(1);
+  }
+  35% {
+    opacity: 1;
+    filter: brightness(1.06) saturate(1.02);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1) saturate(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root.theme-night .bw-desk::after {
+    animation: none !important;
+    transition: opacity 0.15s ease-out;
+  }
+
+  .theme-switching .bw-book,
+  .theme-switching .bw-page {
+    animation: none !important;
+    transition: filter 0.15s ease-out;
   }
 }

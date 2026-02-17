@@ -44,7 +44,6 @@
   justify-content: center;
   transition:
     transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
     filter 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
   filter: saturate(0.94) brightness(1.01) drop-shadow(0 0.5px 0 rgba(0,0,0,0.04));
 }
@@ -137,6 +136,18 @@
   pointer-events: none;
 }
 
+:root.theme-night .bw-bookmark {
+  filter: saturate(1.02) brightness(1.05) drop-shadow(0 0 4px rgba(255, 236, 200, 0.4));
+}
+
+:root.theme-night .bw-bookmark:hover {
+  filter: saturate(1.05) brightness(1.08) drop-shadow(0 0 6px rgba(255, 239, 210, 0.7));
+}
+
+:root.theme-night .bw-bookmark.active {
+  filter: saturate(1.06) brightness(1.1) drop-shadow(0 0 7px rgba(255, 239, 210, 0.85));
+}
+
 .bw-bookmark-icon {
   font-size: 16px;
   line-height: 1;
@@ -158,6 +169,18 @@
     ),
     linear-gradient(180deg, #fff2f1, #f7d0cf);
   color: #8b1a1a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bw-bookmark {
+    transition: filter 0.15s ease-out;
+  }
+
+  :root.theme-night .bw-bookmark,
+  :root.theme-night .bw-bookmark:hover,
+  :root.theme-night .bw-bookmark.active {
+    filter: saturate(1.02) brightness(1.05) drop-shadow(0 0 3px rgba(255, 239, 210, 0.5));
+  }
 }
 
 .bw-bookmarks-mobile {
