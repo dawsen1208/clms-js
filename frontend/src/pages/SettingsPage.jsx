@@ -71,6 +71,16 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const navigate = useNavigate();
   const activePane = new URLSearchParams(location.search).get("pane") || "language";
 
+  const tt = (key, fallback) => {
+    try {
+      const val = t(key);
+      if (!val || val === key) return fallback;
+      return val;
+    } catch {
+      return fallback;
+    }
+  };
+
   // ✅ Fix: Use useCallback and ensure handleUpdate is available
   const handleUpdate = useCallback((updates) => {
     if (onChange) {
@@ -889,7 +899,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                     type="inner"
                     title={
                       <span style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>
-                        {t("settings.emailNotifGmail") || "Notification Email & 2FA"}
+                        {tt("settings.emailNotifGmail", "Notification Email & 2FA")}
                       </span>
                     }
                     size="small"
@@ -897,35 +907,35 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                   >
                     <Space direction="vertical" style={{ width: "100%" }} size={12}>
                       <Text type="secondary" style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>
-                        {t("settings.emailNotifDesc") || "Bind and verify an email address to receive notifications and 2FA codes."}
+                        {tt("settings.emailNotifDesc", "Bind and verify an email address to receive notifications and 2FA codes.")}
                       </Text>
 
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
                         <Space.Compact style={{ flex: 1 }}>
                           <Input
-                            placeholder={t("settings.gmailPlaceholder") || "name@example.com"}
+                            placeholder={tt("settings.gmailPlaceholder", "name@example.com")}
                             value={gmail}
                             onChange={(e) => setGmail(e.target.value)}
                             disabled={gmailLoading}
                           />
                           <Button type="primary" onClick={handleBindGmail} loading={gmailLoading}>
-                            {t("settings.bindGmail") || "Bind Email"}
+                            {tt("settings.bindGmail", "Bind Email")}
                           </Button>
                         </Space.Compact>
                       </div>
 
                       <Space size={12}>
                         <Tag color={gmail ? "processing" : "default"}>
-                          {gmail || (t("settings.gmailNotBound") || "Not bound")}
+                          {gmail || tt("settings.gmailNotBound", "Not bound")}
                         </Tag>
                         {gmailVerified ? (
-                          <Tag color="success">{t("settings.gmailVerified") || "Verified"}</Tag>
+                          <Tag color="success">{tt("settings.gmailVerified", "Verified")}</Tag>
                         ) : gmail ? (
-                          <Tag color="warning">{t("settings.gmailUnverified") || "Pending verification"}</Tag>
+                          <Tag color="warning">{tt("settings.gmailUnverified", "Pending verification")}</Tag>
                         ) : null}
                       </Space>
 
-                      <Divider plain>{t("settings.gmailVerifySection") || "Verify Email"}</Divider>
+                      <Divider plain>{tt("settings.gmailVerifySection", "Verify Email")}</Divider>
 
                       <Space direction={isMobile ? "vertical" : "horizontal"} style={{ width: "100%" }} size={12}>
                         <Button
@@ -934,28 +944,28 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                           loading={gmailLoading}
                           disabled={!gmail || !validateGmail(gmail) || gmailTimer > 0}
                         >
-                          {gmailTimer > 0 ? `${gmailTimer}s` : (t("settings.sendCode") || "Send Code")}
+                          {gmailTimer > 0 ? `${gmailTimer}s` : tt("settings.sendCode", "Send Code")}
                         </Button>
                         <Space.Compact style={{ flex: 1 }}>
                           <Input
-                            placeholder={t("settings.codePlaceholder") || "Enter verification code"}
+                            placeholder={tt("settings.codePlaceholder", "Enter verification code")}
                             value={gmailCode}
                             onChange={(e) => setGmailCode(e.target.value)}
                             disabled={gmailLoading || !gmail}
                           />
                           <Button type="primary" onClick={handleVerifyGmail} loading={gmailLoading} disabled={!gmailCode}>
-                            {t("settings.verifyGmail") || "Verify"}
+                            {tt("settings.verifyGmail", "Verify")}
                           </Button>
                         </Space.Compact>
                       </Space>
 
-                      <Divider plain>{t("settings.gmailEventsSection") || "Notification events"}</Divider>
+                      <Divider plain>{tt("settings.gmailEventsSection", "Notification events")}</Divider>
 
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <Space>
                           <BellOutlined style={{ fontSize: 18, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorPrimary }} />
                           <Text strong style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>
-                            {t("settings.emailNotifToggle") || "External email notifications"}
+                            {tt("settings.emailNotifToggle", "External email notifications")}
                           </Text>
                         </Space>
                         <Switch
@@ -966,7 +976,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                       </div>
 
                       <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>
-                        {t("settings.gmailEventsDesc") || "Choose which events will trigger email notifications."}
+                        {tt("settings.gmailEventsDesc", "Choose which events will trigger email notifications.")}
                       </Text>
 
                       <Checkbox
@@ -974,21 +984,21 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                         disabled={!gmailPrefs.enabled || !gmailVerified}
                         onChange={(e) => patchGmailPrefs({ borrow: e.target.checked })}
                       >
-                        {t("settings.gmailEventBorrow") || "When borrowing succeeds"}
+                        {tt("settings.gmailEventBorrow", "When borrowing succeeds")}
                       </Checkbox>
                       <Checkbox
                         checked={gmailPrefs.return}
                         disabled={!gmailPrefs.enabled || !gmailVerified}
                         onChange={(e) => patchGmailPrefs({ return: e.target.checked })}
                       >
-                        {t("settings.gmailEventReturn") || "When returning succeeds"}
+                        {tt("settings.gmailEventReturn", "When returning succeeds")}
                       </Checkbox>
                       <Checkbox
                         checked={gmailPrefs.requestApproved}
                         disabled={!gmailPrefs.enabled || !gmailVerified}
                         onChange={(e) => patchGmailPrefs({ requestApproved: e.target.checked })}
                       >
-                        {t("settings.gmailEventApproved") || "When a borrow request is approved"}
+                        {tt("settings.gmailEventApproved", "When a borrow request is approved")}
                       </Checkbox>
                     </Space>
                   </Card>
