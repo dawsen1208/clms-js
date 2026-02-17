@@ -22,34 +22,6 @@ import notificationEmailRoutes from "./routes/notificationEmailRoutes.js";
 dotenv.config();
 const app = express();
 
-/* =========================================================
-   🔧 手动 CORS 预检处理 (最高优先级)
-   ========================================================= */
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    "https://clmsf5164136.z1.web.core.windows.net",
-    "http://localhost:5173",
-    "https://clms-backend-h7hqejd9bzfshwgu.norwayeast-01.azurewebsites.net"
-  ];
-  const origin = req.headers.origin;
-
-  if (allowedOrigins.includes(origin) || !origin) {
-    res.setHeader("Access-Control-Allow-Origin", origin || "*");
-  } else {
-    // 允许特定前端
-    res.setHeader("Access-Control-Allow-Origin", "https://clmsf5164136.z1.web.core.windows.net");
-  }
-
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-  next();
-});
-
 // 解析当前文件路径，计算前端构建目录（frontend/dist）
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

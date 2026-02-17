@@ -10,8 +10,6 @@ import mongoose from "mongoose";
 import { authMiddleware, requireAdmin } from "../middleware/authUnified.js"; // ✅ 使用统一认证中间件
 import { markBookReturned, getActiveBorrowRecords } from "../controllers/libraryController.js";
 import { sendLibraryNotification } from "../services/mailer.js";
-import User from "../models/User.js";
-
 console.log("📁 当前运行的 bookRoutes 文件路径:", import.meta.url);
 
 const router = express.Router();
