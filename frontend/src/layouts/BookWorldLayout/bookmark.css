@@ -48,6 +48,11 @@
   filter: saturate(0.94) brightness(1.01) drop-shadow(0 0.5px 0 rgba(0,0,0,0.04));
 }
 
+:root.theme-day .bw-bookmark,
+:root.theme-night .bw-bookmark {
+  background: var(--bookmark-accent);
+}
+
 .bw-bookmark-home {
   background: linear-gradient(180deg, #faf6e8, #f3e7c9);
 }

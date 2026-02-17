@@ -5,7 +5,7 @@ import {
   GlobalOutlined, BgColorsOutlined, FormatPainterOutlined, FontSizeOutlined, 
   CalendarOutlined, SearchOutlined, SortAscendingOutlined, AppstoreOutlined, 
   TagsOutlined, ReloadOutlined, RobotOutlined, BuildOutlined, TeamOutlined,
-  BellOutlined, SettingOutlined, PictureOutlined, SoundOutlined
+  BellOutlined, SettingOutlined, PictureOutlined, SoundOutlined, BulbOutlined
 } from "@ant-design/icons";
 import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks, sendAuthCode, bindEmail, toggle2FA } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -585,11 +585,9 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                     </Space>
                     <Switch checked={!!accessibilityPrefs.accessibilityMode} onChange={(v) => {
                       saveAccessibility({ accessibilityMode: v });
-                      // Sync with Appearance settings for immediate visual feedback
                       if (onChange) {
                         onChange(prev => ({
                           ...prev,
-                          highContrast: v,
                           fontSize: v ? 20 : 'normal'
                         }));
                       }
@@ -609,30 +607,44 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                 bordered={false}
               >
                  <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder) }}>
-                        <Space>
-                            <BgColorsOutlined style={{ fontSize: 20, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorWarning }} />
-                            <Text strong style={{ color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.highContrast")}</Text>
-                        </Space>
-                        <Switch checked={!!appearance?.highContrast} onChange={(v) => handleUpdate({ highContrast: v })} />
-                    </div>
+                    {/* High Contrast toggle removed */}
 
                     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                        <Card 
                          hoverable 
-                         onClick={() => setThemeModeModalOpen(true)} 
                          style={{ 
                            cursor: 'pointer', 
                            borderColor: appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder, 
                            background: appearance?.highContrast ? '#000' : token.colorBgContainer 
                          }}
                        >
-                          <Space align="start">
-                              <BgColorsOutlined style={{ fontSize: 24, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorInfo }} />
+                          <Space direction="vertical" style={{ width: '100%' }}>
+                            <Space align="start">
+                              <BulbOutlined style={{ fontSize: 24, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorInfo }} />
                               <div>
-                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.themeMode")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorTextSecondary }}>{t("settings.themeModeDesc")}</Text>
+                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>Reading Room Theme</Text>
+                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorTextSecondary }}>Warm Day / Lamp Night</Text>
                               </div>
+                            </Space>
+                            <Radio.Group
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                try { localStorage.setItem("readingTheme", v); } catch {}
+                                const root = document.documentElement;
+                                root.classList.remove("theme-day", "theme-night");
+                                root.classList.add(v === "night" ? "theme-night" : "theme-day");
+                                if (window.matchMedia && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                                  root.classList.add("theme-switching");
+                                  setTimeout(() => root.classList.remove("theme-switching"), 250);
+                                }
+                              }}
+                              defaultValue={(typeof window !== 'undefined' && localStorage.getItem("readingTheme")) || "day"}
+                            >
+                              <Space direction={screens.md ? 'horizontal' : 'vertical'}>
+                                <Radio.Button value="day">Warm Day</Radio.Button>
+                                <Radio.Button value="night">Lamp Night</Radio.Button>
+                              </Space>
+                            </Radio.Group>
                           </Space>
                        </Card>
                        <Card 
@@ -688,14 +700,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                        </Card>
                     </div>
                  </Space>
-                 <Modal title={t("settings.themeMode")} open={themeModeModalOpen} onCancel={() => setThemeModeModalOpen(false)} footer={null}>
-                     <Radio.Group value={appearance?.mode || 'light'} onChange={(e) => handleUpdate({ mode: e.target.value })} style={{ width: '100%' }}>
-                       <Space direction="vertical" style={{ width: '100%' }}>
-                             <Radio value="light" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>{t("settings.light")}</Radio>
-                             <Radio value="dark" style={{ padding: 12, border: `1px solid ${token.colorBorder}`, borderRadius: token.borderRadius, width: '100%' }}>{t("settings.dark")}</Radio>
-                       </Space>
-                     </Radio.Group>
-                </Modal>
+                 {/* Theme mode modal removed */}
                 <Modal 
                     title={t("settings.themeColor")} 
                     open={themeColorModalOpen} 

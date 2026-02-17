@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 import { AccessibilityProvider } from "./contexts/AccessibilityContext";
+import { ReadingThemeProvider } from "./theme/ReadingThemeContext";
 
 import ReactDOM from "react-dom/client";
 import "antd/dist/reset.css";
@@ -83,7 +84,6 @@ function App() {
       themeColor: "blue",
       customColor: "#1677FF",
       fontSize: "normal",
-      highContrast: false,
     };
 
     try {
@@ -162,8 +162,7 @@ function App() {
   }
 
   // 🎨 Determine Algorithm
-  // If High Contrast is enabled, ALWAYS use Dark Algorithm to ensure proper contrast with the forced black background
-  const algorithm = (appearance.highContrast || isDark) ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
+  const algorithm = isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
 
   // 🎨 Dynamic Background Logic
   const isHome = location.pathname === '/home' || location.pathname === '/';
@@ -175,48 +174,33 @@ function App() {
     const root = document.documentElement;
     root.style.fontSize = `${baseFontSize}px`;
     document.body.style.fontSize = `${baseFontSize}px`;
-
-    // Apply High Contrast Class
-    if (appearance.highContrast) {
-      document.body.classList.add('high-contrast');
-    } else {
-      document.body.classList.remove('high-contrast');
-    }
-  }, [baseFontSize, appearance.highContrast]);
+  }, [baseFontSize]);
 
   const themeTokens = {
     ...appTheme.token,
-    // ♿ High Contrast: Force Black BG + Yellow/White Text regardless of Light/Dark mode
-    colorPrimary: appearance.highContrast ? '#FFFF00' : resolvePrimary(),
-    colorInfo: appearance.highContrast ? '#FFFF00' : resolvePrimary(),
-    colorSuccess: appearance.highContrast ? '#00FF00' : '#52B788', // Muted Green
-    colorWarning: appearance.highContrast ? '#FFA500' : '#E9C46A', // Muted Gold
-    colorError: appearance.highContrast ? '#FF0000' : '#E76F51', // Muted Terra Cotta
-    
-    // Force Dark High Contrast Colors
-    colorText: appearance.highContrast ? '#FFFFFF' : (isDark ? '#E6E6E6' : '#1C1917'), // Warm Black
-    colorTextSecondary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#CFCFCF' : '#4A4845'), // Warm Gray
-    colorTextTertiary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#BFBFBF' : '#9C9893'),
-    colorTextQuaternary: appearance.highContrast ? '#FFFFFF' : (isDark ? '#A6A6A6' : '#E6E2DD'),
-    colorTextPlaceholder: appearance.highContrast ? '#D1D5DB' : (isDark ? '#6B7280' : '#9C9893'),
-    
-    colorBgContainer: appearance.highContrast ? '#000000' : (isDark ? '#141414' : '#FFFFFF'),
-    colorBgLayout: appearance.highContrast ? '#000000' : (customBg || (isDark ? '#0b0b0b' : '#FDFBF7')), // Warm Paper
-    colorBgElevated: appearance.highContrast ? '#000000' : (isDark ? '#1f1f1f' : '#FFFFFF'),
-    colorBgSpotlight: appearance.highContrast ? '#000000' : (isDark ? '#1f1f1f' : '#1C1917'),
-    
-    colorBorder: appearance.highContrast ? '#FFFFFF' : '#E6E2DD', // Warm Border
-    colorBorderSecondary: appearance.highContrast ? '#FFFFFF' : '#F0F0F0',
-    colorSplit: appearance.highContrast ? '#FFFFFF' : 'rgba(5, 5, 5, 0.06)',
-    
-    controlItemBgActive: appearance.highContrast ? '#333333' : (isDark ? '#111b26' : '#FEFAE0'), // Paper Gold for active
-    controlItemBgHover: appearance.highContrast ? '#1f1f1f' : (isDark ? '#303030' : '#F5F5F5'),
-    
-    colorIcon: appearance.highContrast ? '#FFFFFF' : (isDark ? '#E6E6E6' : '#4A4845'),
-    colorIconHover: appearance.highContrast ? '#FFFF00' : (isDark ? '#FFFFFF' : '#1C1917'),
-
-    borderRadius: appearance.highContrast ? 0 : 8,
-    boxShadow: appearance.highContrast ? 'none' : '0 4px 12px rgba(188, 108, 37, 0.08)', // Warm Shadow
+    colorPrimary: resolvePrimary(),
+    colorInfo: resolvePrimary(),
+    colorSuccess: '#52B788',
+    colorWarning: '#E9C46A',
+    colorError: '#E76F51',
+    colorText: (isDark ? '#E6E6E6' : '#1C1917'),
+    colorTextSecondary: (isDark ? '#CFCFCF' : '#4A4845'),
+    colorTextTertiary: (isDark ? '#BFBFBF' : '#9C9893'),
+    colorTextQuaternary: (isDark ? '#A6A6A6' : '#E6E2DD'),
+    colorTextPlaceholder: (isDark ? '#6B7280' : '#9C9893'),
+    colorBgContainer: (isDark ? '#141414' : '#FFFFFF'),
+    colorBgLayout: (customBg || (isDark ? '#0b0b0b' : '#FDFBF7')),
+    colorBgElevated: (isDark ? '#1f1f1f' : '#FFFFFF'),
+    colorBgSpotlight: (isDark ? '#1f1f1f' : '#1C1917'),
+    colorBorder: '#E6E2DD',
+    colorBorderSecondary: '#F0F0F0',
+    colorSplit: 'rgba(5, 5, 5, 0.06)',
+    controlItemBgActive: (isDark ? '#111b26' : '#FEFAE0'),
+    controlItemBgHover: (isDark ? '#303030' : '#F5F5F5'),
+    colorIcon: (isDark ? '#E6E6E6' : '#4A4845'),
+    colorIconHover: (isDark ? '#FFFFFF' : '#1C1917'),
+    borderRadius: 8,
+    boxShadow: '0 4px 12px rgba(188, 108, 37, 0.08)',
     controlHeight: isMobile ? 32 : 40,
     controlPaddingHorizontal: isMobile ? 10 : 12,
     paddingXS: isMobile ? 6 : 8,
@@ -358,11 +342,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <GlobalErrorBoundary>
       <LanguageProvider>
         <AccessibilityProvider>
-          <BrowserRouter>
-            <MotionProvider>
-              <App />
-            </MotionProvider>
-          </BrowserRouter>
+          <ReadingThemeProvider>
+            <BrowserRouter>
+              <MotionProvider>
+                <App />
+              </MotionProvider>
+            </BrowserRouter>
+          </ReadingThemeProvider>
         </AccessibilityProvider>
       </LanguageProvider>
     </GlobalErrorBoundary>

@@ -24,6 +24,26 @@
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+:root.theme-day {
+  --bg-desk: #efe2cf;
+  --bg-light-glow: rgba(255, 240, 210, 0.45);
+  --book-paper: #f6efe5;
+  --text-primary: #3a342d;
+  --text-secondary: #7a6f63;
+  --spine-color: #b99574;
+  --bookmark-accent: #f5d9b3;
+}
+
+:root.theme-night {
+  --bg-desk: #2f2621;
+  --bg-light-glow: rgba(255, 200, 140, 0.35);
+  --book-paper: #f4eadc;
+  --text-primary: #2e2a25;
+  --text-secondary: #6a6156;
+  --spine-color: #8b6d52;
+  --bookmark-accent: #e8c9a6;
+}
+
 /* 2. Body & Background Texture */
 html, body, #root {
   height: 100%;
@@ -33,10 +53,13 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--color-warm-bg);
-  color: var(--color-text-primary);
+  background-color: var(--bg-desk, var(--color-warm-bg));
+  color: var(--text-primary, var(--color-text-primary));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition:
+    background 0.6s ease,
+    color 0.4s ease;
   
   /* Paper Texture Overlay */
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
