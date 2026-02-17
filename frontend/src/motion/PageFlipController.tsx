@@ -106,7 +106,7 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
               rotateY: dir === "right" ? -180 : 180,
               opacity: 1,
               transition: {
-                duration: 0.62,
+                duration: 0.78,
                 ease: [0.2, 0.8, 0.2, 1],
               },
             },
@@ -179,6 +179,7 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
               <div className="bw-flip-back">
                 {direction === "right" ? flipTo.right : flipTo.left}
               </div>
+              <div className="bw-flip-edge-highlight" />
             </div>
           </motion.div>
         )}

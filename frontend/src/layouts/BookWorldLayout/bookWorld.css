@@ -36,15 +36,15 @@ html, body, #root { height: 100%; }
   pointer-events: none;
   opacity: 0;
   background:
-    radial-gradient(circle at 64% 12%, rgba(255, 239, 210, 0.85), transparent 60%);
-  mix-blend-mode: soft-light;
-  filter: blur(18px);
+    radial-gradient(circle at 50% 6%, rgba(255, 200, 140, 0.35), transparent 60%);
+  mix-blend-mode: screen;
+  filter: blur(16px);
   transition: opacity 0.4s ease-out, filter 0.4s ease-out;
 }
 
 :root.theme-night .bw-desk::after {
-  opacity: 0.3;
-  animation: lampBreath 6.2s ease-in-out infinite;
+  opacity: 0.75;
+  animation: lampBreath 7.2s ease-in-out infinite;
 }
 
 :root.theme-day .bw-desk::after {
@@ -111,20 +111,23 @@ html, body, #root { height: 100%; }
 
 :root.theme-night .bw-book::after {
   left: auto;
-  right: -6px;
+  right: -14px;
   top: 20px;
   bottom: 20px;
-  width: 10px;
+  width: 18px;
   height: auto;
-  border-radius: 4px;
+  border-radius: 6px;
   background:
     repeating-linear-gradient(
       to bottom,
-      #e7d8c7,
-      #e7d8c7 2px,
-      #f1e6d9 2px,
-      #f1e6d9 4px
+      #e0cfbd,
+      #e0cfbd 2px,
+      #f5e7d8 2px,
+      #f5e7d8 4px
     );
+  box-shadow:
+    0 0 12px rgba(0, 0, 0, 0.45),
+    inset 0 0 2px rgba(255, 255, 255, 0.5);
 }
 
 :root.theme-night .bw-book::before {
@@ -149,7 +152,8 @@ html, body, #root { height: 100%; }
   background: var(--book-paper, #ffffff);
   box-shadow:
     inset 0 0 0 1px rgba(0, 0, 0, 0.05),
-    0 10px 20px rgba(0, 0, 0, 0.10);
+    0 10px 20px rgba(0, 0, 0, 0.10),
+    inset 0 0 60px rgba(0, 0, 0, 0.18);
   overflow: hidden;
   display: flex;
   z-index: 1;
@@ -161,17 +165,17 @@ html, body, #root { height: 100%; }
   background:
     repeating-radial-gradient(
       circle at 0 0,
-      rgba(0,0,0,0.015) 0px,
-      rgba(0,0,0,0.015) 1px,
+      rgba(0,0,0,0.018) 0px,
+      rgba(0,0,0,0.018) 1px,
       transparent 1px,
       transparent 3px
     ),
     linear-gradient(
       to bottom,
-      rgba(255,255,255,0.5),
-      rgba(255,255,255,0.1)
+      rgba(255,255,255,0.55),
+      rgba(255,255,255,0.12)
     ),
-    #f4eadc;
+    #f1e3d2;
 }
 
 .bw-page::after {
@@ -190,7 +194,7 @@ html, body, #root { height: 100%; }
 .bw-left {
   background: var(--book-paper, #ffffff);
   box-shadow:
-    inset -8px 0 12px rgba(0, 0, 0, 0.06),
+    inset -10px 0 16px rgba(0, 0, 0, 0.16),
     0 10px 20px rgba(0, 0, 0, 0.10);
 }
 
@@ -199,7 +203,7 @@ html, body, #root { height: 100%; }
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(0,0,0,0.10), transparent 40%),
+    linear-gradient(90deg, rgba(0,0,0,0.20), transparent 42%),
     linear-gradient(0deg, rgba(0,0,0,0.02), transparent 38%);
   mix-blend-mode: multiply;
   opacity: 0.6;
@@ -209,7 +213,7 @@ html, body, #root { height: 100%; }
 .bw-right {
   background: var(--book-paper, #ffffff);
   box-shadow:
-    inset 8px 0 12px rgba(0, 0, 0, 0.05),
+    inset 10px 0 16px rgba(0, 0, 0, 0.14),
     0 10px 20px rgba(0, 0, 0, 0.10);
 }
 
@@ -218,7 +222,7 @@ html, body, #root { height: 100%; }
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(270deg, rgba(0,0,0,0.10), transparent 40%),
+    linear-gradient(270deg, rgba(0,0,0,0.20), transparent 42%),
     linear-gradient(0deg, rgba(0,0,0,0.02), transparent 38%);
   mix-blend-mode: multiply;
   opacity: 0.6;
@@ -234,6 +238,15 @@ html, body, #root { height: 100%; }
   scrollbar-gutter: stable;
   overscroll-behavior: contain;
   color: var(--text-primary, #2c2c2c);
+}
+
+:root.theme-night .bw-scroll .ant-card,
+:root.theme-night .bw-scroll .ant-card-bordered,
+:root.theme-night .bw-scroll .ant-statistic,
+:root.theme-night .bw-scroll .ant-list-item,
+:root.theme-night .bw-scroll .ant-result,
+:root.theme-night .bw-scroll .ant-alert {
+  background-color: #f7f0e6 !important;
 }
 
 .bw-page::before {
@@ -392,12 +405,12 @@ html, body, #root { height: 100%; }
 @keyframes lampBreath {
   0%,
   100% {
-    opacity: 0.26;
-    filter: blur(18px);
+    opacity: 0.75;
+    filter: blur(16px);
   }
   50% {
-    opacity: 0.36;
-    filter: blur(20px);
+    opacity: 1;
+    filter: blur(18px);
   }
 }
 
