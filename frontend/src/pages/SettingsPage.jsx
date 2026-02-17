@@ -32,7 +32,6 @@ export const SettingsLeftPanel = () => {
     { key: "account", icon: <LockOutlined />, label: t("settings.account") || "Account" },
     { key: "recommend", icon: <TagsOutlined />, label: t("settings.recommendation") || "Recommendation" },
     { key: "operation", icon: <AppstoreOutlined />, label: t("settings.operation") || "Operation" },
-    { key: "admin", icon: <TeamOutlined />, label: t("settings.admin") || "Admin" },
   ];
   return (
     <div className="bw-scroll" style={{ padding: 24 }}>
@@ -908,10 +907,10 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
             ),
           },
           {
-            key: "privacy",
-            label: t("settings.privacySecurity"),
+            key: "account",
+            label: t("settings.account") || t("settings.privacySecurity"),
             children: (
-              <Card style={{ borderRadius: token.borderRadiusLG }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.privacySecurity")}</Title>}>
+              <Card style={{ borderRadius: token.borderRadiusLG }} title={<Title level={5} style={{ margin: 0 }}>{t("settings.account")}</Title>}>
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? '#fff' : token.colorBorder) }}>
                       <Space>
