@@ -226,6 +226,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     }
     try {
       setGmailLoading(true);
+      await bindGmail(authToken, gmail.trim());
       const res = await sendGmailCode(authToken);
       const expires = res?.data?.expiresInSec || 600;
       setGmailTimer(expires);
