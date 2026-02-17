@@ -8,6 +8,7 @@ import React, {
 import { Grid } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMotionEnabled } from "./useMotionEnabled";
+import { CornerFoldOverlay } from "./CornerFoldOverlay";
 import "./pageFlip.css";
 
 const routeOrder = [
@@ -54,6 +55,8 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
   } | null>(null);
   const [isFlipping, setIsFlipping] = useState(false);
   const directionRef = useRef<Direction>("none");
+  const [showFold, setShowFold] = useState(false);
+  const foldTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (routeKey === prevKey) {
@@ -80,10 +83,33 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
     setDirection(directionRef.current);
     setFlipFrom({ left: displayLeft, right: displayRight });
     setFlipTo({ left, right });
-    setIsFlipping(directionRef.current !== "none");
     setPrevKey(routeKey);
     setFlipToken((x) => x + 1);
-  }, [routeKey, prevKey, left, right, displayLeft, displayRight]);
+
+    if (directionRef.current === "none") {
+      setIsFlipping(false);
+      setShowFold(false);
+      return;
+    }
+
+    if (!use3D) {
+      setShowFold(false);
+      setIsFlipping(true);
+      return;
+    }
+
+    setShowFold(true);
+    setIsFlipping(false);
+
+    if (foldTimeoutRef.current) {
+      window.clearTimeout(foldTimeoutRef.current);
+    }
+
+    foldTimeoutRef.current = window.setTimeout(() => {
+      setShowFold(false);
+      setIsFlipping(true);
+    }, 600);
+  }, [routeKey, prevKey, left, right, displayLeft, displayRight, use3D]);
 
   const use3D = motionEnabled && !isMobile;
 
@@ -95,6 +121,8 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
           : {
               rotateY: 0,
               opacity: 1,
+              skewY: 0,
+              rotateZ: 0,
             },
       animate: (dir: Direction) =>
         dir === "none"
@@ -103,11 +131,16 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
               opacity: 0,
             }
           : {
-              rotateY: dir === "right" ? -180 : 180,
+              rotateY:
+                dir === "right"
+                  ? [0, -60, -120, -175]
+                  : [0, 60, 120, 175],
+              skewY: [0, 1.5, 1.2, 0.4],
+              rotateZ: [0, 0.6, 0.4, 0],
               opacity: 1,
               transition: {
-                duration: 0.78,
-                ease: [0.2, 0.8, 0.2, 1],
+                duration: 2.2,
+                ease: [0.18, 0.9, 0.2, 1],
               },
             },
       exit: () => ({
@@ -143,7 +176,16 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
     setIsFlipping(false);
     setFlipFrom(null);
     setFlipTo(null);
+    setShowFold(false);
   };
+
+  useEffect(() => {
+    return () => {
+      if (foldTimeoutRef.current) {
+        window.clearTimeout(foldTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <Fragment>
@@ -156,6 +198,12 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
       </section>
 
       <AnimatePresence initial={false} mode="wait">
+        {showFold && direction !== "none" && use3D && (
+          <CornerFoldOverlay
+            direction={direction === "right" ? "next" : "prev"}
+            playing={showFold}
+          />
+        )}
         {isFlipping && direction !== "none" && use3D && flipFrom && flipTo && (
           <motion.div
             key={flipToken}

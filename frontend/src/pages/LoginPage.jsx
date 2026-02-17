@@ -31,10 +31,10 @@ const LoginPage = ({ onLogin }) => {
   const handleLogin = async () => {
     if (loading) return;
     const clickAt = Date.now();
-    const closingMs = 560;
-    const signingMs = 260;
-    const openingMs = 560;
-    const minAnimMs = closingMs + signingMs + Math.floor(openingMs * 0.6);
+    const closingMs = 900;
+    const signingMs = 1200;
+    const openingMs = 900;
+    const minAnimMs = closingMs + signingMs + openingMs;
 
     setLoading(true);
     setAnimating(true);
