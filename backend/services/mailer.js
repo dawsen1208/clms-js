@@ -53,7 +53,7 @@ export async function sendMail(to, subject, html, text) {
     }
 
     const mailOptions = {
-      from: `"Library Reading Room" <${SMTP_FROM}>`,
+      from: `"CLMS Library" <${SMTP_FROM || SMTP_USER}>`,
       to,
       subject,
       html,
@@ -90,8 +90,8 @@ export async function sendLibraryNotification(to, title, message, meta = {}) {
   <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#f5efe6; padding:24px;">
     <div style="max-width:520px;margin:0 auto;background:#fff7ec;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.08);overflow:hidden;border:1px solid #f0e2cf;">
       <div style="background:linear-gradient(90deg,#f5ddba,#f9e9d4);padding:16px 20px;border-bottom:1px solid rgba(0,0,0,0.04);">
-        <div style="font-size:20px;font-weight:600;color:#5a4634;">Warm Reading Room</div>
-        <div style="font-size:12px;color:#8b7761;margin-top:2px;">Your library activity update</div>
+        <div style="font-size:20px;font-weight:600;color:#5a4634;">CLMS Library</div>
+        <div style="font-size:12px;color:#8b7761;margin-top:2px;">Your CLMS Library activity update</div>
       </div>
       <div style="padding:20px 24px 8px 24px;">
         <div style="font-size:18px;font-weight:600;color:#443226;margin-bottom:8px;">${safeTitle}</div>
@@ -123,7 +123,7 @@ export async function sendLibraryNotification(to, title, message, meta = {}) {
         </a>
       </div>
       <div style="padding:12px 24px 16px 24px;border-top:1px dashed rgba(0,0,0,0.05);background:#fcf3e6;font-size:11px;color:#a08b73;">
-        This email was sent by the Library Reading Room system. If you prefer not to receive these updates, you can turn off email notifications in your account settings.
+        This email was sent by the CLMS Library system. If you prefer not to receive these updates, you can turn off email notifications in your account settings.
       </div>
     </div>
   </div>
