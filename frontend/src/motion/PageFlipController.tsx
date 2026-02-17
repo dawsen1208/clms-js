@@ -58,6 +58,8 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
   const [showFold, setShowFold] = useState(false);
   const foldTimeoutRef = useRef<number | null>(null);
 
+  const use3D = motionEnabled && !isMobile;
+
   useEffect(() => {
     if (routeKey === prevKey) {
       setDisplayLeft(left);
@@ -110,8 +112,6 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
       setIsFlipping(true);
     }, 600);
   }, [routeKey, prevKey, left, right, displayLeft, displayRight, use3D]);
-
-  const use3D = motionEnabled && !isMobile;
 
   const flipVariants = useMemo(
     () => ({
