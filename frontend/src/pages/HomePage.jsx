@@ -65,9 +65,17 @@ const useHomeData = () => {
       if (allBooksRes.status === 'fulfilled') {
         const allBooksData = allBooksRes.value.data || [];
         setAllBooks(allBooksData);
-        // TODO: Replace with real trending algorithm
-        // Mock Data: Shuffling for demo purposes
-        setTrending(allBooksData.slice(0, 5));
+        const seenTitles = new Set();
+        const unique = [];
+        for (const book of allBooksData) {
+          const key = (book.title || '').toLowerCase().trim();
+          if (!key || seenTitles.has(key)) continue;
+          seenTitles.add(key);
+          unique.push(book);
+          if (unique.length >= 5) break;
+        }
+        const nextTrending = unique.length > 0 ? unique : allBooksData.slice(0, 5);
+        setTrending(nextTrending);
       } else {
         // TODO: Mock Data Fallback if API fails
         setTrending([
