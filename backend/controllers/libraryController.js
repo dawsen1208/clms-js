@@ -65,6 +65,16 @@ export const approveRequestLibrary = async (req, res) => {
       });
     }
 
+    // ✅ 预取书籍标题（用于邮件文本与兜底）
+    const rawBookIdAll = (record?.bookId?._id || record?.bookId || request.bookId);
+    let mailBookTitle = request.bookTitle || record?.bookTitle || "";
+    if ((!mailBookTitle) && rawBookIdAll && mongoose.Types.ObjectId.isValid(rawBookIdAll)) {
+      try {
+        const b = await Book.findById(rawBookIdAll).select("title");
+        if (b?.title) mailBookTitle = b.title;
+      } catch { /* ignore */ }
+    }
+
     // ✅ 更新记录逻辑
     if (request.type === "renew") {
       await record.renew(); // 使用模型的renew方法
@@ -217,9 +227,14 @@ export const approveRequestLibrary = async (req, res) => {
         user.gmailAddress &&
         (user.externalEmailNotifyEvents?.requestApproved ?? false)
       ) {
-        await sendLibraryNotification(user.gmailAddress, "✅ Request Approved", `Your request has been approved.`, {
-          bookTitle: request.bookTitle,
-          operation: request.type === "renew" ? "Renew Approved" : "Return Approved",
+        const op = request.type === "renew" ? "Renew Approved" : "Return Approved";
+        const msg =
+          request.type === "renew"
+            ? `Your renew request for “${mailBookTitle || "Unknown Book"}” has been approved.`
+            : `Your return request for “${mailBookTitle || "Unknown Book"}” has been approved.`;
+        await sendLibraryNotification(user.gmailAddress, "✅ Request Approved", msg, {
+          bookTitle: mailBookTitle || request.bookTitle || "",
+          operation: op,
           time: new Date().toISOString(),
           extra: request?.reason ? `Note: ${request.reason}` : "",
         });
