@@ -255,8 +255,25 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     try {
       setGmailLoading(true);
       const res = await verifyGmailCode(authToken, gmailCode.trim());
-      if (res?.data?.gmailVerified || res?.data?.user?.gmailVerified) {
+      const verified = res?.data?.gmailVerified || res?.data?.user?.gmailVerified;
+      if (verified) {
         setGmailVerified(true);
+        const nextUser = {
+          ...(user || {}),
+          gmailAddress: gmail.trim(),
+          gmailVerified: true,
+        };
+        try {
+          sessionStorage.setItem("user", JSON.stringify(nextUser));
+          if (localStorage.getItem("user")) {
+            localStorage.setItem("user", JSON.stringify(nextUser));
+          }
+        } catch (error) {
+          void error;
+        }
+        if (onUserUpdate) {
+          onUserUpdate(nextUser);
+        }
       }
       setGmailCode("");
       message.success("邮箱验证成功");

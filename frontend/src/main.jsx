@@ -16,6 +16,7 @@ import zhCN from "antd/locale/zh_CN";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 
 import { Spin } from "antd";
+import { getProfile } from "./api";
 
 const LayoutMenu = React.lazy(() => import("./layouts/LayoutMenu/LayoutMenu"));
 const AdminMenu = React.lazy(() => import("./layouts/AdminMenu/AdminMenu"));
@@ -77,6 +78,30 @@ function App() {
       return {};
     }
   });
+
+  useEffect(() => {
+    const hydrateUser = async () => {
+      const storedToken = sessionStorage.getItem("token") || localStorage.getItem("token");
+      if (!storedToken) return;
+      try {
+        const res = await getProfile(storedToken);
+        const fullUser = res?.data || res;
+        setUser((prev) => {
+          const merged = { ...prev, ...fullUser };
+          try {
+            sessionStorage.setItem("user", JSON.stringify(merged));
+            localStorage.setItem("user", JSON.stringify(merged));
+          } catch (error) {
+            void error;
+          }
+          return merged;
+        });
+      } catch (error) {
+        void error;
+      }
+    };
+    hydrateUser();
+  }, [token]);
 
   const [appearance, setAppearance] = useState(() => {
     const fallback = {
