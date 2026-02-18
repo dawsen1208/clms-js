@@ -860,8 +860,28 @@ router.get("/history", authMiddleware, async (req, res) => {
     console.log("🔍 /api/library/history BorrowHistory typeof:", typeof BorrowHistory);
     
     // 使用BorrowHistory模型的静态方法查询
-    const history = await BorrowHistory.findByUser(userId)
-      .lean();
+    const history = await BorrowHistory.findByUser(userId).lean();
+
+    const bookIdSet = new Set(
+      (history || [])
+        .map((r) => r.bookId)
+        .filter(Boolean)
+        .map((id) => String(id))
+    );
+
+    let bookMap = new Map();
+    if (bookIdSet.size > 0) {
+      const objectIds = [...bookIdSet]
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id));
+
+      if (objectIds.length > 0) {
+        const books = await Book.find({ _id: { $in: objectIds } })
+          .select("coverImage coverImageSet")
+          .lean();
+        bookMap = new Map(books.map((b) => [String(b._id), b]));
+      }
+    }
 
     const formatted = history.map((r) => ({
       _id: r._id,
@@ -878,6 +898,8 @@ router.get("/history", authMiddleware, async (req, res) => {
       renewCount: r.renewCount,
       userName: r.userName,
       notes: r.notes,
+      coverImage: bookMap.get(String(r.bookId))?.coverImage || "",
+      coverImageSet: bookMap.get(String(r.bookId))?.coverImageSet,
     }));
 
     res.json(formatted);
@@ -895,7 +917,7 @@ router.get("/borrowed", authMiddleware, async (req, res) => {
     
     // 使用BorrowRecord模型的静态方法查询未归还记录
     const records = await BorrowRecord.findUserActiveBorrows(userId)
-      .populate("bookId", "title author category copies")
+      .populate("bookId", "title author category copies coverImage coverImageSet")
       .lean();
 
     const formatted = records.map((r) => ({
@@ -912,6 +934,8 @@ router.get("/borrowed", authMiddleware, async (req, res) => {
       returned: r.returned,
       daysRemaining: r.getDaysRemaining ? r.getDaysRemaining() : 0,
       overdue: r.isOverdue ? r.isOverdue() : false,
+      coverImage: r.bookId?.coverImage || "",
+      coverImageSet: r.bookId?.coverImageSet,
     }));
 
     res.json(formatted);

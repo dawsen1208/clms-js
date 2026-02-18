@@ -11,6 +11,7 @@ import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import BookCoverPro from './BookCoverPro';
 import { stringToWarmColor } from '../../utils/hashColor';
+import { getCleanImageUrl } from '../../utils/imageUtils';
 
 const { Title, Text } = Typography;
 
@@ -51,6 +52,17 @@ const LoanCard = ({
   // Pending request check (passed in book object usually)
   const pendingType = book.pendingType; // 'renew', 'return'
 
+  const coverImage = getCleanImageUrl(book.coverImage || "");
+  const coverSet = book.coverImageSet;
+  const coverSrcSet = coverSet
+    ? [
+        coverSet.w160 ? `${coverSet.w160} 160w` : null,
+        coverSet.w240 ? `${coverSet.w240} 240w` : null,
+        coverSet.w360 ? `${coverSet.w360} 360w` : null,
+      ].filter(Boolean).join(", ")
+    : undefined;
+  const coverSizes = "(max-width: 575px) 70px, (max-width: 991px) 80px, 90px";
+
   return (
     <div 
       className="loan-card-editorial"
@@ -80,14 +92,30 @@ const LoanCard = ({
         {/* Cover Image - Left Side */}
         <Col xs={8} sm={5} md={4} lg={3} style={{ background: '#FAF9F6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
            <div style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-             <BookCoverPro 
-               title={book.title} 
-               author={book.author} 
-               width={80} 
-               height={120} 
-               style="swiss"
-               baseColor={stringToWarmColor(book.title)}
-             />
+             {coverImage ? (
+               <img
+                 src={coverImage}
+                 srcSet={coverSrcSet}
+                 sizes={coverSizes}
+                 alt={book.title}
+                 style={{
+                   width: 80,
+                   height: 120,
+                   objectFit: 'cover',
+                   borderRadius: 4,
+                   display: 'block',
+                 }}
+               />
+             ) : (
+               <BookCoverPro 
+                 title={book.title} 
+                 author={book.author} 
+                 width={80} 
+                 height={120} 
+                 style="swiss"
+                 baseColor={stringToWarmColor(book.title)}
+               />
+             )}
            </div>
         </Col>
 

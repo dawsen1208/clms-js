@@ -7,6 +7,7 @@ import EditorialPageShell from "../components/common/EditorialPageShell";
 import StatCard from "../components/cards/StatCard";
 import BookCoverPro from "../components/common/BookCoverPro";
 import { stringToWarmColor } from "../utils/hashColor";
+import { getCleanImageUrl } from "../utils/imageUtils";
 import { getBorrowHistory } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -76,6 +77,16 @@ const useReturnData = () => {
 export const ReturnLeftPanel = () => {
   const { t, token, navigate, history, loading, stats, fetchHistory } = useReturnData();
   const last = history[0];
+  const lastCoverImage = last ? getCleanImageUrl(last.coverImage || "") : "";
+  const lastCoverSet = last?.coverImageSet;
+  const lastCoverSrcSet = lastCoverSet
+    ? [
+        lastCoverSet.w160 ? `${lastCoverSet.w160} 160w` : null,
+        lastCoverSet.w240 ? `${lastCoverSet.w240} 240w` : null,
+        lastCoverSet.w360 ? `${lastCoverSet.w360} 360w` : null,
+      ].filter(Boolean).join(", ")
+    : undefined;
+  const lastCoverSizes = "(max-width: 575px) 70px, (max-width: 991px) 80px, 90px";
   return (
     <div style={{ padding: 24, height: "100%", display: "flex", flexDirection: "column", gap: 24 }}>
       <div>
@@ -133,13 +144,29 @@ export const ReturnLeftPanel = () => {
           <Card bordered={false} style={{ marginTop: 8, borderRadius: 12, boxShadow: '0 8px 20px rgba(0,0,0,0.06)' }}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
               <div style={{ flexShrink: 0 }}>
-                <BookCoverPro 
-                  title={last.title || 'Unknown'} 
-                  author={last.author || 'Unknown'} 
-                  width={60} 
-                  height={90} 
-                  baseColor={stringToWarmColor(last.title || 'U')}
-                />
+                {lastCoverImage ? (
+                  <img
+                    src={lastCoverImage}
+                    srcSet={lastCoverSrcSet}
+                    sizes={lastCoverSizes}
+                    alt={last.title || 'Unknown'}
+                    style={{
+                      width: 60,
+                      height: 90,
+                      objectFit: 'cover',
+                      borderRadius: 4,
+                      display: 'block',
+                    }}
+                  />
+                ) : (
+                  <BookCoverPro 
+                    title={last.title || 'Unknown'} 
+                    author={last.author || 'Unknown'} 
+                    width={60} 
+                    height={90} 
+                    baseColor={stringToWarmColor(last.title || 'U')}
+                  />
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <Title level={5} style={{ margin: 0 }}>{last.title || 'Unknown Book'}</Title>
@@ -230,6 +257,16 @@ export const ReturnRightPanel = () => {
                 const bookId = item.bookId || item.book?._id;
                 const bookTitle = item.title || item.bookTitle || "Unknown Book";
                 const bookAuthor = item.author || "Unknown Author"; // Often missing in simple history API, so we might need to mock or fetch
+                const coverImage = getCleanImageUrl(item.coverImage || "");
+                const coverSet = item.coverImageSet;
+                const coverSrcSet = coverSet
+                  ? [
+                      coverSet.w160 ? `${coverSet.w160} 160w` : null,
+                      coverSet.w240 ? `${coverSet.w240} 240w` : null,
+                      coverSet.w360 ? `${coverSet.w360} 360w` : null,
+                    ].filter(Boolean).join(", ")
+                  : undefined;
+                const coverSizes = "(max-width: 575px) 70px, (max-width: 991px) 80px, 90px";
 
                 return (
                   <div 
@@ -269,13 +306,29 @@ export const ReturnRightPanel = () => {
 
                     {/* Book Cover (Mini) */}
                     <div style={{ flexShrink: 0, boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
-                      <BookCoverPro 
-                        title={bookTitle} 
-                        author={bookAuthor} 
-                        width={60} 
-                        height={90} 
-                        baseColor={stringToWarmColor(bookTitle)}
-                      />
+                      {coverImage ? (
+                        <img
+                          src={coverImage}
+                          srcSet={coverSrcSet}
+                          sizes={coverSizes}
+                          alt={bookTitle}
+                          style={{
+                            width: 60,
+                            height: 90,
+                            objectFit: 'cover',
+                            borderRadius: 4,
+                            display: 'block',
+                          }}
+                        />
+                      ) : (
+                        <BookCoverPro 
+                          title={bookTitle} 
+                          author={bookAuthor} 
+                          width={60} 
+                          height={90} 
+                          baseColor={stringToWarmColor(bookTitle)}
+                        />
+                      )}
                     </div>
 
                     {/* Content */}
