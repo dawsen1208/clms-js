@@ -79,15 +79,29 @@ export const ProfileLeftPanel = () => {
     const now = dayjs();
     const startOfThisMonth = now.startOf("month");
     const startOfLastMonth = startOfThisMonth.subtract(1, "month");
+    const startOfNextMonth = startOfThisMonth.add(1, "month");
+
+    const thisStart = startOfThisMonth.valueOf();
+    const thisEnd = startOfNextMonth.valueOf();
+    const lastStart = startOfLastMonth.valueOf();
+    const lastEnd = startOfThisMonth.valueOf();
 
     const thisMonthHistory = history.filter((h) => {
-      const d = dayjs(h.date || h.createdAt || h.borrowDate);
-      return d.isSameOrAfter(startOfThisMonth) && d.isBefore(startOfThisMonth.add(1, "month"));
+      const raw = h?.date || h?.createdAt || h?.borrowDate;
+      if (!raw) return false;
+      const d = dayjs(raw);
+      if (!d.isValid()) return false;
+      const ts = d.valueOf();
+      return ts >= thisStart && ts < thisEnd;
     });
 
     const lastMonthHistory = history.filter((h) => {
-      const d = dayjs(h.date || h.createdAt || h.borrowDate);
-      return d.isSameOrAfter(startOfLastMonth) && d.isBefore(startOfThisMonth);
+      const raw = h?.date || h?.createdAt || h?.borrowDate;
+      if (!raw) return false;
+      const d = dayjs(raw);
+      if (!d.isValid()) return false;
+      const ts = d.valueOf();
+      return ts >= lastStart && ts < lastEnd;
     });
 
     const thisTotal = thisMonthHistory.length;
@@ -101,14 +115,22 @@ export const ProfileLeftPanel = () => {
 
     const thisPending = requests.filter((r) => {
       if (r.status !== "pending") return false;
-      const d = dayjs(r.updatedAt || r.createdAt);
-      return d.isSameOrAfter(startOfThisMonth) && d.isBefore(startOfThisMonth.add(1, "month"));
+      const raw = r?.updatedAt || r?.createdAt;
+      if (!raw) return false;
+      const d = dayjs(raw);
+      if (!d.isValid()) return false;
+      const ts = d.valueOf();
+      return ts >= thisStart && ts < thisEnd;
     }).length;
 
     const lastPending = requests.filter((r) => {
       if (r.status !== "pending") return false;
-      const d = dayjs(r.updatedAt || r.createdAt);
-      return d.isSameOrAfter(startOfLastMonth) && d.isBefore(startOfThisMonth);
+      const raw = r?.updatedAt || r?.createdAt;
+      if (!raw) return false;
+      const d = dayjs(raw);
+      if (!d.isValid()) return false;
+      const ts = d.valueOf();
+      return ts >= lastStart && ts < lastEnd;
     }).length;
 
     const calcTrend = (current, last) => {
