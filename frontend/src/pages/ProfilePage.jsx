@@ -76,11 +76,60 @@ export const ProfileLeftPanel = () => {
   }, []);
 
   const stats = useMemo(() => {
-    const total = history.length;
-    const returned = history.filter((h) => h.action === "return" || !!h.returnDate).length;
-    const active = total - returned;
-    const pending = requests.filter((r) => r.status === "pending").length;
-    return { total, returned, active, pending };
+    const now = dayjs();
+    const startOfThisMonth = now.startOf("month");
+    const startOfLastMonth = startOfThisMonth.subtract(1, "month");
+
+    const thisMonthHistory = history.filter((h) => {
+      const d = dayjs(h.date || h.createdAt || h.borrowDate);
+      return d.isSameOrAfter(startOfThisMonth) && d.isBefore(startOfThisMonth.add(1, "month"));
+    });
+
+    const lastMonthHistory = history.filter((h) => {
+      const d = dayjs(h.date || h.createdAt || h.borrowDate);
+      return d.isSameOrAfter(startOfLastMonth) && d.isBefore(startOfThisMonth);
+    });
+
+    const thisTotal = thisMonthHistory.length;
+    const lastTotal = lastMonthHistory.length;
+
+    const thisReturned = thisMonthHistory.filter((h) => h.action === "return" || !!h.returnDate).length;
+    const lastReturned = lastMonthHistory.filter((h) => h.action === "return" || !!h.returnDate).length;
+
+    const thisActive = thisTotal - thisReturned;
+    const lastActive = lastTotal - lastReturned;
+
+    const thisPending = requests.filter((r) => {
+      if (r.status !== "pending") return false;
+      const d = dayjs(r.updatedAt || r.createdAt);
+      return d.isSameOrAfter(startOfThisMonth) && d.isBefore(startOfThisMonth.add(1, "month"));
+    }).length;
+
+    const lastPending = requests.filter((r) => {
+      if (r.status !== "pending") return false;
+      const d = dayjs(r.updatedAt || r.createdAt);
+      return d.isSameOrAfter(startOfLastMonth) && d.isBefore(startOfThisMonth);
+    }).length;
+
+    const calcTrend = (current, last) => {
+      if (last === 0) {
+        return current > 0 ? 100 : 0;
+      }
+      return Math.round(((current - last) / last) * 100);
+    };
+
+    return {
+      total: thisTotal,
+      returned: thisReturned,
+      active: thisActive,
+      pending: thisPending,
+      trends: {
+        total: calcTrend(thisTotal, lastTotal),
+        active: calcTrend(thisActive, lastActive),
+        returned: calcTrend(thisReturned, lastReturned),
+        pending: calcTrend(thisPending, lastPending),
+      },
+    };
   }, [history, requests]);
 
   return (
@@ -95,10 +144,34 @@ export const ProfileLeftPanel = () => {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
-        <StatCard title={t("profile.totalBooks") || "Total Books"} value={stats.total} color={token.colorPrimary} loading={loading} />
-        <StatCard title={t("profile.activeLoans") || "Active Loans"} value={stats.active} color={token.colorWarning} loading={loading} />
-        <StatCard title={t("profile.returned") || "Returned"} value={stats.returned} color={token.colorSuccess} loading={loading} />
-        <StatCard title={t("profile.pendingRequests") || "Pending Requests"} value={stats.pending} color={token.colorInfo} loading={loading} />
+        <StatCard
+          title={t("profile.totalBooks") || "Total Books"}
+          value={stats.total}
+          trend={stats.trends.total}
+          color={token.colorPrimary}
+          loading={loading}
+        />
+        <StatCard
+          title={t("profile.activeLoans") || "Active Loans"}
+          value={stats.active}
+          trend={stats.trends.active}
+          color={token.colorWarning}
+          loading={loading}
+        />
+        <StatCard
+          title={t("profile.returned") || "Returned"}
+          value={stats.returned}
+          trend={stats.trends.returned}
+          color={token.colorSuccess}
+          loading={loading}
+        />
+        <StatCard
+          title={t("profile.pendingRequests") || "Pending Requests"}
+          value={stats.pending}
+          trend={stats.trends.pending}
+          color={token.colorInfo}
+          loading={loading}
+        />
       </div>
 
       <div style={{ marginBottom: 24 }}>
