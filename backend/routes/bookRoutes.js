@@ -706,6 +706,9 @@ router.post("/borrow/:id", authMiddleware, async (req, res) => {
       bookId: book._id,
       borrowedAt: new Date(),
       dueDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000),
+      bookTitle: book.title,
+      bookAuthor: book.author || "",
+      userName,
     });
 
     // ✅ 记录到借阅历史（BorrowHistory），便于用户在 Profile 查看“Borrow History”

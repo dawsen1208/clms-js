@@ -8,10 +8,11 @@ import {
   MessageOutlined,
   SoundOutlined
 } from "@ant-design/icons";
-import { getNotifications, markNotificationRead } from "../api";
+import { getNotifications, markNotificationRead, getBookDetail } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAccessibility } from "../contexts/AccessibilityContext";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import ReviewModal from "../components/ReviewModal";
 
 const { Title, Text } = Typography;
 
@@ -153,24 +154,79 @@ const NotificationPage = () => {
   const { ttsEnabled, speak } = useAccessibility();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [bookTitleMap, setBookTitleMap] = useState({});
+  const [reviewModal, setReviewModal] = useState({ open: false, bookId: null, bookTitle: "" });
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+
+  const loadBookTitles = useCallback(async (items) => {
+    const ids = Array.from(
+      new Set(
+        (items || [])
+          .map((n) => n.relatedId)
+          .filter((id) => id && !bookTitleMap[id])
+      )
+    );
+    if (!ids.length) return;
+    const newMap = {};
+    for (const id of ids) {
+      try {
+        const res = await getBookDetail(id);
+        const data = res?.data;
+        if (data && data.title) {
+          newMap[id] = data.title;
+        }
+      } catch (err) {
+        console.warn("Failed to load book detail for notification:", id, err?.message || err);
+      }
+    }
+    if (Object.keys(newMap).length > 0) {
+      setBookTitleMap((prev) => ({ ...prev, ...newMap }));
+    }
+  }, [bookTitleMap]);
 
   const fetchAllNotifications = useCallback(async () => {
     if (!token) return;
     try {
       setLoading(true);
       const res = await getNotifications(token);
-      setNotifications(res.data || []);
+      const list = res.data || [];
+      setNotifications(list);
+      loadBookTitles(list);
     } catch (err) {
       console.error("Failed to fetch notifications", err);
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [token, loadBookTitles]);
 
   useEffect(() => {
     fetchAllNotifications();
   }, [fetchAllNotifications]);
+
+  const openReviewForNotification = async (item) => {
+    if (!item?.relatedId) {
+      message.error("无法定位该归还通知对应的图书");
+      return;
+    }
+    let title = bookTitleMap[item.relatedId];
+    if (!title) {
+      try {
+        const res = await getBookDetail(item.relatedId);
+        const data = res?.data;
+        title = data?.title || "";
+        if (title) {
+          setBookTitleMap((prev) => ({ ...prev, [item.relatedId]: title }));
+        }
+      } catch (err) {
+        console.warn("Failed to fetch book title on review open:", err?.message || err);
+      }
+    }
+    setReviewModal({
+      open: true,
+      bookId: item.relatedId,
+      bookTitle: title || "",
+    });
+  };
 
   const handleMarkRead = async (id) => {
     try {
@@ -223,7 +279,16 @@ const NotificationPage = () => {
                     title="Read"
                   />
                 ),
-                !item.isRead && <Button type="link" onClick={() => handleMarkRead(item._id)}>{t("notifications.markRead") || "Mark Read"}</Button>
+                !item.isRead && (
+                  <Button type="link" onClick={() => handleMarkRead(item._id)}>
+                    {t("notifications.markRead") || "Mark Read"}
+                  </Button>
+                ),
+                item.title === "Book Returned Successfully" && item.relatedId && (
+                  <Button type="link" onClick={() => openReviewForNotification(item)}>
+                    {t("bookDetail.submitReview") || "Write Review"}
+                  </Button>
+                ),
               ].filter(Boolean)}
               style={{ 
                   background: item.isRead ? "transparent" : "#e6f7ff", 
@@ -245,10 +310,30 @@ const NotificationPage = () => {
                         <Text type="secondary" style={{ fontSize: '12px' }}>{new Date(item.createdAt).toLocaleString()}</Text>
                     </div>
                 }
-                description={<div style={{ marginTop: 8 }}>{item.message}</div>}
+                description={
+                  <div style={{ marginTop: 8 }}>
+                    {item.title === "Book Returned Successfully" && item.relatedId && bookTitleMap[item.relatedId]
+                      ? `${item.message}  Book: "${bookTitleMap[item.relatedId]}"`
+                      : item.message}
+                  </div>
+                }
               />
             </List.Item>
           )}
+        />
+      )}
+
+      {reviewModal.open && (
+        <ReviewModal
+          open={reviewModal.open}
+          onClose={() => setReviewModal({ open: false, bookId: null, bookTitle: "" })}
+          bookId={reviewModal.bookId}
+          bookTitle={reviewModal.bookTitle}
+          token={token}
+          onSubmitted={() => {
+            message.success(t("bookDetail.reviewSubmitted") || "Review submitted");
+            setReviewModal({ open: false, bookId: null, bookTitle: "" });
+          }}
         />
       )}
     </div>

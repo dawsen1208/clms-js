@@ -84,6 +84,22 @@ export const approveRequestLibrary = async (req, res) => {
       });
       
     } else if (request.type === "return") {
+      // 🔍 统一获取书籍标题/作者，用于历史记录与通知（兼容旧数据）
+      const rawBookId = record.bookId?._id || record.bookId || request.bookId;
+      let finalBookTitle = request.bookTitle || record.bookTitle || "";
+      let finalBookAuthor = request.bookAuthor || record.bookAuthor || "";
+      if ((!finalBookTitle || !finalBookAuthor) && rawBookId && mongoose.Types.ObjectId.isValid(rawBookId)) {
+        try {
+          const bookDoc = await Book.findById(rawBookId).select("title author");
+          if (bookDoc) {
+            if (!finalBookTitle) finalBookTitle = bookDoc.title;
+            if (!finalBookAuthor) finalBookAuthor = bookDoc.author || "";
+          }
+        } catch (e) {
+          console.warn("⚠️ 获取书籍信息失败（不影响审批）:", e?.message || e);
+        }
+      }
+
       await record.returnBook(); // 使用模型的returnBook方法
       
       // 📚 更新库存（使用 record.bookId 确保是书籍ID，而非可能的记录ID）
@@ -125,13 +141,19 @@ export const approveRequestLibrary = async (req, res) => {
       if (existingHistory) {
           existingHistory.returnDate = new Date();
           existingHistory.action = "return"; // 标记为已归还
+          if (!existingHistory.bookTitle && finalBookTitle) {
+            existingHistory.bookTitle = finalBookTitle;
+          }
+          if (!existingHistory.bookAuthor && finalBookAuthor) {
+            existingHistory.bookAuthor = finalBookAuthor;
+          }
           await existingHistory.save();
       } else {
           await BorrowHistory.create({
             userId: request.userId,
             bookId: request.bookId,
-            bookTitle: request.bookTitle,
-            bookAuthor: request.bookAuthor || record.bookAuthor || "",
+            bookTitle: finalBookTitle || request.bookTitle || "",
+            bookAuthor: finalBookAuthor || request.bookAuthor || record.bookAuthor || "",
             action: "return",
             borrowDate: record.borrowedAt,
             dueDate: record.dueDate,
@@ -148,8 +170,8 @@ export const approveRequestLibrary = async (req, res) => {
           userId: request.userId,
           type: "system",
           title: "Book Returned Successfully",
-          message: `Your book "${request.bookTitle}" has been successfully returned.`,
-          relatedId: request.bookId,
+          message: `Your book "${finalBookTitle || request.bookTitle || "Unknown Book"}" has been successfully returned.`,
+          relatedId: rawBookId || request.bookId,
           read: false
         });
       } catch (notifErr) {
@@ -167,8 +189,8 @@ export const approveRequestLibrary = async (req, res) => {
         user.gmailAddress &&
         (user.externalEmailNotifyEvents?.return ?? false)
       ) {
-        await sendLibraryNotification(user.gmailAddress, "📗 Return Successful", `You returned “${request.bookTitle}”.`, {
-          bookTitle: request.bookTitle,
+        await sendLibraryNotification(user.gmailAddress, "📗 Return Successful", `You returned “${finalBookTitle || request.bookTitle || "Unknown Book"}”.`, {
+          bookTitle: finalBookTitle || request.bookTitle || "",
           operation: "Return",
           time: new Date().toISOString(),
         });
@@ -271,12 +293,28 @@ export const markBookReturned = async (req, res) => {
       return res.status(400).json({ message: "该书籍已归还" });
     }
 
-    // 1. 更新借阅记录
+    // 1. 补全书籍信息（兼容旧记录）
+    const rawBookId = record.bookId?._id || record.bookId;
+    let finalBookTitle = record.bookTitle || "";
+    let finalBookAuthor = record.bookAuthor || "";
+    if ((!finalBookTitle || !finalBookAuthor) && rawBookId && mongoose.Types.ObjectId.isValid(rawBookId)) {
+      try {
+        const bookDoc = await Book.findById(rawBookId).select("title author");
+        if (bookDoc) {
+          if (!finalBookTitle) finalBookTitle = bookDoc.title;
+          if (!finalBookAuthor) finalBookAuthor = bookDoc.author || "";
+        }
+      } catch (e) {
+        console.warn("⚠️ 获取书籍信息失败（不影响归还）:", e?.message || e);
+      }
+    }
+
+    // 2. 更新借阅记录
     record.returned = true;
     record.returnedAt = new Date();
     await record.save();
 
-    // 2. 更新库存 (防御性编程)
+    // 3. 更新库存 (防御性编程)
     if (record.bookId) {
         try {
             const bookUpdateId = mongoose.Types.ObjectId.isValid(record.bookId) ? record.bookId : record.bookId;
@@ -288,7 +326,7 @@ export const markBookReturned = async (req, res) => {
         console.warn("⚠️ 借阅记录无 bookId, 跳过库存更新:", record._id);
     }
 
-    // 3. 检查逾期并更新用户信用
+    // 4. 检查逾期并更新用户信用
     const now = new Date();
     const dueDate = new Date(record.dueDate);
     let isOverdue = now > dueDate;
@@ -309,7 +347,7 @@ export const markBookReturned = async (req, res) => {
         }
     }
 
-    // 4. 更新或创建历史记录
+    // 5. 更新或创建历史记录
     try {
         const existingHistory = await BorrowHistory.findOne({
             userId: record.userId,
@@ -326,8 +364,8 @@ export const markBookReturned = async (req, res) => {
             await BorrowHistory.create({
                 userId: record.userId,
                 bookId: record.bookId,
-                bookTitle: record.bookTitle,
-                bookAuthor: record.bookAuthor,
+                bookTitle: finalBookTitle || record.bookTitle,
+                bookAuthor: finalBookAuthor || record.bookAuthor,
                 action: "return",
                 borrowDate: record.borrowedAt,
                 dueDate: record.dueDate,
@@ -347,8 +385,8 @@ export const markBookReturned = async (req, res) => {
         userId: record.userId,
         type: "system",
         title: "Book Returned Successfully",
-        message: `Your book "${record.bookTitle}" has been marked as returned by administrator.`,
-        relatedId: record.bookId,
+        message: `Your book "${finalBookTitle || "Unknown Book"}" has been marked as returned by administrator.`,
+        relatedId: rawBookId || record.bookId,
         read: false
       });
     } catch (notifErr) {
@@ -366,8 +404,8 @@ export const markBookReturned = async (req, res) => {
           user.gmailAddress &&
           (user.externalEmailNotifyEvents?.return ?? false)
         ) {
-          await sendLibraryNotification(user.gmailAddress, "📗 Return Successful", `Your book “${record.bookTitle}” has been returned.`, {
-            bookTitle: record.bookTitle,
+          await sendLibraryNotification(user.gmailAddress, "📗 Return Successful", `Your book “${finalBookTitle || "Unknown Book"}” has been returned.`, {
+            bookTitle: finalBookTitle,
             operation: "Return",
             time: new Date().toISOString(),
           });
