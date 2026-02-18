@@ -310,13 +310,22 @@ const NotificationPage = () => {
                         <Text type="secondary" style={{ fontSize: '12px' }}>{new Date(item.createdAt).toLocaleString()}</Text>
                     </div>
                 }
-                description={
-                  <div style={{ marginTop: 8 }}>
-                    {item.title === "Book Returned Successfully" && item.relatedId && bookTitleMap[item.relatedId]
-                      ? `${item.message}  Book: "${bookTitleMap[item.relatedId]}"`
-                      : item.message}
-                  </div>
-                }
+                description={() => {
+                  const base = <div style={{ marginTop: 8 }}>{item.message}</div>;
+                  if (item.title !== "Book Returned Successfully" || !item.relatedId) return base;
+                  const title = bookTitleMap[item.relatedId];
+                  if (!title) return base;
+                  let rebuilt = "";
+                  const msg = item.message || "";
+                  if (msg.includes("marked as returned by administrator")) {
+                    rebuilt = `Your book "${title}" has been marked as returned by administrator.`;
+                  } else if (msg.includes("has been successfully returned")) {
+                    rebuilt = `Your book "${title}" has been successfully returned.`;
+                  } else {
+                    rebuilt = `Your book "${title}" has been returned.`;
+                  }
+                  return <div style={{ marginTop: 8 }}>{rebuilt}</div>;
+                }}
               />
             </List.Item>
           )}
