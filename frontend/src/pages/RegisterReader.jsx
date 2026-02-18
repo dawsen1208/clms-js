@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Form, Input, Button, message, Modal, theme, Grid, Typography } from "antd";
-import { CopyOutlined, UserOutlined, MailOutlined, LockOutlined, ArrowRightOutlined, CheckCircleFilled } from "@ant-design/icons";
+import { CopyOutlined, UserOutlined, MailOutlined, LockOutlined, ArrowRightOutlined, CheckCircleFilled, GlobalOutlined } from "@ant-design/icons";
 import { register } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -10,13 +10,17 @@ const { Title, Text, Paragraph } = Typography;
 
 function RegisterReader() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { token } = theme.useToken();
   const screens = Grid.useBreakpoint();
   
   const [modalVisible, setModalVisible] = useState(false);
   const [assignedId, setAssignedId] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const toggleLanguage = () => {
+    setLanguage(language === "en" ? "zh" : "en");
+  };
 
   /** 📘 Reader registration logic */
   const handleReaderRegister = async (values) => {
@@ -171,6 +175,16 @@ function RegisterReader() {
         position: "relative",
         background: token.colorBgLayout
       }}>
+        <div style={{ position: "absolute", top: 24, right: 24 }}>
+          <Button
+            type="text"
+            icon={<GlobalOutlined />}
+            onClick={toggleLanguage}
+            style={{ color: token.colorTextSecondary }}
+          >
+            {language === "en" ? "EN" : "中文"}
+          </Button>
+        </div>
         <div style={{ 
           width: "100%", 
           maxWidth: "480px",
@@ -189,10 +203,10 @@ function RegisterReader() {
               color: token.colorTextHeading,
               fontWeight: 600
             }}>
-              Create Account
+              {t("titles.registerReader")}
             </Title>
             <Text type="secondary" style={{ fontSize: "16px", fontFamily: "'Inter', sans-serif" }}>
-              Join thousands of readers today
+              {t("register.readerDesc")}
             </Text>
           </div>
 
@@ -203,37 +217,37 @@ function RegisterReader() {
             requiredMark={false}
           >
             <Form.Item 
-              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Full Name</span>}
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.name")}</span>}
               name="name" 
               rules={[{ required: true, message: t("register.nameReq") }]}
             >
               <Input 
                 prefix={<UserOutlined style={{ color: token.colorTextQuaternary }} />} 
-                placeholder="John Doe" 
+                placeholder={t("register.namePlaceholder")}
                 style={{ borderRadius: 8, height: 48, background: "#fff" }}
               />
             </Form.Item>
 
             <Form.Item 
-              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Email (Optional)</span>}
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.email")}</span>}
               name="email"
-              rules={[{ type: 'email', message: 'Please enter a valid email' }]}
+              rules={[{ type: "email", message: "Please enter a valid email" }]}
             >
               <Input 
                 prefix={<MailOutlined style={{ color: token.colorTextQuaternary }} />} 
-                placeholder="john@example.com" 
+                placeholder={t("register.emailPlaceholder")}
                 style={{ borderRadius: 8, height: 48, background: "#fff" }}
               />
             </Form.Item>
 
             <Form.Item 
-              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Password</span>}
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.password")}</span>}
               name="password" 
               rules={[{ required: true, message: t("register.pwdReq") }]}
             >
               <Input.Password 
                 prefix={<LockOutlined style={{ color: token.colorTextQuaternary }} />} 
-                placeholder="Create a strong password" 
+                placeholder={t("register.passwordPlaceholder")}
                 style={{ borderRadius: 8, height: 48, background: "#fff" }}
               />
             </Form.Item>
@@ -259,12 +273,12 @@ function RegisterReader() {
                 gap: "8px"
               }}
             >
-              Create Account <ArrowRightOutlined />
+              {t("register.registerReaderBtn")} <ArrowRightOutlined />
             </Button>
           </Form>
 
           <div style={{ marginTop: "32px", textAlign: "center" }}>
-            <Text type="secondary">Already have an account? </Text>
+            <Text type="secondary">{t("login.needAccount")}</Text>
             <a 
               onClick={() => navigate("/login")} 
               style={{ 
@@ -274,7 +288,7 @@ function RegisterReader() {
                 marginLeft: "4px"
               }}
             >
-              Sign In
+              {t("titles.login")}
             </a>
           </div>
         </div>
@@ -310,10 +324,10 @@ function RegisterReader() {
         <div style={{ textAlign: 'center', padding: '24px 0' }}>
           <CheckCircleFilled style={{ fontSize: 64, color: token.colorSuccess, marginBottom: 24 }} />
           <Title level={3} style={{ fontFamily: "'Literata', serif", marginBottom: 8 }}>
-            Account Created!
+            {t("register.regSuccessTitle")}
           </Title>
           <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
-            Please save your User ID, you will need it to login.
+            {t("register.idCopiedMsg")}
           </Text>
           
           <div style={{ 
@@ -324,7 +338,7 @@ function RegisterReader() {
             marginBottom: '8px'
           }}>
             <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: '4px' }}>
-              YOUR USER ID
+              {t("register.assignedId")}
             </Text>
             <Title level={2} style={{ margin: 0, color: token.colorPrimary, fontFamily: 'monospace' }}>
               {assignedId}
@@ -335,11 +349,11 @@ function RegisterReader() {
             type="text" 
             icon={<CopyOutlined />} 
             onClick={() => {
-                copyToClipboard(assignedId);
-                message.success(t("register.copySuccess"));
+              copyToClipboard(assignedId);
+              message.success(t("register.copySuccess"));
             }}
           >
-            Copy User ID
+            {t("register.copySuccess")}
           </Button>
         </div>
       </Modal>

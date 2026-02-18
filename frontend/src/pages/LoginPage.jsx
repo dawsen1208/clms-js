@@ -313,10 +313,10 @@ const LoginPage = ({ onLogin }) => {
               fontFamily: "'Literata', serif",
               color: token.colorTextHeading 
             }}>
-              Welcome back
+              {t("login.welcomeBack")}
             </Title>
             <Text type="secondary" style={{ fontSize: "16px" }}>
-              Please enter your details to sign in
+              {t("login.signInToContinue")}
             </Text>
           </div>
 
@@ -326,13 +326,13 @@ const LoginPage = ({ onLogin }) => {
             requiredMark={false}
           >
             <Form.Item
-              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>User ID</span>}
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("login.userIdLabel")}</span>}
               required
               validateStatus={errorKey ? "error" : ""}
             >
               <Input 
                 prefix={<UserOutlined style={{ color: token.colorTextQuaternary }} />} 
-                placeholder="r123456 / a123456" 
+                placeholder={t("login.userIdPlaceholder")}
                 value={userId}
                 onChange={(e) => {
                   setUserId(e.target.value);
@@ -343,7 +343,7 @@ const LoginPage = ({ onLogin }) => {
             </Form.Item>
 
             <Form.Item
-              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Password</span>}
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("login.passwordLabel")}</span>}
               required
               validateStatus={errorKey ? "error" : ""}
               help={
@@ -354,7 +354,7 @@ const LoginPage = ({ onLogin }) => {
             >
               <Input.Password 
                 prefix={<LockOutlined style={{ color: token.colorTextQuaternary }} />} 
-                placeholder="••••••••" 
+                placeholder={t("login.passwordPlaceholder")}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
@@ -370,7 +370,7 @@ const LoginPage = ({ onLogin }) => {
                 onChange={(e) => setRemember(e.target.checked)}
                 style={{ color: token.colorTextSecondary }}
               >
-                Remember me
+                {t("login.rememberMe")}
               </Checkbox>
               <a href="#" style={{ color: token.colorPrimary, fontWeight: 500 }}>
                 Forgot password?
@@ -396,14 +396,14 @@ const LoginPage = ({ onLogin }) => {
                 gap: "8px"
               }}
             >
-              Sign In <ArrowRightOutlined />
+              {t("login.loginBtn")} <ArrowRightOutlined />
             </Button>
           </Form>
 
           <div style={{ marginTop: "32px", textAlign: "center" }}>
             <Space direction="vertical" style={{ width: "100%" }}>
               <div>
-                <Text type="secondary">Need an account? </Text>
+                <Text type="secondary">{t("login.needAccount")}</Text>
                 <a 
                   onClick={() => navigate("/register")} 
                   style={{ 
@@ -415,11 +415,11 @@ const LoginPage = ({ onLogin }) => {
                     textDecorationColor: token.colorPrimary
                   }}
                 >
-                  Register Reader
+                  {t("login.registerReader")}
                 </a>
               </div>
               <div>
-                <Text type="secondary">Admin onboarding? </Text>
+                <Text type="secondary">{t("login.adminOnboarding")}</Text>
                 <a 
                   onClick={() => navigate("/register-admin")} 
                   style={{ 
@@ -431,7 +431,7 @@ const LoginPage = ({ onLogin }) => {
                     textDecorationColor: token.colorPrimary
                   }}
                 >
-                  Register Administrator
+                  {t("login.registerAdmin")}
                 </a>
               </div>
             </Space>

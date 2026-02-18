@@ -11,13 +11,17 @@ const { useToken } = theme;
 
 function RegisterAdmin() {
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { token } = useToken();
   const screens = useBreakpoint();
   
   const [modalVisible, setModalVisible] = useState(false);
   const [assignedId, setAssignedId] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const toggleLanguage = () => {
+    setLanguage(language === "en" ? "zh" : "en");
+  };
 
   /** 🧩 Admin registration logic */
   const handleAdminRegister = async (values) => {
@@ -192,15 +196,14 @@ function RegisterAdmin() {
       }}>
         {/* Language Switcher */}
         <div style={{ position: "absolute", top: 24, right: 24 }}>
-           <Button 
-             type="text" 
-             icon={<GlobalOutlined />} 
-             // Toggle language logic assumed to be handled by context/header elsewhere or added here if needed
-             style={{ color: token.colorTextSecondary }}
-           >
-             {/* Simple placeholder as logic is external */}
-             <GlobalOutlined />
-           </Button>
+          <Button
+            type="text"
+            icon={<GlobalOutlined />}
+            onClick={toggleLanguage}
+            style={{ color: token.colorTextSecondary }}
+          >
+            {language === "en" ? "EN" : "中文"}
+          </Button>
         </div>
 
         {/* Mobile Header */}
