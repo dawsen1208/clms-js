@@ -7,7 +7,11 @@ const SMTP_SECURE = process.env.SMTP_SECURE === "true";
 const SMTP_USER = process.env.SMTP_USER || process.env.GMAIL_USER || "";
 const SMTP_PASS = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "";
 const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
-const APP_PUBLIC_URL = process.env.APP_PUBLIC_URL || "";
+const APP_PUBLIC_URL =
+  process.env.APP_PUBLIC_URL ||
+  process.env.FRONTEND_URL ||
+  process.env.PUBLIC_APP_URL ||
+  "http://localhost:5173";
 
 let transporter = null;
 

@@ -28,6 +28,7 @@ const LoginPage = ({ onLogin }) => {
   const [pendingUserId, setPendingUserId] = useState("");
   const [twoFACode, setTwoFACode] = useState("");
   const [twoFALoading, setTwoFALoading] = useState(false);
+  const [errorKey, setErrorKey] = useState("");
   const handleLogin = async () => {
     if (loading) return;
     const clickAt = Date.now();
@@ -41,7 +42,9 @@ const LoginPage = ({ onLogin }) => {
     setAnimStatus("signing");
     try {
       if (!userId || !password) {
-        message.error(t("login.errorEmpty"));
+        const key = "login.errorEmpty";
+        setErrorKey(key);
+        message.error(t(key));
         setLoading(false);
         setAnimating(false);
         return;
@@ -109,6 +112,7 @@ const LoginPage = ({ onLogin }) => {
         key = "login.errorInvalid";
       }
 
+      setErrorKey(key);
       message.error(t(key));
       setAnimStatus("error");
       setTimeout(() => {
@@ -316,27 +320,46 @@ const LoginPage = ({ onLogin }) => {
             </Text>
           </div>
 
-          <Form
+            <Form
             layout="vertical"
             size="large"
             requiredMark={false}
           >
-            <Form.Item label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>User ID</span>} required>
+            <Form.Item
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>User ID</span>}
+              required
+              validateStatus={errorKey ? "error" : ""}
+            >
               <Input 
                 prefix={<UserOutlined style={{ color: token.colorTextQuaternary }} />} 
                 placeholder="r123456 / a123456" 
                 value={userId}
-                onChange={(e) => setUserId(e.target.value)}
+                onChange={(e) => {
+                  setUserId(e.target.value);
+                  if (errorKey) setErrorKey("");
+                }}
                 style={{ borderRadius: 8, height: 48, background: "#fff" }}
               />
             </Form.Item>
 
-            <Form.Item label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Password</span>} required>
+            <Form.Item
+              label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>Password</span>}
+              required
+              validateStatus={errorKey ? "error" : ""}
+              help={
+                errorKey
+                  ? t(errorKey)
+                  : ""
+              }
+            >
               <Input.Password 
                 prefix={<LockOutlined style={{ color: token.colorTextQuaternary }} />} 
                 placeholder="••••••••" 
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errorKey) setErrorKey("");
+                }}
                 style={{ borderRadius: 8, height: 48, background: "#fff" }}
               />
             </Form.Item>

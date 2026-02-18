@@ -133,23 +133,29 @@ export const useBookDetailData = () => {
   };
 
   const handleShare = () => {
-    const url = window.location.href;
-    Modal.info({
-      title: "Share this page",
-      centered: true,
-      okText: "Got it",
-      content: (
-        <div style={{ marginTop: 8 }}>
-          <Paragraph style={{ marginBottom: 8 }}>
-            <Text strong>Link:</Text>
-          </Paragraph>
-          <Paragraph copyable={{ text: url }} style={{ userSelect: 'text', marginBottom: 8 }}>
-            {url}
-          </Paragraph>
-          <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>
-        </div>
-      )
-    });
+    try {
+      const url = window.location.href;
+      Modal.info({
+        title: "Share this page",
+        centered: true,
+        okText: "Got it",
+        content: (
+          <div style={{ marginTop: 8 }}>
+            <Paragraph style={{ marginBottom: 8 }}>
+              <Text strong>Link:</Text>
+            </Paragraph>
+            <Paragraph copyable={{ text: url }} style={{ userSelect: "text", marginBottom: 8 }}>
+              {url}
+            </Paragraph>
+            <a href={url} target="_blank" rel="noopener noreferrer">
+              {url}
+            </a>
+          </div>
+        ),
+      });
+    } catch {
+      message.error("Failed to open share dialog");
+    }
   };
 
   const canReview = eligible && !hasReviewed;

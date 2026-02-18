@@ -26,9 +26,9 @@ export const LoginBookAnimation: React.FC<LoginBookAnimationProps> = ({
       return;
     }
 
-    const closingMs = 560;
-    const signingMs = 260;
-    const openingMs = 560;
+    const closingMs = 900;
+    const signingMs = 1200;
+    const openingMs = 900;
 
     setPhase("closing");
     setShowSignature(false);
@@ -155,7 +155,7 @@ export const LoginBookAnimation: React.FC<LoginBookAnimationProps> = ({
               initial={{ rotateY: 0 }}
               animate={{ rotateY: coverRotate }}
               transition={{
-                duration: 0.58,
+                duration: 0.9,
                 ease: [0.2, 0.8, 0.2, 1],
               }}
             />
@@ -192,7 +192,7 @@ export const LoginBookAnimation: React.FC<LoginBookAnimationProps> = ({
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
                 transition={{
-                  duration: 0.28,
+                  duration: 1,
                   ease: "easeInOut",
                 }}
               />
