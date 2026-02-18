@@ -24,6 +24,7 @@ import {
   getReviewReminders, 
   getUserRequestsLibrary,
   getNotifications,
+  dismissReviewReminder,
 } from "../api";
 import "./GlobalNotifier.css";
 
@@ -51,23 +52,48 @@ function GlobalNotifier() {
   const drawerWidth = screens.lg ? 400 : "90%";
 
   useEffect(() => {
-    try {
-      const rawPrefs = localStorage.getItem("notification_prefs");
-      const prefs = rawPrefs ? JSON.parse(rawPrefs) : { inApp: true };
-      setNotifEnabled(prefs.inApp !== false);
-    } catch (err) {
-      console.error("Failed to read notification prefs", err);
-      setNotifEnabled(true);
-    }
-
-    try {
-      const rawIds = localStorage.getItem("notificationKnownIds");
-      const arr = rawIds ? JSON.parse(rawIds) : [];
-      lastKnownIds.current = new Set(arr);
-    } catch (err) {
-      console.error("Failed to read notification known ids", err);
-      lastKnownIds.current = new Set();
-    }
+    const tokenLocal =
+      sessionStorage.getItem("token") || localStorage.getItem("token");
+    (async () => {
+      // 尝试从服务器读取通知偏好
+      if (tokenLocal) {
+        try {
+          const res = await fetch("/api/users/profile", {
+            headers: { Authorization: `Bearer ${tokenLocal}` },
+          });
+          if (res.ok) {
+            const user = await res.json();
+            const inApp =
+              user?.preferences?.notifications?.inApp !== undefined
+                ? !!user.preferences.notifications.inApp
+                : true;
+            setNotifEnabled(inApp);
+          } else {
+            throw new Error("Failed to load profile");
+          }
+        } catch (err) {
+          console.warn("Load server notification prefs failed, fallback to local:", err?.message);
+          try {
+            const rawPrefs = localStorage.getItem("notification_prefs");
+            const prefs = rawPrefs ? JSON.parse(rawPrefs) : { inApp: true };
+            setNotifEnabled(prefs.inApp !== false);
+          } catch {
+            setNotifEnabled(true);
+          }
+        }
+      } else {
+        // 未登录时默认开启
+        setNotifEnabled(true);
+      }
+      // 初始化已知ID集合
+      try {
+        const rawIds = localStorage.getItem("notificationKnownIds");
+        const arr = rawIds ? JSON.parse(rawIds) : [];
+        lastKnownIds.current = new Set(arr);
+      } catch {
+        lastKnownIds.current = new Set();
+      }
+    })();
   }, []);
 
   /* =========================================================
@@ -258,22 +284,30 @@ function GlobalNotifier() {
   const [reviewModal, setReviewModal] = useState({ open: false, bookId: null, bookTitle: "" });
 
   // ✅ 将书评提醒标记为已读（不填写）
-  const markReviewReminderAsRead = (item) => {
+  const markReviewReminderAsRead = async (item) => {
     try {
-      const key = `review:${item.bookId}`;
-      const raw = localStorage.getItem("notificationKnownIds");
-      const arr = raw ? JSON.parse(raw) : [];
-      if (!arr.includes(key)) arr.push(key);
-      localStorage.setItem("notificationKnownIds", JSON.stringify(arr));
-
+      if (token && item?.bookId) {
+        await dismissReviewReminder(item.bookId, token);
+      }
+    } catch (err) {
+      console.warn("Server-side dismiss failed, falling back to local mark:", err?.response?.data || err?.message);
+      try {
+        const key = `review:${item.bookId}`;
+        const raw = localStorage.getItem("notificationKnownIds");
+        const arr = raw ? JSON.parse(raw) : [];
+        if (!arr.includes(key)) arr.push(key);
+        localStorage.setItem("notificationKnownIds", JSON.stringify(arr));
+      } catch { /* ignore */ }
+    }
+    try {
       const filtered = (notifications || []).filter(
-        (n) => !(n.isReviewReminder && (n.bookId === item.bookId || n._id === key))
+        (n) => !(n.isReviewReminder && (n.bookId === item.bookId))
       );
       setNotifications(filtered);
       localStorage.setItem("notifications", JSON.stringify(filtered));
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
-      console.error("Failed to mark review reminder as read", err);
+      console.error("Failed to update local notification state after dismiss", err);
     }
   };
 

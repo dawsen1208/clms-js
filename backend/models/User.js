@@ -43,6 +43,9 @@ const userSchema = new mongoose.Schema({
       defaultDuration: { type: Number, default: 30, min: 1, max: 30 }
     }
   },
+  
+  // 📝 已跳过的书评提醒（跨设备生效）
+  dismissedReviewReminders: [{ type: String, default: [] }],
 
   // 📧 外部邮件通知（仅支持 Gmail）
   gmailAddress: { type: String, default: null },            // 仅 @gmail.com / @googlemail.com

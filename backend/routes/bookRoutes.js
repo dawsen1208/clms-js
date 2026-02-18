@@ -960,6 +960,10 @@ router.get("/review/reminders", authMiddleware, async (req, res) => {
       .limit(10)
       .lean();
 
+    // 获取用户已跳过的书评提醒（跨设备）
+    const user = await User.findOne({ userId }).select("dismissedReviewReminders").lean();
+    const dismissedSet = new Set((user?.dismissedReviewReminders || []).map(String));
+
     // 过滤掉已评价的书籍
     const reminders = [];
     for (const r of returns) {
@@ -971,7 +975,7 @@ router.get("/review/reminders", authMiddleware, async (req, res) => {
       const hasReviewed = (book.reviews || []).some(
         (rev) => String(rev.userId) === String(req.user.id)
       );
-      if (!hasReviewed) {
+      if (!hasReviewed && !dismissedSet.has(String(book._id))) {
         reminders.push({
           _id: String(book._id),
           bookId: String(book._id),
@@ -987,6 +991,30 @@ router.get("/review/reminders", authMiddleware, async (req, res) => {
     res.json(reminders);
   } catch (err) {
     res.status(500).json({ message: "获取书评提醒失败", error: err.message });
+  }
+});
+
+/* =========================================================
+   ✅ 跳过书评提醒（跨设备持久化）
+   ========================================================= */
+router.post("/review/reminders/:bookId/dismiss", authMiddleware, async (req, res) => {
+  try {
+    const rawBookId = String(req.params.bookId || "").trim();
+    if (!rawBookId) {
+      return res.status(400).json({ message: "无效的书籍ID" });
+    }
+    const userId = req.user.userId;
+    const updated = await User.findOneAndUpdate(
+      { userId },
+      { $addToSet: { dismissedReviewReminders: rawBookId } },
+      { new: true }
+    ).select("dismissedReviewReminders");
+    if (!updated) {
+      return res.status(404).json({ message: "用户不存在" });
+    }
+    res.json({ message: "已跳过该书的书评提醒", dismissedReviewReminders: updated.dismissedReviewReminders });
+  } catch (err) {
+    res.status(500).json({ message: "跳过书评提醒失败", error: err.message });
   }
 });
 

@@ -186,6 +186,14 @@ export const getReviewReminders = (token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+// 🔕 跳过书评提醒（跨设备持久化）
+export const dismissReviewReminder = (bookId, token) =>
+  API.post(
+    `/library/review/reminders/${bookId}/dismiss`,
+    {},
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
 // ✅ 获取当前借阅中记录
 export const getBorrowedBooks = (token) =>
   API.get("/library/borrowed", {
