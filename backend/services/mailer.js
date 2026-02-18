@@ -7,11 +7,12 @@ const SMTP_SECURE = process.env.SMTP_SECURE === "true";
 const SMTP_USER = process.env.SMTP_USER || process.env.GMAIL_USER || "";
 const SMTP_PASS = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || "";
 const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
+const DEFAULT_PUBLIC_URL = "https://clmsf5164136.z1.web.core.windows.net/";
 const APP_PUBLIC_URL =
   process.env.APP_PUBLIC_URL ||
   process.env.FRONTEND_URL ||
   process.env.PUBLIC_APP_URL ||
-  "http://localhost:5173";
+  DEFAULT_PUBLIC_URL;
 
 let transporter = null;
 
