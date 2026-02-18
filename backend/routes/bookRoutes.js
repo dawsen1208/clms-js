@@ -951,13 +951,16 @@ router.get("/review/reminders", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    // 找到该用户归还过的书籍
+    // 找到该用户归还过的书籍（兼容老数据：action=borrow 但有 returnDate）
     const returns = await BorrowHistory.find({
       userId,
-      action: "return",
+      $or: [
+        { action: "return" },
+        { returnDate: { $exists: true, $ne: null } }
+      ],
     })
-      .sort({ returnDate: -1 })
-      .limit(10)
+      .sort({ returnDate: -1, updatedAt: -1, createdAt: -1 })
+      .limit(20)
       .lean();
 
     // 获取用户已跳过的书评提醒（跨设备）

@@ -60,28 +60,12 @@ const useBorrowData = () => {
         getUserRequestsLibrary(token)
       ]);
       
-      // TODO: Mock Data for Visual Refactoring (Remove in production)
-      // If no data is returned, we inject some mock data to showcase the UI
-      if ((!borrowedRes.data || borrowedRes.data.length === 0) && (!requestsRes.data || requestsRes.data.length === 0)) {
-         console.log("Injecting mock data for visualization");
-         const mockBooks = [
-           { _id: 'm1', title: 'The Design of Everyday Things', author: 'Don Norman', borrowDate: dayjs().subtract(5, 'day').toISOString(), dueDate: dayjs().add(25, 'day').toISOString(), cover: '' },
-           { _id: 'm2', title: 'Thinking, Fast and Slow', author: 'Daniel Kahneman', borrowDate: dayjs().subtract(15, 'day').toISOString(), dueDate: dayjs().add(15, 'day').toISOString(), cover: '' },
-           { _id: 'm3', title: 'Dune', author: 'Frank Herbert', borrowDate: dayjs().subtract(28, 'day').toISOString(), dueDate: dayjs().add(2, 'day').toISOString(), cover: '' }
-         ];
-         setBorrowedBooks(mockBooks);
-         setPendingRequests([]);
-      } else {
-         setBorrowedBooks(borrowedRes.data || []);
-         setPendingRequests(requestsRes.data || []);
-      }
+      setBorrowedBooks(borrowedRes.data || []);
+      setPendingRequests(requestsRes.data || []);
     } catch (error) {
       console.error("Error fetching borrow data:", error);
-      // Mock data on error too for demo
-      const mockBooks = [
-         { _id: 'm1', title: 'The Design of Everyday Things', author: 'Don Norman', borrowDate: dayjs().subtract(5, 'day').toISOString(), dueDate: dayjs().add(25, 'day').toISOString(), cover: '' },
-      ];
-      setBorrowedBooks(mockBooks);
+      setBorrowedBooks([]);
+      setPendingRequests([]);
       // message.error("Failed to load borrowed books");
     } finally {
       setLoading(false);
@@ -90,6 +74,21 @@ const useBorrowData = () => {
 
   useEffect(() => {
     fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    const onFocus = () => fetchData();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") fetchData();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    const timer = setInterval(fetchData, 30000);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+      clearInterval(timer);
+    };
   }, [fetchData]);
 
   const getDaysLeft = (borrowDate, dueDate) => {
