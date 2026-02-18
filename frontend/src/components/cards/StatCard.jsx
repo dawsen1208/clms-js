@@ -15,7 +15,8 @@ const StatCard = ({
   color
 }) => {
   const { token } = theme.useToken();
-  const isPositive = trend >= 0;
+  const hasTrend = typeof trend === 'number' && !Number.isNaN(trend);
+  const isPositive = hasTrend ? trend >= 0 : true;
   const trendColor = isPositive ? token.colorSuccess : token.colorError;
   const mainColor = color || token.colorPrimary;
 
@@ -70,21 +71,23 @@ const StatCard = ({
       
       <div style={{ marginTop: 24, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: 6, 
-            color: trendColor, 
-            fontWeight: 600,
-            background: isPositive ? `${token.colorSuccess}15` : `${token.colorError}15`,
-            padding: '4px 8px',
-            borderRadius: 12,
-            fontSize: 13
-          }}>
-            {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
-            <span>{Math.abs(trend)}%</span>
-          </div>
-          <Text type="secondary" style={{ display: 'block', marginTop: 6, fontSize: 12 }}>{trendLabel}</Text>
+          {hasTrend && (
+            <div style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: 6, 
+              color: trendColor, 
+              fontWeight: 600,
+              background: isPositive ? `${token.colorSuccess}15` : `${token.colorError}15`,
+              padding: '4px 8px',
+              borderRadius: 12,
+              fontSize: 13
+            }}>
+              {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+              <span>{Math.abs(trend)}%</span>
+            </div>
+          )}
+          <Text type="secondary" style={{ display: 'block', marginTop: hasTrend ? 6 : 0, fontSize: 12 }}>{trendLabel}</Text>
         </div>
         <Sparkline />
       </div>
