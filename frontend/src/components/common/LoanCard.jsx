@@ -54,7 +54,7 @@ const LoanCard = ({
   return (
     <div 
       className="loan-card-editorial"
-      onClick={() => navigate(`/book/${book._id || book.id}`)}
+      onClick={() => navigate(`/book/${book.bookId || book.id || book._id}`)}
       style={{
         background: '#fff',
         border: `1px solid ${token.colorBorderSecondary}`,

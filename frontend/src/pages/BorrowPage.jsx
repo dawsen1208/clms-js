@@ -248,7 +248,7 @@ export const BorrowLeftPanel = () => {
                 ...sampleBook,
                 pendingType: pendingRequests.find(
                   (r) =>
-                    (r.bookId === sampleBook._id || r.bookId === sampleBook.id) &&
+                    r.bookId === (sampleBook.bookId || sampleBook._id || sampleBook.id) &&
                     r.status === "pending"
                 )?.type,
               }}
@@ -296,7 +296,7 @@ export const BorrowRightPanel = () => {
                 <LoanCard
                   book={{
                     ...book,
-                    pendingType: getRequestStatus(book._id || book.id),
+                    pendingType: getRequestStatus(book.bookId || book._id || book.id),
                   }}
                   onRenew={handleRenewClick}
                 />

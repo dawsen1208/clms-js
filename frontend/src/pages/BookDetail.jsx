@@ -35,7 +35,6 @@ export const useBookDetailData = () => {
   const { token } = theme.useToken();
   const { id } = useParams();
   const navigate = useNavigate();
-  const [modal, contextHolder] = Modal.useModal();
   const backText = (t("nav.back") && t("nav.back") !== "nav.back") ? t("nav.back") : "Back to Library";
   
   // State
@@ -135,7 +134,7 @@ export const useBookDetailData = () => {
 
   const handleShare = () => {
     const url = window.location.href;
-    modal.info({
+    Modal.info({
       title: "Share this page",
       centered: true,
       okText: "Got it",
@@ -170,8 +169,6 @@ export const useBookDetailData = () => {
     token,
     id,
     navigate,
-    modal,
-    contextHolder,
     backText,
     book,
     loading,
@@ -510,7 +507,6 @@ export const BookDetailRight = () => {
     reviewOpen,
     setReviewOpen,
     readingStats,
-    contextHolder,
     setBook,
     setHasReviewed,
   } = useBookDetailData();
@@ -555,8 +551,6 @@ export const BookDetailRight = () => {
       fullWidth
       noPadding
     >
-      {contextHolder}
-
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 24px' }}>
         <div className="editorial-grid">
            {/* Main Content: Reviews & Details */}
