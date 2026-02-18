@@ -278,7 +278,7 @@ function RegisterReader() {
           </Form>
 
           <div style={{ marginTop: "32px", textAlign: "center" }}>
-            <Text type="secondary">{t("login.needAccount")}</Text>
+            <Text type="secondary">{t("login.haveAccount")}</Text>
             <a 
               onClick={() => navigate("/login")} 
               style={{ 
@@ -314,7 +314,7 @@ function RegisterReader() {
         onCancel={handleModalOk}
         footer={[
           <Button key="login" type="primary" onClick={handleModalOk} size="large" block>
-            Proceed to Login
+            {t("register.goToLogin")}
           </Button>
         ]}
         centered
@@ -353,7 +353,7 @@ function RegisterReader() {
               message.success(t("register.copySuccess"));
             }}
           >
-            {t("register.copySuccess")}
+            {t("register.copyIdBtn")}
           </Button>
         </div>
       </Modal>

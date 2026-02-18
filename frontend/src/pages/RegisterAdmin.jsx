@@ -343,7 +343,7 @@ function RegisterAdmin() {
                 {t("register.backToReader")}
               </Button>
               <Text type="secondary">
-                 Already have an account? <Button type="link" onClick={() => navigate("/login")} style={{ padding: 0, fontWeight: 600, color: "#2C3E50" }}>{t("register.backToLogin")}</Button>
+                 {t("login.haveAccount")} <Button type="link" onClick={() => navigate("/login")} style={{ padding: 0, fontWeight: 600, color: "#2C3E50" }}>{t("register.backToLogin")}</Button>
               </Text>
             </div>
           </Form>

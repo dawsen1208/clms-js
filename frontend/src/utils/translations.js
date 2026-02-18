@@ -135,6 +135,7 @@ export const translations = {
       applyRenew: "Renew Book",
       borrowLimit: "Limit Reached",
       stats: "Dashboard",
+      dashboard: "Dashboard",
       recommended: "Curated For You",
       profile: "My Profile",
       history: "Loan History",
@@ -145,12 +146,19 @@ export const translations = {
       registerAdmin: "Admin Access",
       login: "Sign In"
     },
+    dashboard: {
+      totalBooks: "Total Books",
+      borrowed: "Borrowed",
+      pendingReq: "Pending Requests",
+      overdue: "Overdue"
+    },
     login: {
       welcomeBack: "Welcome Back",
       welcomeBackUser: "Welcome back, {name}!",
       signInToContinue: "Sign in to continue",
       instruction: "Please use your system-assigned User ID and Password.",
-      needAccount: "Already have an account?",
+      needAccount: "Need an account?",
+      haveAccount: "Already have an account?",
       adminOnboarding: "Admin onboarding?",
       rememberMe: "Remember me",
       loginBtn: "Login",
@@ -216,6 +224,7 @@ export const translations = {
       manualCopyFail: "复制失败，请手动复制",
       idCopiedMsg: "This ID has been copied automatically; use it to log in.",
       goToLogin: "Go to Login",
+      copyIdBtn: "Copy User ID",
       cancel: "Cancel",
       pendingApproval: "您的账号正在等待审核，请耐心等待管理员批准。"
     },
@@ -1048,6 +1057,7 @@ export const translations = {
       applyRenew: "申请续期",
       borrowLimit: "达到限制",
       stats: "概览",
+      dashboard: "控制台",
       recommended: "为您推荐",
       profile: "个人中心",
       history: "阅读历史",
@@ -1064,6 +1074,12 @@ export const translations = {
       profileDesc: "管理您的账户和偏好设置。",
       general: "通用",
       borrows: "次借阅"
+    },
+    dashboard: {
+      totalBooks: "馆藏总量",
+      borrowed: "借出中",
+      pendingReq: "待处理申请",
+      overdue: "逾期"
     },
     role: {
       libraryReader: "读者",
@@ -1097,7 +1113,8 @@ export const translations = {
       welcomeBackUser: "欢迎回来, {name}!",
       signInToContinue: "请登录以继续",
       instruction: "请使用系统分配的用户 ID 和密码登录。",
-      needAccount: "已经有账号？",
+      needAccount: "需要账号？",
+      haveAccount: "已经有账号？",
       adminOnboarding: "管理员通道？",
       rememberMe: "记住我",
       loginBtn: "登录",
@@ -1159,8 +1176,9 @@ export const translations = {
       assignedId: "您的用户ID：",
       assignedAdminId: "您分配的管理员ID：",
       manualCopyFail: "Copy failed; please copy manually",
-      idCopiedMsg: "ID已自动复制，请使用它登录。",
+      idCopiedMsg: "该ID已自动复制，请使用它登录。",
       goToLogin: "前往登录",
+      copyIdBtn: "复制用户ID",
       cancel: "取消",
       pendingApproval: "Your account is pending approval. Please wait for an administrator to approve your registration."
     },
