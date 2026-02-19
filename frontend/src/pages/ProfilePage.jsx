@@ -35,6 +35,7 @@ import EditorialPageShell from "../components/common/EditorialPageShell";
 import StatCard from "../components/cards/StatCard";
 import BookCoverPro from "../components/common/BookCoverPro";
 import { stringToWarmColor } from "../utils/hashColor";
+import { getCleanImageUrl } from "../utils/imageUtils";
 import { 
   getBorrowHistory, 
   getUserRequestsLibrary, 
@@ -226,13 +227,33 @@ export const ProfileLeftPanel = () => {
                   }}
                 >
                   <div style={{ flexShrink: 0 }}>
-                    <BookCoverPro
-                      title={bookTitle}
-                      author={bookAuthor}
-                      width={40}
-                      height={60}
-                      baseColor={stringToWarmColor(bookTitle)}
-                    />
+                    {item.coverImage ? (
+                      <img
+                        src={getCleanImageUrl(item.coverImage)}
+                        alt={bookTitle}
+                        loading="lazy"
+                        decoding="async"
+                        style={{
+                          width: 40,
+                          height: 60,
+                          objectFit: "cover",
+                          borderRadius: 4,
+                          display: "block",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <BookCoverPro
+                        title={bookTitle}
+                        author={bookAuthor}
+                        width={40}
+                        height={60}
+                        baseColor={stringToWarmColor(bookTitle)}
+                      />
+                    )}
                   </div>
                   <div style={{ flex: 1 }}>
                     <Text strong style={{ display: "block" }}>
@@ -387,13 +408,33 @@ function ProfilePage() {
           }}
         >
             <div style={{ flexShrink: 0 }}>
-               <BookCoverPro 
-                 title={bookTitle} 
-                 width={48} 
-                 height={72} 
-                 baseColor={stringToWarmColor(bookTitle || "Book")}
-                 style="swiss"
-               />
+              {type === "history" && item.coverImage ? (
+                <img
+                  src={getCleanImageUrl(item.coverImage)}
+                  alt={bookTitle}
+                  loading="lazy"
+                  decoding="async"
+                  style={{
+                    width: 48,
+                    height: 72,
+                    objectFit: "cover",
+                    borderRadius: 6,
+                    display: "block",
+                    boxShadow: "0 3px 10px rgba(0,0,0,0.12)",
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : (
+                <BookCoverPro 
+                  title={bookTitle} 
+                  width={48} 
+                  height={72} 
+                  baseColor={stringToWarmColor(bookTitle || "Book")}
+                  style="swiss"
+                />
+              )}
             </div>
             <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>

@@ -40,7 +40,7 @@ export const NotificationLeftPanel = () => {
   }, [fetchAllNotifications]);
 
   const total = notifications.length;
-  const unread = notifications.filter(n => !n.isRead).length;
+  const unread = notifications.filter(n => !n.read).length;
   const feedback = notifications.filter(n => n.type === "feedback_reply").length;
 
   const trendData = useMemo(() => {
@@ -156,6 +156,7 @@ const NotificationPage = () => {
   const [loading, setLoading] = useState(true);
   const [bookTitleMap, setBookTitleMap] = useState({});
   const [reviewModal, setReviewModal] = useState({ open: false, bookId: null, bookTitle: "" });
+  const [reviewedMap, setReviewedMap] = useState({});
   const token = sessionStorage.getItem("token") || localStorage.getItem("token");
 
   const loadBookTitles = useCallback(async (items) => {
@@ -168,6 +169,15 @@ const NotificationPage = () => {
     );
     if (!ids.length) return;
     const newMap = {};
+    const reviewed = {};
+    let uid = null;
+    try {
+      const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
+      const user = rawUser ? JSON.parse(rawUser) : null;
+      uid = user?.userId || user?._id || null;
+    } catch {
+      console.warn("Failed to parse current user for reviewedMap");
+    }
     for (const id of ids) {
       try {
         const res = await getBookDetail(id);
@@ -175,12 +185,18 @@ const NotificationPage = () => {
         if (data && data.title) {
           newMap[id] = data.title;
         }
+        if (uid && Array.isArray(data?.reviews)) {
+          reviewed[id] = data.reviews.some((r) => String(r.userId) === String(uid));
+        }
       } catch (err) {
         console.warn("Failed to load book detail for notification:", id, err?.message || err);
       }
     }
     if (Object.keys(newMap).length > 0) {
       setBookTitleMap((prev) => ({ ...prev, ...newMap }));
+    }
+    if (Object.keys(reviewed).length > 0) {
+      setReviewedMap((prev) => ({ ...prev, ...reviewed }));
     }
   }, [bookTitleMap]);
 
@@ -231,18 +247,18 @@ const NotificationPage = () => {
   const handleMarkRead = async (id) => {
     try {
       await markNotificationRead(id, token);
-      setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
+      setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
     } catch (err) {
       console.error("Failed to mark read", err);
     }
   };
 
   const handleMarkAllRead = async () => {
-    const unread = notifications.filter(n => !n.isRead);
+    const unread = notifications.filter(n => !n.read);
     if (unread.length === 0) return;
     
     // Optimistic update
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
 
     try {
         await Promise.all(unread.map(n => markNotificationRead(n._id, token)));
@@ -256,7 +272,7 @@ const NotificationPage = () => {
   return (
     <div style={{ padding: "24px", maxWidth: "800px", margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "16px" }}>
-        <Button onClick={handleMarkAllRead} disabled={!notifications.some(n => !n.isRead)}>
+        <Button onClick={handleMarkAllRead} disabled={!notifications.some(n => !n.read)}>
           {t("notifications.markAllRead") || "Mark all as read"}
         </Button>
       </div>
@@ -279,19 +295,23 @@ const NotificationPage = () => {
                     title="Read"
                   />
                 ),
-                !item.isRead && (
+                !item.read && (
                   <Button type="link" onClick={() => handleMarkRead(item._id)}>
                     {t("notifications.markRead") || "Mark Read"}
                   </Button>
                 ),
                 item.title === "Book Returned Successfully" && item.relatedId && (
-                  <Button type="link" onClick={() => openReviewForNotification(item)}>
+                  <Button 
+                    type="link" 
+                    onClick={() => openReviewForNotification(item)}
+                    disabled={!!reviewedMap[item.relatedId]}
+                  >
                     {t("bookDetail.submitReview") || "Write Review"}
                   </Button>
                 ),
               ].filter(Boolean)}
               style={{ 
-                  background: item.isRead ? "transparent" : "#e6f7ff", 
+                  background: item.read ? "transparent" : "#e6f7ff", 
                   padding: "16px", 
                   borderRadius: "8px", 
                   marginBottom: "12px",
@@ -306,7 +326,7 @@ const NotificationPage = () => {
                 }
                 title={
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text strong={!item.isRead} style={{ fontSize: '16px' }}>{item.title}</Text>
+                        <Text strong={!item.read} style={{ fontSize: '16px' }}>{item.title}</Text>
                         <Text type="secondary" style={{ fontSize: '12px' }}>{new Date(item.createdAt).toLocaleString()}</Text>
                     </div>
                 }
@@ -341,6 +361,7 @@ const NotificationPage = () => {
           token={token}
           onSubmitted={() => {
             message.success(t("bookDetail.reviewSubmitted") || "Review submitted");
+            setReviewedMap((prev) => ({ ...prev, [reviewModal.bookId]: true }));
             setReviewModal({ open: false, bookId: null, bookTitle: "" });
           }}
         />

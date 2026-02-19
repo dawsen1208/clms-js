@@ -342,17 +342,14 @@ router.post("/books/:id/reviews", authMiddleware, async (req, res) => {
     const book = await Book.findById(id);
     if (!book) return res.status(404).json({ message: "未找到该书籍" });
 
-    // 可选：避免重复评价（同一用户只保留一条，若前端允许重复可去掉）
+    // 避免重复评价（同一用户仅允许提交一次）
     const existingIndex = (book.reviews || []).findIndex(
       (rev) => String(rev.userId) === String(userObjectId)
     );
     if (existingIndex >= 0) {
-      book.reviews[existingIndex].rating = numericRating;
-      book.reviews[existingIndex].comment = text;
-      book.reviews[existingIndex].createdAt = new Date();
-    } else {
-      book.reviews.push({ userId: userObjectId, rating: numericRating, comment: text });
+      return res.status(400).json({ message: "您已提交过该书评" });
     }
+    book.reviews.push({ userId: userObjectId, rating: numericRating, comment: text });
     book.recalculateRating();
     await book.save();
 
