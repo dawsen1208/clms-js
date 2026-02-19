@@ -339,7 +339,7 @@ function ProfilePage() {
 
     setAvatarUploading(true);
     try {
-      const res = await uploadAvatar(formData, authToken);
+      const res = await uploadAvatar(authToken, formData);
       const newAvatarUrl = res.data.avatarUrl; 
       
       const updatedUser = { ...user, avatar: newAvatarUrl };
