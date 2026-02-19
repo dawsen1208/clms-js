@@ -132,9 +132,23 @@ export const useBookDetailData = () => {
     }
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     try {
       const url = window.location.href;
+      const title = book?.title || "CLMS Library";
+      const text = `Check out this book: ${title}`;
+
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        return;
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        message.success("Link copied to clipboard");
+        return;
+      }
+
       Modal.info({
         title: "Share this page",
         centered: true,
@@ -144,7 +158,10 @@ export const useBookDetailData = () => {
             <Paragraph style={{ marginBottom: 8 }}>
               <Text strong>Link:</Text>
             </Paragraph>
-            <Paragraph copyable={{ text: url }} style={{ userSelect: "text", marginBottom: 8 }}>
+            <Paragraph
+              copyable={{ text: url }}
+              style={{ userSelect: "text", marginBottom: 8 }}
+            >
               {url}
             </Paragraph>
             <a href={url} target="_blank" rel="noopener noreferrer">

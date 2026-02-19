@@ -133,37 +133,73 @@ const LayoutMenu = ({ onLogout, children }) => {
 
   const handleSearch = (value) => {
     if (!booksLoaded) {
-       fetchBooks();
+      fetchBooks();
     }
-    
-    if (!value) {
+
+    const raw = (value || "").trim();
+    if (!raw) {
       setSearchOptions([]);
       return;
     }
-    
-    const lowerVal = value.toLowerCase();
-    const filtered = allBooks
-      .filter(book => 
-        book.title.toLowerCase().includes(lowerVal) || 
-        book.author.toLowerCase().includes(lowerVal) ||
-        (book.isbn && book.isbn.includes(lowerVal))
-      )
+
+    const term = raw.toLowerCase();
+    const tokens = term.split(/\s+/).filter(Boolean);
+    const compactTerm = term.replace(/\s+/g, "");
+
+    const scored = allBooks
+      .map((book) => {
+        const title = (book.title || "").toLowerCase();
+        const author = (book.author || "").toLowerCase();
+        const isbn = (book.isbn ? String(book.isbn) : "").toLowerCase();
+        const haystack = `${title} ${author} ${isbn}`;
+        const compactHaystack = haystack.replace(/\s+/g, "");
+
+        let score = 0;
+        if (haystack.includes(term)) score += 3;
+        if (compactTerm && compactHaystack.includes(compactTerm)) score += 2;
+        if (tokens.length) {
+          const matchedTokens = tokens.filter((tok) => haystack.includes(tok));
+          score += matchedTokens.length;
+        }
+
+        return { book, score };
+      })
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score)
       .slice(0, 8)
-      .map(book => ({
+      .map(({ book }) => ({
         value: book.title,
         label: (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-               <Text strong style={{ fontSize: 14 }}>{book.title}</Text>
-               <Text type="secondary" style={{ fontSize: 12 }}>{book.author}</Text>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <Text strong style={{ fontSize: 14 }}>{book.title}</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {book.author}
+              </Text>
             </div>
-            {book.category && <span style={{ fontSize: 11, color: token.colorTextQuaternary, marginLeft: 8 }}>{book.category}</span>}
+            {book.category && (
+              <span
+                style={{
+                  fontSize: 11,
+                  color: token.colorTextQuaternary,
+                  marginLeft: 8,
+                }}
+              >
+                {book.category}
+              </span>
+            )}
           </div>
         ),
-        bookId: book._id || book.id
+        bookId: book._id || book.id,
       }));
-      
-    setSearchOptions(filtered);
+
+    setSearchOptions(scored);
   };
 
   const onSelect = (value, option) => {
