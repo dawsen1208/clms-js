@@ -743,6 +743,7 @@ export const translations = {
       confirmDelete: "Are you sure you want to delete this book?",
       delete: "Delete",
       bookId: "Book ID",
+      isbn: "ISBN",
       stock: "Stock",
       borrowManage: "Borrow Management",
       borrowManagement: "Borrow Management",
@@ -1854,6 +1855,7 @@ export const translations = {
       loginFirst: "请先登录！",
       // Book Management
       bookId: "图书ID",
+      isbn: "ISBN",
       stock: "库存",
       outOfStock: "缺货",
       inStock: "有货",

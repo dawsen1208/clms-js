@@ -97,8 +97,8 @@ function AdminBookPage() {
     }
   };
 
-  /** ✅ 筛选逻辑 */
   const filteredBooks = books.filter((book) => {
+    const available = book.available_copies ?? book.copies ?? 0;
     const matchSearch =
       book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       book.author.toLowerCase().includes(searchTerm.toLowerCase());
@@ -106,8 +106,8 @@ function AdminBookPage() {
       filterCategory === "All" || book.category === filterCategory;
     const matchStock =
       filterStock === "All" ||
-      (filterStock === "In stock" && book.copies > 0) ||
-      (filterStock === "Out of stock" && book.copies <= 0);
+      (filterStock === "In stock" && available > 0) ||
+      (filterStock === "Out of stock" && available <= 0);
     return matchSearch && matchCategory && matchStock;
   });
 
@@ -116,16 +116,23 @@ function AdminBookPage() {
 
   const stats = {
     total: books.length,
-    inStock: books.filter(b => b.copies > 0).length,
-    outOfStock: books.filter(b => b.copies <= 0).length,
+    inStock: books.filter(b => (b.available_copies ?? b.copies ?? 0) > 0).length,
+    outOfStock: books.filter(b => (b.available_copies ?? b.copies ?? 0) <= 0).length,
     categories: new Set(books.map(b => b.category)).size
   };
 
-  /** ✅ 表格列 */
   const columns = [
     { title: t("admin.bookId"), dataIndex: "_id", key: "_id", width: 200, ellipsis: true },
     { title: t("admin.title"), dataIndex: "title", key: "title", ellipsis: true },
     { title: t("admin.author"), dataIndex: "author", key: "author", ellipsis: true },
+    {
+      title: t("admin.isbn"),
+      dataIndex: "isbn",
+      key: "isbn",
+      width: 200,
+      ellipsis: true,
+      render: (isbn) => <AntText copyable>{isbn || "N/A"}</AntText>
+    },
     { 
       title: t("admin.category"), 
       dataIndex: "category", 
@@ -135,13 +142,22 @@ function AdminBookPage() {
     {
       title: t("admin.stock"),
       dataIndex: "copies",
-      key: "copies",
+      key: "stock",
       align: "center",
-      render: (copies) => (
-        <Tag color={copies > 0 ? "success" : "error"}>
-          {copies > 0 ? `${copies} ${t("admin.copies")}` : t("admin.outOfStock")}
-        </Tag>
-      ),
+      render: (_, record) => {
+        const available = record.available_copies ?? record.copies ?? 0;
+        const total =
+          record.total_copies ??
+          record.totalCopies ??
+          record.total ??
+          record.copies ??
+          0;
+        return (
+          <Tag color={available > 0 ? "success" : "error"}>
+            {`${available}/${total} ${t("admin.copies")}`}
+          </Tag>
+        );
+      },
     },
     {
       title: t("admin.actions"),
@@ -273,38 +289,47 @@ function AdminBookPage() {
             loading={loading}
             dataSource={filteredBooks}
             pagination={{ pageSize: 6 }}
-            renderItem={(item) => (
-              <List.Item style={{ padding: 0, marginBottom: 16 }}>
-                <Card 
-                  hoverable
-                  style={{ width: '100%', borderRadius: 12 }}
-                  actions={[
-                    <Popconfirm
-                      title={t("admin.confirmDelete")}
-                      onConfirm={() => handleDelete(item._id)}
-                      okText={t("common.confirm")}
-                      cancelText={t("admin.cancel")}
-                    >
-                      <Button danger type="text" icon={<DeleteOutlined />}>{t("admin.delete")}</Button>
-                    </Popconfirm>
-                  ]}
-                >
-                  <Card.Meta
-                    title={<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                      <span style={{fontWeight: 'bold', fontSize: '16px', maxWidth: '70%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{item.title}</span>
-                      <Tag color={item.copies > 0 ? "success" : "error"}>{item.copies > 0 ? t("admin.inStock") : t("admin.outOfStock")}</Tag>
-                    </div>}
-                    description={
-                      <div style={{ marginTop: 8 }}>
-                        <div style={{marginBottom: 4}}>👤 {t("admin.author")}: {item.author}</div>
-                        <div style={{marginBottom: 4}}>🏷️ {t("admin.category")}: {item.category}</div>
-                        <div>📦 {t("admin.stock")}: <span style={{color: item.copies > 0 ? token.colorSuccess : token.colorError, fontWeight: 'bold'}}>{item.copies}</span></div>
-                      </div>
-                    }
-                  />
-                </Card>
-              </List.Item>
-            )}
+            renderItem={(item) => {
+              const available = item.available_copies ?? item.copies ?? 0;
+              const total =
+                item.total_copies ??
+                item.totalCopies ??
+                item.total ??
+                item.copies ??
+                0;
+              return (
+                <List.Item style={{ padding: 0, marginBottom: 16 }}>
+                  <Card 
+                    hoverable
+                    style={{ width: '100%', borderRadius: 12 }}
+                    actions={[
+                      <Popconfirm
+                        title={t("admin.confirmDelete")}
+                        onConfirm={() => handleDelete(item._id)}
+                        okText={t("common.confirm")}
+                        cancelText={t("admin.cancel")}
+                      >
+                        <Button danger type="text" icon={<DeleteOutlined />}>{t("admin.delete")}</Button>
+                      </Popconfirm>
+                    ]}
+                  >
+                    <Card.Meta
+                      title={<div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <span style={{fontWeight: 'bold', fontSize: '16px', maxWidth: '70%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}}>{item.title}</span>
+                        <Tag color={available > 0 ? "success" : "error"}>{available > 0 ? t("admin.inStock") : t("admin.outOfStock")}</Tag>
+                      </div>}
+                      description={
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{marginBottom: 4}}>👤 {t("admin.author")}: {item.author}</div>
+                          <div style={{marginBottom: 4}}>🏷️ {t("admin.category")}: {item.category}</div>
+                          <div>📦 {t("admin.stock")}: <span style={{color: available > 0 ? token.colorSuccess : token.colorError, fontWeight: 'bold'}}>{`${available}/${total}`}</span></div>
+                        </div>
+                      }
+                    />
+                  </Card>
+                </List.Item>
+              );
+            }}
           />
         ) : (
           <Table

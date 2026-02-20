@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Typography, Button, Spin, theme, Row, Col, Empty, Grid } from "antd";
 import { 
   BookOutlined, 
@@ -26,6 +27,7 @@ const { useBreakpoint } = Grid;
 const AdminDashboard = () => {
   const { t } = useLanguage();
   const { token } = useToken();
+  const navigate = useNavigate();
   const screens = useBreakpoint();
   const isMobile = !screens.md;
   const [loading, setLoading] = useState(false);
@@ -61,7 +63,9 @@ const AdminDashboard = () => {
       ]);
 
       const books = booksRes.data || [];
-      const requests = reqRes.data || [];
+      const requests = (reqRes.data || []).slice().sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
       const borrowed = (borrowedRes.data || []).filter((r) => !r.returned);
 
       const pendingRequests = requests.filter((r) => (r.status || "").toLowerCase() === "pending").length;
@@ -207,7 +211,7 @@ const AdminDashboard = () => {
                   boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
                   borderColor: token.colorBorderSecondary,
                 }}
-                onClick={() => {}}
+                onClick={() => navigate("/admin/books")}
               >
                 Add Book
               </Button>
@@ -226,7 +230,7 @@ const AdminDashboard = () => {
                   boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
                   borderColor: token.colorBorderSecondary,
                 }}
-                onClick={() => {}}
+                onClick={() => navigate("/admin/users")}
               >
                 Users
               </Button>
@@ -245,7 +249,7 @@ const AdminDashboard = () => {
                   boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
                   borderColor: token.colorBorderSecondary,
                 }}
-                onClick={() => {}}
+                onClick={() => navigate("/admin/requests")}
               >
                 Approvals
               </Button>
@@ -264,7 +268,7 @@ const AdminDashboard = () => {
                   boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
                   borderColor: token.colorBorderSecondary,
                 }}
-                onClick={() => {}}
+                onClick={() => navigate("/admin/history")}
               >
                 Reports
               </Button>
@@ -277,7 +281,7 @@ const AdminDashboard = () => {
           <div className="editorial-card" style={{ padding: 24, height: '100%', minHeight: 400 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <Title level={4} style={{ margin: 0, fontFamily: "'Literata', serif" }}>Recent Requests</Title>
-              <Button type="link">View All</Button>
+              <Button type="link" onClick={() => navigate("/admin/requests")}>View All</Button>
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -288,9 +292,9 @@ const AdminDashboard = () => {
                     title={req.bookTitle || "Unknown Book"}
                     subtitle={`by ${req.userName || "Unknown User"}`}
                     status={req.status}
-                    date={new Date(req.requestDate).toLocaleDateString()}
+                    date={req.createdAt ? new Date(req.createdAt).toLocaleString() : ""}
                     actionLabel="Review"
-                    onAction={() => {}}
+                    onAction={() => navigate("/admin/requests")}
                   />
                 ))
               ) : (
