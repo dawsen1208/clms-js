@@ -123,6 +123,90 @@ function AdminBorrowHistory() {
     setFiltered(records);
   };
 
+  const handleExportReport = () => {
+    if (!filtered.length) {
+      message.warning(t("admin.noRecords") || "No matching records to export");
+      return;
+    }
+
+    const now = dayjs().format("YYYY-MM-DD HH:mm");
+    const header = `
+      <h1 style="text-align:center;">${t("admin.history")}</h1>
+      <p>Generated at: ${now}</p>
+      <p>Total records: ${filtered.length}</p>
+    `;
+
+    const tableHeader = `
+      <tr>
+        <th>Username</th>
+        <th>User ID</th>
+        <th>Book Title</th>
+        <th>Borrow Date</th>
+        <th>Due Date</th>
+        <th>Return Date</th>
+        <th>Renewed</th>
+        <th>Returned</th>
+      </tr>
+    `;
+
+    const tableRows = filtered
+      .map((r) => {
+        const borrowDate = r.borrowDate ? dayjs(r.borrowDate).format("YYYY-MM-DD") : "";
+        const dueDate = r.dueDate ? dayjs(r.dueDate).format("YYYY-MM-DD") : "";
+        const returnDate = r.returnDate ? dayjs(r.returnDate).format("YYYY-MM-DD") : "";
+        const renewed = r.renewed ? "Yes" : "No";
+        const returned = r.returned ? "Yes" : "No";
+        return `
+          <tr>
+            <td>${r.userName || ""}</td>
+            <td>${r.userId || ""}</td>
+            <td>${r.bookTitle || ""}</td>
+            <td>${borrowDate}</td>
+            <td>${dueDate}</td>
+            <td>${returnDate}</td>
+            <td>${renewed}</td>
+            <td>${returned}</td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8" />
+        <title>Borrow History Report</title>
+        <style>
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid #000; padding: 4px; font-size: 12px; }
+          th { background: #f0f0f0; }
+        </style>
+      </head>
+      <body>
+        ${header}
+        <table>
+          ${tableHeader}
+          ${tableRows}
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(["\ufeff", html], {
+      type: "application/msword",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const fileName = `borrow-history-report-${dayjs().format("YYYYMMDD-HHmmss")}.doc`;
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
     handleSearch();
   }, [handleSearch]); // Auto-filter on change
@@ -245,8 +329,11 @@ function AdminBorrowHistory() {
                 style={{ width: "100%" }}
               />
             </Col>
-            <Col xs={24} md={8} style={{ display: 'flex', gap: 8 }}>
-               <Button onClick={handleReset}>{t("admin.reset")}</Button>
+            <Col xs={24} md={8} style={{ display: "flex", gap: 8 }}>
+              <Button onClick={handleReset}>{t("admin.reset")}</Button>
+              <Button type="primary" onClick={handleExportReport}>
+                {t("admin.exportReport")}
+              </Button>
             </Col>
           </Row>
         </div>
