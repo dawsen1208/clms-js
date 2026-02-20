@@ -477,7 +477,7 @@ function ProfilePage() {
                 <Badge count={editing ? <EditOutlined style={{ color: '#fff' }} /> : 0} offset={[-10, 110]} style={{ backgroundColor: token.colorPrimary, width: 32, height: 32, lineHeight: '32px', fontSize: 16, borderRadius: '50%' }}>
                   <Avatar 
                     size={128} 
-                    src={user.avatar} 
+                    src={getCleanImageUrl(user.avatar)} 
                     icon={<UserOutlined style={{ fontSize: 48 }} />} 
                     style={{ 
                       backgroundColor: token.colorPrimary,

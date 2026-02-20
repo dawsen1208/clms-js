@@ -41,7 +41,9 @@ function AdminFeedbackPage() {
   const [loading, setLoading] = useState(false);
   const [feedbacks, setFeedbacks] = useState([]);
   const [replyModalVisible, setReplyModalVisible] = useState(false);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState(null);
+  const [detailFeedback, setDetailFeedback] = useState(null);
   const [replyContent, setReplyContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
@@ -70,6 +72,11 @@ function AdminFeedbackPage() {
     setCurrentFeedback(record);
     setReplyContent(record.adminReply || "");
     setReplyModalVisible(true);
+  };
+
+  const handleDetailClick = (record) => {
+    setDetailFeedback(record);
+    setDetailModalVisible(true);
   };
 
   const handleReplySubmit = async () => {
@@ -149,9 +156,14 @@ function AdminFeedbackPage() {
       ellipsis: {
         showTitle: false,
       },
-      render: (content) => (
+      render: (content, record) => (
         <Tooltip placement="topLeft" title={content}>
-          {content}
+          <span
+            style={{ cursor: "pointer", color: token.colorPrimary }}
+            onClick={() => handleDetailClick(record)}
+          >
+            {content}
+          </span>
         </Tooltip>
       ),
     },
@@ -288,6 +300,42 @@ function AdminFeedbackPage() {
           scroll={{ x: 800 }}
         />
       </Card>
+
+      <Modal
+        title={t("feedback.detailTitle")}
+        open={detailModalVisible}
+        onCancel={() => setDetailModalVisible(false)}
+        footer={
+          <Button type="primary" onClick={() => setDetailModalVisible(false)}>
+            {t("common.close")}
+          </Button>
+        }
+      >
+        {detailFeedback && (
+          <Space direction="vertical" style={{ width: "100%" }} size="middle">
+            <Card size="small" style={{ background: token.colorFillAlter }}>
+              <Space align="start">
+                {getTypeIcon(detailFeedback.type)}
+                <div>
+                  <AntText type="secondary" style={{ fontSize: 12 }}>
+                    {dayjs(detailFeedback.createdAt).format("YYYY-MM-DD HH:mm")} -{" "}
+                    {detailFeedback.userName || "Unknown"} ({detailFeedback.email || "N/A"})
+                  </AntText>
+                  <Paragraph style={{ margin: "4px 0 0 0" }}>
+                    {detailFeedback.content}
+                  </Paragraph>
+                </div>
+              </Space>
+            </Card>
+            <Card size="small">
+              <AntText strong>{t("feedback.adminReply")}:</AntText>
+              <Paragraph style={{ marginTop: 8 }}>
+                {detailFeedback.adminReply || t("feedback.noReplyYet")}
+              </Paragraph>
+            </Card>
+          </Space>
+        )}
+      </Modal>
 
       <Modal
         title={
