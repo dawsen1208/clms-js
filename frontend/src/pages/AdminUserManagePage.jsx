@@ -145,55 +145,21 @@ const AdminUserManagePage = () => {
   };
 
   /* =========================================================
-     🚫 Handle Blacklist Toggle
+     🚫 Handle Blacklist Toggle (direct ban/unban)
      ========================================================= */
-  const handleBlacklistClick = (user) => {
-    if (user.isBlacklisted) {
-      Modal.confirm({
-        title: t("admin.confirmUnban") || "确认解除黑名单",
-        content: t("admin.unbanMessage") || `确定要将用户 ${user.name} 移出黑名单吗？`,
-        okText: t("common.confirm") || "确认",
-        cancelText: t("common.cancel") || "取消",
-        centered: true,
-        onOk: async () => {
-          try {
-            await toggleBlacklist(user.userId, false, "", authToken);
-            message.success(t("admin.successUnban") || "已解除黑名单");
-            fetchUsers();
-          } catch (e) {
-            console.error("Failed to unban user", e);
-            message.error(t("admin.operationFailed") || "操作失败");
-          }
-        }
-      });
-    } else {
-      let reason = "";
-      Modal.confirm({
-        title: t("admin.confirmBan") || "确认拉黑用户",
-        content: (
-           <div>
-             <p>{t("admin.banMessage") || `确定要将用户 ${user.name} 加入黑名单吗？`}</p>
-             <Input 
-               placeholder={t("admin.banReasonPlaceholder") || "请输入拉黑原因 (可选)"} 
-               onChange={(e) => reason = e.target.value} 
-               style={{ marginTop: 10 }}
-             />
-           </div>
-        ),
-        okText: t("common.confirm") || "确认",
-        cancelText: t("common.cancel") || "取消",
-        centered: true,
-        onOk: async () => {
-           try {
-             await toggleBlacklist(user.userId, true, reason, authToken);
-             message.success(t("admin.successBan") || "已加入黑名单");
-             fetchUsers();
-           } catch (e) {
-             console.error("Failed to ban user", e);
-             message.error(t("admin.operationFailed") || "操作失败");
-           }
-        }
-      });
+  const handleBlacklistClick = async (user) => {
+    const nextIsBlacklisted = !user.isBlacklisted;
+    try {
+      await toggleBlacklist(user.userId, nextIsBlacklisted, "", authToken);
+      if (nextIsBlacklisted) {
+        message.success(t("admin.successBan") || "已加入黑名单");
+      } else {
+        message.success(t("admin.successUnban") || "已解除黑名单");
+      }
+      fetchUsers();
+    } catch (e) {
+      console.error("Failed to toggle blacklist", e);
+      message.error(t("admin.operationFailed") || "操作失败");
     }
   };
 
