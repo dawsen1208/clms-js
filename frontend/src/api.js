@@ -351,6 +351,9 @@ export const getAllFeedback = (token) =>
 export const replyFeedback = (id, reply, token) =>
   API.put(`/feedback/${id}/reply`, { reply }, { headers: { Authorization: `Bearer ${token}` } });
 
+export const deleteFeedback = (id, token) =>
+  API.delete(`/feedback/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+
 // Notifications
 export const getNotifications = (token) =>
   API.get("/notifications", { headers: { Authorization: `Bearer ${token}` } });

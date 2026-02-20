@@ -93,6 +93,7 @@ const LoginPage = ({ onLogin }) => {
     } catch (err) {
       const backendMsg = err?.response?.data?.message || "";
       let key = "login.errorUnknown";
+      let extra = "";
 
       if (!backendMsg) {
         key = "login.errorUnknown";
@@ -102,6 +103,10 @@ const LoginPage = ({ onLogin }) => {
         key = "login.errorIncorrectPassword";
       } else if (backendMsg.includes("blacklisted")) {
         key = "login.errorBlacklisted";
+        const idx = backendMsg.indexOf("Reason:");
+        if (idx >= 0) {
+          extra = backendMsg.slice(idx + 7).trim();
+        }
       } else if (backendMsg.includes("pending approval")) {
         key = "login.errorPending";
       } else if (backendMsg.includes("rejected")) {
@@ -113,7 +118,9 @@ const LoginPage = ({ onLogin }) => {
       }
 
       setErrorKey(key);
-      message.error(t(key));
+      const baseMsg = t(key);
+      const finalMsg = extra ? `${baseMsg}：${extra}` : baseMsg;
+      message.error(finalMsg);
       setAnimStatus("error");
       setTimeout(() => {
         setAnimating(false);

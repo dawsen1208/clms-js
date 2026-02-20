@@ -77,4 +77,25 @@ router.put("/:id/reply", authMiddleware, requireAdmin, async (req, res) => {
     }
 });
 
+// Admin: Delete feedback
+router.delete("/:id", authMiddleware, requireAdmin, async (req, res) => {
+    try {
+        const feedback = await Feedback.findByIdAndDelete(req.params.id);
+        if (!feedback) {
+            return res.status(404).json({ message: "Feedback not found" });
+        }
+
+        try {
+            await Notification.deleteMany({ relatedId: feedback._id });
+        } catch (e) {
+            console.error("Feedback delete: notification cleanup error:", e);
+        }
+
+        res.json({ message: "Feedback deleted" });
+    } catch (err) {
+        console.error("Feedback delete error:", err);
+        res.status(500).json({ message: "Failed to delete feedback" });
+    }
+});
+
 export default router;

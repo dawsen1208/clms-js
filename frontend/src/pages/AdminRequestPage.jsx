@@ -27,8 +27,8 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
-  getAllRequestsLibrary as getAllRequests,
-  approveRequestLibrary as approveRequest,
+  getAllRequests,
+  approveRequest,
 } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";

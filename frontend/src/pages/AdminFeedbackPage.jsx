@@ -27,7 +27,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useLanguage } from "../contexts/LanguageContext";
-import { getAllFeedback, replyFeedback } from "../api";
+import { getAllFeedback, replyFeedback, deleteFeedback } from "../api";
 import PageShell from "../components/common/PageShell";
 import KPIStatCard from "../components/common/KPIStatCard";
 
@@ -90,6 +90,27 @@ function AdminFeedbackPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleDeleteClick = (record) => {
+    Modal.confirm({
+      title: t("feedback.deleteConfirm"),
+      content: t("feedback.deleteConfirmContent"),
+      okText: t("common.confirm"),
+      cancelText: t("common.cancel"),
+      okButtonProps: { danger: true },
+      centered: true,
+      onOk: async () => {
+        try {
+          await deleteFeedback(record._id, authToken);
+          message.success(t("feedback.deleteSuccess"));
+          fetchFeedbacks();
+        } catch (err) {
+          console.error("Delete feedback failed:", err);
+          message.error(t("feedback.deleteFailed"));
+        }
+      },
+    });
   };
 
   const getTypeIcon = (type) => {
@@ -169,16 +190,25 @@ function AdminFeedbackPage() {
     {
       title: t("feedback.action"),
       key: "action",
-      width: 100,
+      width: 180,
       render: (_, record) => (
-        <Button
-          type={record.status === "Unreplied" ? "primary" : "default"}
-          icon={<EditOutlined />}
-          size="small"
-          onClick={() => handleReplyClick(record)}
-        >
-          {record.status === "Unreplied" ? t("feedback.reply") : t("feedback.edit")}
-        </Button>
+        <Space>
+          <Button
+            type={record.status === "Unreplied" ? "primary" : "default"}
+            icon={<EditOutlined />}
+            size="small"
+            onClick={() => handleReplyClick(record)}
+          >
+            {record.status === "Unreplied" ? t("feedback.reply") : t("feedback.edit")}
+          </Button>
+          <Button
+            danger
+            size="small"
+            onClick={() => handleDeleteClick(record)}
+          >
+            {t("feedback.delete")}
+          </Button>
+        </Space>
       ),
     },
   ];
