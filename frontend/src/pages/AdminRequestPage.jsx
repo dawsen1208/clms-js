@@ -129,11 +129,8 @@ function AdminRequestPage() {
      🔍 Search / filter logic
      ========================================================= */
   useEffect(() => {
-    // 🔄 Auto-exit batch mode only when filters/search/data change
-    if (isBatchMode) {
-      setIsBatchMode(false);
-      setSelectedRowKeys([]);
-    }
+    setIsBatchMode(false);
+    setSelectedRowKeys([]);
 
     let data = [...requests];
     if (searchText.trim()) {

@@ -47,6 +47,8 @@ function AdminFeedbackPage() {
   const [replyContent, setReplyContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const authToken = sessionStorage.getItem("token") || localStorage.getItem("token");
 
@@ -100,24 +102,8 @@ function AdminFeedbackPage() {
   };
 
   const handleDeleteClick = (record) => {
-    Modal.confirm({
-      title: t("feedback.deleteConfirm"),
-      content: t("feedback.deleteConfirmContent"),
-      okText: t("common.confirm"),
-      cancelText: t("common.cancel"),
-      okButtonProps: { danger: true },
-      centered: true,
-      onOk: async () => {
-        try {
-          await deleteFeedback(record._id, authToken);
-          message.success(t("feedback.deleteSuccess"));
-          fetchFeedbacks();
-        } catch (err) {
-          console.error("Delete feedback failed:", err);
-          message.error(t("feedback.deleteFailed"));
-        }
-      },
-    });
+    setDeleteTarget(record);
+    setDeleteModalVisible(true);
   };
 
   const getTypeIcon = (type) => {
@@ -300,6 +286,38 @@ function AdminFeedbackPage() {
           scroll={{ x: 800 }}
         />
       </Card>
+
+      <Modal
+        title={t("feedback.deleteConfirm")}
+        open={deleteModalVisible}
+        onCancel={() => {
+          setDeleteModalVisible(false);
+          setDeleteTarget(null);
+        }}
+        okText={t("common.confirm")}
+        cancelText={t("common.cancel")}
+        okButtonProps={{ danger: true }}
+        centered
+        confirmLoading={submitting && deleteTarget != null}
+        onOk={async () => {
+          if (!deleteTarget) return;
+          try {
+            setSubmitting(true);
+            await deleteFeedback(deleteTarget._id, authToken);
+            message.success(t("feedback.deleteSuccess"));
+            setDeleteModalVisible(false);
+            setDeleteTarget(null);
+            fetchFeedbacks();
+          } catch (err) {
+            console.error("Delete feedback failed:", err);
+            message.error(t("feedback.deleteFailed"));
+          } finally {
+            setSubmitting(false);
+          }
+        }}
+      >
+        <Paragraph>{t("feedback.deleteConfirmContent")}</Paragraph>
+      </Modal>
 
       <Modal
         title={t("feedback.detailTitle")}
