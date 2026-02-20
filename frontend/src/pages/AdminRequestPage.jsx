@@ -129,7 +129,7 @@ function AdminRequestPage() {
      🔍 Search / filter logic
      ========================================================= */
   useEffect(() => {
-    // 🔄 Auto-exit batch mode on filter/search change
+    // 🔄 Auto-exit batch mode only when filters/search/data change
     if (isBatchMode) {
       setIsBatchMode(false);
       setSelectedRowKeys([]);
@@ -147,7 +147,7 @@ function AdminRequestPage() {
     if (filterStatus !== "all")
       data = data.filter((r) => r.status === filterStatus);
     setFiltered(data);
-  }, [searchText, filterType, filterStatus, requests, isBatchMode]);
+  }, [searchText, filterType, filterStatus, requests]);
 
   /* =========================================================
      ✅ Approve request (with instant refresh)

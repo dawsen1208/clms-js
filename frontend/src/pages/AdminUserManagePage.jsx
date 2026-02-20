@@ -152,6 +152,9 @@ const AdminUserManagePage = () => {
       Modal.confirm({
         title: t("admin.confirmUnban") || "确认解除黑名单",
         content: t("admin.unbanMessage") || `确定要将用户 ${user.name} 移出黑名单吗？`,
+        okText: t("common.confirm") || "确认",
+        cancelText: t("common.cancel") || "取消",
+        centered: true,
         onOk: async () => {
           try {
             await toggleBlacklist(user.userId, false, "", authToken);
@@ -177,6 +180,9 @@ const AdminUserManagePage = () => {
              />
            </div>
         ),
+        okText: t("common.confirm") || "确认",
+        cancelText: t("common.cancel") || "取消",
+        centered: true,
         onOk: async () => {
            try {
              await toggleBlacklist(user.userId, true, reason, authToken);

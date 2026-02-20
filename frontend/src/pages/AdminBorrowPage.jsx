@@ -71,6 +71,7 @@ function AdminBorrowPage() {
      🔍 Search logic
      ========================================================= */
   useEffect(() => {
+    // 🔄 Auto-exit batch mode only when search/data change
     if (isBatchMode) {
       setIsBatchMode(false);
       setSelectedRowKeys([]);
@@ -87,7 +88,7 @@ function AdminBorrowPage() {
       );
     }
     setFiltered(data);
-  }, [searchText, records, isBatchMode]);
+  }, [searchText, records]);
 
   /* =========================================================
      ↩️ Handle Return
