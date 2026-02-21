@@ -29,6 +29,7 @@ export const SettingsLeftPanel = () => {
     { key: "appearance", icon: <BgColorsOutlined />, label: t("settings.appearance") },
     { key: "accessibility", icon: <RobotOutlined />, label: t("settings.accessibility") || "Accessibility" },
     { key: "notifications", icon: <BellOutlined />, label: t("settings.notifications") || "Notifications" },
+    { key: "borrowing", icon: <CalendarOutlined />, label: t("settings.borrowing") },
     { key: "account", icon: <LockOutlined />, label: t("settings.account") || "Account" },
     { key: "recommend", icon: <TagsOutlined />, label: t("settings.recommendation") || "Recommendation" },
     { key: "operation", icon: <AppstoreOutlined />, label: t("settings.operation") || "Operation" },
