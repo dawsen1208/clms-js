@@ -249,6 +249,7 @@ export const translations = {
       renewalLimit: "Renewal date cannot exceed 30 days after original due date",
       renewalSubmitted: "Renewal request submitted, awaiting admin approval",
       returnSubmitted: "Return request submitted, awaiting admin approval",
+      pendingRenewNotice: "You have {count} pending renew request(s)",
       notFound: "Borrow record not found",
       invalidId: "Invalid book ID",
       submitFailed: "Failed to submit request, please try again later",
@@ -1224,6 +1225,7 @@ export const translations = {
       renewalLimit: "续借日期不能超过原到期日后30天",
       renewalSubmitted: "续借申请已提交，等待管理员批准",
       returnSubmitted: "归还申请已提交，等待管理员批准",
+      pendingRenewNotice: "你有 {count} 条待审批续借申请",
       notFound: "借阅记录未找到",
       invalidId: "无效的书籍ID",
       submitFailed: "提交申请失败，请稍后再试"

@@ -99,7 +99,11 @@ const useBorrowData = () => {
   };
 
   const getRequestStatus = (bookId) => {
-    const req = pendingRequests.find(r => r.bookId === bookId && r.status === 'pending');
+    if (!bookId) return null;
+    const targetId = String(bookId);
+    const req = pendingRequests.find(
+      (r) => String(r.bookId) === targetId && r.status === "pending"
+    );
     return req ? req.type : null; // 'renew' or 'return'
   };
 
@@ -112,9 +116,14 @@ const useBorrowData = () => {
     if (!selectedBook) return;
     try {
       const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+      const bookId =
+        selectedBook.bookId ||
+        selectedBook.book_id ||
+        selectedBook.id ||
+        selectedBook._id;
       await requestRenewLibrary({
         type: 'renew',
-        bookId: selectedBook._id || selectedBook.id,
+        bookId,
         bookTitle: selectedBook.title
       }, token);
       
@@ -139,8 +148,9 @@ const useBorrowData = () => {
   const stats = useMemo(() => {
     const total = borrowedBooks.length;
     const pending = pendingRequests.filter(r => r.status === 'pending').length;
+    const pendingRenew = pendingRequests.filter(r => r.status === 'pending' && r.type === 'renew').length;
     const overdue = borrowedBooks.filter(b => getDaysLeft(b.borrowDate, b.dueDate) < 0).length;
-    return { total, pending, overdue };
+    return { total, pending, overdue, pendingRenew };
   }, [borrowedBooks, pendingRequests]);
 
   return {
@@ -169,9 +179,9 @@ export const BorrowLeftPanel = () => {
     token,
     loading,
     borrowedBooks,
-    pendingRequests,
     stats,
     navigate,
+    getRequestStatus,
   } = useBorrowData();
 
   const sampleBook = borrowedBooks[0];
@@ -245,11 +255,9 @@ export const BorrowLeftPanel = () => {
               compact
               book={{
                 ...sampleBook,
-                pendingType: pendingRequests.find(
-                  (r) =>
-                    r.bookId === (sampleBook.bookId || sampleBook._id || sampleBook.id) &&
-                    r.status === "pending"
-                )?.type,
+                pendingType: getRequestStatus(
+                  sampleBook.bookId || sampleBook._id || sampleBook.id
+                ),
               }}
             />
           </Card>
@@ -266,6 +274,7 @@ export const BorrowRightPanel = () => {
     contextHolder,
     loading,
     borrowedBooks,
+    stats,
     renewModalOpen,
     selectedBook,
     setRenewModalOpen,
@@ -284,6 +293,16 @@ export const BorrowRightPanel = () => {
       ]}
     >
       {contextHolder}
+
+      {stats.pendingRenew > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <Typography.Text type="warning">
+            {t("borrow.pendingRenewNotice", {
+              count: stats.pendingRenew,
+            })}
+          </Typography.Text>
+        </div>
+      )}
 
       <Section title={t("titles.currentBorrowings") || "Active Loans"} style={{ marginTop: 0 }}>
         {loading ? (

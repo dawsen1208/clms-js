@@ -56,6 +56,10 @@ const borrowRecordSchema = new mongoose.Schema(
 */
 borrowRecordSchema.index({ userId: 1, bookId: 1, returned: 1 });
 
+// 时间相关索引，便于按时间排序查询
+borrowRecordSchema.index({ createdAt: 1 });
+borrowRecordSchema.index({ borrowedAt: 1 });
+
 /* =========================================================
    🧠 辅助静态方法（统一 ID 匹配逻辑）
    =========================================================
