@@ -8,7 +8,9 @@ import {
   Skeleton,
   theme,
   Button,
-  Card
+  Card,
+  InputNumber,
+  Space
 } from "antd";
 import { 
   ClockCircleOutlined, 
@@ -46,6 +48,7 @@ const useBorrowData = () => {
   // Modals
   const [renewModalOpen, setRenewModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [renewDays, setRenewDays] = useState(7);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -109,10 +112,11 @@ const useBorrowData = () => {
 
   const handleRenewClick = (book) => {
     setSelectedBook(book);
+    setRenewDays(7);
     setRenewModalOpen(true);
   };
 
-  const submitRenew = async () => {
+  const submitRenew = async (days = 7) => {
     if (!selectedBook) return;
     try {
       const token = sessionStorage.getItem("token") || localStorage.getItem("token");
@@ -124,7 +128,8 @@ const useBorrowData = () => {
       await requestRenewLibrary({
         type: 'renew',
         bookId,
-        bookTitle: selectedBook.title
+        bookTitle: selectedBook.title,
+        days
       }, token);
       
       message.success("Renew request submitted successfully");
@@ -170,6 +175,8 @@ const useBorrowData = () => {
     handleRenewClick,
     submitRenew,
     getRequestStatus,
+    renewDays,
+    setRenewDays,
   };
 };
 
@@ -281,6 +288,8 @@ export const BorrowRightPanel = () => {
     handleRenewClick,
     submitRenew,
     getRequestStatus,
+    renewDays,
+    setRenewDays,
   } = useBorrowData();
 
   return (
@@ -335,7 +344,7 @@ export const BorrowRightPanel = () => {
       <Modal
         title="Renew Book"
         open={renewModalOpen}
-        onOk={submitRenew}
+        onOk={() => submitRenew(renewDays)}
         onCancel={() => setRenewModalOpen(false)}
         okText="Confirm Renewal"
         centered
@@ -344,7 +353,24 @@ export const BorrowRightPanel = () => {
           Would you like to request a renewal for{" "}
           <strong>{selectedBook?.title}</strong>?
         </p>
-        <p>This will extend the due date by 7 days pending approval.</p>
+        <div style={{ marginTop: 8 }}>
+          <Space align="center" style={{ width: '100%', justifyContent: 'space-between' }}>
+            <Typography.Text strong>
+              {t("borrow.renewDaysLabel") || "Renewal days"}
+            </Typography.Text>
+            <div>
+              <InputNumber
+                min={1}
+                max={30}
+                value={renewDays}
+                onChange={(v) => setRenewDays(Number(v || 7))}
+              />
+              <Typography.Text type="secondary" style={{ marginLeft: 8 }}>
+                {t("borrow.renewDaysDesc") || "Choose how many extra days you want to renew (1-30)"}
+              </Typography.Text>
+            </div>
+          </Space>
+        </div>
       </Modal>
     </EditorialPageShell>
   );

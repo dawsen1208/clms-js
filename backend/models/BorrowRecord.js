@@ -166,15 +166,16 @@ borrowRecordSchema.methods.getDaysRemaining = function() {
   return diffDays;
 };
 
-// 续借
+// 续借：在原 dueDate 的基础上顺延指定天数（默认 30）
 borrowRecordSchema.methods.renew = function(days = 30) {
   this.renewed = true;
   this.renewedAt = new Date();
   this.renewCount += 1;
   
-  // 延长到期日期
-  const newDueDate = new Date();
-  newDueDate.setDate(newDueDate.getDate() + days);
+  // 延长到期日期（以当前记录的 dueDate 为基准）
+  const base = this.dueDate ? new Date(this.dueDate) : new Date();
+  const newDueDate = new Date(base.getTime());
+  newDueDate.setDate(newDueDate.getDate() + Number(days || 0));
   this.dueDate = newDueDate;
   
   return this.save();

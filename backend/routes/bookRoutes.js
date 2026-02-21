@@ -763,6 +763,16 @@ router.post("/borrow/:id", authMiddleware, async (req, res) => {
 router.post("/request", authMiddleware, async (req, res) => {
   try {
     const { type, bookId, bookTitle, bookAuthor } = req.body || {};
+    // 支持自选续借天数（1-30），默认 7
+    let { days } = req.body || {};
+    if (type === "renew") {
+      const d = Number(days);
+      if (Number.isFinite(d)) {
+        days = Math.max(1, Math.min(30, Math.round(d)));
+      } else {
+        days = 7;
+      }
+    }
     const userId = req.user.userId || req.user.id;
     const userName = req.user.name || "未知用户";
 
@@ -799,6 +809,7 @@ router.post("/request", authMiddleware, async (req, res) => {
       bookAuthor: finalBookAuthor,
       type,
       status: "pending",
+      ...(type === "renew" ? { days } : {}),
     });
 
     res.json({ message: "申请已提交，等待管理员审核", request });

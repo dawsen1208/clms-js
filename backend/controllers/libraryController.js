@@ -77,7 +77,10 @@ export const approveRequestLibrary = async (req, res) => {
 
     // ✅ 更新记录逻辑
     if (request.type === "renew") {
-      await record.renew(); // 使用模型的renew方法
+      const desiredDays = Number(request?.days) && Number(request.days) >= 1 && Number(request.days) <= 30
+        ? Math.round(Number(request.days))
+        : 7;
+      await record.renew(desiredDays); // 使用模型的 renew 方法（从原 dueDate 顺延）
       
       // 📝 创建续借历史记录
       await BorrowHistory.create({
@@ -90,7 +93,7 @@ export const approveRequestLibrary = async (req, res) => {
         dueDate: record.dueDate, // 更新后的到期日期
         isRenewed: true,
         userName: request.userName,
-        renewCount: record.renewCount + 1,
+        renewCount: record.renewCount,
       });
       
     } else if (request.type === "return") {

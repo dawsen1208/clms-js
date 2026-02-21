@@ -47,6 +47,9 @@ const borrowRequestSchema = new mongoose.Schema(
 
     // 🧭 审批时间（自动填充）
     handledAt: { type: Date, default: null },
+    
+    // ⏳ 续借天数（可选，默认 7 天；仅 type=renew 有意义）
+    days: { type: Number, min: 1, max: 30, default: 7 },
   },
   {
     timestamps: true,
