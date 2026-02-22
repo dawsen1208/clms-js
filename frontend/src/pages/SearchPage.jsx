@@ -99,6 +99,17 @@ const computeStock = (b) => {
   };
 };
 
+const normalizeText = (value) => {
+  if (!value) return "";
+  const s = String(value);
+  const normalized = s.normalize ? s.normalize("NFKC") : s;
+  return normalized
+    .toLowerCase()
+    .replace(/[\s\u00A0]+/g, " ")
+    .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "")
+    .trim();
+};
+
 const mergeDuplicateBooks = (books) => {
   if (!Array.isArray(books)) return [];
   const map = new Map();
@@ -107,17 +118,40 @@ const mergeDuplicateBooks = (books) => {
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
   };
+  const normalizeCover = (book) => {
+    const raw =
+      book.coverImage || book.cover_image || book.cover || "";
+    if (!raw) return "";
+    const cleaned = getCleanImageUrl(raw) || raw;
+    const base = cleaned.split("?")[0];
+    return base.toLowerCase();
+  };
+
   const buildKey = (book) => {
     const rawIsbn = typeof book.isbn === "string" ? book.isbn.trim() : "";
     if (rawIsbn) return `isbn:${rawIsbn}`;
-    const title = (book.title || "").trim().toLowerCase();
-    const author = (book.author || "").trim().toLowerCase();
+    const title = normalizeText(book.title);
+    const author = normalizeText(book.author);
     if (title && author) return `ta:${title}|${author}`;
-    const cover =
-      (book.coverImage || book.cover_image || book.cover || "").trim();
+    const cover = normalizeCover(book);
     if (cover && author) return `ca:${cover}|${author}`;
     return null;
   };
+
+  const applyStockAggregation = (target, book) => {
+    const { available, total } = computeStock(book);
+    const prevAvail = toNumber(target._aggAvailable);
+    const prevTotal = toNumber(target._aggTotal);
+    const nextAvail = prevAvail + toNumber(available);
+    const nextTotal = prevTotal + toNumber(total);
+    target._aggAvailable = nextAvail;
+    target._aggTotal = nextTotal;
+    target.available_copies = nextAvail;
+    target.total_copies = nextTotal;
+    target.copies = nextAvail;
+    target.totalCopies = nextTotal;
+  };
+
   for (const book of books) {
     if (!book) continue;
     const key = buildKey(book);
@@ -127,20 +161,13 @@ const mergeDuplicateBooks = (books) => {
     }
     const existing = map.get(key);
     if (!existing) {
-      map.set(key, { ...book });
+      const base = { ...book };
+      applyStockAggregation(base, book);
+      map.set(key, base);
       continue;
     }
     const merged = existing;
-    const copiesA = toNumber(merged.copies);
-    const copiesB = toNumber(book.copies);
-    merged.copies = copiesA + copiesB;
-    const totalA = toNumber(
-      merged.totalCopies != null ? merged.totalCopies : merged.copies
-    );
-    const totalB = toNumber(
-      book.totalCopies != null ? book.totalCopies : book.copies
-    );
-    merged.totalCopies = totalA + totalB;
+    applyStockAggregation(merged, book);
     const borrowCountA = toNumber(merged.borrowCount);
     const borrowCountB = toNumber(book.borrowCount);
     merged.borrowCount = borrowCountA + borrowCountB;

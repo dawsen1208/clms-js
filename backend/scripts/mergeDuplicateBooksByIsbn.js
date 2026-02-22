@@ -14,7 +14,7 @@ const toNumber = (v) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-const mergeGroup = async (isbn, ids) => {
+const mergeGroup = async (label, ids) => {
   const books = await Book.find({ _id: { $in: ids } }).sort({ createdAt: 1 });
   if (!books.length) return;
 
@@ -75,8 +75,35 @@ const mergeGroup = async (isbn, ids) => {
   }
 
   console.log(
-    `Merged ISBN ${isbn} into book ${primary._id.toString()}, totalCopies=${primary.totalCopies}, copies=${primary.copies}`
+    `Merged group ${label} into book ${primary._id.toString()}, totalCopies=${primary.totalCopies}, copies=${primary.copies}`
   );
+};
+
+const normalizeText = (value) => {
+  if (!value) return "";
+  const s = String(value);
+  const normalized = s.normalize ? s.normalize("NFKC") : s;
+  return normalized
+    .toLowerCase()
+    .replace(/[\s\u00A0]+/g, " ")
+    .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g, "")
+    .trim();
+};
+
+const normalizeCover = (book) => {
+  const raw = book.coverImage || book.cover_image || book.cover || "";
+  if (!raw) return "";
+  const base = String(raw).split("?")[0];
+  return base.toLowerCase();
+};
+
+const buildMetaKey = (book) => {
+  const title = normalizeText(book.title);
+  const author = normalizeText(book.author);
+  const cover = normalizeCover(book);
+  if (title && author) return `ta:${title}|${author}`;
+  if (cover && author) return `ca:${cover}|${author}`;
+  return null;
 };
 
 const main = async () => {
@@ -88,24 +115,43 @@ const main = async () => {
     { $match: { count: { $gt: 1 } } }
   ]);
 
-  if (!groups.length) {
+  if (groups.length) {
+    console.log(`Found ${groups.length} ISBN groups with duplicates.`);
+    for (const group of groups) {
+      await mergeGroup(`isbn:${group._id}`, group.ids);
+    }
+  } else {
     console.log("No duplicate ISBN groups found.");
-    await mongoose.disconnect();
-    return;
   }
 
-  console.log(`Found ${groups.length} ISBN groups with duplicates.`);
+  const allBooks = await Book.find({});
+  const metaMap = new Map();
+  for (const book of allBooks) {
+    const key = buildMetaKey(book);
+    if (!key) continue;
+    const list = metaMap.get(key) || [];
+    list.push(book._id);
+    metaMap.set(key, list);
+  }
 
-  for (const group of groups) {
-    await mergeGroup(group._id, group.ids);
+  const metaGroups = Array.from(metaMap.entries()).filter(
+    ([, ids]) => ids.length > 1
+  );
+
+  if (metaGroups.length) {
+    console.log(`Found ${metaGroups.length} metadata groups with duplicates.`);
+    for (const [key, ids] of metaGroups) {
+      await mergeGroup(key, ids);
+    }
+  } else {
+    console.log("No metadata-based duplicate groups found.");
   }
 
   await mongoose.disconnect();
-  console.log("Finished merging duplicate books by ISBN.");
+  console.log("Finished merging duplicate books.");
 };
 
 main().catch((err) => {
   console.error(err);
   process.exitCode = 1;
 });
-
