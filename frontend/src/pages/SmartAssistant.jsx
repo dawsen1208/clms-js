@@ -573,33 +573,80 @@ function SmartAssistant() {
               <Spin size="large" style={{ display: "block", margin: "2rem auto" }} />
             ) : (
               resultsWithCustomScore.length > 0 ? (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 16 }}>
-                  <Table
-                    rowKey={(row) => row.book?._id || row.book?.id || row.book?.title}
-                    dataSource={resultsWithCustomScore}
-                    columns={metricsColumns}
-                    pagination={{ pageSize: 6 }}
-                    bordered
-                  />
-                  <div>
-                    <Space direction="vertical" style={{ width: 360 }}>
-                      <Space align="center" style={{ justifyContent: "space-between" }}>
-                        <Typography.Text strong>{t("assistant.radarMode")}</Typography.Text>
-                        <Radio.Group
-                          value={radarMode}
-                          onChange={(e) => setRadarMode(e.target.value)}
-                          options={[
-                            { label: t("assistant.defaultWeights"), value: "default" },
-                            { label: t("assistant.customWeights"), value: "custom" },
-                          ]}
-                          optionType="button"
-                          buttonStyle="solid"
-                        />
+                isMobile ? (
+                  <Space direction="vertical" size={16} style={{ width: "100%" }}>
+                    <Table
+                      rowKey={(row) => row.book?._id || row.book?.id || row.book?.title}
+                      dataSource={resultsWithCustomScore}
+                      columns={metricsColumns}
+                      pagination={{ pageSize: 6 }}
+                      bordered
+                      scroll={{ x: true }}
+                    />
+                    <Card
+                      size="small"
+                      style={{ borderRadius: 10 }}
+                      bodyStyle={{ padding: 16 }}
+                    >
+                      <Space direction="vertical" style={{ width: "100%" }}>
+                        <Space align="center" style={{ justifyContent: "space-between" }}>
+                          <Typography.Text strong>{t("assistant.radarMode")}</Typography.Text>
+                          <Radio.Group
+                            value={radarMode}
+                            onChange={(e) => setRadarMode(e.target.value)}
+                            options={[
+                              { label: t("assistant.defaultWeights"), value: "default" },
+                              { label: t("assistant.customWeights"), value: "custom" },
+                            ]}
+                            optionType="button"
+                            buttonStyle="solid"
+                          />
+                        </Space>
+                        <RadarChart series={radarSeries} size={280} />
                       </Space>
-                      <RadarChart series={radarSeries} size={360} />
-                    </Space>
+                    </Card>
+                  </Space>
+                ) : (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "minmax(0, 1.6fr) minmax(320px, 0.9fr)",
+                      gap: 24,
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <Table
+                      rowKey={(row) => row.book?._id || row.book?.id || row.book?.title}
+                      dataSource={resultsWithCustomScore}
+                      columns={metricsColumns}
+                      pagination={{ pageSize: 6 }}
+                      bordered
+                      scroll={{ x: true }}
+                    />
+                    <Card
+                      size="small"
+                      style={{ borderRadius: 10 }}
+                      bodyStyle={{ padding: 16 }}
+                    >
+                      <Space direction="vertical" style={{ width: 360 }}>
+                        <Space align="center" style={{ justifyContent: "space-between" }}>
+                          <Typography.Text strong>{t("assistant.radarMode")}</Typography.Text>
+                          <Radio.Group
+                            value={radarMode}
+                            onChange={(e) => setRadarMode(e.target.value)}
+                            options={[
+                              { label: t("assistant.defaultWeights"), value: "default" },
+                              { label: t("assistant.customWeights"), value: "custom" },
+                            ]}
+                            optionType="button"
+                            buttonStyle="solid"
+                          />
+                        </Space>
+                        <RadarChart series={radarSeries} size={360} />
+                      </Space>
+                    </Card>
                   </div>
-                </div>
+                )
               ) : (
                 <Collapse defaultActiveKey={[]}>
                   <Collapse.Panel header={t("assistant.currentSelection")} key="selection">
