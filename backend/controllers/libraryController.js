@@ -266,13 +266,12 @@ export const rejectRequestLibrary = async (req, res) => {
       return res.status(400).json({ message: "该申请已处理" });
     }
 
-    const { reason } = req.body;
-    if (!reason || reason.trim() === "") {
-      return res.status(400).json({ message: "请提供拒绝理由" });
-    }
+    const { reason } = req.body || {};
+    const finalReason =
+      typeof reason === "string" && reason.trim() !== "" ? reason.trim() : "";
 
     request.status = "rejected";
-    request.reason = reason.trim();
+    request.reason = finalReason;
     request.handledAt = new Date();
     await request.save();
 

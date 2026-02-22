@@ -20,7 +20,8 @@
     "covers:fix-invalid": "node scripts/fixInvalidOpenLibraryCovers.js",
     "covers:purge-no-cover": "node scripts/purgeBooksWithoutCover.js",
     "users:approve-pending": "node scripts/approvePendingUsers.js",
-    "fix:borrow-new-users": "node scripts/fixBorrowRecordsForNewUsers.js"
+    "fix:borrow-new-users": "node scripts/fixBorrowRecordsForNewUsers.js",
+    "books:dedupe-isbn": "node scripts/mergeDuplicateBooksByIsbn.js"
   },
   "engines": {
     "node": ">=24 <25"

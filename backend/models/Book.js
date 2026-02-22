@@ -86,6 +86,7 @@ bookSchema.index({ title: 1, author: 1 });
 bookSchema.index({ category: 1, borrowCount: -1 });
 bookSchema.index({ status: 1, copies: 1 });
 bookSchema.index({ "reviews.userId": 1 });
+bookSchema.index({ isbn: 1 }, { unique: true, sparse: true });
 
 // ✅ 添加实例方法
 bookSchema.methods.isAvailable = function() {
