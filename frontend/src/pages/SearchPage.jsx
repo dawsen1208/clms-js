@@ -99,26 +99,35 @@ const computeStock = (b) => {
   };
 };
 
-const dedupeBooksByIsbn = (books) => {
+const mergeDuplicateBooks = (books) => {
   if (!Array.isArray(books)) return [];
-  const byIsbn = new Map();
-  const noIsbn = [];
+  const map = new Map();
+  const standalone = [];
   const toNumber = (v) => {
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
   };
+  const buildKey = (book) => {
+    const rawIsbn = typeof book.isbn === "string" ? book.isbn.trim() : "";
+    if (rawIsbn) return `isbn:${rawIsbn}`;
+    const title = (book.title || "").trim().toLowerCase();
+    const author = (book.author || "").trim().toLowerCase();
+    if (title && author) return `ta:${title}|${author}`;
+    const cover =
+      (book.coverImage || book.cover_image || book.cover || "").trim();
+    if (cover && author) return `ca:${cover}|${author}`;
+    return null;
+  };
   for (const book of books) {
     if (!book) continue;
-    const rawIsbn =
-      typeof book.isbn === "string" ? book.isbn.trim() : "";
-    if (!rawIsbn) {
-      noIsbn.push(book);
+    const key = buildKey(book);
+    if (!key) {
+      standalone.push(book);
       continue;
     }
-    const key = rawIsbn;
-    const existing = byIsbn.get(key);
+    const existing = map.get(key);
     if (!existing) {
-      byIsbn.set(key, { ...book });
+      map.set(key, { ...book });
       continue;
     }
     const merged = existing;
@@ -145,9 +154,9 @@ const dedupeBooksByIsbn = (books) => {
     if (!merged.coverImageSet && book.coverImageSet) merged.coverImageSet = book.coverImageSet;
     if (!merged.publisher && book.publisher) merged.publisher = book.publisher;
     if (!merged.publishDate && book.publishDate) merged.publishDate = book.publishDate;
-    byIsbn.set(key, merged);
+    map.set(key, merged);
   }
-  return [...noIsbn, ...byIsbn.values()];
+  return [...standalone, ...map.values()];
 };
 
 const filterAndSortBooksFromParams = (books, params) => {
@@ -258,7 +267,7 @@ const SearchPage = () => {
     try {
       const res = await getBooks();
       const data = res.data || [];
-      const deduped = dedupeBooksByIsbn(data);
+      const deduped = mergeDuplicateBooks(data);
       setBooks(deduped);
       setFilteredBooks(deduped);
     } catch {
@@ -576,7 +585,7 @@ export const SearchLeftPanel = () => {
         const res = await getBooks();
         if (!mounted) return;
         const data = res.data || [];
-        const deduped = dedupeBooksByIsbn(data);
+        const deduped = mergeDuplicateBooks(data);
         setBooks(deduped);
       } catch (e) {
         void e;
@@ -837,7 +846,7 @@ export const SearchRightPanel = () => {
         const res = await getBooks();
         if (!mounted) return;
         const data = res.data || [];
-        const deduped = dedupeBooksByIsbn(data);
+        const deduped = mergeDuplicateBooks(data);
         setBooks(deduped);
       } finally {
         setLoading(false);
