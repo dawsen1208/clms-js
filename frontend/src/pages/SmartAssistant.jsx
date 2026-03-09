@@ -35,7 +35,7 @@ import {
   getBooks,
   borrowBook,
 } from "../api";
-import { getBookComparison, getBooksLibrary } from "../api.js";
+import { getBookComparison, getBooks } from "../api.js";
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
 import RadarChart from "../components/RadarChart.jsx";
 import { Link, useNavigate } from "react-router-dom";
@@ -193,8 +193,7 @@ function SmartAssistant() {
 
   const fetchAllBooks = useCallback(async () => {
     try {
-      // 优先 /library 路由，兼容旧 /books
-      const res = await getBooksLibrary().catch(() => getBooks());
+      const res = await getBooks();
       const list = res?.data || [];
       setAllBooks(list);
       setFilteredBooks(list);
