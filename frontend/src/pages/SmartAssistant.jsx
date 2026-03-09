@@ -32,7 +32,6 @@ import {
 } from "@ant-design/icons";
 import {
   getRecommendations,
-  getBooks,
   borrowBook,
 } from "../api";
 import { getBookComparison, getBooks } from "../api.js";
