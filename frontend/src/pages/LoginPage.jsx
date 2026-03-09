@@ -3,7 +3,7 @@
  * Login Page
  * Handles user authentication with 2FA support and role-based redirection.
  */
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Form, Input, Button, Checkbox, Typography, message, theme, Grid, Layout, Space, Modal } from "antd";
 import { UserOutlined, LockOutlined, ArrowRightOutlined, GlobalOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";

@@ -34,7 +34,7 @@ import {
   getRecommendations,
   borrowBook,
 } from "../api";
-import { getBookComparison, getBooks } from "../api.js";
+import { getBookComparison, getBooks } from "../api";
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
 import RadarChart from "../components/RadarChart.jsx";
 import { Link, useNavigate } from "react-router-dom";

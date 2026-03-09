@@ -28,7 +28,7 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useLanguage } from "../contexts/LanguageContext";
-import { submitFeedback, getMyFeedback } from "../api";
+import { submitFeedback, getUserFeedback } from "../api";
 import PageContainer from "../components/common/PageContainer";
 import PageHeader from "../components/common/PageHeader";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
@@ -48,7 +48,7 @@ export const FeedbackLeftPanel = () => {
     if (!tokenAuth) return;
     try {
       setLoading(true);
-      const res = await getMyFeedback(tokenAuth);
+      const res = await getUserFeedback();
       setFeedbacks(res.data || []);
     } catch (err) {
       console.error("Failed to fetch feedback overview:", err);
@@ -195,7 +195,7 @@ function FeedbackPage() {
     if (!tokenAuth) return;
     try {
       setLoading(true);
-      const res = await getMyFeedback(tokenAuth);
+      const res = await getUserFeedback();
       setFeedbacks(res.data || []);
     } catch (err) {
       console.error("Failed to fetch feedback:", err);
@@ -223,7 +223,7 @@ function FeedbackPage() {
 
     try {
       setSubmitting(true);
-      await submitFeedback(content, type, tokenAuth);
+      await submitFeedback(content);
       message.success(t("feedback.submitSuccess"));
       setContent("");
       setType("suggestion");

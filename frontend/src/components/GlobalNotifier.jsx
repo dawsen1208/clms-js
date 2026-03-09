@@ -190,7 +190,7 @@ function GlobalNotifier() {
     } catch (err) {
       console.error("Refresh notifications failed:", err);
     }
-  }, [token, notifEnabled]);
+  }, [token, notifEnabled, refreshNotifications]);
 
   /* =========================================================
      ⏱️ Polling (refresh every 60s)
@@ -198,15 +198,15 @@ function GlobalNotifier() {
   useEffect(() => {
     if (!token || !notifEnabled) return;
     // 首次进入立刻拉取
-    fetchNotifications();
+    refreshNotifications();
 
     // 缩短轮询间隔至 15s，加快提醒触达
-    const timer = setInterval(fetchNotifications, 15000);
+    const timer = setInterval(refreshNotifications, 15000);
 
     // 在窗口重新获得焦点或页面从隐藏变为可见时，立即刷新一次
-    const onFocus = () => fetchNotifications();
+    const onFocus = () => refreshNotifications();
     const onVisibility = () => {
-      if (document.visibilityState === "visible") fetchNotifications();
+      if (document.visibilityState === "visible") refreshNotifications();
     };
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisibility);
@@ -216,7 +216,7 @@ function GlobalNotifier() {
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [token, notifEnabled, fetchNotifications]);
+  }, [token, notifEnabled, refreshNotifications]);
 
   /* =========================================================
      📨 Open detail modal

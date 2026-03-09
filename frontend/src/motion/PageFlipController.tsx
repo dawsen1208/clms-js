@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { Grid } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Variants } from "framer-motion";
 import { useMotionEnabled } from "./useMotionEnabled";
 import { CornerFoldOverlay } from "./CornerFoldOverlay";
 import "./pageFlip.css";
@@ -113,9 +114,9 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
     }, 600);
   }, [routeKey, prevKey, left, right, displayLeft, displayRight, use3D]);
 
-  const flipVariants = useMemo(
+  const flipVariants = useMemo<Variants>(
     () => ({
-      initial: (dir: Direction) =>
+      initial: (dir: any) =>
         dir === "none"
           ? { rotateY: 0, opacity: 0 }
           : {
@@ -124,7 +125,7 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
               skewY: 0,
               rotateZ: 0,
             },
-      animate: (dir: Direction) =>
+      animate: (dir: any) =>
         dir === "none"
           ? {
               rotateY: 0,
@@ -151,17 +152,17 @@ export const PageFlipController: React.FC<PageFlipControllerProps> = ({
     []
   );
 
-  const fadeVariants = {
-    initial: (dir: Direction) => ({
+  const fadeVariants: Variants = {
+    initial: (dir: any) => ({
       opacity: 0,
       x: dir === "right" ? 32 : dir === "left" ? -32 : 0,
     }),
-    animate: (dir: Direction) => ({
+    animate: (dir: any) => ({
       opacity: 1,
       x: 0,
       transition: { duration: 0.18, ease: [0.2, 0.8, 0.2, 1] },
     }),
-    exit: (dir: Direction) => ({
+    exit: (dir: any) => ({
       opacity: 0,
       x: dir === "right" ? -16 : dir === "left" ? 16 : 0,
       transition: { duration: 0.15 },

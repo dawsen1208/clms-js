@@ -12,7 +12,7 @@ import {
   ArrowRightOutlined,
   ReadOutlined
 } from "@ant-design/icons";
-import { getBooksLibrary, getAllRequestsLibrary, getBorrowedBooksLibrary } from "../api.js";
+import { getBooks, getAllRequestsLibrary, getBorrowedBooks } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
 import EditorialSectionHeader from "../components/common/EditorialSectionHeader";
@@ -57,9 +57,9 @@ const AdminDashboard = () => {
       // Mock data handling if API fails or for development
       // TODO: Remove mock fallbacks when backend is fully ready
       const [booksRes, reqRes, borrowedRes] = await Promise.all([
-        getBooksLibrary().catch(() => ({ data: [] })),
-        authToken ? getAllRequestsLibrary(authToken).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
-        authToken ? getBorrowedBooksLibrary(authToken).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+        getBooks().catch(() => ({ data: [] })),
+        authToken ? getAllRequestsLibrary().catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+        authToken ? getBorrowedBooks().catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
       ]);
 
       const books = booksRes.data || [];

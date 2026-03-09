@@ -21,7 +21,7 @@ import {
   UserOutlined,
   QrcodeOutlined,
 } from "@ant-design/icons";
-import { getAllRequests } from "../api";
+import { getAllRequestsLibrary } from "../api";
 import dayjs from "dayjs";
 import "./AdminNotifier.css";
 
@@ -68,7 +68,7 @@ function AdminNotifier() {
     if (!token || !isAdmin || !notifEnabled) return;
 
     try {
-      const res = await getAllRequests(token);
+      const res = await getAllRequestsLibrary();
       const data = res.data || [];
       const pending = data.filter((r) => r.status === "pending");
 

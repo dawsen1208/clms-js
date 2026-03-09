@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigationType } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Variants } from "framer-motion";
 import { Grid } from "antd";
 import { useMotionPref } from "./MotionProvider";
 
@@ -34,27 +35,27 @@ export const PageFlipTransition: React.FC<{ children: React.ReactNode }> = ({ ch
     setPrevKey(curKey);
   }, [curKey, prevKey]);
 
-  const flipVariants = useMemo(() => {
+  const flipVariants = useMemo<Variants>(() => {
     const base = {
       duration: 0.52,
       ease: [0.2, 0.8, 0.2, 1],
     };
     return {
-      initial: (dir: "left" | "right" | "none") =>
+      initial: (dir: any) =>
         dir === "none" ? { opacity: 0, rotateY: 0 } : { opacity: 0.9, rotateY: dir === "right" ? 15 : -15 },
-      animate: (dir: "left" | "right" | "none") =>
+      animate: (dir: any) =>
         dir === "none"
           ? { opacity: 1, rotateY: 0, transition: { ...base, duration: 0.28 } }
           : { opacity: 1, rotateY: 0, transition: base },
-      exit: (dir: "left" | "right" | "none") =>
+      exit: (dir: any) =>
         dir === "none" ? { opacity: 0 } : { opacity: 0.85, rotateY: dir === "right" ? -25 : 25, transition: base },
     };
   }, []);
 
-  const slideVariants = {
-    initial: (dir: "left" | "right" | "none") => ({ opacity: 0, x: dir === "right" ? 30 : dir === "left" ? -30 : 0 }),
+  const slideVariants: Variants = {
+    initial: (dir: any) => ({ opacity: 0, x: dir === "right" ? 30 : dir === "left" ? -30 : 0 }),
     animate: { opacity: 1, x: 0, transition: { duration: 0.28, ease: [0.2, 0.8, 0.2, 1] } },
-    exit: (dir: "left" | "right" | "none") => ({ opacity: 0, x: dir === "right" ? -20 : dir === "left" ? 20 : 0, transition: { duration: 0.24 } }),
+    exit: (dir: any) => ({ opacity: 0, x: dir === "right" ? -20 : dir === "left" ? 20 : 0, transition: { duration: 0.24 } }),
   };
 
   const dir = directionRef.current;
@@ -78,4 +79,3 @@ export const PageFlipTransition: React.FC<{ children: React.ReactNode }> = ({ ch
     </div>
   );
 };
-

@@ -23,8 +23,8 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
-  getActiveBorrowRecords,
-  markBookReturned
+  getActiveBorrows,
+  returnBook
 } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
@@ -55,7 +55,7 @@ function AdminBorrowPage() {
   const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getActiveBorrowRecords(authToken);
+      const res = await getActiveBorrows();
       const data = res.data || [];
       setRecords(data);
       setFiltered(data);
@@ -108,7 +108,7 @@ function AdminBorrowPage() {
       cancelText: t("admin.cancel"),
       onOk: async () => {
         try {
-          await markBookReturned({ borrowRecordId: record._id }, authToken);
+          await returnBook(record.userId, record.bookId);
           message.success(t("admin.returnSuccess") || "Book returned successfully");
           await fetchRecords();
         } catch (err) {
@@ -151,8 +151,13 @@ function AdminBorrowPage() {
         try {
         const promises = selectedRowKeys.map(async (id) => {
              try {
-                await markBookReturned({ borrowRecordId: id }, authToken);
-                successCount++;
+                const rec = records.find(r => r._id === id);
+                if (rec) {
+                  await returnBook(rec.userId, rec.bookId);
+                  successCount++;
+                } else {
+                  failCount++;
+                }
              } catch {
                 failCount++;
              }

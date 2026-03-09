@@ -8,7 +8,7 @@ import {
   MessageOutlined,
   SoundOutlined
 } from "@ant-design/icons";
-import { getNotifications, markNotificationRead, getBookDetail } from "../api";
+import { getNotifications, markNotificationAsRead, getBookDetail } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAccessibility } from "../contexts/AccessibilityContext";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
@@ -26,7 +26,7 @@ export const NotificationLeftPanel = () => {
     if (!token) return;
     try {
       setLoading(true);
-      const res = await getNotifications(token);
+      const res = await getNotifications();
       setNotifications(res.data || []);
     } catch (err) {
       console.error("Failed to fetch notifications overview", err);
@@ -204,7 +204,7 @@ const NotificationPage = () => {
     if (!token) return;
     try {
       setLoading(true);
-      const res = await getNotifications(token);
+      const res = await getNotifications();
       const list = res.data || [];
       setNotifications(list);
       loadBookTitles(list);
@@ -246,7 +246,7 @@ const NotificationPage = () => {
 
   const handleMarkRead = async (id) => {
     try {
-      await markNotificationRead(id, token);
+      await markNotificationAsRead(id);
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
     } catch (err) {
       console.error("Failed to mark read", err);
@@ -261,7 +261,7 @@ const NotificationPage = () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
 
     try {
-        await Promise.all(unread.map(n => markNotificationRead(n._id, token)));
+        await Promise.all(unread.map(n => markNotificationAsRead(n._id)));
         message.success("All marked as read");
     } catch {
         message.error("Failed to mark some notifications");

@@ -7,7 +7,7 @@ import {
   TagsOutlined, ReloadOutlined, RobotOutlined, BuildOutlined, TeamOutlined,
   BellOutlined, SettingOutlined, PictureOutlined, SoundOutlined, BulbOutlined
 } from "@ant-design/icons";
-import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks, toggle2FA, bindGmail, sendGmailCode, verifyGmailCode, updateEmailPreferences } from "../api";
+import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks, toggle2FA, sendEmailVerifyCode, verifyAndBindEmail, updateEmailNotifySettings } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAccessibility } from "../contexts/AccessibilityContext";
 import { useMotionEnabled } from "../motion/useMotionEnabled";
@@ -197,17 +197,17 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     }
     try {
       setGmailLoading(true);
-      await bindGmail(authToken, gmail.trim());
+      const res = await sendEmailVerifyCode(gmail.trim());
+      const expires = res?.data?.expiresInSec || 600;
       setGmailVerified(false);
-      setGmailPrefs({
-        enabled: false,
-        borrow: false,
-        return: false,
-        requestApproved: false,
-      });
+      setGmailPrefs((prev) => ({ ...prev }));
       setGmailCode("");
-      setGmailTimer(0);
-      message.success("邮箱已绑定，请发送验证码完成验证");
+      setGmailTimer(expires);
+      if (res?.data?.mailSent === false) {
+        message.warning("验证码请求已创建，但邮件服务配置有问题，请联系管理员检查 SMTP 配置");
+      } else {
+        message.success("验证码已发送至您的邮箱");
+      }
     } catch (err) {
       const msg = err?.response?.data?.message || "绑定邮箱失败";
       message.error(msg);
@@ -227,8 +227,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     }
     try {
       setGmailLoading(true);
-      await bindGmail(authToken, gmail.trim());
-      const res = await sendGmailCode(authToken);
+      const res = await sendEmailVerifyCode(gmail.trim());
       const expires = res?.data?.expiresInSec || 600;
       setGmailTimer(expires);
       if (res?.data?.mailSent === false) {
@@ -255,7 +254,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     }
     try {
       setGmailLoading(true);
-      const res = await verifyGmailCode(authToken, gmailCode.trim());
+      const res = await verifyAndBindEmail(gmail.trim(), gmailCode.trim());
       const verified = res?.data?.gmailVerified || res?.data?.user?.gmailVerified;
       if (verified) {
         setGmailVerified(true);
@@ -294,7 +293,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     const next = { ...gmailPrefs, ...patch };
     setGmailPrefs(next);
     try {
-      const res = await updateEmailPreferences(authToken, {
+      const res = await updateEmailNotifySettings({
         externalEmailNotifyEnabled: next.enabled,
         events: {
           borrow: next.borrow,

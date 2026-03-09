@@ -31,8 +31,9 @@ import {
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import {
-  getAllRequests,
-  approveRequest,
+  getAllRequestsLibrary,
+  approveRequestLibrary,
+  rejectRequestLibrary,
 } from "../api.js";
 import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
@@ -111,7 +112,7 @@ function AdminRequestPage() {
   const fetchRequests = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getAllRequests(authToken);
+      const res = await getAllRequestsLibrary();
       const data = res.data || [];
       // 🧩 Sort by createdAt, newest first
       data.sort(
@@ -174,8 +175,7 @@ function AdminRequestPage() {
       onOk: async () => {
         console.log("🚀 onOk triggered, sending approve request...");
         try {
-          // approveRequestLibrary parameters: id, approve (bool), reason (string), token
-          const res = await approveRequest(record._id, true, null, authToken);
+          const res = await approveRequestLibrary(record._id);
           message.success(res.data?.message || t("admin.approvedSuccess"));
           beep();
 
@@ -209,7 +209,7 @@ function AdminRequestPage() {
       cancelText: t("admin.cancel"),
       onOk: async () => {
         try {
-          const res = await approveRequest(record._id, false, reason, authToken);
+          const res = await rejectRequestLibrary(record._id, reason);
           message.success(res.data?.message || t("admin.requestRejected"));
           beep();
           // ✅ Refresh immediately after rejection
@@ -226,29 +226,17 @@ function AdminRequestPage() {
     const v = r.copies ?? r.available ?? r.availableCopies ?? r.stock;
     return typeof v === "number" ? v : null;
   };
-  const getOverdue = (r) => {
-    const v = r.overdueCount ?? r.overdue_times ?? r.overdueCount30d;
-    return typeof v === "number" ? v : null;
-  };
 
   const autoProcessEligible = async () => {
     const pend = filtered.filter((r) => r.status === "pending");
     for (const r of pend) {
       const stock = getStock(r);
-      const overdue = getOverdue(r);
       if (r.type === "renew" && stock != null && stock > approvalPrefs.autoApproveWhenStockGt) {
         try {
-          await approveRequest(r._id, true, null, authToken);
+          await approveRequestLibrary(r._id);
           beep();
         } catch (err) {
           console.error("Auto-approve request failed", err);
-        }
-      } else if (overdue != null && overdue > approvalPrefs.autoRejectWhenOverdueGt) {
-        try {
-          await approveRequest(r._id, false, t("admin.autoRejectOverdue"), authToken);
-          beep();
-        } catch (err) {
-          console.error("Auto-reject overdue request failed", err);
         }
       }
     }
@@ -289,9 +277,9 @@ function AdminRequestPage() {
           const promises = selectedRowKeys.map(async (id) => {
             try {
               if (approvalPrefs.defaultBulkAction === "approve") {
-                await approveRequest(id, true, null, authToken);
+                await approveRequestLibrary(id);
               } else {
-                await approveRequest(id, false, t("admin.bulkReject"), authToken);
+                await rejectRequestLibrary(id, t("admin.bulkReject"));
               }
               successCount++;
             } catch (err) {

@@ -149,6 +149,9 @@ export const getBooks = () => API.get("/books/books");
 // Get a single book by ID
 export const getBookById = (id) => API.get(`/books/books/${id}`);
 
+// Get book details
+export const getBookDetail = (id) => API.get(`/books/books/${id}`);
+
 // Search books by keyword
 export const searchBooks = (query) => API.get(`/books/search?q=${query}`);
 
@@ -174,6 +177,7 @@ export const getUserRequestsLibrary = () => API.get("/books/requests/my");
 
 // Get all requests (Admin only)
 export const getAllRequestsLibrary = () => API.get("/borrow-requests/admin");
+export const getPendingRequestsLibrary = () => API.get("/library/requests");
 
 // Approve a request (Admin only)
 export const approveRequestLibrary = (requestId) =>
@@ -191,9 +195,13 @@ export const getStats = () => API.get("/books/stats");
 
 // Get active borrow records (Admin only)
 export const getActiveBorrows = () => API.get("/books/active-borrows");
+export const getBorrowHistoryAllLibrary = () => API.get("/library/history/all");
 
 // Get user list (Admin only)
 export const getUsers = () => API.get("/users/all");
+
+// User analytics (Admin)
+export const getUserAnalytics = () => API.get("/users/manage");
 
 // Update user status (Admin only)
 export const updateUserStatus = (userId, status) =>
@@ -206,16 +214,34 @@ export const deleteUser = (userId) => API.delete(`/users/${userId}`);
 export const updateUserRole = (userId, role) =>
   API.put(`/users/role/${userId}`, { role });
 
+// Toggle blacklist (Admin)
+export const toggleBlacklist = (userId, isBlacklisted, reason = "") =>
+  API.put(`/users/blacklist/${userId}`, { isBlacklisted, reason });
+
+// Approve or reject user (Admin)
+export const approveUser = (userId, status) =>
+  API.put(`/users/approve/${userId}`, { status });
+
 // Get recommended books
 export const getRecommendations = () => API.get("/books/recommendations");
 
 // Compare books by IDs
-export const compareBooks = (ids, windowDays = 30) =>
+export const getBookComparison = (ids, windowDays = 30) =>
   API.get(`/books/books/compare?ids=${ids.join(",")}&windowDays=${windowDays}`);
 
 // Add a book review
 export const addBookReview = (bookId, rating, comment) =>
   API.post(`/books/books/${bookId}/reviews`, { rating, comment });
+
+// Submit a review
+export const submitReview = (bookId, rating, comment) =>
+  API.post(`/books/books/${bookId}/reviews`, { rating, comment });
+
+// Add a new book (Admin only)
+export const addBook = (bookData) => API.post("/books/books", bookData);
+
+// Update a book (Admin only)
+export const updateBook = (id, bookData) => API.put(`/books/books/${id}`, bookData);
 
 /* =========================================================
    💬 Feedback API
@@ -233,6 +259,7 @@ export const getAllFeedback = () => API.get("/feedback/admin");
 // Reply to feedback (Admin only)
 export const replyFeedback = (id, adminReply) =>
   API.put(`/feedback/reply/${id}`, { adminReply });
+export const deleteFeedback = (id) => API.delete(`/feedback/${id}`);
 
 /* =========================================================
    🔔 Notification API
