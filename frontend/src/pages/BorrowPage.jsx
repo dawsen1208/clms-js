@@ -1,3 +1,7 @@
+/**
+ * Borrow Page
+ * Manages active loans for the current user, providing renewal requests and overdue alerts.
+ */
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { 
   Typography, 

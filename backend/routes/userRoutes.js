@@ -1,4 +1,7 @@
-// ✅ backend/routes/userRoutes.js
+/**
+ * User Routes
+ * Handles user authentication, profile management, and session control.
+ */
 import express from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
@@ -8,9 +11,9 @@ import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs";
 import User from "../models/User.js";
-import BorrowRecord from "../models/BorrowRecord.js"; // ✅ 新增
-import Book from "../models/Book.js"; // ✅ 新增
-import { authMiddleware, requireAdmin } from "../middleware/authUnified.js"; // ✅ 使用统一认证中间件
+import BorrowRecord from "../models/BorrowRecord.js";
+import Book from "../models/Book.js";
+import { authMiddleware, requireAdmin } from "../middleware/authUnified.js";
 import { sendMail } from "../services/mailer.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,18 +22,12 @@ const __dirname = path.dirname(__filename);
 const router = express.Router();
 
 /* =========================================================
-   🧩 调试接口
+   🧩 Debug Interface
    ========================================================= */
-router.get("/debug", (_, res) => res.send("✅ userRoutes 路由文件正在生效"));
+router.get("/debug", (_, res) => res.send("✅ userRoutes is active"));
 
 /* =========================================================
-   🔐 身份验证中间件（已移至统一认证中间件）
-   ========================================================= */
-// 使用统一的认证中间件，已在文件顶部导入
-// const authMiddleware = ...
-
-/* =========================================================
-   🧱 工具函数：生成系统用户ID
+   🧱 Helper Functions: Generate System User ID
    ========================================================= */
 const genUserId = async (role = "Reader") => {
   const prefix = role === "Administrator" ? "a" : "r";

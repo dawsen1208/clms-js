@@ -1,3 +1,7 @@
+/**
+ * Merge Duplicate Books Script
+ * Identifies and merges duplicate book records based on ISBN or metadata (title, author, cover).
+ */
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Book from "../models/Book.js";

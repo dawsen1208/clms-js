@@ -1,57 +1,60 @@
-// backend/models/User.js
+/**
+ * User Model
+ * Defines the user schema including authentication, profile, preferences, and security settings.
+ */
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
-  userId: { type: String, required: true, unique: true, index: true }, // 用户唯一标识
+  userId: { type: String, required: true, unique: true, index: true }, // Unique user identifier
   name: { type: String, required: true, unique: true, trim: true },
-  email: { type: String, required: false, default: "" }, // 邮箱（可选）
-  password: { type: String, required: true }, // 加密密码
-  role: { type: String, enum: ["Reader", "Administrator"], default: "Reader" }, // 用户角色
-  status: { type: String, enum: ["PENDING", "APPROVED", "REJECTED"], default: "PENDING" }, // 账号状态
-  avatar: { type: String, default: "" }, // 头像URL
+  email: { type: String, required: false, default: "" }, // Email (optional)
+  password: { type: String, required: true }, // Encrypted password
+  role: { type: String, enum: ["Reader", "Administrator"], default: "Reader" }, // User role
+  status: { type: String, enum: ["PENDING", "APPROVED", "REJECTED"], default: "PENDING" }, // Account status
+  avatar: { type: String, default: "" }, // Avatar URL
 
-  // 🚫 黑名单功能
-  isBlacklisted: { type: Boolean, default: false }, // 是否在黑名单
-  blacklistReason: { type: String, default: "" }, // 拉黑原因
-  overdueCount: { type: Number, default: 0 }, // 累计逾期次数 (用于自动拉黑)
+  // Blacklist functionality
+  isBlacklisted: { type: Boolean, default: false }, // Whether user is blacklisted
+  blacklistReason: { type: String, default: "" }, // Reason for blacklisting
+  overdueCount: { type: Number, default: 0 }, // Cumulative overdue count (for auto-blacklisting)
   
-  // 🔐 安全设置
-  twoFactorEnabled: { type: Boolean, default: false }, // 是否开启双重认证
-  authCode: { type: String, default: "" }, // 静态授权码（绑定邮箱时生成）
-  tempAuthCode: { type: String, default: "" }, // 临时验证码
-  tempAuthCodeExpires: { type: Date }, // 临时验证码过期时间
-  login2faCodeHash: { type: String, default: null }, // 每次登录的动态验证码哈希
-  login2faCodeExpiresAt: { type: Date, default: null }, // 动态验证码过期时间
+  // Security settings
+  twoFactorEnabled: { type: Boolean, default: false }, // Enable 2FA
+  authCode: { type: String, default: "" }, // Static authorization code (generated during email binding)
+  tempAuthCode: { type: String, default: "" }, // Temporary verification code
+  tempAuthCodeExpires: { type: Date }, // Temporary code expiration
+  login2faCodeHash: { type: String, default: null }, // Dynamic 2FA code hash for login
+  login2faCodeExpiresAt: { type: Date, default: null }, // Dynamic 2FA code expiration
   
-  // ⚙️ 用户偏好设置
+  // User preferences
   preferences: {
     notifications: {
       inApp: { type: Boolean, default: true },
       email: { type: Boolean, default: false },
       reminderDays: { type: Number, default: 3 }
     },
-    // 其他偏好可扩展
+    // Other extendable preferences
     operation: { type: Object, default: {} },
     recommendation: { type: Object, default: {} },
     adminApproval: { type: Object, default: {} },
     adminPermissions: { type: Object, default: {} },
     security: { type: Object, default: {} },
-    accessibility: { type: Object, default: {} }, // ✅ Accessibility preferences
-    appearance: { type: Object, default: {} },     // ✅ Appearance preferences
+    accessibility: { type: Object, default: {} }, // Accessibility preferences
+    appearance: { type: Object, default: {} },     // Appearance preferences
     borrowing: {
       defaultDuration: { type: Number, default: 30, min: 1, max: 30 }
     }
   },
   dismissedReviewReminders: [{ type: String, default: [] }],
 
-  // 📧 外部邮件通知（仅支持 Gmail）
-  gmailAddress: { type: String, default: null },            // 仅 @gmail.com / @googlemail.com
-  gmailVerified: { type: Boolean, default: false },         // 是否已通过验证码验证
-  gmailVerifyCodeHash: { type: String, default: null },     // 验证码哈希（不存明文）
-  gmailVerifyCodeExpiresAt: { type: Date, default: null },  // 验证码过期时间
-  externalEmailNotifyEnabled: { type: Boolean, default: false }, // 应用外通知主开关（默认关闭）
-  externalEmailNotifyEvents: {                               // 事件级别订阅（默认全关）
+  // External email notifications (Gmail only)
+  gmailAddress: { type: String, default: null },            // Only @gmail.com / @googlemail.com
+  gmailVerified: { type: Boolean, default: false },         // Whether Gmail is verified
+  gmailVerifyCodeHash: { type: String, default: null },     // Verification code hash
+  gmailVerifyCodeExpiresAt: { type: Date, default: null },  // Verification code expiration
+  externalEmailNotifyEnabled: { type: Boolean, default: false }, // Main switch for external notifications
+  externalEmailNotifyEvents: {                               // Event-level subscriptions
     borrow: { type: Boolean, default: false },
     return: { type: Boolean, default: false },
     requestApproved: { type: Boolean, default: false }
@@ -64,11 +67,11 @@ const userSchema = new mongoose.Schema({
     loginTime: { type: Date, default: Date.now }, // Login Time
     lastUsedAt: { type: Date, default: Date.now } // Last Activity
   }],
-  createdAt: { type: Date, default: Date.now }, // 创建时间
-  updatedAt: { type: Date, default: Date.now }, // 更新时间
+  createdAt: { type: Date, default: Date.now }, // Creation time
+  updatedAt: { type: Date, default: Date.now }, // Update time
 });
 
-// ✅ 自动加密密码
+// Auto-encrypt password before saving
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);
@@ -76,7 +79,7 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// ✅ 更新时间戳
+// Update timestamp
 userSchema.pre("save", async function (next) {
   if (this.isModified() && !this.isNew) {
     this.updatedAt = Date.now();
@@ -84,12 +87,12 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// ✅ 验证密码
+// Validate password
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// ✅ 获取用户公开信息（隐藏敏感信息）
+// Get public user info (hide sensitive data)
 userSchema.methods.toPublicJSON = function () {
   const user = this.toObject();
   delete user.password;

@@ -1,12 +1,12 @@
-// ✅ backend/models/BorrowRequest.js
+/**
+ * BorrowRequest Model
+ * Manages user requests for renewals and returns, requiring administrator approval.
+ */
 import mongoose from "mongoose";
 
-/* =========================================================
-   📦 BorrowRequest — 用户的续借 / 归还申请
-   ========================================================= */
 const borrowRequestSchema = new mongoose.Schema(
   {
-    // 👤 用户ID（兼容字符串或ObjectId，与User.userId保持一致）
+    // User ID (compatible with String or ObjectId, consistent with User.userId)
     userId: { 
       type: mongoose.Schema.Types.Mixed, 
       required: true, 
@@ -14,10 +14,10 @@ const borrowRequestSchema = new mongoose.Schema(
       ref: "User"
     },
 
-    // 🧑 用户姓名（展示用，冗余存储）
+    // User name (redundant storage for display)
     userName: { type: String, required: true },
 
-    // 📚 书籍ID（兼容字符串或ObjectId）
+    // Book ID (compatible with String or ObjectId)
     bookId: {
       type: mongoose.Schema.Types.Mixed,
       required: true,
@@ -25,16 +25,16 @@ const borrowRequestSchema = new mongoose.Schema(
       ref: "Book",
     },
 
-    // 📘 书籍标题（防止书籍被删除后丢失展示名称）
+    // Book title (prevent loss of name if book is deleted)
     bookTitle: { type: String, required: true },
 
-    // ✍️ 书籍作者（冗余存储）
+    // Book author (redundant storage)
     bookAuthor: { type: String, default: "" },
 
-    // 🔁 申请类型
+    // Application type
     type: { type: String, enum: ["renew", "return"], required: true },
 
-    // 🕓 当前状态
+    // Current status
     status: {
       type: String,
       enum: ["pending", "approved", "rejected", "invalid"],
@@ -42,13 +42,13 @@ const borrowRequestSchema = new mongoose.Schema(
       index: true,
     },
 
-    // 🧩 拒绝理由（仅拒绝时使用）
+    // Rejection reason (used only when status is rejected)
     reason: { type: String, default: "" },
 
-    // 🧭 审批时间（自动填充）
+    // Approval time (automatically filled)
     handledAt: { type: Date, default: null },
     
-    // ⏳ 续借天数（可选，默认 7 天；仅 type=renew 有意义）
+    // Renewal days (optional, default 7 days; only meaningful for type=renew)
     days: { type: Number, min: 1, max: 30, default: 7 },
   },
   {
@@ -58,7 +58,7 @@ const borrowRequestSchema = new mongoose.Schema(
 );
 
 /* =========================================================
-   ⚙️ 中间件：审批状态变化时自动写入 handledAt
+   ⚙️ Middleware: Automatically set handledAt when status changes
    ========================================================= */
 borrowRequestSchema.pre("save", function (next) {
   if (this.isModified("status") && this.status !== "pending") {
@@ -68,20 +68,19 @@ borrowRequestSchema.pre("save", function (next) {
 });
 
 /* =========================================================
-   🧠 索引优化
+   🧠 Index Optimization
    ========================================================= */
 borrowRequestSchema.index({ status: 1, type: 1 });
 borrowRequestSchema.index({ userId: 1, bookId: 1, type: 1, status: 1 });
 
 /* =========================================================
-   ✅ 辅助方法：快速查找用户待审批申请
+   ✅ Helper Methods: Quick find pending applications
    =========================================================
-   - 自动兼容 userId / bookId 为 ObjectId 或 String；
-   - 用于防止重复提交；
-   - 与 BorrowRecord 的兼容逻辑保持一致；
+   - Automatically handles userId / bookId as ObjectId or String.
+   - Used to prevent duplicate submissions.
 */
 borrowRequestSchema.statics.findPending = async function (userId, bookId, type) {
-  // ✅ 统一格式化 ID
+  // Unified ID formatting
   const UserId =
     typeof userId === "object"
       ? userId
@@ -117,13 +116,11 @@ borrowRequestSchema.statics.findPending = async function (userId, bookId, type) 
     ],
   };
 
-  console.log("🔍 BorrowRequest.findPending 查询条件 =>", JSON.stringify(query, null, 2));
-
   return this.findOne(query).sort({ createdAt: -1 });
 };
 
 /* =========================================================
-   🧾 导出模型
+   🧾 Export Model
    ========================================================= */
 const BorrowRequest = mongoose.model("BorrowRequest", borrowRequestSchema);
 export default BorrowRequest;

@@ -1,3 +1,8 @@
+/**
+ * Smart Assistant Page
+ * Provides book recommendations, multi-book comparison, and intelligent search results
+ * using a radar chart and custom weighting system.
+ */
 import { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Card,

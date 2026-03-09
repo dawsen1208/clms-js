@@ -1,4 +1,7 @@
-// ✅ backend/server.js
+/**
+ * Backend Server Entry Point
+ * Initializes Express, connects to MongoDB, sets up middleware, routes, and static file serving.
+ */
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -9,7 +12,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 
-// ✅ 导入路由
+// Import routes
 import userRoutes from "./routes/userRoutes.js";
 import bookRoutes from "./routes/bookRoutes.js";
 import borrowRequestRoutes from "./routes/borrowRequestRoutes.js";
@@ -18,45 +21,45 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import notificationEmailRoutes from "./routes/notificationEmailRoutes.js";
 
 
-// ✅ 加载环境变量
+// Load environment variables
 dotenv.config();
 const app = express();
 
-// 解析当前文件路径，计算前端构建目录（frontend/dist）
+// Calculate current file path and frontend build directory (frontend/dist)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 优先检查当前目录下的 public 文件夹（生产环境部署）
+// Prioritize the public folder in the current directory (Production deployment)
 let frontendDistPath = path.join(__dirname, "public");
 if (!fs.existsSync(frontendDistPath)) {
-  // 回退到上级兄弟目录（本地开发环境）
+  // Fallback to parent directory (Local development environment)
   frontendDistPath = path.resolve(__dirname, "../frontend/dist");
 }
 console.log("🗂️ frontendDistPath:", frontendDistPath, "exists:", fs.existsSync(frontendDistPath));
 
 /* =========================================================
-   🧩 基础中间件
+   🧩 Base Middleware
    ========================================================= */
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(morgan("dev"));
 
-// 优先级最高：拦截根路径并返回前端入口，避免旧根路由覆盖
+// Root path interceptor: return frontend entry point
 app.get("/", (req, res) => {
   const indexPath = path.join(frontendDistPath, "index.html");
   console.log("🧩 serving / ->", indexPath, "exists:", fs.existsSync(indexPath));
   res.sendFile(indexPath);
 });
 
-// 显式支持 /index.html，确保即使静态中间件未命中也能返回入口
+// Explicit support for /index.html
 app.get("/index.html", (req, res) => {
   const indexPath = path.join(frontendDistPath, "index.html");
   console.log("🧩 serving /index.html ->", indexPath, "exists:", fs.existsSync(indexPath));
   res.sendFile(indexPath);
 });
 
-// 早期挂载前端静态文件，确保 /index.html 可访问
+// Mount frontend static files
 app.use(
   express.static(frontendDistPath, {
     index: "index.html",
@@ -69,7 +72,7 @@ app.use(
   })
 );
 
-// 兼容备用入口：/app 显式返回前端并映射静态资源
+// Fallback entry: /app explicitly returns frontend and maps static assets
 app.use(
   "/assets",
   express.static(path.join(frontendDistPath, "assets"), {
@@ -83,7 +86,7 @@ app.get(/^\/app(?!\/api).*/, (req, res) => {
 });
 
 /* =========================================================
-   🌐 CORS 设置（允许所有来源用于开发）
+   🌐 CORS Settings
    ========================================================= */
 const localIP = "127.0.0.1";
 const allowedOrigins = (process.env.CLIENT_ORIGIN || "")
@@ -91,11 +94,11 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || "")
   .map((o) => o.trim())
   .filter(Boolean);
 
-// 如果没有配置CLIENT_ORIGIN，则允许所有来源（开发模式）
+// If no CLIENT_ORIGIN is configured, allow all origins (Development mode)
 if (allowedOrigins.length === 0) {
-  console.log("⚠️ 未配置 CLIENT_ORIGIN，允许所有来源");
+  console.log("⚠️ No CLIENT_ORIGIN configured, allowing all origins");
 } else {
-  console.log("✅ 已配置允许的来源:", allowedOrigins);
+  console.log("✅ Configured allowed origins:", allowedOrigins);
 }
 
 // 临时：允许所有来源用于测试

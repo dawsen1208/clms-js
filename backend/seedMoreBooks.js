@@ -1,4 +1,7 @@
-// ✅ backend/seedMoreBooks.js — 追加批量导入书籍数据（不清库）
+/**
+ * Seed More Books Script
+ * Bulk imports additional book data into the database without clearing existing records.
+ */
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Book from "./models/Book.js";

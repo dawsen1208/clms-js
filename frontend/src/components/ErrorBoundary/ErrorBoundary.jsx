@@ -1,4 +1,7 @@
-// ✅ 错误边界组件
+/**
+ * Error Boundary Component
+ * Catches JavaScript errors in their child component tree and displays a fallback UI.
+ */
 import { Component } from 'react';
 import { Alert, Button } from 'antd';
 
@@ -9,7 +12,7 @@ class ErrorBoundary extends Component {
   }
 
   static getDerivedStateFromError() {
-    // 更新 state 使下一次渲染能够显示降级后的 UI
+    // Update state so the next render will show the fallback UI
     return { hasError: true };
   }
 
@@ -27,17 +30,17 @@ class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
-      // 你可以自定义降级后的 UI 并渲染
+      // Custom fallback UI
       return (
         <div style={{ padding: '24px', textAlign: 'center' }}>
           <Alert
-            message="组件渲染出错"
+            message="Component Rendering Error"
             description={
               <div>
-                <p>抱歉，组件渲染时出现错误。</p>
-                <p>错误信息：{this.state.error?.toString()}</p>
+                <p>Sorry, an error occurred while rendering this component.</p>
+                <p>Error details: {this.state.error?.toString()}</p>
                 <Button type="primary" onClick={this.handleReset} style={{ marginTop: '16px' }}>
-                  重试
+                  Retry
                 </Button>
               </div>
             }

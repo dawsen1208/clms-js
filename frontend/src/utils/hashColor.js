@@ -1,3 +1,7 @@
+/**
+ * Hash Color Utilities
+ * Generates consistent colors and initials from strings for UI elements like avatars and tags.
+ */
 // Generate a consistent color from a string
 export const stringToColor = (str) => {
   let hash = 0;

@@ -1,9 +1,12 @@
-// ✅ backend/models/BorrowRecord.js
+/**
+ * BorrowRecord Model
+ * Stores active borrowing transactions, tracking due dates, renewals, and return status.
+ */
 import mongoose from "mongoose";
 
 const borrowRecordSchema = new mongoose.Schema(
   {
-    // ✅ 用户ID（兼容字符串或ObjectId，与User.userId保持一致）
+    // User ID (compatible with String or ObjectId, consistent with User.userId)
     userId: { 
       type: mongoose.Schema.Types.Mixed, 
       required: true, 
@@ -11,7 +14,7 @@ const borrowRecordSchema = new mongoose.Schema(
       ref: "User"
     },
 
-    // ✅ 书籍ID（兼容字符串或ObjectId）
+    // Book ID (compatible with String or ObjectId)
     bookId: {
       type: mongoose.Schema.Types.Mixed,
       required: true,
@@ -19,57 +22,57 @@ const borrowRecordSchema = new mongoose.Schema(
       ref: "Book",
     },
 
-    // ✅ 借阅时间信息
-    borrowedAt: { type: Date, default: Date.now }, // 借阅时间
-    dueDate: { type: Date, required: true }, // 到期时间
+    // Borrowing time information
+    borrowedAt: { type: Date, default: Date.now }, // Borrow date
+    dueDate: { type: Date, required: true }, // Due date
 
-    // ✅ 续借信息
+    // Renewal information
     renewed: { type: Boolean, default: false },
     renewedAt: { type: Date, default: null },
-    renewCount: { type: Number, default: 0, min: 0 }, // 续借次数
+    renewCount: { type: Number, default: 0, min: 0 }, // Number of renewals
 
-    // ✅ 归还信息
+    // Return information
     returned: { type: Boolean, default: false },
     returnedAt: { type: Date, default: null },
 
-    // ✅ 书籍信息（冗余存储，防止书籍被删除）
+    // Book info (redundant storage to prevent loss if book is deleted)
     bookTitle: { type: String, default: "" },
     bookAuthor: { type: String, default: "" },
 
-    // ✅ 用户信息（冗余存储）
+    // User info (redundant storage)
     userName: { type: String, default: "" },
 
-    // ✅ 其他信息
-    notes: { type: String, default: "" }, // 备注信息
+    // Other information
+    notes: { type: String, default: "" }, // Notes
   },
   {
-    timestamps: true, // 自动 createdAt / updatedAt
+    timestamps: true, // Automatic createdAt / updatedAt
     versionKey: false,
   }
 );
 
 /* =========================================================
-   🧩 组合索引
+   🧩 Compound Indexes
    =========================================================
-   - 防止同一用户对同一本书重复借阅未归还；
-   - 兼容 bookId 为字符串或 ObjectId；
+   - Prevents multiple unreturned borrows of the same book by the same user.
+   - Compatible with bookId as String or ObjectId.
 */
 borrowRecordSchema.index({ userId: 1, bookId: 1, returned: 1 });
 
-// 时间相关索引，便于按时间排序查询
+// Time-based indexes for sorting
 borrowRecordSchema.index({ createdAt: 1 });
 borrowRecordSchema.index({ borrowedAt: 1 });
 
 /* =========================================================
-   🧠 辅助静态方法（统一 ID 匹配逻辑）
+   🧠 Helper Static Methods (Unified ID matching logic)
    =========================================================
-   在控制器中可以直接使用：
+   Can be used directly in controllers:
    BorrowRecord.findByBook(userId, bookId)
-   ✅ 兼容 userId 和 bookId 为 ObjectId 或 String
+   ✅ Compatible with userId and bookId as ObjectId or String
 */
-// 查找指定用户未归还的指定书籍记录（兼容 ID 类型）
+// Find active (unreturned) record for a specific user and book
 borrowRecordSchema.statics.findActiveByUserAndBook = async function (userId, bookId) {
-  // ✅ 处理书籍ID（支持 ObjectId / String）
+  // Handle Book ID (Support ObjectId / String)
   const BookId =
     typeof bookId === "object"
       ? bookId
@@ -77,7 +80,7 @@ borrowRecordSchema.statics.findActiveByUserAndBook = async function (userId, boo
       ? new mongoose.Types.ObjectId(bookId)
       : String(bookId);
 
-  // ✅ 处理用户ID（支持 ObjectId / String）
+  // Handle User ID (Support ObjectId / String)
   const UserId =
     typeof userId === "object"
       ? userId
@@ -85,7 +88,7 @@ borrowRecordSchema.statics.findActiveByUserAndBook = async function (userId, boo
       ? new mongoose.Types.ObjectId(userId)
       : String(userId);
 
-  // ✅ 构造匹配条件（兼容不同类型）
+  // Construct match conditions (Compatible with different types)
   const query = {
     returned: false,
     $and: [
@@ -105,8 +108,6 @@ borrowRecordSchema.statics.findActiveByUserAndBook = async function (userId, boo
       },
     ],
   };
-
-  console.log("🔍 BorrowRecord.findActiveByUserAndBook 查询条件 =>", JSON.stringify(query, null, 2));
 
   return this.findOne(query).sort({ borrowedAt: -1 });
 };

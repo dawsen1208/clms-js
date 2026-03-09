@@ -1,4 +1,7 @@
-// ✅ backend/controllers/libraryController.js
+/**
+ * Library Controller
+ * Handles borrowing requests, approvals, renewals, and returns.
+ */
 import BorrowRequest from "../models/BorrowRequest.js";
 import BorrowRecord from "../models/BorrowRecord.js";
 import BorrowHistory from "../models/BorrowHistory.js";
@@ -9,63 +12,63 @@ import mongoose from "mongoose";
 import { sendLibraryNotification } from "../services/mailer.js";
 
 /* =========================================================
-   📬 获取所有借阅申请（管理员查看）
+   📬 Get All Borrowing Requests (Admin View)
    ========================================================= */
 export const getAllRequests = async (req, res) => {
   try {
     const requests = await BorrowRequest.find().sort({ createdAt: -1 });
     res.json(requests);
   } catch (err) {
-    console.error("❌ 获取申请失败:", err);
-    res.status(500).json({ message: "获取申请失败" });
+    console.error("❌ Failed to get requests:", err);
+    res.status(500).json({ message: "Failed to get requests" });
   }
 };
 
 /* =========================================================
-   ✅ 审批通过
+   ✅ Approve Request
    ========================================================= */
 export const approveRequestLibrary = async (req, res) => {
   try {
-    // 🛡️ 权限验证
+    // 🛡️ Authorization check
     if (req.user.role !== "Administrator") {
-      return res.status(403).json({ message: "无权限操作" });
+      return res.status(403).json({ message: "Unauthorized" });
     }
 
     const request = await BorrowRequest.findById(req.params.id);
-    if (!request) return res.status(404).json({ message: "申请不存在" });
+    if (!request) return res.status(404).json({ message: "Request not found" });
 
-    console.log("📩 审批申请详情:", request);
+    console.log("📩 Approval request details:", request);
 
-    // 🧩 使用统一的ID格式化处理
+    // 🧩 Use unified ID formatting
     const UserId = BorrowRecord.formatId(request.userId);
     const BookId = BorrowRecord.formatId(request.bookId);
 
-    // 🔍 查找对应的借阅记录：先按记录ID匹配（部分前端会传借阅记录ID），再按用户+书籍ID匹配
+    // 🔍 Find corresponding borrow record: match by record ID first, then by user + book ID
     let record = await BorrowRecord.findOne({ _id: BookId, userId: UserId, returned: false });
     if (!record) {
       record = await BorrowRecord.findActiveByUserAndBook(UserId, BookId);
     }
 
     if (!record) {
-      console.warn("⚠️ 未找到对应借阅记录:", {
+      console.warn("⚠️ Corresponding borrow record not found:", {
         userId: request.userId,
         bookId: request.bookId,
         formattedUserId: UserId,
         formattedBookId: BookId,
       });
 
-      // ✅ 按需求：将该申请标记为无效并视为已处理
+      // ✅ Mark request as invalid and processed
       request.status = "invalid";
       request.handledAt = new Date();
       await request.save();
 
       return res.status(200).json({
-        message: "该申请已标记为无效并已处理（未找到对应借阅记录）",
+        message: "Request marked as invalid and processed (no borrow record found)",
         request,
       });
     }
 
-    // ✅ 预取书籍标题（用于邮件文本与兜底）
+    // ✅ Fetch book title for email and fallback
     const rawBookIdAll = (record?.bookId?._id || record?.bookId || request.bookId);
     let mailBookTitle = request.bookTitle || record?.bookTitle || "";
     if ((!mailBookTitle) && rawBookIdAll && mongoose.Types.ObjectId.isValid(rawBookIdAll)) {
@@ -75,14 +78,14 @@ export const approveRequestLibrary = async (req, res) => {
       } catch { /* ignore */ }
     }
 
-    // ✅ 更新记录逻辑
+    // ✅ Update record logic
     if (request.type === "renew") {
       const desiredDays = Number(request?.days) && Number(request.days) >= 1 && Number(request.days) <= 30
         ? Math.round(Number(request.days))
         : 7;
-      await record.renew(desiredDays); // 使用模型的 renew 方法（从原 dueDate 顺延）
+      await record.renew(desiredDays); // Use model's renew method (extend from original dueDate)
       
-      // 📝 创建续借历史记录
+      // 📝 Create renewal history record
       await BorrowHistory.create({
         userId: request.userId,
         bookId: request.bookId,
@@ -90,14 +93,14 @@ export const approveRequestLibrary = async (req, res) => {
         bookAuthor: request.bookAuthor || record.bookAuthor || "",
         action: "renew",
         borrowDate: record.borrowedAt,
-        dueDate: record.dueDate, // 更新后的到期日期
+        dueDate: record.dueDate, // Updated due date
         isRenewed: true,
         userName: request.userName,
         renewCount: record.renewCount,
       });
       
     } else if (request.type === "return") {
-      // 🔍 统一获取书籍标题/作者，用于历史记录与通知（兼容旧数据）
+      // 🔍 Fetch book title/author for history and notification (compat with old data)
       const rawBookId = record.bookId?._id || record.bookId || request.bookId;
       let finalBookTitle = request.bookTitle || record.bookTitle || "";
       let finalBookAuthor = request.bookAuthor || record.bookAuthor || "";
@@ -109,41 +112,40 @@ export const approveRequestLibrary = async (req, res) => {
             if (!finalBookAuthor) finalBookAuthor = bookDoc.author || "";
           }
         } catch (e) {
-          console.warn("⚠️ 获取书籍信息失败（不影响审批）:", e?.message || e);
+          console.warn("⚠️ Failed to fetch book info (does not affect approval):", e?.message || e);
         }
       }
 
-      await record.returnBook(); // 使用模型的returnBook方法
+      await record.returnBook(); // Use model's returnBook method
       
-      // 📚 更新库存（使用 record.bookId 确保是书籍ID，而非可能的记录ID）
+      // 📚 Update inventory
       const updateBookId = record.bookId?._id || record.bookId;
       await Book.findByIdAndUpdate(updateBookId, { $inc: { copies: 1 } });
 
-      // 🚫 检查逾期并处理自动拉黑
+      // 🚫 Check for overdue and handle auto-blacklisting
       const now = new Date();
       const dueDate = new Date(record.dueDate);
       if (now > dueDate) {
         try {
-          // 注意：request.userId 通常是字符串ID (如 "r10001")
           const user = await User.findOne({ userId: request.userId });
           if (user) {
             user.overdueCount = (user.overdueCount || 0) + 1;
-            console.log(`⚠️ 用户 ${user.userId} 逾期还书，当前逾期次数: ${user.overdueCount}`);
+            console.log(`⚠️ User ${user.userId} overdue return, current count: ${user.overdueCount}`);
             
-            // 阈值设为 3 次
+            // Auto-blacklist after 3 overdues
             if (user.overdueCount > 3 && !user.isBlacklisted) {
               user.isBlacklisted = true;
-              user.blacklistReason = "系统自动拉黑：经常逾期还书 (逾期超过3次)";
-              console.log(`🚫 用户 ${user.userId} 因频繁逾期已被自动拉黑`);
+              user.blacklistReason = "Auto-blacklisted: Frequent overdue returns (over 3 times)";
+              console.log(`🚫 User ${user.userId} auto-blacklisted due to frequent overdue returns`);
             }
             await user.save();
           }
         } catch (e) {
-          console.error("❌ 更新用户逾期状态失败:", e);
+          console.error("❌ Failed to update user overdue status:", e);
         }
       }
       
-      // 📝 更新或创建归还历史记录
+      // 📝 Update or create return history record
       const existingHistory = await BorrowHistory.findOne({
          userId: request.userId,
          bookId: request.bookId,
@@ -153,7 +155,7 @@ export const approveRequestLibrary = async (req, res) => {
 
       if (existingHistory) {
           existingHistory.returnDate = new Date();
-          existingHistory.action = "return"; // 标记为已归还
+          existingHistory.action = "return"; // Mark as returned
           if (!existingHistory.bookTitle && finalBookTitle) {
             existingHistory.bookTitle = finalBookTitle;
           }
@@ -177,7 +179,7 @@ export const approveRequestLibrary = async (req, res) => {
           });
       }
 
-      // 🔔 创建归还成功通知
+      // 🔔 Create return success notification
       try {
         await Notification.create({
           userId: request.userId,
@@ -191,7 +193,7 @@ export const approveRequestLibrary = async (req, res) => {
         console.error("❌ Failed to create return notification:", notifErr);
       }
 
-  // 📧 异步邮件通知（归还成功），不阻塞
+  // 📧 Async email notification (return success)
   (async () => {
     try {
       const user = await User.findOne({ userId: request.userId });

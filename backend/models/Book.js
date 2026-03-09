@@ -1,71 +1,74 @@
-// ✅ backend/models/Book.js
+/**
+ * Book Model
+ * Defines the schema for books in the library, including inventory, metadata, and user reviews.
+ */
 import mongoose from "mongoose";
 
 const bookSchema = new mongoose.Schema(
   {
-    // 📖 书名
+    // Book title
     title: { type: String, required: true, index: true },
 
-    // ✍️ 作者
+    // Author
     author: { type: String, required: true, index: true },
 
-    // 📂 类型（如 Fiction / Technology / Business / Philosophy）
+    // Category (e.g., Fiction / Technology / Business / Philosophy)
     category: { type: String, required: true, index: true },
 
-    // 📝 简介
+    // Description
     description: { type: String, default: "" },
 
-    // 📦 剩余库存
+    // Available copies
     copies: { type: Number, default: 5, min: 0 },
 
-    // 📚 总库存（用于统计）
+    // Total copies (for statistics)
     totalCopies: { type: Number, default: 5, min: 0 },
 
-    // 🕓 借阅时间（仅用于记录用途）
+    // Borrow time (for record purposes)
     borrowDate: { type: Date },
 
-    // 📅 到期时间
+    // Due date
     dueDate: { type: Date },
 
-    // 🔢 借阅次数（用于热门榜推荐）
+    // Borrow count (for popularity recommendation)
     borrowCount: { type: Number, default: 0, min: 0 },
 
-    // 📖 ISBN编号
+    // ISBN number
     isbn: { type: String, default: "" },
 
-    // 🏢 出版社
+    // Publisher
     publisher: { type: String, default: "" },
 
-    // 📅 出版日期
+    // Publication date
     publishDate: { type: Date },
 
-    // 🏷️ 标签（用于分类和搜索）
+    // Tags (for classification and search)
     tags: [{ type: String }],
 
-    // 📊 评分
+    // Rating
     rating: { type: Number, default: 0, min: 0, max: 5 },
 
-    // 🔍 搜索关键词
+    // Search keywords
     keywords: [{ type: String }],
 
-    // 📷 封面图片URL
+    // Cover image URL
     coverImage: { type: String, default: "" },
     
-    // 📷 多尺寸封面（用于前端 srcset）
+    // Multi-size covers (for frontend srcset)
     coverImageSet: {
       w160: { type: String, default: "" },
       w240: { type: String, default: "" },
       w360: { type: String, default: "" },
     },
 
-    // 📖 书籍状态
+    // Book status
     status: { 
       type: String, 
       enum: ["available", "borrowed", "reserved", "damaged", "lost"], 
       default: "available" 
     },
 
-    // 📝 用户书评（归还后可填写）
+    // User reviews
     reviews: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -76,19 +79,19 @@ const bookSchema = new mongoose.Schema(
     ],
   },
   {
-    timestamps: true, // ✅ 自动生成 createdAt / updatedAt
-    versionKey: false, // ✅ 去除 "__v"
+    timestamps: true, // Automatically generate createdAt / updatedAt
+    versionKey: false, // Remove "__v"
   }
 );
 
-// ✅ 添加复合索引以提高查询性能
+// Compound indexes for performance
 bookSchema.index({ title: 1, author: 1 });
 bookSchema.index({ category: 1, borrowCount: -1 });
 bookSchema.index({ status: 1, copies: 1 });
 bookSchema.index({ "reviews.userId": 1 });
 bookSchema.index({ isbn: 1 }, { unique: true, sparse: true });
 
-// ✅ 添加实例方法
+// Instance methods
 bookSchema.methods.isAvailable = function() {
   return this.status === "available" && this.copies > 0;
 };
@@ -105,25 +108,9 @@ bookSchema.methods.borrow = function() {
   return false;
 };
 
-bookSchema.methods.returnBook = function() {
+bookSchema.methods.return = function() {
   this.copies += 1;
-  if (this.status === "borrowed") {
-    this.status = "available";
-  }
-  return true;
+  this.status = "available";
 };
 
-// ✅ 计算并更新平均评分（基于 reviews）
-bookSchema.methods.recalculateRating = function() {
-  if (!this.reviews || this.reviews.length === 0) {
-    this.rating = 0;
-    return this;
-  }
-  const sum = this.reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-  this.rating = Math.round((sum / this.reviews.length) * 10) / 10; // 保留1位小数
-  return this;
-};
-
-// ✅ 创建并导出模型
-const Book = mongoose.model("Book", bookSchema);
-export default Book;
+export default mongoose.model("Book", bookSchema);

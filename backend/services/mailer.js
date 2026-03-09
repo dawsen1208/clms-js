@@ -1,4 +1,7 @@
-// backend/services/mailer.js
+/**
+ * Mailer Service
+ * Handles sending emails using Nodemailer, with support for Gmail and custom SMTP configurations.
+ */
 import nodemailer from "nodemailer";
 
 const SMTP_HOST = process.env.SMTP_HOST || "";
@@ -21,7 +24,7 @@ function getTransporter() {
 
   if (!SMTP_USER || !SMTP_PASS) {
     console.warn(
-      "⚠️ SMTP_USER / SMTP_PASS 未配置，邮件通知功能将被禁用"
+      "⚠️ SMTP_USER / SMTP_PASS not configured, email notifications will be disabled"
     );
     return null;
   }
@@ -53,7 +56,7 @@ export async function sendMail(to, subject, html, text) {
   try {
     const t = getTransporter();
     if (!t) {
-      console.warn("⚠️ 邮件发送被跳过（transporter 未初始化或配置缺失）");
+      console.warn("⚠️ Email sending skipped (transporter not initialized or config missing)");
       return false;
     }
 
@@ -68,7 +71,7 @@ export async function sendMail(to, subject, html, text) {
     await t.sendMail(mailOptions);
     return true;
   } catch (err) {
-    console.error("❌ 发送邮件失败（不影响主业务）:", err?.message || err);
+    console.error("❌ Failed to send email (does not affect main business):", err?.message || err);
     return false;
   }
 }

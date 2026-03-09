@@ -1,5 +1,9 @@
 // ✅ vite.config.js
-import { defineConfig } from 'vite'
+/**
+ * Vite Configuration
+ * Sets up the build pipeline, React plugin, and development proxy for API requests.
+ */
+import { defineConfig } from "vite";
 import react from '@vitejs/plugin-react'
 import process from 'node:process'
 

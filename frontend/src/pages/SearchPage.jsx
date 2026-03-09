@@ -1,3 +1,7 @@
+/**
+ * Search Page
+ * Features a dual-panel "Book World" layout with metadata-based deduplication and stock aggregation.
+ */
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Input,

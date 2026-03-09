@@ -1,4 +1,7 @@
-// ✅ backend/routes/bookRoutes.js
+/**
+ * Book Routes
+ * Manages book inventory, search, statistics, and borrowing lifecycle.
+ */
 import express from "express";
 import Book from "../models/Book.js";
 import BorrowRecord from "../models/BorrowRecord.js";
@@ -7,13 +10,12 @@ import BorrowHistory from "../models/BorrowHistory.js";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import mongoose from "mongoose";
-import { authMiddleware, requireAdmin } from "../middleware/authUnified.js"; // ✅ 使用统一认证中间件
+import { authMiddleware, requireAdmin } from "../middleware/authUnified.js";
 import { markBookReturned, getActiveBorrowRecords } from "../controllers/libraryController.js";
 import { sendLibraryNotification } from "../services/mailer.js";
-console.log("📁 当前运行的 bookRoutes 文件路径:", import.meta.url);
 
 const router = express.Router();
-// 🧮 默认权重（评分、热度、可借性、出版新旧、匹配度）
+// Default weights (Rating, Popularity, Availability, Recency, Match)
 const DEFAULT_WEIGHTS = {
   rating: 0.3,
   popularity: 0.25,
@@ -23,30 +25,24 @@ const DEFAULT_WEIGHTS = {
 };
 
 /* =========================================================
-   🔐 JWT 验证中间件（已移至统一认证中间件）
+   🧩 Debug Interface
    ========================================================= */
-// 使用统一的认证中间件，已在文件顶部导入
-// const authMiddleware = ...
+router.get("/debug", (_, res) => res.send("✅ bookRoutes is active"));
 
 /* =========================================================
-   🧩 调试接口
-   ========================================================= */
-router.get("/debug", (_, res) => res.send("✅ bookRoutes 路由文件正在生效"));
-
-/* =========================================================
-   📚 获取所有书籍 / 管理员添加 / 删除书籍
+   📚 Get All Books / Admin Actions
    ========================================================= */
 router.get("/books", async (_, res) => {
   try {
     const books = await Book.find().sort({ createdAt: -1 }).lean();
     res.json(books);
   } catch (err) {
-    res.status(500).json({ message: "获取书籍失败", error: err.message });
+    res.status(500).json({ message: "Failed to fetch books", error: err.message });
   }
 });
 
 /* =========================================================
-   📊 管理员仪表盘统计
+   📊 Admin Dashboard Statistics
    ========================================================= */
 router.get("/stats", authMiddleware, requireAdmin, async (req, res) => {
   try {
@@ -58,7 +54,7 @@ router.get("/stats", authMiddleware, requireAdmin, async (req, res) => {
       User.countDocuments({ role: "Reader" }),
     ]);
 
-    // 计算按时归还率：BorrowHistory 中 returnDate <= dueDate
+    // Calculate on-time return rate: BorrowHistory where returnDate <= dueDate
     const returns = await BorrowHistory.find({ action: "return" }).select("returnDate dueDate").lean();
     const returnCount = returns.length;
     const onTimeCount = returns.filter((r) => r.returnDate && r.dueDate && new Date(r.returnDate) <= new Date(r.dueDate)).length;
@@ -66,20 +62,20 @@ router.get("/stats", authMiddleware, requireAdmin, async (req, res) => {
 
     res.json({ totalBooks, totalBorrowed, pendingRequests, overdueBooks, activeReaders, onTimeRate });
   } catch (err) {
-    res.status(500).json({ message: "获取统计失败", error: err.message });
+    res.status(500).json({ message: "Failed to fetch statistics", error: err.message });
   }
 });
 
 /* =========================================================
-   📚 管理员归还管理
+   📚 Admin Return Management
    ========================================================= */
-// 获取活跃借阅记录
+// Get active borrow records
 router.get("/active-borrows", authMiddleware, requireAdmin, getActiveBorrowRecords);
 
-// 直接归还
+// Direct return
 router.post("/return", authMiddleware, requireAdmin, markBookReturned);
 
-// ✅ 为避免与 /books/:id 路由冲突，提前注册 /books/compare
+// Register /books/compare before /books/:id to avoid conflicts
 router.get("/books/compare", async (req, res) => {
   try {
     const idsParam = String(req.query.ids || "")
@@ -89,14 +85,14 @@ router.get("/books/compare", async (req, res) => {
     const windowDays = Number(req.query.windowDays || 30);
 
     if (idsParam.length < 2 || idsParam.length > 6) {
-      return res.status(400).json({ message: "请提供 2-6 个书籍ID 进行对比" });
+      return res.status(400).json({ message: "Please provide 2-6 book IDs for comparison" });
     }
 
     const objectIds = idsParam
       .filter((id) => mongoose.Types.ObjectId.isValid(id))
       .map((id) => new mongoose.Types.ObjectId(id));
     if (objectIds.length !== idsParam.length) {
-      console.warn("⚠️ compare 接收的部分 ID 非 ObjectId，将按 String 兼容处理。");
+      console.warn("⚠️ Some IDs in compare are not ObjectIds, handling as strings.");
     }
 
     const books = await Book.find({ _id: { $in: objectIds } }).lean();

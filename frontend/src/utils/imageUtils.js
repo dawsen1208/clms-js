@@ -1,3 +1,7 @@
+/**
+ * Image Utilities
+ * Handles image URL resolution, ensuring local uploads and external URLs are correctly formatted for display.
+ */
 // Utility to handle image URLs properly
 // Supports local uploads (prepends API base URL) and external URLs
 

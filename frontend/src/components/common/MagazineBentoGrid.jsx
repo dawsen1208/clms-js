@@ -1,3 +1,7 @@
+/**
+ * Magazine Bento Grid Component
+ * Displays a list or grid of book items in a modern, editorial style with stock status and category coloring.
+ */
 import React from 'react';
 import { Card, Typography, theme } from 'antd';
 import { SharedCover } from '../../motion/CardToDetailTransition';

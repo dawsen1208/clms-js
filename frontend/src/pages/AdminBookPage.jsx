@@ -1,3 +1,7 @@
+/**
+ * Admin Book Management Page
+ * Allows administrators to add, delete, and manage the library's book inventory.
+ */
 import { useState, useEffect, useCallback } from "react";
 import {
   Card,

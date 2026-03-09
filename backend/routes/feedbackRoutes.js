@@ -1,3 +1,7 @@
+/**
+ * Feedback Routes
+ * Manages user feedback submissions and administrator replies.
+ */
 import express from "express";
 import Feedback from "../models/Feedback.js";
 import Notification from "../models/Notification.js";

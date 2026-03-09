@@ -1,4 +1,7 @@
-// ✅ backend/seedBooks.js
+/**
+ * Seed Books Script
+ * Populates the database with initial book records across various categories.
+ */
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Book from "./models/Book.js";

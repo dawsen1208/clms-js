@@ -1,3 +1,7 @@
+/**
+ * Borrow UI Utilities
+ * Provides helper functions for handling borrowing-related error messages and displaying unified modals.
+ */
 import { Modal, message } from "antd";
 
 // Detect backend borrow-limit error messages (Chinese variants)

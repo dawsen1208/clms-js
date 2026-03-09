@@ -1,3 +1,7 @@
+/**
+ * Notification Routes
+ * Manages in-app user notifications and read status.
+ */
 import express from "express";
 import Notification from "../models/Notification.js";
 import { authMiddleware } from "../middleware/authUnified.js";

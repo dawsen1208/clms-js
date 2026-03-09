@@ -1,3 +1,7 @@
+/**
+ * Feedback Model
+ * Stores user feedback and administrator replies.
+ */
 import mongoose from "mongoose";
 
 const feedbackSchema = new mongoose.Schema({

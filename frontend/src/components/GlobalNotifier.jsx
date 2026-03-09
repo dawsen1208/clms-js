@@ -1,4 +1,8 @@
-// ✅ client/src/components/GlobalNotifier.jsx
+/**
+ * Global Notifier Component
+ * Provides a comprehensive notification system for users, including a drawer for message history,
+ * real-time alerts, and detail modals for borrow/return updates.
+ */
 import { useEffect, useState, useRef, useCallback } from "react";
 import {
   Badge,
@@ -31,7 +35,7 @@ import "./GlobalNotifier.css";
 const { Text } = Typography;
 
 /**
- * 🔔 用户端全局通知系统（Drawer + 实时提醒 + 详情弹窗）
+ * Global notification system for the user side (Drawer + real-time alerts + detail modals)
  */
 function GlobalNotifier() {
   const { useBreakpoint } = Grid;
@@ -48,14 +52,14 @@ function GlobalNotifier() {
   const lastKnownIds = useRef(new Set());
   const screens = useBreakpoint();
 
-  // ✅ Drawer auto width (mobile friendly)
+  // Drawer auto width (mobile friendly)
   const drawerWidth = screens.lg ? 400 : "90%";
 
   useEffect(() => {
     const tokenLocal =
       sessionStorage.getItem("token") || localStorage.getItem("token");
     (async () => {
-      // 尝试从服务器读取通知偏好
+      // Try to read notification preferences from the server
       if (tokenLocal) {
         try {
           const res = await fetch("/api/users/profile", {
@@ -82,10 +86,10 @@ function GlobalNotifier() {
           }
         }
       } else {
-        // 未登录时默认开启
+        // Default to enabled if not logged in
         setNotifEnabled(true);
       }
-      // 初始化已知ID集合
+      // Initialize known ID set
       try {
         const rawIds = localStorage.getItem("notificationKnownIds");
         const arr = rawIds ? JSON.parse(rawIds) : [];
@@ -99,137 +103,92 @@ function GlobalNotifier() {
   /* =========================================================
      📬 Fetch all notifications (Requests, Reminders, System)
      ========================================================= */
-  const fetchNotifications = useCallback(async () => {
+  const refreshNotifications = useCallback(async () => {
     if (!token || !notifEnabled) return;
 
-    let newItems = [];
-
-    // 1. User Requests (Approve/Reject)
     try {
-      const res = await getUserRequestsLibrary(token);
-      const newReqs = res.data || [];
-      const reviewed = newReqs.filter((req) => req.status !== "pending");
-      const newOnes = reviewed.filter((req) => !lastKnownIds.current.has(req._id));
+      const [requestsRes, remindersRes, systemRes] = await Promise.all([
+        getUserRequestsLibrary(token),
+        getReviewReminders(token),
+        getNotifications(token),
+      ]);
 
-      if (newOnes.length > 0) {
-        newOnes.forEach((req) => lastKnownIds.current.add(req._id));
-        const formatted = newOnes.map((req) => ({
-          _id: req._id,
-          status: req.status,
-          type: req.type,
-          bookTitle: req.bookTitle,
-          reason: req.reason,
-          createdAt: req.createdAt,
-          updatedAt: req.updatedAt,
-          title: req.status === "approved" ? "✅ Request Approved" : "❌ Request Rejected",
-          description: req.status === "approved"
-              ? `Your ${req.type === "renew" ? "renew" : "return"} request ("${req.bookTitle}") has been approved.`
-              : `Your ${req.type === "renew" ? "renew" : "return"} request ("${req.bookTitle}") was rejected. Reason: ${req.reason || "No explanation provided by admin"}`,
-          time: new Date(req.updatedAt || Date.now()).toLocaleString(),
-        }));
-        newItems.push(...formatted);
-      }
-    } catch (err) {
-      console.error("❌ Failed to fetch requests:", err?.response?.data || err.message);
-    }
+      const all = [];
 
-    // 2. Review Reminders
-    try {
-      const remRes = await getReviewReminders(token);
-      const reminders = remRes?.data || [];
-      const newReminders = reminders
-        .map((r) => ({
-          _id: `review:${r._id}`,
-          status: r.status || "info",
-          type: r.type || "review",
-          bookTitle: r.bookTitle,
-          createdAt: r.createdAt,
-          title: `📝 Please write a review for "${r.bookTitle}"`,
-          description: "You have returned this book. Share your thoughts (max 500 chars).",
-          time: new Date(r.createdAt || Date.now()).toLocaleString(),
-          isReviewReminder: true,
-          bookId: r.bookId || r._id,
-        }))
-        .filter((item) => !lastKnownIds.current.has(item._id));
-
-      if (newReminders.length > 0) {
-        newReminders.forEach((n) => lastKnownIds.current.add(n._id));
-        newItems.push(...newReminders);
-      }
-    } catch (e) {
-      console.warn("⚠️ 获取书评提醒失败:", e?.response?.data || e?.message);
-    }
-
-    // 3. System Notifications (Feedback Replies, etc.)
-    try {
-      const notifRes = await getNotifications(token);
-      const serverNotifs = notifRes?.data || [];
-      const newServerNotifs = serverNotifs
-        .filter((n) => !n.isRead)
-        .map((n) => ({
-          _id: `sys:${n._id}`,
-          originalId: n._id,
-          status: 'info',
-          type: n.type || 'system',
-          title: n.title,
-          description: n.message,
-          createdAt: n.createdAt,
-          time: new Date(n.createdAt || Date.now()).toLocaleString(),
-          isSystemNotification: true
-        }))
-        .filter((item) => !lastKnownIds.current.has(item._id));
-
-      if (newServerNotifs.length > 0) {
-        newServerNotifs.forEach((n) => lastKnownIds.current.add(n._id));
-        newItems.push(...newServerNotifs);
-      }
-    } catch (e) {
-      console.warn("⚠️ 获取系统通知失败:", e?.response?.data || e?.message);
-    }
-
-    // Process all new items
-    if (newItems.length > 0) {
-      // Persist known IDs
-      try {
-        localStorage.setItem("notificationKnownIds", JSON.stringify(Array.from(lastKnownIds.current)));
-      } catch (err) {
-        console.error("Failed to persist notification known ids", err);
-      }
-
-      // Show Toasts
-      newItems.forEach((n) => {
-        let icon = null;
-        let bg = "rgba(24,144,255,0.1)";
-        if (n.status === "approved") {
-           bg = "rgba(82,196,26,0.1)";
-           icon = <CheckCircleTwoTone twoToneColor="#52c41a" />;
-        } else if (n.status === "rejected") {
-           bg = "rgba(255,77,79,0.1)";
-           icon = <CloseCircleTwoTone twoToneColor="#ff4d4f" />;
-        } else if (n.isReviewReminder) {
-           icon = <ClockCircleTwoTone twoToneColor="#1890ff" />;
-        } else if (n.isSystemNotification) {
-           icon = <MessageTwoTone twoToneColor="#1890ff" />;
-           bg = "rgba(24,144,255,0.05)";
-        }
-
-        notification.open({
-          message: n.title,
-          description: n.description,
-          placement: "bottomRight",
-          duration: 8,
-          icon: icon,
-          style: { borderRadius: "10px", background: bg },
+      // 1. Requests
+      if (Array.isArray(requestsRes.data)) {
+        requestsRes.data.forEach((r) => {
+          if (r.status === "pending") return; // Skip pending
+          all.push({
+            id: `req-${r._id}`,
+            type: r.status === "approved" ? "success" : "error",
+            title: r.status === "approved" ? "Request Approved" : "Request Rejected",
+            message:
+              r.type === "renew"
+                ? `Your renewal request for "${r.bookTitle}" was ${r.status}.`
+                : `Your return request for "${r.bookTitle}" was ${r.status}.`,
+            time: r.handledAt || r.updatedAt,
+            data: r,
+          });
         });
+      }
+
+      // 2. Review Reminders
+      if (Array.isArray(remindersRes.data)) {
+        remindersRes.data.forEach((rem) => {
+          all.push({
+            id: `rem-${rem.bookId}`,
+            type: "info",
+            title: "Book Review Reminder",
+            message: `You recently returned "${rem.bookTitle}". Would you like to leave a review?`,
+            time: rem.returnDate,
+            data: rem,
+            isReview: true,
+          });
+        });
+      }
+
+      // 3. System Notifications
+      if (Array.isArray(systemRes.data)) {
+        systemRes.data.forEach((sn) => {
+          all.push({
+            id: `sys-${sn._id}`,
+            type: sn.type || "info",
+            title: sn.title || "System Message",
+            message: sn.message,
+            time: sn.createdAt,
+            data: sn,
+            read: sn.isRead,
+          });
+        });
+      }
+
+      // Sort by time descending
+      all.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+      // Check for new notifications to trigger popups
+      all.forEach((n) => {
+        if (!lastKnownIds.current.has(n.id)) {
+          notification[n.type === "success" ? "success" : "info"]({
+            message: n.title,
+            description: n.message,
+            placement: "topRight",
+          });
+          lastKnownIds.current.add(n.id);
+        }
       });
 
-      // Update State
-      setNotifications((prev) => {
-        const updated = [...newItems, ...prev].slice(0, 30);
-        localStorage.setItem("notifications", JSON.stringify(updated));
-        return updated;
-      });
-      setUnreadCount((prev) => prev + newItems.length);
+      setNotifications(all);
+      setUnreadCount(all.filter((n) => !n.read).length);
+
+      // Persist to local storage
+      localStorage.setItem("notifications", JSON.stringify(all));
+      localStorage.setItem(
+        "notificationKnownIds",
+        JSON.stringify(Array.from(lastKnownIds.current))
+      );
+    } catch (err) {
+      console.error("Refresh notifications failed:", err);
     }
   }, [token, notifEnabled]);
 

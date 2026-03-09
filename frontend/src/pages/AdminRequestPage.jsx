@@ -1,3 +1,7 @@
+/**
+ * Admin Request Management Page
+ * Handles administrative approval and rejection of user requests for renewals and returns.
+ */
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Card,

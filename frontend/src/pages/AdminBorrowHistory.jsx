@@ -1,4 +1,7 @@
-// ✅ client/src/pages/AdminBorrowHistory.jsx
+/**
+ * Admin Borrow History Page
+ * Provides a comprehensive view of all borrowing transactions, including search, filtering, and status tracking.
+ */
 import { useEffect, useState, useCallback } from "react";
 import {
   Card,

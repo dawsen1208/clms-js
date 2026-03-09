@@ -1,4 +1,7 @@
-// backend/routes/notificationEmailRoutes.js
+/**
+ * Notification Email Routes
+ * Handles email binding, verification codes, and external notification settings.
+ */
 import express from "express";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";

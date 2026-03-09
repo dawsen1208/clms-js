@@ -1,4 +1,9 @@
 // ✅ client/src/main.jsx
+/**
+ * Frontend Entry Point
+ * Mounts the React application, initializes providers (Theme, Auth, Language),
+ * and handles global styling imports.
+ */
 import React, { useState, useEffect } from "react";
 import { LanguageProvider, useLanguage } from "./contexts/LanguageContext";
 import { AccessibilityProvider } from "./contexts/AccessibilityContext";

@@ -1,4 +1,7 @@
-// ✅ backend/seedDemoData.js — 批量生成演示数据（用户、借阅记录、历史、申请）
+/**
+ * Seed Demo Data Script
+ * Generates bulk demo data including users, borrow records, history, and requests for testing.
+ */
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import User from "./models/User.js";
@@ -26,7 +29,7 @@ async function ensureReaders(count = 30, startId = 200001) {
   const created = [];
   for (let i = 0; i < count; i++) {
     const userId = `r${startId + i}`;
-    const name = `测试读者${i + 1}`;
+    const name = `Test Reader ${i + 1}`;
     const exists = await User.findOne({ userId });
     if (exists) continue;
     const u = await User.create({
@@ -39,12 +42,12 @@ async function ensureReaders(count = 30, startId = 200001) {
     });
     created.push(u);
   }
-  // 为现有测试账号补充信息（如果存在）
+  // Complement info for existing test accounts
   const knownIds = ["r100003", "r100004", "r100005", "r100006", "r100007"];
   for (const kid of knownIds) {
     const u = await User.findOne({ userId: kid });
     if (u && !u.name) {
-      u.name = `测试读者${kid.slice(-3)}`;
+      u.name = `Test Reader ${kid.slice(-3)}`;
       await u.save();
     }
   }
@@ -64,14 +67,13 @@ async function seedBorrowsHistoriesRequests(targetUserIds, books) {
 
     const picks = sample(books, randInt(3, 6));
     for (const book of picks) {
-      // 借阅日期：过去 60 天内任意一天
+      // Borrow date: random day within the past 60 days
       const borrowedAt = new Date(now.getTime() - randInt(1, 60) * 24 * 60 * 60 * 1000);
-      // 到期日期：借阅后 15~45 天
+      // Due date: 15-45 days after borrowing
       const dueDate = new Date(borrowedAt.getTime() + randInt(15, 45) * 24 * 60 * 60 * 1000);
 
-      const returned = Math.random() < 0.6; // 60% 已归还
-      const record = await BorrowRecord.create({
-        userId,
+      const returned = Math.random() < 0.6; // 60% returned
+      const record = await BorrowRecord.create({        userId,
         bookId: book._id,
         borrowedAt,
         dueDate,
@@ -86,7 +88,7 @@ async function seedBorrowsHistoriesRequests(targetUserIds, books) {
       });
       createdRecords++;
 
-      // 历史：借阅
+      // History: borrow
       await BorrowHistory.create({
         userId,
         bookId: book._id,
@@ -101,32 +103,8 @@ async function seedBorrowsHistoriesRequests(targetUserIds, books) {
       });
       createdHistories++;
 
-      // 30% 续借一次（仅未归还的）
-      if (!returned && Math.random() < 0.3) {
-        const addedDays = randInt(7, 30);
-        const newDue = new Date(dueDate.getTime() + addedDays * 24 * 60 * 60 * 1000);
-        record.renewed = true;
-        record.renewCount = 1;
-        record.dueDate = newDue;
-        await record.save();
-
-        await BorrowHistory.create({
-          userId,
-          bookId: book._id,
-          bookTitle: book.title,
-          bookAuthor: book.author,
-          userName: user.name || user.userId,
-          action: "renew",
-          borrowDate: borrowedAt,
-          dueDate: newDue,
-          isRenewed: true,
-          renewCount: 1,
-        });
-        createdHistories++;
-      }
-
-      // 若已归还，写入归还历史
       if (returned) {
+        // History: return
         await BorrowHistory.create({
           userId,
           bookId: book._id,
@@ -137,89 +115,66 @@ async function seedBorrowsHistoriesRequests(targetUserIds, books) {
           borrowDate: borrowedAt,
           dueDate,
           returnDate: record.returnedAt,
-          isRenewed: record.renewed,
-          renewCount: record.renewCount,
+          isRenewed: false,
+          renewCount: 0,
         });
         createdHistories++;
-      }
-
-      // 申请：为部分未归还记录生成待审批续借/归还申请
-      if (!returned && Math.random() < 0.4) {
-        const type = Math.random() < 0.5 ? "renew" : "return";
-        const statusPool = ["pending", "approved", "rejected"];
-        const status = statusPool[randInt(0, statusPool.length - 1)];
-        await BorrowRequest.create({
-          userId,
-          userName: user.name || user.userId,
-          bookId: book._id,
-          bookTitle: book.title,
-          bookAuthor: book.author,
-          type,
-          status,
-          reason: status === "rejected" ? "不符合续借条件" : "",
-        });
-        createdRequests++;
-      }
-
-      // 更新书籍借阅次数与库存（避免库存负数）
-      try {
-        const incCopies = returned ? 0 : -1;
-        const update = {
-          $inc: { borrowCount: 1, copies: incCopies },
-        };
-        const updated = await Book.findByIdAndUpdate(book._id, update, { new: true });
-        if (updated && updated.copies < 0) {
-          // 矫正库存
-          updated.copies = 0;
-          await updated.save();
+      } else {
+        // If not returned, 30% chance of a pending request
+        if (Math.random() < 0.3) {
+          const type = Math.random() < 0.5 ? "renew" : "return";
+          await BorrowRequest.create({
+            userId,
+            userName: user.name || user.userId,
+            bookId: book._id,
+            bookTitle: book.title,
+            bookAuthor: book.author,
+            type,
+            status: "pending",
+            days: type === "renew" ? 7 : undefined,
+          });
+          createdRequests++;
         }
-      } catch {}
+      }
     }
   }
-
   return { createdRecords, createdHistories, createdRequests };
 }
 
 async function main() {
-  const uri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/clms_db";
-  await mongoose.connect(uri);
-
-  const bookCount = await Book.countDocuments();
-  console.log(`📚 现有书籍数量: ${bookCount}`);
-  if (bookCount < 30) {
-    console.log("⚠️ 书籍太少，建议先运行: node seedBooks.js 以导入大量书籍。");
+  const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+  if (!uri) {
+    console.error("❌ Missing MONGO_URI");
+    process.exit(1);
   }
 
-  // 1) 创建读者账号（不删除已有账号）
-  const newReaders = await ensureReaders(30, 200001);
-  console.log(`👥 新增读者数量: ${newReaders.length}`);
+  console.log("🚀 Connecting to DB...");
+  await mongoose.connect(uri);
 
-  // 2) 选择目标用户（包含已存在测试账号）
-  const targetUserIds = [
-    "r100003",
-    "r100004",
-    "r100005",
-    "r100006",
-    "r100007",
-    ...newReaders.map((u) => u.userId),
-  ];
+  const books = await Book.find().limit(50);
+  if (books.length === 0) {
+    console.error("❌ No books found, please seed books first");
+    process.exit(1);
+  }
 
-  const books = await Book.find().lean();
-  const { createdRecords, createdHistories, createdRequests } = await seedBorrowsHistoriesRequests(
-    targetUserIds,
-    books
-  );
+  console.log("👤 Ensuring test readers...");
+  const newReaders = await ensureReaders(30);
+  console.log(`✅ Created ${newReaders.length} new readers`);
 
-  console.log("✅ 批量造数完成:");
-  console.log(`   • 借阅记录: ${createdRecords}`);
-  console.log(`   • 历史记录: ${createdHistories}`);
-  console.log(`   • 申请记录: ${createdRequests}`);
+  const allReaderIds = (await User.find({ role: "Reader" })).map(u => u.userId);
+  
+  console.log("📚 Seeding borrowing data...");
+  const stats = await seedBorrowsHistoriesRequests(allReaderIds, books);
+  
+  console.log(`🎉 Seed completed!`);
+  console.log(`   - Records: ${stats.createdRecords}`);
+  console.log(`   - Histories: ${stats.createdHistories}`);
+  console.log(`   - Requests: ${stats.createdRequests}`);
 
   await mongoose.disconnect();
-  process.exit(0);
 }
 
-main().catch((err) => {
-  console.error("❌ 造数失败:", err);
+main().catch(err => {
+  console.error("❌ Seed failed:", err);
   process.exit(1);
 });

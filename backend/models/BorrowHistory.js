@@ -1,8 +1,11 @@
-// ✅ backend/models/BorrowHistory.js - 借阅历史记录
+/**
+ * BorrowHistory Model
+ * Records all borrowing actions (borrow, renew, return) for auditing and reporting purposes.
+ */
 import mongoose from "mongoose";
 
 const borrowHistorySchema = new mongoose.Schema({
-  // 👤 用户ID（兼容字符串或ObjectId，与User.userId保持一致）
+  // User ID (compatible with String or ObjectId, consistent with User.userId)
   userId: { 
     type: mongoose.Schema.Types.Mixed, 
     required: true, 
@@ -10,7 +13,7 @@ const borrowHistorySchema = new mongoose.Schema({
     ref: "User"
   },
   
-  // 📚 书籍ID（兼容字符串或ObjectId）
+  // Book ID (compatible with String or ObjectId)
   bookId: { 
     type: mongoose.Schema.Types.Mixed, 
     required: true, 
@@ -18,16 +21,16 @@ const borrowHistorySchema = new mongoose.Schema({
     ref: "Book"
   },
   
-  // 📖 书籍标题（冗余存储，防止书籍被删除后丢失信息）
+  // Book title (redundant storage to prevent data loss if book is deleted)
   bookTitle: { type: String, required: true },
   
-  // 📖 书籍作者（冗余存储）
+  // Book author (redundant storage)
   bookAuthor: { type: String, default: "" },
   
-  // 🧑 用户姓名（冗余存储，防止用户被删除后丢失信息）
+  // User name (redundant storage to prevent data loss if user is deleted)
   userName: { type: String, default: "" },
   
-  // 🔁 操作类型
+  // Action type
   action: { 
     type: String, 
     enum: ["borrow", "renew", "return"], 
@@ -35,42 +38,42 @@ const borrowHistorySchema = new mongoose.Schema({
     index: true 
   },
   
-  // 📅 借阅日期
+  // Borrow date
   borrowDate: { type: Date, default: Date.now },
   
-  // 📅 应还日期
+  // Due date
   dueDate: { type: Date },
   
-  // 📅 实际归还日期
+  // Actual return date
   returnDate: { type: Date },
   
-  // 🔄 是否续借过
+  // Whether it was renewed
   isRenewed: { type: Boolean, default: false },
   
-  // 🔄 续借次数
+  // Number of renewals
   renewCount: { type: Number, default: 0, min: 0 },
   
-  // 📝 备注信息
+  // Notes
   notes: { type: String, default: "" },
   
-  // 🕐 记录创建时间
+  // Record creation time
   createdAt: { type: Date, default: Date.now },
   
-  // 🕐 记录更新时间
+  // Record update time
   updatedAt: { type: Date, default: Date.now }
 }, {
   timestamps: true,
   versionKey: false
 });
 
-// ✅ 添加复合索引
+// Compound indexes
 borrowHistorySchema.index({ userId: 1, action: 1 });
 borrowHistorySchema.index({ bookId: 1, action: 1 });
 borrowHistorySchema.index({ userId: 1, bookId: 1 });
 borrowHistorySchema.index({ borrowDate: -1 });
 borrowHistorySchema.index({ createdAt: -1 });
 
-// ✅ 添加静态方法
+// Static methods
 borrowHistorySchema.statics.findByUser = function(userId) {
   return this.find({ userId }).sort({ createdAt: -1 });
 };
@@ -83,7 +86,7 @@ borrowHistorySchema.statics.findByUserAndBook = function(userId, bookId) {
   return this.find({ userId, bookId }).sort({ createdAt: -1 });
 };
 
-// ✅ 兼容ID类型转换（与BorrowRecord保持一致）
+// Compatible ID type conversion (consistent with BorrowRecord)
 borrowHistorySchema.statics.formatId = function(id) {
   return typeof id === "object"
     ? id

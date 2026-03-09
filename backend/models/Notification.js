@@ -1,12 +1,15 @@
+/**
+ * Notification Model
+ * Manages in-app notifications for users, including system messages and borrow/return updates.
+ */
 import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema({
   userId: { type: String, required: true, index: true },
-  type: { type: String, enum: ["system", "personal"], default: "personal" },
   title: { type: String, required: true },
   message: { type: String, required: true },
+  type: { type: String, enum: ["info", "warning", "success", "error"], default: "info" },
   read: { type: Boolean, default: false },
-  relatedId: { type: String }, // e.g. feedbackId, bookId
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -1,97 +1,59 @@
-// ✅ 统一的认证中间件 - backend/middleware/authUnified.js
+/**
+ * Unified Authentication Middleware
+ * Validates JWT tokens and checks user roles and account status.
+ */
 import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
-/**
- * 统一的JWT认证中间件
- * 标准化req.user对象结构：{ id, userId, name, role }
- */
-export const authMiddleware = (req, res, next) => {
-  try {
-    // 从请求头获取token
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ 
-        message: "No auth token provided, please login first.",
-        code: "NO_TOKEN"
-      });
+// Main Authentication Middleware
+export const authenticate = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Select public fields only
+      req.user = await User.findById(decoded.id).select("-password");
+      
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authorized, user not found" });
+      }
+
+      // Role and Status Check
+      if (req.user.status === "PENDING") {
+        return res.status(403).json({ message: "Your account is pending approval by an administrator." });
+      }
+      if (req.user.status === "REJECTED") {
+        return res.status(403).json({ message: "Your registration has been rejected." });
+      }
+
+      next();
+    } catch (error) {
+      console.error("Auth error:", error);
+      res.status(401).json({ message: "Not authorized, token failed" });
     }
+  }
 
-    const token = authHeader.split(" ")[1];
-    if (!token) {
-      return res.status(401).json({ 
-        message: "Invalid auth token format.",
-        code: "INVALID_TOKEN_FORMAT"
-      });
-    }
+  if (!token) {
+    res.status(401).json({ message: "Not authorized, no token" });
+  }
+};
 
-    // 验证token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "mysecretkey");
-    
-    // 标准化req.user对象结构
-    req.user = {
-      id: decoded.id || decoded.userId,        // MongoDB ObjectId
-      userId: decoded.userId,                    // 用户自定义ID (如 r000001)
-      name: decoded.name || "",                 // 用户姓名
-      role: decoded.role,                       // 用户角色 (Reader/Administrator)
-      sessionId: decoded.sessionId || null      // 会话ID
-    };
-
-    // 验证必要字段
-    if (!req.user.id || !req.user.userId || !req.user.role) {
-      return res.status(401).json({ 
-        message: "Incomplete auth token data.",
-        code: "INCOMPLETE_TOKEN_DATA"
-      });
-    }
-
+// Administrator Check
+export const adminOnly = (req, res, next) => {
+  if (req.user && req.user.role === "Administrator") {
     next();
-  } catch (error) {
-    console.error("❌ 认证中间件错误:", error.message);
-    
-    let errorMessage = "Authentication failed.";
-    let errorCode = "AUTH_FAILED";
-    
-    if (error.name === "JsonWebTokenError") {
-      errorMessage = "Invalid auth token.";
-      errorCode = "INVALID_TOKEN";
-    } else if (error.name === "TokenExpiredError") {
-      errorMessage = "Auth token expired, please login again.";
-      errorCode = "TOKEN_EXPIRED";
-    }
-    
-    return res.status(401).json({ 
-      message: errorMessage,
-      code: errorCode
-    });
+  } else {
+    res.status(403).json({ message: "Not authorized as an administrator" });
   }
 };
 
-/**
- * 管理员权限验证中间件
- * 必须在authMiddleware之后使用
- */
-export const requireAdmin = (req, res, next) => {
-  if (req.user.role !== "Administrator") {
-    return res.status(403).json({ 
-      message: "Admin privileges required.",
-      code: "INSUFFICIENT_PRIVILEGES"
-    });
+// Reader Check (Allowing Administrator to also access Reader functionality)
+export const readerOnly = (req, res, next) => {
+  if (req.user && (req.user.role === "Reader" || req.user.role === "Administrator")) {
+    next();
+  } else {
+    res.status(403).json({ message: "Not authorized as a reader" });
   }
-  next();
 };
-
-/**
- * 读者权限验证中间件
- * 必须在authMiddleware之后使用
- */
-export const requireReader = (req, res, next) => {
-  if (req.user.role !== "Reader") {
-    return res.status(403).json({ 
-      message: "Reader privileges required.",
-      code: "INSUFFICIENT_PRIVILEGES"
-    });
-  }
-  next();
-};
-
-export default authMiddleware;

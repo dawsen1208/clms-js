@@ -1,3 +1,7 @@
+/**
+ * Modern Book Card Component
+ * A stylized card for displaying book information, status (borrowed/pending), and borrowing actions.
+ */
 import React from 'react';
 import { Card, Typography, Tag, Button, Space, Tooltip, Badge, theme } from 'antd';
 import { 
