@@ -155,6 +155,9 @@ export const searchBooks = (query) => API.get(`/books/search?q=${query}`);
 // Borrow a book
 export const borrowBook = (bookId) => API.post("/books/borrow", { bookId });
 
+// Get currently borrowed books for the logged-in user
+export const getBorrowedBooks = () => API.get("/books/borrowed");
+
 // Return a book (Admin only)
 export const returnBook = (userId, bookId) =>
   API.post("/books/return", { userId, bookId });

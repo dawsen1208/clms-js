@@ -15,7 +15,7 @@ import EditorialSectionHeader from "../components/common/EditorialSectionHeader"
 import BookCoverPro from "../components/common/BookCoverPro";
 import { getCleanImageUrl } from "../utils/imageUtils";
 import StatCard from "../components/cards/StatCard";
-import { getBooks, getRecommendations, getBorrowedBooks, getBorrowHistory } from "../api";
+import { getBooks, getRecommendations, getBorrowHistory, getBorrowedBooks } from "../api";
 
 const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;

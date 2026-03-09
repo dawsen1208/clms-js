@@ -33,7 +33,7 @@ import EmptyStateWarm from "../components/common/EmptyStateWarm";
 import { 
   getBorrowedBooks, 
   getUserRequestsLibrary, 
-  requestRenewLibrary 
+  submitRequestLibrary 
 } from "../api";
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
 
@@ -129,7 +129,7 @@ const useBorrowData = () => {
         selectedBook.book_id ||
         selectedBook.id ||
         selectedBook._id;
-      await requestRenewLibrary({
+      await submitRequestLibrary({
         type: 'renew',
         bookId,
         bookTitle: selectedBook.title,
@@ -141,7 +141,7 @@ const useBorrowData = () => {
       fetchData();
     } catch (error) {
       console.error("Renew error:", error);
-      if (error.__borrowLimit) {
+      if (isBorrowLimitError(error)) {
         showBorrowLimitModal(t, modal);
         return;
       }
