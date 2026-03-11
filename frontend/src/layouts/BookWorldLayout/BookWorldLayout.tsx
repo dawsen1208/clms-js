@@ -58,6 +58,7 @@ const BookWorldLayout: React.FC<BookWorldLayoutProps> = ({
       style={
         {
           "--book-paper": token.colorBgContainer,
+          "--bg-desk": token.colorBgLayout,
         } as React.CSSProperties
       }
     >

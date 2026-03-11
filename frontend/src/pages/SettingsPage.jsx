@@ -779,7 +779,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                        </Card>
                        <Card 
                          hoverable 
-                         onClick={() => setBgModalOpen(true)} 
+                         onClick={() => { setTempBgColor(appearance?.backgroundColor || ''); setBgModalOpen(true); }} 
                          style={{ 
                            cursor: 'pointer', 
                            borderColor: appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder, 

@@ -219,7 +219,13 @@ function RegisterReader() {
             <Form.Item 
               label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.name")}</span>}
               name="name" 
-              rules={[{ required: true, message: t("register.nameReq") }]}
+              rules={[
+                { required: true, message: t("register.nameReq") },
+                {
+                  pattern: /^(?!\d+$)[\p{L}][\p{L}\p{N}_ ]*$/u,
+                  message: t("register.nameInvalid"),
+                },
+              ]}
             >
               <Input 
                 prefix={<UserOutlined style={{ color: token.colorTextQuaternary }} />} 

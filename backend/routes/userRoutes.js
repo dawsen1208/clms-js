@@ -243,8 +243,13 @@ router.post("/register", async (req, res) => {
     }
 
     const nameStr = String(name).trim();
-    const valid = /^(?!\d+$)[A-Za-z][A-Za-z0-9_ ]*$/.test(nameStr);
-    if (!valid) return res.status(400).json({ message: "Invalid username: Must start with a letter, contain only letters, numbers, underscores, spaces, and cannot be purely numeric." });
+    const valid = /^(?!\p{N}+$)\p{L}[\p{L}\p{N}_ ]*$/u.test(nameStr);
+    if (!valid) {
+      return res.status(400).json({
+        message:
+          "Invalid username: Must start with a letter (any language), contain only letters, numbers, underscores, spaces, and cannot be purely numeric.",
+      });
+    }
     const exists = await User.findOne({ name: nameStr }).lean();
     if (exists) return res.status(400).json({ message: "Username already exists, please choose another." });
 

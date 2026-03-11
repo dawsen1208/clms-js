@@ -263,7 +263,7 @@ function RegisterAdmin() {
               label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.name")}</span>}
               rules={[
                 { required: true, message: t("register.enterName") },
-                { pattern: /^(?!\d+$)[A-Za-z][A-Za-z0-9_ ]*$/, message: t("register.nameInvalid") }
+                { pattern: /^(?!\d+$)[\p{L}][\p{L}\p{N}_ ]*$/u, message: t("register.nameInvalid") }
               ]}
             >
               <Input

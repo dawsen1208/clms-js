@@ -18,7 +18,7 @@ import { appTheme } from "./theme";
 import { ConfigProvider, message, Grid, theme as antdTheme } from "antd";
 import enUS from "antd/locale/en_US";
 import zhCN from "antd/locale/zh_CN";
-import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 import { Spin } from "antd";
 import { getProfile } from "./api";
@@ -158,7 +158,6 @@ function App() {
     }
   });
   const navigate = useNavigate();
-  const location = useLocation();
   const { useBreakpoint } = Grid;
   const screens = useBreakpoint();
   const isMobile = !screens.md;
@@ -194,9 +193,8 @@ function App() {
   // 🎨 Determine Algorithm
   const algorithm = isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
 
-  // 🎨 Dynamic Background Logic
-  const isHome = location.pathname === '/home' || location.pathname === '/';
-  const customBg = (!isHome && appearance.backgroundColor) ? appearance.backgroundColor : null;
+  const customBg = appearance.backgroundColor ? String(appearance.backgroundColor).trim() : "";
+  const layoutBg = customBg || (isDark ? "#0b0b0b" : "#FDFBF7");
 
   // ♿ Accessibility Overrides
   useEffect(() => {
@@ -205,6 +203,11 @@ function App() {
     root.style.fontSize = `${baseFontSize}px`;
     document.body.style.fontSize = `${baseFontSize}px`;
   }, [baseFontSize]);
+
+  useEffect(() => {
+    document.documentElement.style.backgroundColor = layoutBg;
+    document.body.style.backgroundColor = layoutBg;
+  }, [layoutBg]);
 
   const themeTokens = {
     ...appTheme.token,
@@ -219,7 +222,7 @@ function App() {
     colorTextQuaternary: (isDark ? '#A6A6A6' : '#E6E2DD'),
     colorTextPlaceholder: (isDark ? '#6B7280' : '#9C9893'),
     colorBgContainer: (isDark ? '#141414' : '#FFFFFF'),
-    colorBgLayout: (customBg || (isDark ? '#0b0b0b' : '#FDFBF7')),
+    colorBgLayout: layoutBg,
     colorBgElevated: (isDark ? '#1f1f1f' : '#FFFFFF'),
     colorBgSpotlight: (isDark ? '#1f1f1f' : '#1C1917'),
     colorBorder: '#E6E2DD',
