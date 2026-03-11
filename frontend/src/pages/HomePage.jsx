@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Typography, Button, Skeleton, Space, Card, Grid, theme } from "antd";
+import { Typography, Button, Skeleton, Space, Card, Grid, theme, Collapse } from "antd";
 import { 
   ArrowRightOutlined,
   CompassOutlined,
@@ -8,6 +8,7 @@ import {
   RobotOutlined
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
 import EditorialPageShell from "../components/common/EditorialPageShell";
 import HeroEditorial from "../components/common/HeroEditorial";
 import MagazineBentoGrid from "../components/common/MagazineBentoGrid";
@@ -238,6 +239,8 @@ const useHomeData = () => {
 export const HomeLeft = () => {
   const { user, stats, loading, isMobile, token, navigate, getGreeting } =
     useHomeData();
+  const { language } = useLanguage();
+  const isZh = language === "zh";
 
   return (
     <div style={{ padding: isMobile ? 16 : 24 }}>
@@ -340,71 +343,113 @@ export const HomeLeft = () => {
               fontFamily: "'Literata', serif",
             }}
           >
-            Quick Actions
+            {isZh ? "帮助" : "Help"}
           </Title>
-          <div
-            style={{
-              marginTop: 4,
-              display: "grid",
-              gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-              gap: 8,
-            }}
-          >
-            <Button
-              icon={<SearchOutlined />}
-              onClick={() => navigate("/search")}
-              type="default"
-              block
-              style={{
-                justifyContent: "flex-start",
-                padding: "10px 14px",
-                borderRadius: 999,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
-                borderColor: token.colorBorderSecondary,
-              }}
+          <Space direction="vertical" size={12} style={{ width: "100%" }}>
+            <Text type="secondary" style={{ fontSize: 13 }}>
+              {isZh
+                ? "新用户快速上手：搜索 → 借阅 → 归还；也可以用智能助手做推荐与对比。"
+                : "New here? Start with search → borrow → return. You can also use the Smart Assistant for recommendations and comparisons."}
+            </Text>
+
+            <Collapse
+              ghost
+              defaultActiveKey={["start"]}
+              style={{ background: "transparent" }}
             >
-              Search Library
-            </Button>
-            <Button
-              icon={<ReadOutlined />}
-              onClick={() => navigate("/borrow")}
-              type="default"
-              block
-              style={{
-                justifyContent: "flex-start",
-                padding: "10px 14px",
-                borderRadius: 999,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
-                borderColor: token.colorBorderSecondary,
-              }}
-            >
-              My Borrowed Books
-            </Button>
-            <Button
-              icon={<RobotOutlined />}
-              onClick={() => navigate("/assistant")}
-              type="default"
-              block
-              style={{
-                justifyContent: "flex-start",
-                padding: "10px 14px",
-                borderRadius: 999,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
-                borderColor: token.colorBorderSecondary,
-              }}
-            >
-              Smart Assistant
-            </Button>
-          </div>
+              <Collapse.Panel header={isZh ? "快速上手" : "Getting Started"} key="start">
+                <Space direction="vertical" size={10} style={{ width: "100%" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                    <SearchOutlined style={{ marginTop: 2, color: token.colorPrimary }} />
+                    <div style={{ flex: 1 }}>
+                      <Text strong>{isZh ? "1）搜索图书" : "1) Search books"}</Text>
+                      <div style={{ marginTop: 2 }}>
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          {isZh ? "按书名/作者/分类筛选，点击封面进入详情。" : "Filter by title/author/category and open the book detail page."}
+                        </Text>
+                      </div>
+                      <Button type="link" onClick={() => navigate("/search")} style={{ padding: 0, height: "auto" }}>
+                        {isZh ? "打开图书馆" : "Open Library"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                    <ReadOutlined style={{ marginTop: 2, color: token.colorPrimary }} />
+                    <div style={{ flex: 1 }}>
+                      <Text strong>{isZh ? "2）借阅与查看我的书" : "2) Borrow & view My Books"}</Text>
+                      <div style={{ marginTop: 2 }}>
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          {isZh ? "在书籍详情点击 Borrow；借阅记录在 My Books 中查看。" : "Borrow from the book detail page; manage active loans in My Books."}
+                        </Text>
+                      </div>
+                      <Button type="link" onClick={() => navigate("/borrow")} style={{ padding: 0, height: "auto" }}>
+                        {isZh ? "打开我的借阅" : "Open My Books"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                    <RobotOutlined style={{ marginTop: 2, color: token.colorPrimary }} />
+                    <div style={{ flex: 1 }}>
+                      <Text strong>{isZh ? "3）用智能助手推荐/对比" : "3) Use Smart Assistant to recommend/compare"}</Text>
+                      <div style={{ marginTop: 2 }}>
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          {isZh ? "选择 2–6 本书对比，查看表格 + 雷达图强项维度。" : "Compare 2–6 books and see strengths via table + radar chart."}
+                        </Text>
+                      </div>
+                      <Button type="link" onClick={() => navigate("/assistant")} style={{ padding: 0, height: "auto" }}>
+                        {isZh ? "打开智能助手" : "Open Assistant"}
+                      </Button>
+                    </div>
+                  </div>
+                </Space>
+              </Collapse.Panel>
+
+              <Collapse.Panel header={isZh ? "常见问题" : "FAQs"} key="faq">
+                <Collapse ghost accordion>
+                  <Collapse.Panel header={isZh ? "为什么借阅按钮不可用/借不到书？" : "Why can’t I borrow a book?"} key="q1">
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {isZh
+                        ? "常见原因：库存为 0、已达到同时借阅上限（最多 5 本）、或账号状态未通过审批。可以先搜索其他书或先归还部分。"
+                        : "Common reasons: no stock available, you reached the max active loans (5), or your account is pending approval. Try another title or return some books first."}
+                    </Text>
+                  </Collapse.Panel>
+                  <Collapse.Panel header={isZh ? "如何快速找到想要的书？" : "How do I find a book faster?"} key="q2">
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {isZh
+                        ? "在 Library 使用搜索框输入书名/作者；也可以用分类筛选与排序。"
+                        : "Use the Library search box for title/author; filter by category and sort to narrow results."}
+                    </Text>
+                    <div style={{ marginTop: 6 }}>
+                      <Button type="link" onClick={() => navigate("/search")} style={{ padding: 0, height: "auto" }}>
+                        {isZh ? "去 Library" : "Go to Library"}
+                      </Button>
+                    </div>
+                  </Collapse.Panel>
+                  <Collapse.Panel header={isZh ? "书评提交后还能修改吗？" : "Can I edit my review later?"} key="q3">
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {isZh
+                        ? "可以。同一用户对同一本书只保留一条书评，再次提交会更新你的评分与内容。"
+                        : "Yes. Each user has one review per book; submitting again updates your rating and comment."}
+                    </Text>
+                  </Collapse.Panel>
+                  <Collapse.Panel header={isZh ? "验证码过期/邮箱绑定失败怎么办？" : "My verification code expired—what should I do?"} key="q4">
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {isZh
+                        ? "回到 Settings 的邮箱模块重新发送验证码即可；旧验证码过期后无法使用。"
+                        : "Go to Settings → email section and request a new code. Expired codes can’t be reused."}
+                    </Text>
+                    <div style={{ marginTop: 6 }}>
+                      <Button type="link" onClick={() => navigate("/settings?pane=notifications")} style={{ padding: 0, height: "auto" }}>
+                        {isZh ? "去设置" : "Open Settings"}
+                      </Button>
+                    </div>
+                  </Collapse.Panel>
+                </Collapse>
+              </Collapse.Panel>
+            </Collapse>
+          </Space>
         </Card>
       </div>
     </div>
