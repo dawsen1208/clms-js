@@ -3,7 +3,7 @@ import { Card, Typography, Radio, Space, Input, Switch, Form, Button, Table, mes
 import { 
   LockOutlined, DesktopOutlined, DeleteOutlined, SafetyCertificateOutlined,
   GlobalOutlined, BgColorsOutlined, FormatPainterOutlined, FontSizeOutlined, 
-  PictureOutlined, RobotOutlined, BuildOutlined, TeamOutlined, BellOutlined
+  RobotOutlined, BuildOutlined, TeamOutlined, BellOutlined
 } from "@ant-design/icons";
 import { useLanguage } from "../contexts/LanguageContext";
 import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions } from "../api";
@@ -115,7 +115,6 @@ function AdminSettingsPage({ appearance, onChange }) {
   const [themeModeModalOpen, setThemeModeModalOpen] = useState(false);
   const [themeColorModalOpen, setThemeColorModalOpen] = useState(false);
   const [fontSizeModalOpen, setFontSizeModalOpen] = useState(false);
-  const [bgModalOpen, setBgModalOpen] = useState(false);
   const [autoRulesModalOpen, setAutoRulesModalOpen] = useState(false);
   const [bulkActionModalOpen, setBulkActionModalOpen] = useState(false);
   const [rolesModalOpen, setRolesModalOpen] = useState(false);
@@ -228,15 +227,6 @@ function AdminSettingsPage({ appearance, onChange }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card hoverable onClick={() => setBgModalOpen(true)} style={{ cursor: 'pointer', borderColor: token.colorBorder }}>
-                          <Space align="start">
-                              <PictureOutlined style={{ fontSize: 24, color: token.colorWarning }} />
-                              <div>
-                                  <AntText strong style={{ display: 'block' }}>{t("settings.customBackground")}</AntText>
-                                  <AntText type="secondary" style={{ fontSize: 12 }}>{t("settings.customBackgroundDesc")}</AntText>
-                              </div>
-                          </Space>
-                       </Card>
                     </div>
                  </Space>
                  <Modal title={t("settings.themeMode")} open={themeModeModalOpen} onCancel={() => setThemeModeModalOpen(false)} footer={null}>
@@ -286,28 +276,6 @@ function AdminSettingsPage({ appearance, onChange }) {
                           marks={{ 12: '12', 14: '14', 16: '16', 20: '20', 24: '24', 30: '30' }}
                        />
                      </div>
-                 </Modal>
-                 <Modal title={t("settings.customBackground")} open={bgModalOpen} onCancel={() => setBgModalOpen(false)} footer={null}>
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                       <ColorPicker 
-                         value={appearance?.backgroundColor || '#ffffff'} 
-                         onChange={(c) => {
-                           const colorHex = typeof c === 'string' ? c : c.toHexString();
-                           handleUpdate({ backgroundColor: colorHex });
-                         }} 
-                         showText 
-                         presets={[
-                              {
-                                label: 'Recommended',
-                                colors: [
-                                  '#ffffff', '#f0f2f5', '#fafafa', '#f5f5f5', '#e6f7ff', '#f9f0ff', '#f6ffed'
-                                ],
-                              },
-                         ]}
-                         style={{ width: '100%' }} 
-                       />
-                       <Button onClick={() => handleUpdate({ backgroundColor: "" })}>{t("common.reset")}</Button>
-                    </Space>
                  </Modal>
               </Card>
             ),

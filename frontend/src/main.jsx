@@ -127,11 +127,8 @@ function App() {
         normalized.customColor = fallback.customColor;
       }
 
-      if (
-        normalized.backgroundColor &&
-        typeof normalized.backgroundColor !== "string"
-      ) {
-        normalized.backgroundColor = "";
+      if (Object.prototype.hasOwnProperty.call(normalized, "backgroundColor")) {
+        delete normalized.backgroundColor;
       }
 
       const validModes = ["light", "dark"];
@@ -193,8 +190,7 @@ function App() {
   // 🎨 Determine Algorithm
   const algorithm = isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm;
 
-  const customBg = appearance.backgroundColor ? String(appearance.backgroundColor).trim() : "";
-  const layoutBg = customBg || (isDark ? "#0b0b0b" : "#FDFBF7");
+  const layoutBg = isDark ? "#0b0b0b" : "#FDFBF7";
 
   // ♿ Accessibility Overrides
   useEffect(() => {

@@ -1,11 +1,11 @@
 import React, { useMemo, useEffect, useState, useCallback } from "react";
-import { Card, Typography, Radio, Space, Divider, Input, Switch, Form, Button, Table, Tag, message, Select, InputNumber, Checkbox, Tabs, Grid, Modal, ColorPicker, Slider, Row, Col, theme } from "antd";
+import { Card, Typography, Radio, Space, Divider, Input, Switch, Form, Button, Table, Tag, message, Select, InputNumber, Checkbox, Tabs, Grid, Modal, Slider, Row, Col, theme } from "antd";
 import { 
   LockOutlined, DesktopOutlined, DeleteOutlined, SafetyCertificateOutlined,
   GlobalOutlined, BgColorsOutlined, FormatPainterOutlined, FontSizeOutlined, 
   CalendarOutlined, SearchOutlined, SortAscendingOutlined, AppstoreOutlined, 
   TagsOutlined, ReloadOutlined, RobotOutlined, BuildOutlined, TeamOutlined,
-  BellOutlined, SettingOutlined, PictureOutlined, SoundOutlined, BulbOutlined
+  BellOutlined, SettingOutlined, SoundOutlined, BulbOutlined
 } from "@ant-design/icons";
 import { updateProfile, changePassword, getSessions, revokeSession, revokeAllSessions, getBooks, toggle2FA, sendEmailVerifyCode, verifyAndBindEmail, updateEmailNotifySettings } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -508,20 +508,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
   const [tempThemeColor, setTempThemeColor] = useState('');
   const [tempCustomColor, setTempCustomColor] = useState('');
 
-  const [bgModalOpen, setBgModalOpen] = useState(false);
-  const [tempBgColor, setTempBgColor] = useState('');
-
   const confirmThemeColor = () => {
     handleUpdate({ 
         themeColor: tempThemeColor, 
         customColor: tempThemeColor === 'custom' ? tempCustomColor : (appearance?.customColor || '#1677FF')
     });
     setThemeColorModalOpen(false);
-  };
-
-  const confirmBgColor = () => {
-    handleUpdate({ backgroundColor: tempBgColor });
-    setBgModalOpen(false);
   };
 
   const [reminderDaysModalOpen, setReminderDaysModalOpen] = useState(false);
@@ -749,23 +741,6 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                               </div>
                           </Space>
                        </Card>
-                       <Card 
-                         hoverable 
-                         onClick={() => { setTempBgColor(appearance?.backgroundColor || ''); setBgModalOpen(true); }} 
-                         style={{ 
-                           cursor: 'pointer', 
-                           borderColor: appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder, 
-                           background: appearance?.highContrast ? '#000' : token.colorBgContainer 
-                         }}
-                       >
-                          <Space align="start">
-                              <PictureOutlined style={{ fontSize: 24, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorError }} />
-                              <div>
-                                  <Text strong style={{ display: 'block', color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.customBackground")}</Text>
-                                  <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorTextSecondary }}>{t("settings.customBackgroundDesc")}</Text>
-                              </div>
-                          </Space>
-                       </Card>
                     </div>
                  </Space>
                  {/* Theme mode modal removed */}
@@ -833,43 +808,6 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                          </Text>
                        </div>
                      </div>
-                 </Modal>
-                 <Modal 
-                    title={t("settings.customBackground")} 
-                    open={bgModalOpen} 
-                    onCancel={() => setBgModalOpen(false)} 
-                    footer={[
-                        <Button key="cancel" onClick={() => setBgModalOpen(false)}>{t("common.cancel") || "Cancel"}</Button>,
-                        <Button key="submit" type="primary" onClick={confirmBgColor}>{t("common.confirm") || "Confirm"}</Button>
-                    ]}
-                 >
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                       <Text type="secondary">{t("settings.selectColor") || "Recommended Colors"}</Text>
-                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-                          {['#ffffff', '#f0f2f5', '#fafafa', '#f5f5f5', '#e6f7ff', '#f9f0ff', '#f6ffed'].map(color => (
-                             <div
-                               key={color}
-                               onClick={() => setTempBgColor(color)}
-                               style={{
-                                 width: 32, height: 32, borderRadius: '50%', background: color, cursor: 'pointer',
-                                 border: (tempBgColor || '#ffffff').toLowerCase() === color.toLowerCase() ? `2px solid ${token.colorPrimary}` : `1px solid ${token.colorBorder}`,
-                                 boxShadow: (tempBgColor || '#ffffff').toLowerCase() === color.toLowerCase() ? `0 0 0 2px ${token.colorPrimary}33` : 'none',
-                                 transition: 'all 0.2s'
-                               }}
-                             />
-                          ))}
-                       </div>
-                       
-                       <Text type="secondary" style={{ marginTop: 8 }}>Hex Code</Text>
-                       <Input 
-                          value={tempBgColor} 
-                          onChange={(e) => setTempBgColor(e.target.value)} 
-                          placeholder="#ffffff"
-                          maxLength={9}
-                       />
-                       
-                       <Button block onClick={() => setTempBgColor("")}>{t("common.reset")}</Button>
-                    </Space>
                  </Modal>
               </Card>
             ),
