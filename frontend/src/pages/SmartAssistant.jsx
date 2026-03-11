@@ -625,14 +625,7 @@ function SmartAssistant() {
                     </Card>
                   </Space>
                 ) : (
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "minmax(0, 1.6fr) minmax(320px, 0.9fr)",
-                      gap: 24,
-                      alignItems: "flex-start",
-                    }}
-                  >
+                  <Space direction="vertical" size={16} style={{ width: "100%" }}>
                     <Table
                       rowKey={(row) => row.book?._id || row.book?.id || row.book?.title}
                       dataSource={resultsWithCustomScore}
@@ -646,7 +639,7 @@ function SmartAssistant() {
                       style={{ borderRadius: 10 }}
                       bodyStyle={{ padding: 16 }}
                     >
-                      <Space direction="vertical" style={{ width: 360 }}>
+                      <Space direction="vertical" style={{ width: "100%" }}>
                         <Space align="center" style={{ justifyContent: "space-between" }}>
                           <Typography.Text strong>{t("assistant.radarMode")}</Typography.Text>
                           <Radio.Group
@@ -668,7 +661,7 @@ function SmartAssistant() {
                         />
                       </Space>
                     </Card>
-                  </div>
+                  </Space>
                 )
               ) : (
                 <Collapse defaultActiveKey={[]}>
