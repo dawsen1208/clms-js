@@ -261,7 +261,7 @@ function SmartAssistant() {
     setCmpLoading(true);
     try {
       const res = await getBookComparison(selectedIds, windowDays);
-      setCmpData(res);
+      setCmpData(res?.data || null);
       message.success(t("assistant.compareUpdated"));
     } catch (err) {
       console.error("❌ 比较数据获取失败:", err);
