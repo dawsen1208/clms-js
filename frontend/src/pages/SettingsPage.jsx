@@ -186,36 +186,6 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     return /^\S+@\S+\.\S+$/.test(v);
   };
 
-  const handleBindGmail = async () => {
-    if (!gmail || !validateGmail(gmail)) {
-      message.error("请输入有效的邮箱地址");
-      return;
-    }
-    if (!authToken) {
-      message.error(t("settings.notLoggedIn") || "Please login first.");
-      return;
-    }
-    try {
-      setGmailLoading(true);
-      const res = await sendEmailVerifyCode(gmail.trim());
-      const expires = res?.data?.expiresInSec || 600;
-      setGmailVerified(false);
-      setGmailPrefs((prev) => ({ ...prev }));
-      setGmailCode("");
-      setGmailTimer(expires);
-      if (res?.data?.mailSent === false) {
-        message.warning("验证码请求已创建，但邮件服务配置有问题，请联系管理员检查 SMTP 配置");
-      } else {
-        message.success("验证码已发送至您的邮箱");
-      }
-    } catch (err) {
-      const msg = err?.response?.data?.message || "绑定邮箱失败";
-      message.error(msg);
-    } finally {
-      setGmailLoading(false);
-    }
-  };
-
   const handleSendGmailCode = async () => {
     if (!gmail || !validateGmail(gmail)) {
       message.error("请先输入有效的邮箱地址");
@@ -229,6 +199,8 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
       setGmailLoading(true);
       const res = await sendEmailVerifyCode(gmail.trim());
       const expires = res?.data?.expiresInSec || 600;
+      setGmailVerified(false);
+      setGmailCode("");
       setGmailTimer(expires);
       if (res?.data?.mailSent === false) {
         message.warning("验证码请求已创建，但邮件服务配置有问题，请联系管理员检查 SMTP 配置");
@@ -932,19 +904,27 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                         {tt("settings.emailNotifDesc", "Bind and verify an email address to receive notifications and 2FA codes.")}
                       </Text>
 
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-                        <Space.Compact style={{ flex: 1 }}>
+                      <Row gutter={[12, 12]} align="middle">
+                        <Col xs={24} md={14}>
                           <Input
                             placeholder={tt("settings.gmailPlaceholder", "name@example.com")}
                             value={gmail}
                             onChange={(e) => setGmail(e.target.value)}
                             disabled={gmailLoading}
                           />
-                          <Button type="primary" onClick={handleBindGmail} loading={gmailLoading}>
-                            {tt("settings.bindGmail", "Bind Email")}
+                        </Col>
+                        <Col xs={24} md={10}>
+                          <Button
+                            block
+                            type="primary"
+                            onClick={handleSendGmailCode}
+                            loading={gmailLoading}
+                            disabled={!gmail || !validateGmail(gmail) || gmailTimer > 0}
+                          >
+                            {gmailTimer > 0 ? `${gmailTimer}s` : tt("settings.sendCode", "Send Code")}
                           </Button>
-                        </Space.Compact>
-                      </div>
+                        </Col>
+                      </Row>
 
                       <Space size={12}>
                         <Tag color={gmail ? "processing" : "default"}>
@@ -957,29 +937,36 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                         ) : null}
                       </Space>
 
-                      <Divider plain>{tt("settings.gmailVerifySection", "Verify Email")}</Divider>
-
-                      <Space direction={isMobile ? "vertical" : "horizontal"} style={{ width: "100%" }} size={12}>
-                        <Button
-                          type="primary"
-                          onClick={handleSendGmailCode}
-                          loading={gmailLoading}
-                          disabled={!gmail || !validateGmail(gmail) || gmailTimer > 0}
+                      {!gmailVerified && gmail && gmailTimer === 0 ? (
+                        <Text
+                          type="secondary"
+                          style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}
                         >
-                          {gmailTimer > 0 ? `${gmailTimer}s` : tt("settings.sendCode", "Send Code")}
-                        </Button>
-                        <Space.Compact style={{ flex: 1 }}>
+                          {tt("settings.codeExpiredHint", "Code may have expired. Please send a new code.")}
+                        </Text>
+                      ) : null}
+
+                      <Row gutter={[12, 12]} align="middle">
+                        <Col xs={24} md={14}>
                           <Input
                             placeholder={tt("settings.codePlaceholder", "Enter verification code")}
                             value={gmailCode}
                             onChange={(e) => setGmailCode(e.target.value)}
                             disabled={gmailLoading || !gmail}
                           />
-                          <Button type="primary" onClick={handleVerifyGmail} loading={gmailLoading} disabled={!gmailCode}>
+                        </Col>
+                        <Col xs={24} md={10}>
+                          <Button
+                            block
+                            type="primary"
+                            onClick={handleVerifyGmail}
+                            loading={gmailLoading}
+                            disabled={!gmailCode || !gmail}
+                          >
                             {tt("settings.verifyGmail", "Verify")}
                           </Button>
-                        </Space.Compact>
-                      </Space>
+                        </Col>
+                      </Row>
 
                       <Divider plain>{tt("settings.gmailEventsSection", "Notification events")}</Divider>
 

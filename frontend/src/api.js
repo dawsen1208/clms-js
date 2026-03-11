@@ -303,7 +303,6 @@ export const sendEmailVerifyCode = async (email) => {
 
 // Verify code and bind Gmail
 export const verifyAndBindEmail = async (email, code) => {
-  await API.post("/notifications/email/bind", { gmail: email });
   return API.post("/notifications/email/verify", { code });
 };
 

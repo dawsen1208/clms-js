@@ -562,7 +562,6 @@ function GlobalNotifier() {
         <ModalPortal
           reviewModal={reviewModal}
           setReviewModal={setReviewModal}
-          token={token}
           notifications={notifications}
           setNotifications={setNotifications}
           setUnreadCount={setUnreadCount}
@@ -574,14 +573,13 @@ function GlobalNotifier() {
 
 // 将 ReviewModal 以简易 Portal 使用，避免循环导入
 import ReviewModal from "./ReviewModal";
-function ModalPortal({ reviewModal, setReviewModal, token, notifications, setNotifications, setUnreadCount }) {
+function ModalPortal({ reviewModal, setReviewModal, notifications, setNotifications, setUnreadCount }) {
   return (
     <ReviewModal
       open={reviewModal.open}
       onClose={() => setReviewModal({ open: false, bookId: null, bookTitle: "" })}
       bookId={reviewModal.bookId}
       bookTitle={reviewModal.bookTitle}
-      token={token}
       onSubmitted={() => {
         // 书评提交后，移除该提醒项（防止再次出现），并立即更新列表
         try {

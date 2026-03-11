@@ -1,15 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Modal, Rate, Input, Button, Typography, message } from "antd";
 import { submitReview } from "../api";
 import { useLanguage } from "../contexts/LanguageContext";
 
 const { Text } = Typography;
 
-function ReviewModal({ open, onClose, bookId, bookTitle, token, onSubmitted }) {
+function ReviewModal({ open, onClose, bookId, bookTitle, onSubmitted, initialRating = 0, initialComment = "" }) {
   const { t } = useLanguage();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setRating(Number(initialRating) || 0);
+    setComment(String(initialComment || ""));
+  }, [open, initialRating, initialComment]);
 
   const charsLeft = 500 - comment.trim().length;
 
@@ -22,8 +28,9 @@ function ReviewModal({ open, onClose, bookId, bookTitle, token, onSubmitted }) {
     }
     try {
       setSubmitting(true);
-      const res = await submitReview(bookId, rating, comment.trim(), token);
-      message.success(t("bookDetail.reviewSubmitted"));
+      const res = await submitReview(bookId, rating, comment.trim());
+      const updated = !!res?.data?.updated;
+      message.success(updated ? t("bookDetail.reviewUpdated") : t("bookDetail.reviewSubmitted"));
       onSubmitted?.(res?.data);
       onClose?.();
     } catch (err) {

@@ -75,6 +75,7 @@ const bookSchema = new mongoose.Schema(
         rating: { type: Number, min: 0, max: 5, required: true },
         comment: { type: String, default: "", maxlength: 500 },
         createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
       },
     ],
   },
@@ -111,6 +112,19 @@ bookSchema.methods.borrow = function() {
 bookSchema.methods.return = function() {
   this.copies += 1;
   this.status = "available";
+};
+
+bookSchema.methods.recalculateRating = function() {
+  const list = Array.isArray(this.reviews) ? this.reviews : [];
+  if (list.length === 0) {
+    this.rating = 0;
+    return this.rating;
+  }
+  const sum = list.reduce((acc, r) => acc + (Number(r.rating) || 0), 0);
+  const avg = sum / list.length;
+  const rounded = Number(avg.toFixed(1));
+  this.rating = Number.isFinite(rounded) ? rounded : 0;
+  return this.rating;
 };
 
 export default mongoose.model("Book", bookSchema);

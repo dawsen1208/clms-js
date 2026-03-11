@@ -358,9 +358,7 @@ const NotificationPage = () => {
           onClose={() => setReviewModal({ open: false, bookId: null, bookTitle: "" })}
           bookId={reviewModal.bookId}
           bookTitle={reviewModal.bookTitle}
-          token={token}
           onSubmitted={() => {
-            message.success(t("bookDetail.reviewSubmitted") || "Review submitted");
             setReviewedMap((prev) => ({ ...prev, [reviewModal.bookId]: true }));
             setReviewModal({ open: false, bookId: null, bookTitle: "" });
           }}

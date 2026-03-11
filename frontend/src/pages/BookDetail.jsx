@@ -77,9 +77,9 @@ export const useBookDetailData = () => {
         try {
           const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
           const user = rawUser ? JSON.parse(rawUser) : null;
-          const uid = user?.userId || user?._id;
-          const reviewed = Array.isArray(data?.reviews)
-            ? data.reviews.some((r) => String(r.userId) === String(uid))
+          const uid = user?.id || user?._id || null;
+          const reviewed = Array.isArray(data?.reviews) && uid
+            ? data.reviews.some((r) => String(r?.userId?._id || r?.userId) === String(uid))
             : false;
           
           setHasReviewed(reviewed);
@@ -175,7 +175,7 @@ export const useBookDetailData = () => {
     }
   };
 
-  const canReview = eligible && !hasReviewed;
+  const canReview = eligible;
 
   // TODO: Mock Data for "Community Reading Progress" (Bonus Package)
   // This data is currently hardcoded for visual demonstration of the magazine style.
@@ -527,6 +527,7 @@ export const BookDetailRight = () => {
     loading,
     error,
     canReview,
+    hasReviewed,
     reviewOpen,
     setReviewOpen,
     readingStats,
@@ -563,6 +564,18 @@ export const BookDetailRight = () => {
     );
   }
 
+  let myReview = null;
+  try {
+    const rawUser = sessionStorage.getItem("user") || localStorage.getItem("user");
+    const user = rawUser ? JSON.parse(rawUser) : null;
+    const uid = user?.id || user?._id || null;
+    if (uid && Array.isArray(book?.reviews)) {
+      myReview = book.reviews.find((r) => String(r?.userId?._id || r?.userId) === String(uid)) || null;
+    }
+  } catch {
+    myReview = null;
+  }
+
   return (
     <EditorialPageShell
       title={null} // Custom Hero handles title
@@ -581,7 +594,7 @@ export const BookDetailRight = () => {
               <EditorialSectionHeader 
                 title="Community Insights" 
                 subtitle={`What readers are saying about "${book.title}"`} 
-                actionText={canReview ? "Write a Review" : null}
+                actionText={canReview ? (hasReviewed ? "Edit Review" : "Write a Review") : null}
                 onActionClick={() => setReviewOpen(true)}
               />
               
@@ -681,14 +694,14 @@ export const BookDetailRight = () => {
         onClose={() => setReviewOpen(false)}
         bookId={book._id}
         bookTitle={book.title}
-        token={sessionStorage.getItem("token") || localStorage.getItem("token")}
+        initialRating={Number(myReview?.rating) || 0}
+        initialComment={String(myReview?.comment || "")}
         onSubmitted={async () => {
           try {
             const res = await getBookDetail(id);
             setBook(res?.data);
             setHasReviewed(true);
             setReviewOpen(false);
-            message.success(t("bookDetail.reviewSubmitted"));
           } catch (e) {
             console.error("Failed to refresh book after review", e);
           }
