@@ -289,7 +289,7 @@ function RegisterAdmin() {
               label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.password")}</span>}
               rules={[
                 { required: true, message: t("register.enterPass") },
-                { min: 8, message: t("register.passwordRequirements") }
+                { min: 6, message: t("register.passwordMin6") }
               ]}
             >
               <Input.Password

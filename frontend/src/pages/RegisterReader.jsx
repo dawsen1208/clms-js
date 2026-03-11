@@ -249,7 +249,10 @@ function RegisterReader() {
             <Form.Item 
               label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.password")}</span>}
               name="password" 
-              rules={[{ required: true, message: t("register.pwdReq") }]}
+              rules={[
+                { required: true, message: t("register.pwdReq") },
+                { min: 6, message: t("register.passwordMin6") },
+              ]}
             >
               <Input.Password 
                 prefix={<LockOutlined style={{ color: token.colorTextQuaternary }} />} 
