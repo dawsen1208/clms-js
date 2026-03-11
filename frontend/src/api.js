@@ -7,13 +7,24 @@ import axios from "axios";
 /* =========================================================
    🌍 API Configuration (Environment variable support)
    ========================================================= */
-const API_URL = import.meta.env.VITE_API_BASE || "/api";
+const rawApiBase = import.meta.env.VITE_API_BASE || "/api";
+const normalizeApiBase = (base) => {
+  const b = String(base || "").trim().replace(/\/+$/, "");
+  if (!b) return "/api";
+  return b
+    .replace(/\/api\/books$/i, "/api")
+    .replace(/\/api\/library$/i, "/api")
+    .replace(/\/api\/borrow-requests$/i, "/api")
+    .replace(/\/api\/notifications$/i, "/api")
+    .replace(/\/api\/feedback$/i, "/api");
+};
+const API_URL = normalizeApiBase(rawApiBase);
 
 // Network connection detection helper
 export const checkConnection = async () => {
   try {
-    const baseUrl = import.meta.env.VITE_API_BASE || "";
-    const response = await fetch(`${baseUrl}/api/health`);
+    const baseUrl = normalizeApiBase(import.meta.env.VITE_API_BASE || "");
+    const response = await fetch(`${baseUrl}/health`);
     return response.ok;
   } catch (error) {
     console.error('Network connectivity check failed:', error);
@@ -144,36 +155,40 @@ export const revokeAllSessions = (token) =>
    ========================================================= */
 
 // Get all books
-export const getBooks = () => API.get("/books/books");
+export const getBooks = () => API.get("/library/books");
 
 // Get a single book by ID
-export const getBookById = (id) => API.get(`/books/books/${id}`);
+export const getBookById = (id) => API.get(`/library/books/${id}`);
 
 // Get book details
-export const getBookDetail = (id) => API.get(`/books/books/${id}`);
+export const getBookDetail = (id) => API.get(`/library/books/${id}`);
 
-// Search books by keyword
-export const searchBooks = (query) => API.get(`/books/search?q=${query}`);
+export const searchBooks = (query) => API.get(`/library/books?q=${encodeURIComponent(String(query || ""))}`);
 
 // Borrow a book
-export const borrowBook = (bookId) => API.post("/books/borrow", { bookId });
+export const borrowBook = (bookId) => API.post(`/library/borrow/${bookId}`);
 
 // Get currently borrowed books for the logged-in user
-export const getBorrowedBooks = () => API.get("/books/borrowed");
+export const getBorrowedBooks = () => API.get("/library/borrowed");
 
 // Return a book (Admin only)
 export const returnBook = (userId, bookId) =>
-  API.post("/books/return", { userId, bookId });
+  API.post("/library/return", { userId, bookId });
 
 // Get user borrowing history
-export const getBorrowHistory = () => API.get("/books/history");
+export const getBorrowHistory = () => API.get("/library/history");
 
 // Submit a renewal or return request
-export const submitRequestLibrary = (bookId, bookTitle, type, days) =>
-  API.post("/books/request", { bookId, bookTitle, type, days });
+export const submitRequestLibrary = (payloadOrBookId, bookTitle, type, days) => {
+  const payload =
+    payloadOrBookId && typeof payloadOrBookId === "object"
+      ? payloadOrBookId
+      : { bookId: payloadOrBookId, bookTitle, type, days };
+  return API.post("/library/request", payload);
+};
 
 // Get user's own requests
-export const getUserRequestsLibrary = () => API.get("/books/requests/my");
+export const getUserRequestsLibrary = () => API.get("/library/request/user");
 
 // Get all requests (Admin only)
 export const getAllRequestsLibrary = () => API.get("/borrow-requests/admin");
@@ -188,13 +203,13 @@ export const rejectRequestLibrary = (requestId, reason) =>
   API.post(`/borrow-requests/reject/${requestId}`, { reason });
 
 // Delete a book (Admin only)
-export const deleteBook = (id) => API.delete(`/books/books/${id}`);
+export const deleteBook = (id) => API.delete(`/library/books/${id}`);
 
 // Get admin dashboard statistics
-export const getStats = () => API.get("/books/stats");
+export const getStats = () => API.get("/library/stats");
 
 // Get active borrow records (Admin only)
-export const getActiveBorrows = () => API.get("/books/active-borrows");
+export const getActiveBorrows = () => API.get("/library/active-borrows");
 export const getBorrowHistoryAllLibrary = () => API.get("/library/history/all");
 
 // Get user list (Admin only)
@@ -223,42 +238,39 @@ export const approveUser = (userId, status) =>
   API.put(`/users/approve/${userId}`, { status });
 
 // Get recommended books
-export const getRecommendations = () => API.get("/books/recommendations");
+export const getRecommendations = () => API.get("/library/recommend");
 
 // Compare books by IDs
 export const getBookComparison = (ids, windowDays = 30) =>
-  API.get(`/books/books/compare?ids=${ids.join(",")}&windowDays=${windowDays}`);
+  API.get(`/library/books/compare?ids=${ids.join(",")}&windowDays=${windowDays}`);
 
 // Add a book review
 export const addBookReview = (bookId, rating, comment) =>
-  API.post(`/books/books/${bookId}/reviews`, { rating, comment });
+  API.post(`/library/books/${bookId}/reviews`, { rating, comment });
 
 // Submit a review
 export const submitReview = (bookId, rating, comment) =>
-  API.post(`/books/books/${bookId}/reviews`, { rating, comment });
+  API.post(`/library/books/${bookId}/reviews`, { rating, comment });
 
 // Add a new book (Admin only)
-export const addBook = (bookData) => API.post("/books/books", bookData);
-
-// Update a book (Admin only)
-export const updateBook = (id, bookData) => API.put(`/books/books/${id}`, bookData);
+export const addBook = (bookData) => API.post("/library/books/add", bookData);
 
 /* =========================================================
    💬 Feedback API
    ========================================================= */
 
 // Submit feedback
-export const submitFeedback = (content) => API.post("/feedback", { content });
+export const submitFeedback = (content, email = "") => API.post("/feedback", { content, email });
 
 // Get user's feedback
 export const getUserFeedback = () => API.get("/feedback/my");
 
 // Get all feedback (Admin only)
-export const getAllFeedback = () => API.get("/feedback/admin");
+export const getAllFeedback = () => API.get("/feedback");
 
 // Reply to feedback (Admin only)
 export const replyFeedback = (id, adminReply) =>
-  API.put(`/feedback/reply/${id}`, { adminReply });
+  API.put(`/feedback/${id}/reply`, { reply: adminReply });
 export const deleteFeedback = (id) => API.delete(`/feedback/${id}`);
 
 /* =========================================================
@@ -270,29 +282,33 @@ export const getNotifications = () => API.get("/notifications");
 
 // Mark notification as read
 export const markNotificationAsRead = (id) =>
-  API.put(`/notifications/read/${id}`);
+  API.put(`/notifications/${id}/read`);
 
 // Get review reminders
-export const getReviewReminders = () => API.get("/notifications/reminders/reviews");
+export const getReviewReminders = () => API.get("/library/review/reminders");
 
 // Dismiss a review reminder
 export const dismissReviewReminder = (bookId) =>
-  API.post("/notifications/reminders/reviews/dismiss", { bookId });
+  API.post(`/library/review/reminders/${bookId}/dismiss`);
 
 /* =========================================================
    📧 Email Binding & Verification API
    ========================================================= */
 
 // Send verification code to bind Gmail
-export const sendEmailVerifyCode = (email) =>
-  API.post("/notification-email/send-verify-code", { email });
+export const sendEmailVerifyCode = async (email) => {
+  await API.post("/notifications/email/bind", { gmail: email });
+  return API.post("/notifications/email/send-code");
+};
 
 // Verify code and bind Gmail
-export const verifyAndBindEmail = (email, code) =>
-  API.post("/notification-email/verify-and-bind", { email, code });
+export const verifyAndBindEmail = async (email, code) => {
+  await API.post("/notifications/email/bind", { gmail: email });
+  return API.post("/notifications/email/verify", { code });
+};
 
 // Update email notification settings
 export const updateEmailNotifySettings = (settings) =>
-  API.put("/notification-email/settings", settings);
+  API.patch("/notifications/email/preferences", settings);
 
 export default API;

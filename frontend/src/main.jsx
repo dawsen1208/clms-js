@@ -18,7 +18,7 @@ import { appTheme } from "./theme";
 import { ConfigProvider, message, Grid, theme as antdTheme } from "antd";
 import enUS from "antd/locale/en_US";
 import zhCN from "antd/locale/zh_CN";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 
 import { Spin } from "antd";
 import { getProfile } from "./api";
@@ -373,11 +373,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <LanguageProvider>
         <AccessibilityProvider>
           <ReadingThemeProvider>
-            <BrowserRouter>
+            <HashRouter>
               <MotionProvider>
                 <App />
               </MotionProvider>
-            </BrowserRouter>
+            </HashRouter>
           </ReadingThemeProvider>
         </AccessibilityProvider>
       </LanguageProvider>
