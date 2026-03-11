@@ -93,6 +93,7 @@ const allowedOrigins = (process.env.CLIENT_ORIGIN || "")
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
+const allowAllOrigins = allowedOrigins.length === 0 && process.env.NODE_ENV !== "production";
 
 // If no CLIENT_ORIGIN is configured, allow all origins (Development mode)
 if (allowedOrigins.length === 0) {
@@ -114,6 +115,8 @@ const corsOptions = {
       // 同源或未提供 Origin 的请求直接允许
       if (!origin) return callback(null, true);
 
+      if (allowAllOrigins) return callback(null, true);
+
       // 显式允许配置的来源
       if (uniqueOrigins.includes(origin)) return callback(null, true);
 
@@ -122,6 +125,8 @@ const corsOptions = {
         const url = new URL(origin);
         const host = url.hostname || "";
         if (
+          host === "localhost" ||
+          host === localIP ||
           host.endsWith(".blob.core.windows.net") || 
           host.endsWith(".web.core.windows.net") ||
           host.endsWith(".azurewebsites.net")
@@ -257,7 +262,7 @@ console.log("🧩 MONGO_URI from .env:", process.env.MONGO_URI);
    🧠 MongoDB 连接：自动重试 + 断线重连
    ========================================================= */
 const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/clms_db";
+  process.env.MONGO_URI || process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/clms_db";
 
 const MAX_RETRIES = Number(process.env.MONGO_MAX_RETRIES || 30); // 最大重试次数（默认 30 次）
 const INITIAL_DELAY_MS = Number(process.env.MONGO_RETRY_DELAY_MS || 500); // 初始重试间隔（默认 500ms）

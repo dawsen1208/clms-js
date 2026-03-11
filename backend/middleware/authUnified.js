@@ -57,3 +57,7 @@ export const readerOnly = (req, res, next) => {
     res.status(403).json({ message: "Not authorized as a reader" });
   }
 };
+
+export const authMiddleware = authenticate;
+export const requireAdmin = adminOnly;
+export const requireReader = readerOnly;
