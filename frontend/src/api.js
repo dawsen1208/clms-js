@@ -192,7 +192,7 @@ export const getUserRequestsLibrary = () => API.get("/library/request/user");
 
 // Get all requests (Admin only)
 export const getAllRequestsLibrary = () => API.get("/borrow-requests/admin");
-export const getPendingRequestsLibrary = () => API.get("/library/requests");
+export const getPendingRequestsLibrary = () => API.get("/library/requests/admin");
 
 // Approve a request (Admin only)
 export const approveRequestLibrary = (requestId) =>

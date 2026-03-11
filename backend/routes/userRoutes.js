@@ -580,6 +580,89 @@ router.put("/blacklist/:targetUserId", authMiddleware, requireAdmin, async (req,
   }
 });
 
+router.get("/all", authMiddleware, requireAdmin, async (_req, res) => {
+  try {
+    const users = await User.find()
+      .select("userId name email role status isBlacklisted blacklistReason createdAt updatedAt")
+      .sort({ createdAt: -1 })
+      .lean();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch users", error: err.message });
+  }
+});
+
+router.put("/status/:targetUserId", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { targetUserId } = req.params;
+    const { status } = req.body || {};
+
+    if (!["APPROVED", "REJECTED", "PENDING"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status." });
+    }
+
+    const user = await User.findOne({ userId: targetUserId });
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    if (user.role === "Administrator") {
+      return res.status(400).json({ message: "Cannot change administrator status." });
+    }
+
+    user.status = status;
+    await user.save();
+
+    res.json({
+      message: `User status updated to ${status}`,
+      user: { userId: user.userId, status: user.status },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Operation failed.", error: err.message });
+  }
+});
+
+router.put("/role/:targetUserId", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { targetUserId } = req.params;
+    const { role } = req.body || {};
+    if (!["Reader", "Administrator"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role." });
+    }
+
+    const user = await User.findOne({ userId: targetUserId });
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    user.role = role;
+    await user.save();
+
+    res.json({
+      message: "User role updated",
+      user: { userId: user.userId, role: user.role },
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Operation failed.", error: err.message });
+  }
+});
+
+router.delete("/:targetUserId", authMiddleware, requireAdmin, async (req, res) => {
+  try {
+    const { targetUserId } = req.params;
+    if (String(targetUserId) === String(req.user?.userId)) {
+      return res.status(400).json({ message: "Cannot delete current user." });
+    }
+
+    const user = await User.findOne({ userId: targetUserId });
+    if (!user) return res.status(404).json({ message: "User not found." });
+    if (user.role === "Administrator") {
+      return res.status(400).json({ message: "Cannot delete administrator." });
+    }
+
+    await User.deleteOne({ userId: targetUserId });
+    res.json({ message: "User deleted", userId: targetUserId });
+  } catch (err) {
+    res.status(500).json({ message: "Delete failed.", error: err.message });
+  }
+});
+
 /* =========================================================
    📊 管理员用户借阅画像分析接口（兼容 ObjectId 与字符串 userId）
    ========================================================= */

@@ -32,9 +32,20 @@ router.get("/debug", (_, res) => res.send("✅ bookRoutes is active"));
 /* =========================================================
    📚 Get All Books / Admin Actions
    ========================================================= */
-router.get("/books", async (_, res) => {
+router.get("/books", async (req, res) => {
   try {
-    const books = await Book.find().sort({ createdAt: -1 }).lean();
+    const q = String(req.query?.q || "").trim();
+    const filter = q
+      ? {
+          $or: [
+            { title: { $regex: q, $options: "i" } },
+            { author: { $regex: q, $options: "i" } },
+            { category: { $regex: q, $options: "i" } },
+          ],
+        }
+      : {};
+
+    const books = await Book.find(filter).sort({ createdAt: -1 }).lean();
     res.json(books);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch books", error: err.message });

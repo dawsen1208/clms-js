@@ -29,6 +29,7 @@ import {
   getUserRequestsLibrary,
   getNotifications,
   dismissReviewReminder,
+  getProfile,
 } from "../api";
 import "./GlobalNotifier.css";
 
@@ -62,19 +63,13 @@ function GlobalNotifier() {
       // Try to read notification preferences from the server
       if (tokenLocal) {
         try {
-          const res = await fetch("/api/users/profile", {
-            headers: { Authorization: `Bearer ${tokenLocal}` },
-          });
-          if (res.ok) {
-            const user = await res.json();
-            const inApp =
-              user?.preferences?.notifications?.inApp !== undefined
-                ? !!user.preferences.notifications.inApp
-                : true;
-            setNotifEnabled(inApp);
-          } else {
-            throw new Error("Failed to load profile");
-          }
+          const res = await getProfile(tokenLocal);
+          const user = res?.data || res;
+          const inApp =
+            user?.preferences?.notifications?.inApp !== undefined
+              ? !!user.preferences.notifications.inApp
+              : true;
+          setNotifEnabled(inApp);
         } catch (err) {
           console.warn("Load server notification prefs failed, fallback to local:", err?.message);
           try {
@@ -190,7 +185,7 @@ function GlobalNotifier() {
     } catch (err) {
       console.error("Refresh notifications failed:", err);
     }
-  }, [token, notifEnabled, refreshNotifications]);
+  }, [token, notifEnabled]);
 
   /* =========================================================
      ⏱️ Polling (refresh every 60s)
