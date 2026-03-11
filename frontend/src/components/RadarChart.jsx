@@ -8,8 +8,12 @@ export default function RadarChart({
   metricsOrder = ["rating", "popularity", "availability", "recency", "match"],
   size = 320,
   levels = 4,
+  axisLabels,
+  showLegend = true,
+  legendPosition = "bottom",
 }) {
-  const radius = size / 2 - 30; // padding for labels
+  const labelPadding = 56;
+  const radius = Math.max(40, size / 2 - labelPadding);
   const center = { x: size / 2, y: size / 2 };
 
   const angleFor = (idx) => (Math.PI * 2 * idx) / metricsOrder.length - Math.PI / 2; // start at top
@@ -37,17 +41,49 @@ export default function RadarChart({
     color: s.color || palette[i % palette.length],
   }));
 
+  const metricsLabel = (m) => {
+    if (axisLabels && axisLabels[m]) return axisLabels[m];
+    return String(m || "")
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .replace(/^./, (c) => c.toUpperCase());
+  };
+
+  const tickLabel = (lv) => {
+    const v = Math.round(lv * 100) / 100;
+    return v === 1 ? "1.0" : String(v);
+  };
+
+  const gridPolygons = gridLevels.map((lv) => {
+    const pts = metricsOrder.map((_, idx) => {
+      const angle = angleFor(idx);
+      const p = pointFor(lv, angle);
+      return `${p.x},${p.y}`;
+    });
+    return pts.join(" ");
+  });
+
   return (
-    <div style={{ display: "flex", gap: 16 }}>
-      <svg width={size} height={size} role="img" aria-label="Book comparison radar">
-        {/* concentric grid circles */}
+    <div
+      style={{
+        display: "flex",
+        flexDirection: legendPosition === "right" ? "row" : "column",
+        gap: 12,
+        alignItems: "center",
+      }}
+    >
+      <svg
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        role="img"
+        aria-label="Book comparison radar"
+        style={{ display: "block" }}
+      >
         <g>
-          {gridLevels.map((lv) => (
-            <circle
-              key={`grid-${lv}`}
-              cx={center.x}
-              cy={center.y}
-              r={lv * radius}
+          {gridPolygons.map((poly, idx) => (
+            <polygon
+              key={`grid-${idx}`}
+              points={poly}
               fill="none"
               stroke="#e5e7eb"
               strokeDasharray="4 4"
@@ -60,7 +96,12 @@ export default function RadarChart({
           {metricsOrder.map((m, idx) => {
             const angle = angleFor(idx);
             const end = pointFor(1, angle);
-            const label = pointFor(1.08, angle);
+            const label = pointFor(1.13, angle);
+            const cos = Math.cos(angle);
+            const anchor = cos > 0.35 ? "start" : cos < -0.35 ? "end" : "middle";
+            const dx = cos > 0.35 ? 8 : cos < -0.35 ? -8 : 0;
+            const sin = Math.sin(angle);
+            const dy = sin > 0.35 ? 14 : sin < -0.35 ? -6 : 4;
             return (
               <g key={`axis-${m}`}>
                 <line
@@ -72,15 +113,34 @@ export default function RadarChart({
                   strokeWidth={1}
                 />
                 <text
-                  x={label.x}
-                  y={label.y}
+                  x={label.x + dx}
+                  y={label.y + dy}
                   fontSize={12}
-                  textAnchor="middle"
+                  textAnchor={anchor}
                   fill="#374151"
                 >
-                  {m}
+                  {metricsLabel(m)}
                 </text>
               </g>
+            );
+          })}
+        </g>
+
+        <g>
+          {gridLevels.map((lv, idx) => {
+            const angle = angleFor(0);
+            const p = pointFor(lv, angle);
+            return (
+              <text
+                key={`tick-${idx}`}
+                x={p.x}
+                y={p.y - 6}
+                fontSize={11}
+                textAnchor="middle"
+                fill="#9ca3af"
+              >
+                {tickLabel(lv)}
+              </text>
             );
           })}
         </g>
@@ -95,42 +155,84 @@ export default function RadarChart({
             });
             const path = points.join(" ");
             return (
-              <polygon
-                key={`poly-${s.name}`}
-                points={path}
-                fill={s.color + "33"}
-                stroke={s.color}
-                strokeWidth={2}
-              />
+              <g key={`poly-${s.name}`}>
+                <polygon
+                  points={path}
+                  fill={s.color + "2E"}
+                  stroke={s.color}
+                  strokeWidth={2.2}
+                />
+                {metricsOrder.map((m, idx) => {
+                  const angle = angleFor(idx);
+                  const p = pointFor(s.metrics[m] ?? 0, angle);
+                  return (
+                    <circle
+                      key={`${s.name}-${m}`}
+                      cx={p.x}
+                      cy={p.y}
+                      r={3.2}
+                      fill={s.color}
+                      stroke="#ffffff"
+                      strokeWidth={1}
+                    />
+                  );
+                })}
+              </g>
             );
           })}
         </g>
       </svg>
 
       {/* legend */}
-      <div style={{ minWidth: 180 }}>
-        <div style={{ fontWeight: 600, marginBottom: 8 }}>Legend</div>
-        <div style={{ display: "grid", gap: 8 }}>
+      {showLegend && (
+        <div
+          style={{
+            width: legendPosition === "right" ? 220 : size,
+            maxWidth: "100%",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 10,
+            justifyContent: "center",
+          }}
+        >
           {safeSeries.map((s) => (
-            <div key={`legend-${s.name}`} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div
+              key={`legend-${s.name}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 10px",
+                borderRadius: 999,
+                border: "1px solid #e5e7eb",
+                background: "#ffffff",
+                maxWidth: legendPosition === "right" ? 220 : undefined,
+              }}
+            >
               <span
                 style={{
-                  width: 14,
-                  height: 14,
+                  width: 10,
+                  height: 10,
+                  borderRadius: 99,
                   background: s.color,
                   display: "inline-block",
+                  flex: "0 0 auto",
                 }}
               />
-              <div style={{ lineHeight: 1.2 }}>
-                <div style={{ fontSize: 13 }}>{s.name}</div>
+              <div style={{ lineHeight: 1.2, minWidth: 0 }}>
+                <div style={{ fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {s.name}
+                </div>
                 {typeof s.metrics?.customScore === "number" && (
-                  <div style={{ fontSize: 12, color: "#6b7280" }}>Score: {s.metrics.customScore.toFixed(3)}</div>
+                  <div style={{ fontSize: 12, color: "#6b7280" }}>
+                    {s.metrics.customScore.toFixed(3)}
+                  </div>
                 )}
               </div>
             </div>
           ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }

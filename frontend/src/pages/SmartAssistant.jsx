@@ -314,6 +314,16 @@ function SmartAssistant() {
     });
   }, [cmpData, weights, radarMode, t, DEFAULT_WEIGHTS]);
 
+  const radarAxisLabels = useMemo(() => {
+    return {
+      rating: t("assistant.ratings"),
+      popularity: t("assistant.popularity"),
+      availability: t("assistant.availability"),
+      recency: t("assistant.recency"),
+      match: t("assistant.match"),
+    };
+  }, [t]);
+
   // 当前权重总和提示
   const weightSum = useMemo(() => {
     const vals = Object.values(weights || {});
@@ -605,7 +615,12 @@ function SmartAssistant() {
                             buttonStyle="solid"
                           />
                         </Space>
-                        <RadarChart series={radarSeries} size={280} />
+                        <RadarChart
+                          series={radarSeries}
+                          size={280}
+                          axisLabels={radarAxisLabels}
+                          legendPosition="bottom"
+                        />
                       </Space>
                     </Card>
                   </Space>
@@ -645,7 +660,12 @@ function SmartAssistant() {
                             buttonStyle="solid"
                           />
                         </Space>
-                        <RadarChart series={radarSeries} size={360} />
+                        <RadarChart
+                          series={radarSeries}
+                          size={360}
+                          axisLabels={radarAxisLabels}
+                          legendPosition="bottom"
+                        />
                       </Space>
                     </Card>
                   </div>
