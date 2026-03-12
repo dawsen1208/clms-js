@@ -271,29 +271,13 @@ function AdminBorrowPage() {
       title={t("admin.borrowManagement") || "Borrow Management"}
       subtitle={t("admin.manageActiveBorrows") || "Manage active loans and process returns"}
       headerAction={
-        <div style={{ display: "flex", gap: 8 }}>
-          {isBatchMode ? (
-            <>
-              <Button onClick={exitBatchMode} icon={<CloseSquareOutlined />}>
-                {t("admin.cancelBulkMode")}
-              </Button>
-              <Button type="primary" onClick={executeBulkProcess} icon={<CheckSquareOutlined />}>
-                {`${t("admin.confirmBulkProcess")} (${selectedRowKeys.length})`}
-              </Button>
-            </>
-          ) : (
-            <Button onClick={enterBatchMode} icon={<CheckSquareOutlined />}>
-              {t("admin.bulkProcess") || "Bulk Process"}
-            </Button>
-          )}
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={fetchRecords}
-            loading={loading}
-          >
-            {t("admin.refresh")}
-          </Button>
-        </div>
+        <Button
+          icon={<ReloadOutlined />}
+          onClick={fetchRecords}
+          loading={loading}
+        >
+          {t("admin.refresh")}
+        </Button>
       }
     >
       {contextHolder}
@@ -320,7 +304,7 @@ function AdminBorrowPage() {
       </Row>
 
       <Card style={{ borderRadius: token.borderRadiusLG, boxShadow: token.boxShadowTertiary }}>
-        <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <Input
             prefix={<SearchOutlined />}
             placeholder={t("admin.searchPlaceholder") || "Search user or book..."}
@@ -329,6 +313,22 @@ function AdminBorrowPage() {
             onChange={(e) => setSearchText(e.target.value)}
             allowClear
           />
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {isBatchMode ? (
+              <>
+                <Button onClick={exitBatchMode} icon={<CloseSquareOutlined />}>
+                  {t("admin.cancelBulkMode")}
+                </Button>
+                <Button type="primary" onClick={executeBulkProcess} icon={<CheckSquareOutlined />}>
+                  {`${t("admin.confirmBulkProcess")} (${selectedRowKeys.length})`}
+                </Button>
+              </>
+            ) : (
+              <Button onClick={enterBatchMode} icon={<CheckSquareOutlined />}>
+                {t("admin.bulkProcess") || "Bulk Process"}
+              </Button>
+            )}
+          </div>
         </div>
 
           <Table

@@ -531,52 +531,56 @@ function AdminRequestPage() {
       </Row>
 
       <Card style={{ borderRadius: token.borderRadiusLG }}>
-        {/* Action Buttons Row */}
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 16, marginBottom: 16 }}>
-            <Button onClick={autoProcessEligible} disabled={isBatchMode}>
-            {t("admin.autoProcess")}
-            </Button>
-            {isBatchMode && (
-            <Button onClick={exitBatchMode}>
-                {t("admin.cancelBulkMode")}
-            </Button>
-            )}
-            <Button type="primary" onClick={isBatchMode ? executeBulkProcess : enterBatchMode}>
-            {isBatchMode 
-                ? `${t("admin.confirmBulkProcess")} (${selectedRowKeys.length})` 
-                : t("admin.bulkProcess")}
-            </Button>
-        </div>
-
         {/* 🔍 Search & Filter */}
-        <div style={{ display: "flex", gap: 16, marginBottom: 24, flexWrap: "wrap" }}>
-          <Input
-            prefix={<SearchOutlined />}
-            placeholder={t("admin.searchPlaceholder")}
-            style={{ width: 300 }}
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            allowClear
-          />
-          <Segmented
-            options={[
-              { label: t("admin.all"), value: "all" },
-              { label: t("admin.renew"), value: "renew" },
-              { label: t("admin.return"), value: "return" },
-            ]}
-            value={filterType}
-            onChange={setFilterType}
-          />
-          <Segmented
-            options={[
-              { label: t("admin.all"), value: "all" },
-              { label: t("admin.pending"), value: "pending" },
-              { label: t("admin.approved"), value: "approved" },
-              { label: t("admin.rejected"), value: "rejected" },
-            ]}
-            value={filterStatus}
-            onChange={setFilterStatus}
-          />
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <Input
+              prefix={<SearchOutlined />}
+              placeholder={t("admin.searchPlaceholder")}
+              style={{ width: 300 }}
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+            />
+            <Segmented
+              options={[
+                { label: t("admin.all"), value: "all" },
+                { label: t("admin.renew"), value: "renew" },
+                { label: t("admin.return"), value: "return" },
+              ]}
+              value={filterType}
+              onChange={setFilterType}
+            />
+            <Segmented
+              options={[
+                { label: t("admin.all"), value: "all" },
+                { label: t("admin.pending"), value: "pending" },
+                { label: t("admin.approved"), value: "approved" },
+                { label: t("admin.rejected"), value: "rejected" },
+              ]}
+              value={filterStatus}
+              onChange={setFilterStatus}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <Button onClick={autoProcessEligible} disabled={isBatchMode}>
+              {t("admin.autoProcess")}
+            </Button>
+            {isBatchMode ? (
+              <>
+                <Button onClick={exitBatchMode}>
+                  {t("admin.cancelBulkMode")}
+                </Button>
+                <Button type="primary" onClick={executeBulkProcess}>
+                  {`${t("admin.confirmBulkProcess")} (${selectedRowKeys.length})`}
+                </Button>
+              </>
+            ) : (
+              <Button type="primary" onClick={enterBatchMode}>
+                {t("admin.bulkProcess")}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* 📋 Requests Table */}
