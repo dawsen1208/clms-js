@@ -14,10 +14,12 @@ function RegisterAdmin() {
   const { t, language, setLanguage } = useLanguage();
   const { token } = useToken();
   const screens = useBreakpoint();
+  const [form] = Form.useForm();
   
   const [modalVisible, setModalVisible] = useState(false);
   const [assignedId, setAssignedId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [nameTaken, setNameTaken] = useState(false);
 
   const toggleLanguage = () => {
     setLanguage(language === "en" ? "zh" : "en");
@@ -52,11 +54,22 @@ function RegisterAdmin() {
       setModalVisible(true);
     } catch (err) {
       console.error("❌ Administrator registration failed:", err);
-      const msg =
-        err.response?.data?.message ||
-        err.message ||
-        t("register.regFail");
-      message.error(msg);
+      const code = err?.response?.data?.code;
+      const backendMsg = err?.response?.data?.message || "";
+      const isNameTaken =
+        code === "NAME_TAKEN" ||
+        /username.*exists/i.test(backendMsg) ||
+        (/already taken/i.test(backendMsg) && /name/i.test(backendMsg));
+
+      if (isNameTaken) {
+        setNameTaken(true);
+        form.setFields([
+          { name: "name", errors: [t("register.nameTaken") || "This name is already taken."] },
+        ]);
+      } else {
+        const msg = backendMsg || err.message || t("register.regFail");
+        message.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -257,6 +270,13 @@ function RegisterAdmin() {
             onFinish={handleAdminRegister} 
             size="large"
             requiredMark={false}
+            form={form}
+            onValuesChange={(changed) => {
+              if (Object.prototype.hasOwnProperty.call(changed || {}, "name") && nameTaken) {
+                setNameTaken(false);
+                form.setFields([{ name: "name", errors: [] }]);
+              }
+            }}
           >
             <Form.Item
               name="name"

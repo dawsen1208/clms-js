@@ -251,7 +251,13 @@ router.post("/register", async (req, res) => {
       });
     }
     const exists = await User.findOne({ name: nameStr }).lean();
-    if (exists) return res.status(400).json({ message: "Username already exists, please choose another." });
+    if (exists) {
+      return res.status(409).json({
+        code: "NAME_TAKEN",
+        field: "name",
+        message: "Username already exists, please choose another.",
+      });
+    }
 
     let finalRole = role;
     if (role === "Administrator") {
@@ -284,7 +290,11 @@ router.post("/register", async (req, res) => {
   } catch (err) {
     if (err.code === 11000) {
       const field = Object.keys(err.keyPattern || {})[0];
-      return res.status(400).json({ message: `This ${field} is already taken, please try another.` });
+      return res.status(409).json({
+        code: field === "name" ? "NAME_TAKEN" : "FIELD_TAKEN",
+        field,
+        message: `This ${field} is already taken, please try another.`,
+      });
     }
     console.error("❌ 注册失败详细信息:", err);
     res.status(500).json({ message: "Internal server error.", error: err.message });

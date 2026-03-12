@@ -4,11 +4,26 @@ const AccessibilityContext = createContext();
 
 export const useAccessibility = () => useContext(AccessibilityContext);
 
+const normalizeBool = (value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") return value.trim().toLowerCase() === "true" || value.trim() === "1";
+  return false;
+};
+
+const normalizePrefs = (input) => {
+  const v = input && typeof input === "object" ? input : {};
+  return {
+    accessibilityMode: normalizeBool(v.accessibilityMode),
+    ttsEnabled: normalizeBool(v.ttsEnabled),
+  };
+};
+
 export const AccessibilityProvider = ({ children }) => {
   const [prefs, setPrefs] = useState(() => {
     try {
       const raw = localStorage.getItem("accessibility_prefs");
-      return raw ? JSON.parse(raw) : { accessibilityMode: false, ttsEnabled: false };
+      return raw ? normalizePrefs(JSON.parse(raw)) : { accessibilityMode: false, ttsEnabled: false };
     } catch {
       return { accessibilityMode: false, ttsEnabled: false };
     }
@@ -22,7 +37,7 @@ export const AccessibilityProvider = ({ children }) => {
   }, [prefs.ttsEnabled]);
 
   const updatePrefs = (newPrefs) => {
-    const next = { ...prefs, ...newPrefs };
+    const next = normalizePrefs({ ...prefs, ...newPrefs });
     setPrefs(next);
     localStorage.setItem("accessibility_prefs", JSON.stringify(next));
   };
@@ -123,7 +138,7 @@ export const AccessibilityProvider = ({ children }) => {
        if (e.key === "accessibility_prefs") {
          try {
           const raw = e.newValue;
-          if (raw) setPrefs(JSON.parse(raw));
+          if (raw) setPrefs(normalizePrefs(JSON.parse(raw)));
          } catch (err) {
            console.error("Failed to sync accessibility prefs from storage", err);
          }

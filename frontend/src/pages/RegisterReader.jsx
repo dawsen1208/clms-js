@@ -13,10 +13,12 @@ function RegisterReader() {
   const { t, language, setLanguage } = useLanguage();
   const { token } = theme.useToken();
   const screens = Grid.useBreakpoint();
+  const [form] = Form.useForm();
   
   const [modalVisible, setModalVisible] = useState(false);
   const [assignedId, setAssignedId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [nameTaken, setNameTaken] = useState(false);
 
   const toggleLanguage = () => {
     setLanguage(language === "en" ? "zh" : "en");
@@ -47,11 +49,22 @@ function RegisterReader() {
       setModalVisible(true);
     } catch (err) {
       console.error("❌ Registration failed:", err);
-      const msg =
-        err.response?.data?.message ||
-        err.message ||
-        t("register.regFail");
-      message.error(msg);
+      const code = err?.response?.data?.code;
+      const backendMsg = err?.response?.data?.message || "";
+      const isNameTaken =
+        code === "NAME_TAKEN" ||
+        /username.*exists/i.test(backendMsg) ||
+        (/already taken/i.test(backendMsg) && /name/i.test(backendMsg));
+
+      if (isNameTaken) {
+        setNameTaken(true);
+        form.setFields([
+          { name: "name", errors: [t("register.nameTaken") || "This name is already taken."] },
+        ]);
+      } else {
+        const msg = backendMsg || err.message || t("register.regFail");
+        message.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -213,8 +226,15 @@ function RegisterReader() {
           <Form 
             layout="vertical" 
             size="large"
+            form={form}
             onFinish={handleReaderRegister}
             requiredMark={false}
+            onValuesChange={(changed) => {
+              if (Object.prototype.hasOwnProperty.call(changed || {}, "name") && nameTaken) {
+                setNameTaken(false);
+                form.setFields([{ name: "name", errors: [] }]);
+              }
+            }}
           >
             <Form.Item 
               label={<span style={{ fontWeight: 500, color: token.colorTextSecondary }}>{t("register.name")}</span>}

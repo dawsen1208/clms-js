@@ -467,22 +467,37 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     } catch (error) { void error; }
   };
 
+  const normalizeAccessibilityBool = (value) => {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value === 1;
+    if (typeof value === "string") return value.trim().toLowerCase() === "true" || value.trim() === "1";
+    return false;
+  };
+
+  const normalizeAccessibilityPrefs = (input) => {
+    const v = input && typeof input === "object" ? input : {};
+    return {
+      accessibilityMode: normalizeAccessibilityBool(v.accessibilityMode),
+      ttsEnabled: normalizeAccessibilityBool(v.ttsEnabled),
+    };
+  };
+
   const [accessibilityPrefs, setAccessibilityPrefs] = useState(() => {
     // Priority: User prop > LocalStorage > Default
     if (user?.preferences?.accessibility) {
-      return user.preferences.accessibility;
+      return normalizeAccessibilityPrefs(user.preferences.accessibility);
     }
     
     try {
       const raw = localStorage.getItem("accessibility_prefs");
-      return raw ? JSON.parse(raw) : { accessibilityMode: false, ttsEnabled: false };
+      return raw ? normalizeAccessibilityPrefs(JSON.parse(raw)) : { accessibilityMode: false, ttsEnabled: false };
     } catch {
       return { accessibilityMode: false, ttsEnabled: false };
     }
   });
 
   const saveAccessibility = async (patch) => {
-    const next = { ...accessibilityPrefs, ...patch };
+    const next = normalizeAccessibilityPrefs({ ...accessibilityPrefs, ...patch });
     setAccessibilityPrefs(next);
     // Also sync with global context
     if (updatePrefs) {
