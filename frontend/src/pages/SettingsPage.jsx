@@ -19,6 +19,21 @@ const { Title, Text } = Typography;
 const { useBreakpoint } = Grid;
 const { useToken } = theme;
 
+const normalizeAccessibilityBool = (value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") return value.trim().toLowerCase() === "true" || value.trim() === "1";
+  return false;
+};
+
+const normalizeAccessibilityPrefs = (input) => {
+  const v = input && typeof input === "object" ? input : {};
+  return {
+    accessibilityMode: normalizeAccessibilityBool(v.accessibilityMode),
+    ttsEnabled: normalizeAccessibilityBool(v.ttsEnabled),
+  };
+};
+
 export const SettingsLeftPanel = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -467,38 +482,12 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     } catch (error) { void error; }
   };
 
-  const normalizeAccessibilityBool = (value) => {
-    if (typeof value === "boolean") return value;
-    if (typeof value === "number") return value === 1;
-    if (typeof value === "string") return value.trim().toLowerCase() === "true" || value.trim() === "1";
-    return false;
-  };
-
-  const normalizeAccessibilityPrefs = (input) => {
-    const v = input && typeof input === "object" ? input : {};
-    return {
-      accessibilityMode: normalizeAccessibilityBool(v.accessibilityMode),
-      ttsEnabled: normalizeAccessibilityBool(v.ttsEnabled),
-    };
-  };
-
-  const [accessibilityPrefs, setAccessibilityPrefs] = useState(() => {
-    // Priority: User prop > LocalStorage > Default
-    if (user?.preferences?.accessibility) {
-      return normalizeAccessibilityPrefs(user.preferences.accessibility);
-    }
-    
-    try {
-      const raw = localStorage.getItem("accessibility_prefs");
-      return raw ? normalizeAccessibilityPrefs(JSON.parse(raw)) : { accessibilityMode: false, ttsEnabled: false };
-    } catch {
-      return { accessibilityMode: false, ttsEnabled: false };
-    }
-  });
-
   const saveAccessibility = async (patch) => {
-    const next = normalizeAccessibilityPrefs({ ...accessibilityPrefs, ...patch });
-    setAccessibilityPrefs(next);
+    const next = normalizeAccessibilityPrefs({
+      ttsEnabled: _ttsEnabled,
+      accessibilityMode: _accessibilityMode,
+      ...patch,
+    });
     // Also sync with global context
     if (updatePrefs) {
       updatePrefs(next);
@@ -514,7 +503,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
 
   useEffect(() => {
     if (!onChange) return;
-    const enabled = accessibilityPrefs?.accessibilityMode === true;
+    const enabled = _accessibilityMode === true;
     onChange((prev) => {
       if (!prev || typeof prev !== "object") return prev;
       if (enabled) {
@@ -524,7 +513,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
       if (prev.fontSize !== 20) return prev;
       return { ...prev, fontSize: "normal" };
     });
-  }, [accessibilityPrefs?.accessibilityMode, onChange]);
+  }, [_accessibilityMode, onChange]);
 
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
@@ -665,7 +654,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                       </Space>
                     </div>
                     <div style={{ justifySelf: 'end', position: 'relative', zIndex: 1 }}>
-                      <Switch checked={accessibilityPrefs.ttsEnabled === true} onChange={(v) => saveAccessibility({ ttsEnabled: v })} />
+                      <Switch checked={_ttsEnabled === true} onChange={(v) => saveAccessibility({ ttsEnabled: v })} />
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', columnGap: 12, padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder) }}>
@@ -679,7 +668,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                       </Space>
                     </div>
                     <div style={{ justifySelf: 'end', position: 'relative', zIndex: 1 }}>
-                      <Switch checked={accessibilityPrefs.accessibilityMode === true} onChange={(v) => {
+                      <Switch checked={_accessibilityMode === true} onChange={(v) => {
                         saveAccessibility({ accessibilityMode: v });
                         if (onChange) {
                           onChange(prev => ({
