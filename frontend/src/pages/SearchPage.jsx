@@ -132,10 +132,14 @@ const mergeDuplicateBooks = (books) => {
   };
 
   const buildKey = (book) => {
-    const rawIsbn = typeof book.isbn === "string" ? book.isbn.trim() : "";
-    if (rawIsbn) return `isbn:${rawIsbn}`;
     const title = normalizeText(book.title);
     const author = normalizeText(book.author);
+    const rawIsbn = typeof book.isbn === "string" ? book.isbn.trim() : "";
+    const isbn = rawIsbn ? rawIsbn.replace(/[^0-9Xx]/g, "").toUpperCase() : "";
+    if (isbn) {
+      if (title && author) return `isbn:${isbn}|ta:${title}|${author}`;
+      return `isbn:${isbn}`;
+    }
     if (title && author) return `ta:${title}|${author}`;
     const cover = normalizeCover(book);
     if (cover && author) return `ca:${cover}|${author}`;
@@ -760,7 +764,7 @@ export const SearchLeftPanel = () => {
             const totalCopies = total;
             return (
               <div
-                key={book.id || book._id || index}
+                key={book._id || book.id || book.isbn || `${book.title || "book"}|${book.author || "author"}|${index}`}
                 className="editorial-card book-card"
                 style={{ width: "100%", cursor: "pointer" }}
                 onClick={() => navigate(`/book/${book.id || book._id}`)}

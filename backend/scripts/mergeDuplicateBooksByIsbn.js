@@ -110,6 +110,16 @@ const buildMetaKey = (book) => {
   return null;
 };
 
+const buildIsbnSafeKey = (book) => {
+  const raw = typeof book.isbn === "string" ? book.isbn.trim() : "";
+  const isbn = raw ? raw.replace(/[^0-9Xx]/g, "").toUpperCase() : "";
+  if (!isbn) return null;
+  const title = normalizeText(book.title);
+  const author = normalizeText(book.author);
+  if (title && author) return `isbn:${isbn}|ta:${title}|${author}`;
+  return `isbn:${isbn}`;
+};
+
 const main = async () => {
   await mongoose.connect(uri);
 
@@ -122,7 +132,20 @@ const main = async () => {
   if (groups.length) {
     console.log(`Found ${groups.length} ISBN groups with duplicates.`);
     for (const group of groups) {
-      await mergeGroup(`isbn:${group._id}`, group.ids);
+      const books = await Book.find({ _id: { $in: group.ids } }).lean();
+      const safeMap = new Map();
+      for (const b of books) {
+        const k = buildIsbnSafeKey(b);
+        if (!k) continue;
+        const list = safeMap.get(k) || [];
+        list.push(b._id);
+        safeMap.set(k, list);
+      }
+      const safeGroups = Array.from(safeMap.entries()).filter(([, ids]) => ids.length > 1);
+      if (!safeGroups.length) continue;
+      for (const [k, ids] of safeGroups) {
+        await mergeGroup(k, ids);
+      }
     }
   } else {
     console.log("No duplicate ISBN groups found.");

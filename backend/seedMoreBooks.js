@@ -59,7 +59,7 @@ function sample(arr) {
 
 function genIsbn(i) {
   // 生成伪 ISBN（不保证真实合法，但足够区分）
-  const base = String(9780000000000 + i * 13 + randInt(1, 99));
+  const base = String(9780000000000 + i);
   return base.slice(0, 13);
 }
 
