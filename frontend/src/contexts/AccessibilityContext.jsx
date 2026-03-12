@@ -37,9 +37,25 @@ export const AccessibilityProvider = ({ children }) => {
   }, [prefs.ttsEnabled]);
 
   const updatePrefs = (newPrefs) => {
-    const next = normalizePrefs({ ...prefs, ...newPrefs });
-    setPrefs(next);
-    localStorage.setItem("accessibility_prefs", JSON.stringify(next));
+    setPrefs((prev) => {
+      const next = normalizePrefs({ ...prev, ...newPrefs });
+      try {
+        localStorage.setItem("accessibility_prefs", JSON.stringify(next));
+      } catch (e) {
+        void e;
+      }
+      try {
+        window.dispatchEvent(
+          new StorageEvent("storage", {
+            key: "accessibility_prefs",
+            newValue: JSON.stringify(next),
+          })
+        );
+      } catch (e) {
+        void e;
+      }
+      return next;
+    });
   };
 
   const speak = (text) => {

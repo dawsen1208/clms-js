@@ -512,6 +512,20 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
     } catch (error) { void error; }
   };
 
+  useEffect(() => {
+    if (!onChange) return;
+    const enabled = accessibilityPrefs?.accessibilityMode === true;
+    onChange((prev) => {
+      if (!prev || typeof prev !== "object") return prev;
+      if (enabled) {
+        if (prev.fontSize === 20) return prev;
+        return { ...prev, fontSize: 20 };
+      }
+      if (prev.fontSize !== 20) return prev;
+      return { ...prev, fontSize: "normal" };
+    });
+  }, [accessibilityPrefs?.accessibilityMode, onChange]);
+
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
@@ -648,7 +662,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                          <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorTextSecondary }}>{t("settings.ttsDesc") || "Enable text-to-speech for buttons and content"}</Text>
                        </div>
                     </Space>
-                    <Switch checked={!!accessibilityPrefs.ttsEnabled} onChange={(v) => saveAccessibility({ ttsEnabled: v })} />
+                    <Switch checked={accessibilityPrefs.ttsEnabled === true} onChange={(v) => saveAccessibility({ ttsEnabled: v })} />
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder) }}>
                     <Space>
@@ -658,7 +672,7 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                          <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.accessibilityModeDesc") || "Simplified interface with larger elements"}</Text>
                        </div>
                     </Space>
-                    <Switch checked={!!accessibilityPrefs.accessibilityMode} onChange={(v) => {
+                    <Switch checked={accessibilityPrefs.accessibilityMode === true} onChange={(v) => {
                       saveAccessibility({ accessibilityMode: v });
                       if (onChange) {
                         onChange(prev => ({
