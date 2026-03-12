@@ -12,16 +12,19 @@ import { useNavigate } from 'react-router-dom';
 import BookCoverPro from './BookCoverPro';
 import { stringToWarmColor } from '../../utils/hashColor';
 import { getCleanImageUrl } from '../../utils/imageUtils';
+import { useLanguage } from "../../contexts/LanguageContext";
 
 const { Title, Text } = Typography;
 
 const LoanCard = ({ 
   book, 
   onRenew, 
+  onCancelBorrow,
   variant = 'active'
 }) => {
   const { token } = theme.useToken();
   const navigate = useNavigate();
+  const { language, t } = useLanguage();
 
   // Helper to calculate days left
   const getDaysLeft = (borrowDate, dueDate) => {
@@ -51,6 +54,12 @@ const LoanCard = ({
   
   // Pending request check (passed in book object usually)
   const pendingType = book.pendingType; // 'renew', 'return'
+  const canCancelBorrow =
+    variant === 'active' &&
+    !pendingType &&
+    !isOverdue &&
+    !!book.borrowDate &&
+    dayjs(book.borrowDate).isSame(dayjs(), 'day');
 
   const coverImage = getCleanImageUrl(book.coverImage || "");
   const coverSet = book.coverImageSet;
@@ -197,6 +206,23 @@ const LoanCard = ({
                    >
                      {pendingType === 'renew' ? 'Pending' : 'Renew'}
                    </Button>
+                   {canCancelBorrow && typeof onCancelBorrow === "function" && (
+                     <Button
+                       danger
+                       type="default"
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         onCancelBorrow(book);
+                       }}
+                       style={{
+                         borderRadius: 20,
+                         fontFamily: "'Inter', sans-serif",
+                         fontSize: 13
+                       }}
+                     >
+                       {t("borrow.cancelBorrow") || (language === "zh" ? "取消借阅" : "Cancel Borrow")}
+                     </Button>
+                   )}
                 </div>
               )}
            </div>

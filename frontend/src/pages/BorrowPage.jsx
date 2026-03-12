@@ -33,7 +33,8 @@ import EmptyStateWarm from "../components/common/EmptyStateWarm";
 import { 
   getBorrowedBooks, 
   getUserRequestsLibrary, 
-  submitRequestLibrary 
+  submitRequestLibrary,
+  cancelBorrow
 } from "../api";
 import { isBorrowLimitError, showBorrowLimitModal, extractErrorMessage } from "../utils/borrowUI";
 
@@ -120,6 +121,38 @@ const useBorrowData = () => {
     setRenewModalOpen(true);
   };
 
+  const handleCancelBorrowClick = (book) => {
+    const bookId = book?.bookId || book?.book_id || book?.id || book?._id;
+    if (!bookId) return;
+
+    modal.confirm({
+      centered: true,
+      title: t("borrow.cancelBorrowTitle") || (t("borrow.cancelBorrow") ? t("borrow.cancelBorrow") : "Cancel Borrow"),
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <div>
+          <Typography.Text>
+            {t("borrow.cancelBorrowContent") || "You can only cancel a borrow on the same day. Continue?"}
+          </Typography.Text>
+          <div style={{ marginTop: 8 }}>
+            <Typography.Text strong>{book.title}</Typography.Text>
+          </div>
+        </div>
+      ),
+      okText: t("common.confirm") || "Confirm",
+      cancelText: t("common.cancel") || "Cancel",
+      onOk: async () => {
+        try {
+          await cancelBorrow(bookId);
+          message.success(t("borrow.cancelBorrowSuccess") || "Borrow canceled");
+          await fetchData();
+        } catch (err) {
+          message.error(err?.response?.data?.message || t("borrow.cancelBorrowFailed") || "Cancel failed");
+        }
+      },
+    });
+  };
+
   const submitRenew = async (days = 7) => {
     if (!selectedBook) return;
     try {
@@ -177,6 +210,7 @@ const useBorrowData = () => {
     setRenewModalOpen,
     setSelectedBook,
     handleRenewClick,
+    handleCancelBorrowClick,
     submitRenew,
     getRequestStatus,
     renewDays,
@@ -193,6 +227,7 @@ export const BorrowLeftPanel = () => {
     stats,
     navigate,
     getRequestStatus,
+    handleCancelBorrowClick,
   } = useBorrowData();
 
   const sampleBook = borrowedBooks[0];
@@ -270,6 +305,7 @@ export const BorrowLeftPanel = () => {
                   sampleBook.bookId || sampleBook._id || sampleBook.id
                 ),
               }}
+              onCancelBorrow={handleCancelBorrowClick}
             />
           </Card>
         </div>
@@ -290,6 +326,7 @@ export const BorrowRightPanel = () => {
     selectedBook,
     setRenewModalOpen,
     handleRenewClick,
+    handleCancelBorrowClick,
     submitRenew,
     getRequestStatus,
     renewDays,
@@ -330,6 +367,7 @@ export const BorrowRightPanel = () => {
                     pendingType: getRequestStatus(book.bookId || book._id || book.id),
                   }}
                   onRenew={handleRenewClick}
+                  onCancelBorrow={handleCancelBorrowClick}
                 />
               </Col>
             ))}

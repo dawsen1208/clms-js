@@ -168,6 +168,8 @@ export const searchBooks = (query) => API.get(`/library/books?q=${encodeURICompo
 // Borrow a book
 export const borrowBook = (bookId) => API.post(`/library/borrow/${bookId}`);
 
+export const cancelBorrow = (bookId) => API.post(`/library/borrow/${bookId}/cancel`);
+
 // Get currently borrowed books for the logged-in user
 export const getBorrowedBooks = () => API.get("/library/borrowed");
 

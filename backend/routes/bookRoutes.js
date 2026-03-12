@@ -781,6 +781,106 @@ router.post("/borrow/:id", authMiddleware, async (req, res) => {
   }
 });
 
+router.post("/borrow/:id/cancel", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+
+    const record = await BorrowRecord.findActiveByUserAndBook(userId, req.params.id);
+    if (!record) {
+      return res.status(404).json({ message: "未找到活跃的借阅记录" });
+    }
+    if (record.returned) {
+      return res.status(400).json({ message: "该借阅记录已完成" });
+    }
+
+    const borrowedAt = record.borrowedAt ? new Date(record.borrowedAt) : null;
+    if (!borrowedAt || borrowedAt < start || borrowedAt > end) {
+      return res.status(400).json({ message: "仅支持借阅当日取消借阅" });
+    }
+
+    const rawBookId = record.bookId?._id || record.bookId;
+
+    const pending = await BorrowRequest.findOne({
+      userId: record.userId,
+      bookId: String(rawBookId),
+      status: "pending",
+    }).lean();
+    if (pending) {
+      await BorrowRequest.updateMany(
+        { userId: record.userId, bookId: String(rawBookId), status: "pending" },
+        { $set: { status: "invalid", reason: "Borrow canceled by user", handledAt: now } }
+      );
+    }
+
+    record.returned = true;
+    record.returnedAt = now;
+    record.notes = record.notes ? `${record.notes}; canceled_same_day` : "canceled_same_day";
+    await record.save();
+
+    try {
+      const bookDoc = rawBookId && mongoose.Types.ObjectId.isValid(String(rawBookId))
+        ? await Book.findById(rawBookId)
+        : null;
+      if (bookDoc) {
+        bookDoc.copies = Number(bookDoc.copies || 0) + 1;
+        bookDoc.borrowCount = Math.max(0, Number(bookDoc.borrowCount || 0) - 1);
+        if (bookDoc.copies > 0) bookDoc.status = "available";
+        await bookDoc.save();
+      }
+    } catch (e) {
+      console.error("❌ 回滚库存失败:", e?.message || e);
+    }
+
+    try {
+      const existingHistory = await BorrowHistory.findOne({
+        userId: record.userId,
+        bookId: record.bookId,
+        action: "borrow",
+        returnDate: { $exists: false },
+      }).sort({ createdAt: -1 });
+
+      if (existingHistory) {
+        existingHistory.returnDate = now;
+        existingHistory.action = "cancel";
+        existingHistory.notes = existingHistory.notes
+          ? `${existingHistory.notes}; canceled_same_day`
+          : "canceled_same_day";
+        await existingHistory.save();
+      } else {
+        await BorrowHistory.create({
+          userId: record.userId,
+          bookId: record.bookId,
+          bookTitle: record.bookTitle || "未知书籍",
+          bookAuthor: record.bookAuthor || "",
+          userName: record.userName || "",
+          action: "cancel",
+          borrowDate: record.borrowedAt,
+          dueDate: record.dueDate,
+          returnDate: now,
+          isRenewed: record.renewed,
+          renewCount: record.renewCount,
+          notes: "canceled_same_day",
+        });
+      }
+    } catch (e) {
+      console.error("❌ 写入取消借阅历史失败(非致命):", e?.message || e);
+    }
+
+    return res.json({
+      message: "已取消借阅",
+      recordId: record._id,
+      bookId: rawBookId,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "取消借阅失败", error: err.message });
+  }
+});
+
 /* =========================================================
    📨 用户提交续借 / 归还申请
    ========================================================= */

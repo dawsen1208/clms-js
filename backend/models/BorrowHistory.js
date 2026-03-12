@@ -33,7 +33,7 @@ const borrowHistorySchema = new mongoose.Schema({
   // Action type
   action: { 
     type: String, 
-    enum: ["borrow", "renew", "return"], 
+    enum: ["borrow", "renew", "return", "cancel"], 
     required: true,
     index: true 
   },
