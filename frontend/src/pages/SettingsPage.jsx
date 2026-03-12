@@ -654,33 +654,41 @@ function SettingsPage({ appearance, onChange, user, onUserUpdate }) {
                 bordered={false}
               >
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder) }}>
-                    <Space>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', columnGap: 12, padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder) }}>
+                    <div style={{ minWidth: 0 }}>
+                      <Space style={{ minWidth: 0 }}>
                        <SoundOutlined style={{ fontSize: 20, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorPrimary }} />
                        <div>
                          <Text strong style={{ display: 'block', color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.tts") || "Text-to-Speech"}</Text>
                          <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorTextSecondary }}>{t("settings.ttsDesc") || "Enable text-to-speech for buttons and content"}</Text>
                        </div>
-                    </Space>
-                    <Switch checked={accessibilityPrefs.ttsEnabled === true} onChange={(v) => saveAccessibility({ ttsEnabled: v })} />
+                      </Space>
+                    </div>
+                    <div style={{ justifySelf: 'end', position: 'relative', zIndex: 1 }}>
+                      <Switch checked={accessibilityPrefs.ttsEnabled === true} onChange={(v) => saveAccessibility({ ttsEnabled: v })} />
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder) }}>
-                    <Space>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', columnGap: 12, padding: '16px', background: appearance?.highContrast ? '#000' : token.colorBgLayout, borderRadius: token.borderRadius, border: '1px solid ' + (appearance?.highContrast ? token.colorTextLightSolid : token.colorBorder) }}>
+                    <div style={{ minWidth: 0 }}>
+                      <Space style={{ minWidth: 0 }}>
                        <RobotOutlined style={{ fontSize: 20, color: appearance?.highContrast ? token.colorTextLightSolid : token.colorSuccess }} />
                        <div>
                          <Text strong style={{ display: 'block', color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.accessibilityMode") || "Accessibility Mode"}</Text>
                          <Text type="secondary" style={{ fontSize: 12, color: appearance?.highContrast ? token.colorTextLightSolid : undefined }}>{t("settings.accessibilityModeDesc") || "Simplified interface with larger elements"}</Text>
                        </div>
-                    </Space>
-                    <Switch checked={accessibilityPrefs.accessibilityMode === true} onChange={(v) => {
-                      saveAccessibility({ accessibilityMode: v });
-                      if (onChange) {
-                        onChange(prev => ({
-                          ...prev,
-                          fontSize: v ? 20 : 'normal'
-                        }));
-                      }
-                    }} />
+                      </Space>
+                    </div>
+                    <div style={{ justifySelf: 'end', position: 'relative', zIndex: 1 }}>
+                      <Switch checked={accessibilityPrefs.accessibilityMode === true} onChange={(v) => {
+                        saveAccessibility({ accessibilityMode: v });
+                        if (onChange) {
+                          onChange(prev => ({
+                            ...prev,
+                            fontSize: v ? 20 : 'normal'
+                          }));
+                        }
+                      }} />
+                    </div>
                   </div>
                 </Space>
               </Card>

@@ -44,16 +44,6 @@ export const AccessibilityProvider = ({ children }) => {
       } catch (e) {
         void e;
       }
-      try {
-        window.dispatchEvent(
-          new StorageEvent("storage", {
-            key: "accessibility_prefs",
-            newValue: JSON.stringify(next),
-          })
-        );
-      } catch (e) {
-        void e;
-      }
       return next;
     });
   };
