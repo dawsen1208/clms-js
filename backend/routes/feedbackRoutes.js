@@ -65,10 +65,10 @@ router.put("/:id/reply", authMiddleware, requireAdmin, async (req, res) => {
         try {
              await Notification.create({
                 userId: feedback.userId,
-                type: "system",
+                type: "feedback_reply",
                 title: "Admin Replied to Feedback",
                 message: "Admin replied to your feedback.",
-                relatedId: feedback._id
+                relatedId: String(feedback._id || "")
             });
         } catch (e) {
             console.error("Notification error:", e);

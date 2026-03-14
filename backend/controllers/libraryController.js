@@ -182,11 +182,11 @@ export const approveRequestLibrary = async (req, res) => {
       // 🔔 Create return success notification
       try {
         await Notification.create({
-          userId: request.userId,
-          type: "system",
+          userId: String(request?.userId?._id || request?.userId || ""),
+          type: "success",
           title: "Book Returned Successfully",
           message: `Your book "${finalBookTitle || request.bookTitle || "Unknown Book"}" has been successfully returned.`,
-          relatedId: rawBookId || request.bookId,
+          relatedId: String(rawBookId || request.bookId || ""),
           read: false
         });
       } catch (notifErr) {
@@ -401,11 +401,11 @@ export const markBookReturned = async (req, res) => {
     // 🔔 创建归还成功通知
     try {
       await Notification.create({
-        userId: record.userId,
-        type: "system",
+        userId: String(record?.userId?._id || record?.userId || ""),
+        type: "success",
         title: "Book Returned Successfully",
         message: `Your book "${finalBookTitle || "Unknown Book"}" has been marked as returned by administrator.`,
-        relatedId: rawBookId || record.bookId,
+        relatedId: String(rawBookId || record.bookId || ""),
         read: false
       });
     } catch (notifErr) {

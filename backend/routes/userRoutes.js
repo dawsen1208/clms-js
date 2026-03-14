@@ -928,7 +928,7 @@ router.put("/approve/:userId", authMiddleware, requireAdmin, async (req, res) =>
         const Notification = (await import("../models/Notification.js")).default;
         await Notification.create({
             userId: user.userId,
-            type: "system",
+            type: "info",
             title: "Account Status Update",
             message: status === "APPROVED" ? "Your account has been approved." : "Your account has been rejected."
         });
