@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 const AccessibilityContext = createContext();
 
@@ -32,6 +32,28 @@ export const AccessibilityProvider = ({ children }) => {
   // Use a ref to track enabled state to prevent stale closures in event listeners/timeouts
   const ttsEnabledRef = useRef(prefs.ttsEnabled);
 
+  const getSpeechSynthesis = useCallback(() => {
+    try {
+      const s = typeof window !== "undefined" ? window.speechSynthesis : null;
+      if (!s) return null;
+      if (typeof s.cancel !== "function") return null;
+      if (typeof s.speak !== "function") return null;
+      return s;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const safeCancelSpeech = useCallback(() => {
+    const s = getSpeechSynthesis();
+    if (!s) return;
+    try {
+      s.cancel();
+    } catch {
+      void 0;
+    }
+  }, [getSpeechSynthesis]);
+
   useEffect(() => {
     ttsEnabledRef.current = prefs.ttsEnabled;
   }, [prefs.ttsEnabled]);
@@ -48,26 +70,30 @@ export const AccessibilityProvider = ({ children }) => {
     });
   };
 
-  const speak = (text) => {
+  const speak = useCallback((text) => {
     // strict check against ref to ensure we never speak if disabled
     if (!ttsEnabledRef.current || !text) return;
     
-    // Cancel previous
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    // Optional: Set language if needed, e.g., utterance.lang = 'zh-CN';
-    window.speechSynthesis.speak(utterance);
-  };
+    const s = getSpeechSynthesis();
+    if (!s) return;
+    if (typeof SpeechSynthesisUtterance !== "function") return;
 
-  const cancelSpeech = () => {
-    window.speechSynthesis.cancel();
-  };
+    try {
+      s.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      s.speak(utterance);
+    } catch {
+      void 0;
+    }
+  }, [getSpeechSynthesis]);
+
+  const cancelSpeech = useCallback(() => safeCancelSpeech(), [safeCancelSpeech]);
 
   // 🗣️ Global TTS Listener
   useEffect(() => {
     // If disabled, ensure any ongoing speech is cancelled immediately
     if (!prefs.ttsEnabled) {
-      window.speechSynthesis.cancel();
+      safeCancelSpeech();
       return;
     }
 
@@ -134,9 +160,9 @@ export const AccessibilityProvider = ({ children }) => {
       document.removeEventListener('focusin', handleInteraction);
       document.removeEventListener('mouseover', handleInteraction);
       clearTimeout(debounceTimer);
-      window.speechSynthesis.cancel();
+      safeCancelSpeech();
     };
-  }, [prefs.ttsEnabled]);
+  }, [prefs.ttsEnabled, safeCancelSpeech, speak]);
 
   // Sync with other tabs/windows
   useEffect(() => {
